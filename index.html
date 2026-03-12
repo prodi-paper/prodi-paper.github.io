@@ -7,6 +7,8 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>Prodiconseil — Stock papier & carton B2B</title>
+<link rel="preconnect" href="https://bvcgpdoukhcatjibmvnb.supabase.co">
+<link rel="dns-prefetch" href="https://stock.prodi.net">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -1195,11 +1197,16 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
 </div>
 <div class="spin-bg" id="spinner"><div class="spin"></div></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SURL='https://bvcgpdoukhcatjibmvnb.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2Y2dwZG91a2hjYXRqaWJtdm5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNzg5MjgsImV4cCI6MjA4Nzg1NDkyOH0.Ip3ykSUS9sajTH04yXBerOG1haBKMD1kAvMQNjnGL1Q';
-const sb=supabase.createClient(SURL,SKEY);
+const SB_H={'apikey':SKEY,'Authorization':'Bearer '+SKEY,'Content-Type':'application/json'};
+async function sbQ(path,opts={}){
+  const r=await fetch(SURL+'/rest/v1/'+path,{method:opts.method||'GET',headers:{...SB_H,...(opts.headers||{})},body:opts.body!=null?JSON.stringify(opts.body):undefined,signal:opts.signal});
+  const txt=await r.text();const d=txt?JSON.parse(txt):null;
+  const cr=r.headers.get('Content-Range');
+  return{data:r.ok?d:null,error:r.ok?null:(d||{message:'HTTP '+r.status}),count:cr&&cr.includes('/')?+cr.split('/')[1]:null};
+}
 const WA='33649754915';
 let all=[],cur=null;
 const PAGE=52; let currentPage=1,_totalCount=0,_reqToken=0,_lastCorrections=[],_isFirstLoad=true;
@@ -1761,7 +1768,6 @@ async function _fetchAndRender(token){
   const _pCodes=parsed.qualityCodes.length&&!_sideCodes.length?parsed.qualityCodes:[];
   const typeCodes=[..._sideCodes,..._pCodes];
 
-  let query=sb.from('products').select('*',{count:'exact'});
   // Build RPC params for sum_weight_filtered
   const rpcParams={};
   if(parsed.text.length)rpcParams.q=parsed.text.join(' ').replace(/[%_]/g,'\\$&');
@@ -1784,48 +1790,44 @@ async function _fetchAndRender(token){
   if(origines.size===1)rpcParams.origine_prefix=[...origines][0];
   if(pn)rpcParams.price_min=pn;
   if(px)rpcParams.price_max=px;
-  function _applyFilters(q2){
-    parsed.text.forEach(term=>{const s=term.replace(/[%_]/g,'\\$&');q2=q2.or(`quality.ilike.%${s}%,color.ilike.%${s}%,details.ilike.%${s}%,ref.ilike.%${s}%`);});
-    if(typeCodes.length>0)q2=q2.in('quality',typeCodes);
-    if(gn)q2=q2.gte('gsm',gn);
-    if(gx)q2=q2.lte('gsm',gx);
-    if(_gsm)q2=q2.eq('gsm',_gsm);
-    if(lmin)q2=q2.gte('width',lmin);
-    if(lmax)q2=q2.lte('width',lmax);
-    if(la&&!lmin&&!lmax)q2=q2.eq('width',la);
-    if(_width)q2=q2.eq('width',_width);
-    if(mandrins.size>0)q2=q2.in('noyau',[...mandrins]);
-    else if(_pNoyau)q2=q2.eq('noyau',_pNoyau);
-    if(_allColors.length)q2=q2.or(_allColors.map(c=>`color.ilike.%${c}%`).join(','));
-    if(_allFormats.length)q2=q2.in('format',_allFormats);
-    if(origines.size===1)q2=q2.like('quality',[...origines][0]+'%');
-    if(longmin)q2=q2.gte('longueur',longmin);
-    if(longmax)q2=q2.lte('longueur',longmax);
-    if(longexact&&!longmin&&!longmax)q2=q2.eq('longueur',longexact);
-    if(refCode)q2=q2.ilike('quality',refCode+'%');
-    if(pn)q2=q2.gte('price',pn);
-    if(px)q2=q2.lte('price',px);
-    return q2;
-  }
-  query=_applyFilters(query);
 
-  if(s==='gsm_asc'||s==='grammage_asc')query=query.order('gsm',{ascending:true,nullsFirst:false});
-  else if(s==='gsm_desc'||s==='grammage_desc')query=query.order('gsm',{ascending:false,nullsFirst:false});
-  else if(s==='price_asc'||s==='prix_asc')query=query.order('price',{ascending:true,nullsFirst:false});
-  else if(s==='price_desc'||s==='prix_desc')query=query.order('price',{ascending:false,nullsFirst:false});
-  else query=query.order('id',{ascending:false});
-
+  // Build URL params (replaces SDK query builder)
+  const p=new URLSearchParams();
+  p.set('select','*');
+  parsed.text.forEach(term=>{const s=term.replace(/[%_]/g,'\\$&');p.append('or',`(quality.ilike.%${s}%,color.ilike.%${s}%,details.ilike.%${s}%,ref.ilike.%${s}%)`);});
+  if(typeCodes.length>0)p.append('quality',`in.(${typeCodes.join(',')})`);
+  if(gn)p.append('gsm',`gte.${gn}`);
+  if(gx)p.append('gsm',`lte.${gx}`);
+  if(_gsm)p.append('gsm',`eq.${_gsm}`);
+  if(lmin)p.append('width',`gte.${lmin}`);
+  if(lmax)p.append('width',`lte.${lmax}`);
+  if(la&&!lmin&&!lmax)p.append('width',`eq.${la}`);
+  if(_width)p.append('width',`eq.${_width}`);
+  if(mandrins.size>0)p.append('noyau',`in.(${[...mandrins].join(',')})`);
+  else if(_pNoyau)p.append('noyau',`eq.${_pNoyau}`);
+  if(_allColors.length)p.append('or',`(${_allColors.map(c=>`color.ilike.%${c}%`).join(',')})`);
+  if(_allFormats.length)p.append('format',`in.(${_allFormats.join(',')})`);
+  if(origines.size===1)p.append('quality',`like.${[...origines][0]}%`);
+  if(longmin)p.append('longueur',`gte.${longmin}`);
+  if(longmax)p.append('longueur',`lte.${longmax}`);
+  if(longexact&&!longmin&&!longmax)p.append('longueur',`eq.${longexact}`);
+  if(refCode)p.append('quality',`ilike.${refCode}%`);
+  if(pn)p.append('price',`gte.${pn}`);
+  if(px)p.append('price',`lte.${px}`);
+  if(s==='gsm_asc'||s==='grammage_asc')p.set('order','gsm.asc.nullslast');
+  else if(s==='gsm_desc'||s==='grammage_desc')p.set('order','gsm.desc.nullslast');
+  else if(s==='price_asc'||s==='prix_asc')p.set('order','price.asc.nullslast');
+  else if(s==='price_desc'||s==='prix_desc')p.set('order','price.desc.nullslast');
+  else p.set('order','id.desc');
   const offset=(currentPage-1)*PAGE;
-  query=query.range(offset,offset+PAGE-1);
 
   const ctrl=new AbortController();
   const _to=setTimeout(()=>ctrl.abort(),15000);
   let data,error,_exactCount=null,_totalWeightKg=0;
   try{
-    if(typeof query.abortSignal==='function')query=query.abortSignal(ctrl.signal);
     const [mainRes,wRes]=await Promise.all([
-      query,
-      sb.rpc('sum_weight_filtered',rpcParams)
+      sbQ('products?'+p,{headers:{'Prefer':'count=exact','Range':offset+'-'+(offset+PAGE-1)},signal:ctrl.signal}),
+      sbQ('rpc/sum_weight_filtered',{method:'POST',body:rpcParams})
     ]);
     ({data,error,count:_exactCount}=mainRes);
     _totalWeightKg=wRes.data||0;
@@ -2244,7 +2246,7 @@ async function sendProforma(){
   if(!ok)return;
   const btn=document.getElementById('pf-btn');btn.disabled=true;btn.textContent='ENVOI...';
   try{
-    const {error}=await sb.from('proforma_requests').insert({product_id:cur?.id,nom,societe:soc,email,telephone:document.getElementById('pf-tel').value,quantite_souhaitee:document.getElementById('pf-qty').value,message:document.getElementById('pf-msg').value,statut:'nouveau'});
+    const {error}=await sbQ('proforma_requests',{method:'POST',body:{product_id:cur?.id,nom,societe:soc,email,telephone:document.getElementById('pf-tel').value,quantite_souhaitee:document.getElementById('pf-qty').value,message:document.getElementById('pf-msg').value,statut:'nouveau'},headers:{'Prefer':'return=minimal'}});
     if(error)throw error;
     // Show success screen inside the pf-box
     const box=document.querySelector('#proforma-bg .pf-box');
@@ -2411,7 +2413,7 @@ async function sendCartProforma(){
     const msg='Panier : '+cart.map(p=>`${p.name}${p.ref?' ('+p.ref+')':''} — ${fmt(p.poids_net)}`).join(' | ')+(document.getElementById('pfc-msg').value?' | '+document.getElementById('pfc-msg').value:'');
     const savedCart=[...cart];
     for(const p of savedCart){
-      const {error}=await sb.from('proforma_requests').insert({product_id:p.id,nom,societe:soc,email,telephone:document.getElementById('pfc-tel').value,quantite_souhaitee:'Demande groupée panier',message:msg,statut:'nouveau'});
+      const {error}=await sbQ('proforma_requests',{method:'POST',body:{product_id:p.id,nom,societe:soc,email,telephone:document.getElementById('pfc-tel').value,quantite_souhaitee:'Demande groupée panier',message:msg,statut:'nouveau'},headers:{'Prefer':'return=minimal'}});
       if(error)throw error;
     }
     btn.disabled=false;btn.textContent='ENVOYER';
