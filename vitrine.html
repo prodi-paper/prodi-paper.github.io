@@ -207,6 +207,28 @@ button{cursor:pointer;border:none;font-family:inherit;background:none;}
 .btn-wa2{background:#25D366;color:#fff;padding:13px 20px;border-radius:var(--r);font-size:14px;font-weight:600;display:flex;align-items:center;gap:10px;justify-content:center;margin-top:24px;transition:background .15s;width:100%;}
 .btn-wa2:hover{background:#1aab55;}
 
+/* ─── SHOWCASE PRODUITS ─── */
+.showcase-sec{background:var(--off);}
+.showcase-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:48px;}
+.sc-card{background:#fff;border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;transition:all .22s;cursor:pointer;text-decoration:none;display:block;color:inherit;}
+.sc-card:hover{transform:translateY(-5px);box-shadow:0 12px 40px rgba(0,0,0,.12);border-color:transparent;}
+.sc-img{position:relative;aspect-ratio:4/3;overflow:hidden;background:#ececec;}
+.sc-img img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s;}
+.sc-card:hover .sc-img img{transform:scale(1.06);}
+.sc-img-badge{position:absolute;top:10px;left:10px;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);color:#fff;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:4px 9px;border-radius:4px;}
+.sc-body{padding:18px 20px 20px;}
+.sc-name{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;color:var(--dark);margin-bottom:5px;line-height:1.05;}
+.sc-desc{font-size:12px;color:var(--gray);line-height:1.55;margin-bottom:16px;}
+.sc-specs{font-size:12px;color:var(--ink2);margin-top:4px;}
+.sc-cta{display:block;background:var(--red);color:#fff;text-align:center;padding:10px 16px;border-radius:var(--r);font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;transition:background .15s;}
+.sc-cta:hover{background:var(--red2);}
+.showcase-footer{text-align:center;}
+.sc-skel{background:#fff;border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;}
+.sc-skel-img{aspect-ratio:4/3;background:linear-gradient(90deg,#e8e8e8 25%,#f2f2f2 50%,#e8e8e8 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;}
+.sc-skel-body{padding:18px 20px 20px;}
+.sc-skel-line{height:12px;border-radius:4px;background:linear-gradient(90deg,#e8e8e8 25%,#f2f2f2 50%,#e8e8e8 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;margin-bottom:10px;}
+@keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+
 /* ─── FOOTER ─── */
 footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36px 40px;}
 .foot-in{max-width:1240px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;}
@@ -220,6 +242,7 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
 .foot-nav a:hover{color:rgba(255,255,255,.75);}
 
 /* ─── RESPONSIVE ─── */
+@media(max-width:1100px){.showcase-grid{grid-template-columns:repeat(2,1fr);}}
 @media(max-width:900px){
   .hd-nav,.hd-divider,.hd-lang,.btn-cat{display:none;}
   .hd-burger{display:flex;}
@@ -391,6 +414,28 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
       </div>
     </div>
   </div>
+
+  <!-- SHOWCASE PRODUITS -->
+  <section class="sec showcase-sec">
+    <div class="sec-inner">
+      <div class="sec-tag" data-i18n="sc_tag">Nos produits</div>
+      <h2 class="sec-h" data-i18n="sc_h">APERÇU DE NOS STOCKS</h2>
+      <p class="sec-sub" data-i18n="sc_sub">Plusieurs milliers de références en stock immédiat, issues de papeteries européennes de premier rang.</p>
+      <div id="showcase-grid" class="showcase-grid">
+        <div class="sc-skel"><div class="sc-skel-img"></div><div class="sc-skel-body"><div class="sc-skel-line" style="width:65%"></div><div class="sc-skel-line" style="width:85%"></div><div class="sc-skel-line" style="width:50%;margin-top:16px"></div></div></div>
+        <div class="sc-skel"><div class="sc-skel-img"></div><div class="sc-skel-body"><div class="sc-skel-line" style="width:70%"></div><div class="sc-skel-line" style="width:80%"></div><div class="sc-skel-line" style="width:50%;margin-top:16px"></div></div></div>
+        <div class="sc-skel"><div class="sc-skel-img"></div><div class="sc-skel-body"><div class="sc-skel-line" style="width:60%"></div><div class="sc-skel-line" style="width:90%"></div><div class="sc-skel-line" style="width:50%;margin-top:16px"></div></div></div>
+        <div class="sc-skel"><div class="sc-skel-img"></div><div class="sc-skel-body"><div class="sc-skel-line" style="width:75%"></div><div class="sc-skel-line" style="width:75%"></div><div class="sc-skel-line" style="width:50%;margin-top:16px"></div></div></div>
+        <div class="sc-skel"><div class="sc-skel-img"></div><div class="sc-skel-body"><div class="sc-skel-line" style="width:68%"></div><div class="sc-skel-line" style="width:82%"></div><div class="sc-skel-line" style="width:50%;margin-top:16px"></div></div></div>
+        <div class="sc-skel"><div class="sc-skel-img"></div><div class="sc-skel-body"><div class="sc-skel-line" style="width:72%"></div><div class="sc-skel-line" style="width:78%"></div><div class="sc-skel-line" style="width:50%;margin-top:16px"></div></div></div>
+        <div class="sc-skel"><div class="sc-skel-img"></div><div class="sc-skel-body"><div class="sc-skel-line" style="width:55%"></div><div class="sc-skel-line" style="width:88%"></div><div class="sc-skel-line" style="width:50%;margin-top:16px"></div></div></div>
+        <div class="sc-skel"><div class="sc-skel-img"></div><div class="sc-skel-body"><div class="sc-skel-line" style="width:78%"></div><div class="sc-skel-line" style="width:72%"></div><div class="sc-skel-line" style="width:50%;margin-top:16px"></div></div></div>
+      </div>
+      <div class="showcase-footer">
+        <a href="./index.html" class="btn-primary" data-i18n="sc_cta">Voir tout le stock →</a>
+      </div>
+    </div>
+  </section>
 
   <!-- ACTIVITÉ -->
   <section class="sec">
@@ -753,6 +798,7 @@ const T = {
     hero_btn1:'NOS PRODUITS', hero_btn2:'NOUS CONTACTER',
     stat1:'Fondés en', stat2:'Références en stock', stat3:'Tonnes disponibles', stat4:'Délai de chargement',
     mq_label:'Présents dans 30+ pays à travers le monde',
+    sc_tag:'Nos produits', sc_h:'APERÇU DE NOS STOCKS', sc_sub:'Plusieurs milliers de références en stock immédiat, issues de papeteries européennes de premier rang.', sc_cta:'Voir tout le stock →',
     act_tag:'Notre activité', act_h:'NÉGOCIANT EN STOCKLOTS DE PAPIER',
     act_p1:'Prodiconseil est une société européenne fondée en 1991, spécialisée dans la vente de stocklots de papier et carton provenant de grandes papeteries.',
     act_p2:'Ces lots peuvent provenir de surproductions, de commandes annulées ou de changements de spécifications. Les produits sont vendus à des transformateurs et négociants internationaux.',
@@ -805,6 +851,7 @@ const T = {
     hero_btn1:'OUR PRODUCTS', hero_btn2:'CONTACT US',
     stat1:'Founded in', stat2:'References in stock', stat3:'Tonnes available', stat4:'Loading lead time',
     mq_label:'Active in 30+ countries worldwide',
+    sc_tag:'Our products', sc_h:'STOCK OVERVIEW', sc_sub:'Thousands of references in immediate stock, from major European paper mills.', sc_cta:'View full stock →',
     act_tag:'Our activity', act_h:'PAPER & BOARD STOCKLOT TRADER',
     act_p1:'Prodiconseil is a European company founded in 1991, specialising in the sale of paper and board stocklots from major paper mills.',
     act_p2:'These lots may come from overproductions, cancelled orders or specification changes. Products are sold to converters and international traders.',
@@ -921,6 +968,67 @@ async function submitContact(e) {
     alert('Erreur — veuillez réessayer ou écrire à eelbilia@gmail.com');
   }
 }
+
+// ─── SHOWCASE PRODUITS ───
+const SHOWCASE_TYPES = {
+  'R1SC': {name:'Couché 1 face',   desc:'C1S — Brillant, mat, satiné. Pure pâte & recyclé.'},
+  'R2SC': {name:'Couché 2 faces',  desc:'C2S — Impression haute qualité, haute blancheur.'},
+  'RKRA': {name:'Kraft',           desc:'Blanc & brun. Toutes laizes, tous grammages.'},
+  'RBOA': {name:'Carton couché',   desc:'SBS/FBB — Blanc couché, haute rigidité.'},
+  'RBON': {name:'Carton non couché', desc:'Emballage, boîtes pliantes, liner.'},
+  'RCOL': {name:'Papier couleur',  desc:'Toutes couleurs. Offset & numérique, 60–300 g/m².'},
+  'RADH': {name:'Adhésif',         desc:'Brillant, mat, transparent. Dos blanc ou offset.'},
+  'RBOU': {name:'Bouffant',        desc:'Non couché naturel. Livres, cahiers, annuaires.'},
+};
+const SHOWCASE_TYPES_EN = {
+  'R1SC': {name:'Coated 1 side',   desc:'C1S — Gloss, matt, satin. Virgin & recycled fibre.'},
+  'R2SC': {name:'Coated 2 sides',  desc:'C2S — High quality printing, high brightness.'},
+  'RKRA': {name:'Kraft',           desc:'White & brown. All widths and grammages.'},
+  'RBOA': {name:'Coated board',    desc:'SBS/FBB — White coated, high rigidity.'},
+  'RBON': {name:'Uncoated board',  desc:'Packaging, folding cartons, liner.'},
+  'RCOL': {name:'Colour paper',    desc:'All colours. Offset & digital, 60–300 gsm.'},
+  'RADH': {name:'Self-adhesive',   desc:'Gloss, matt, clear. White or offset back.'},
+  'RBOU': {name:'Bulky',           desc:'Uncoated natural feel. Books, notebooks, directories.'},
+};
+
+async function loadShowcase() {
+  const codes = Object.keys(SHOWCASE_TYPES).join(',');
+  try {
+    const r = await fetch(`${SURL}/rest/v1/products?quality=in.(${codes})&select=ref,quality,gsm,width,format,image_url,price,color&limit=300`, {
+      headers: {'apikey': SKEY, 'Authorization': `Bearer ${SKEY}`}
+    });
+    const data = await r.json();
+    const byQ = {};
+    for (const p of data) { if (!byQ[p.quality]) byQ[p.quality] = p; }
+    const items = Object.keys(SHOWCASE_TYPES).map(q => byQ[q]).filter(Boolean);
+    renderShowcase(items);
+  } catch(e) { document.getElementById('showcase-grid').innerHTML = ''; }
+}
+
+function renderShowcase(items) {
+  const grid = document.getElementById('showcase-grid');
+  if (!items.length) { grid.innerHTML = ''; return; }
+  const map = lang === 'en' ? SHOWCASE_TYPES_EN : SHOWCASE_TYPES;
+  grid.innerHTML = items.map(p => {
+    const info = map[p.quality] || {name: p.quality, desc: ''};
+    const specs = [p.gsm && `${p.gsm} g/m²`, p.width && `${p.width} mm`, p.color].filter(Boolean).join(' · ');
+    const cta = lang === 'en' ? 'REQUEST A QUOTE' : 'DEMANDER UN DEVIS';
+    return `<a class="sc-card" href="./index.html">
+      <div class="sc-img">
+        <img src="${p.image_url}" alt="${info.name}" loading="lazy" onerror="this.parentElement.style.background='#f0f0f0';this.style.display='none'">
+        <span class="sc-img-badge">${p.format}</span>
+      </div>
+      <div class="sc-body">
+        <div class="sc-name">${info.name}</div>
+        <div class="sc-desc">${info.desc}</div>
+        <div class="sc-specs">${specs}</div>
+        <span class="sc-cta" style="margin-top:14px">${cta}</span>
+      </div>
+    </a>`;
+  }).join('');
+}
+
+loadShowcase();
 </script>
 </body>
 </html>
