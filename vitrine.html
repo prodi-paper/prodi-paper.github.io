@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="fr" data-lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prodiconseil — Stocklots de papier & carton | European Paper Stocklots</title>
+<meta name="description" content="Prodiconseil, négociant européen spécialisé en stocklots de papier et carton. Bobines et palettes issus de grandes papeteries. Expédition mondiale.">
+<meta name="keywords" content="stocklots papier, carton, bobines papier, kraft paper, SBS board, FBB, testliner, fluting, coated paper, offset paper, European paper stocklots">
+<meta property="og:title" content="Prodiconseil — Stocklots de papier & carton européens">
+<meta property="og:description" content="Bobines et formats feuilles issus de grandes papeteries européennes. Expédition dans le monde entier.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="dns-prefetch" href="https://bvcgpdoukhcatjibmvnb.supabase.co">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans',sans-serif;font-size:15px;color:#222;background:#fff;overflow-x:hidden;}
+a{text-decoration:none;color:inherit;}
+ul{list-style:none;}
+button{cursor:pointer;border:none;font-family:inherit;background:none;}
+
+:root{
+  --red:#FE0000;--red2:#cc0000;
+  --dark:#0D0D0D;--dark2:#1A1A1A;
+  --ink:#222;--ink2:#555;--gray:#999;
+  --border:#E8E8E8;--off:#F7F7F7;--white:#fff;
+  --r:6px;--rl:12px;
+  --shadow:0 2px 12px rgba(0,0,0,.07);
+  --shadow-lg:0 12px 40px rgba(0,0,0,.12);
+}
+
+/* ─── HEADER ─── */
+.hd{position:fixed;top:0;left:0;right:0;height:62px;background:rgba(255,255,255,.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);z-index:1000;display:flex;align-items:center;padding:0 32px;gap:16px;}
+.hd-logo{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2.5px;color:var(--dark);margin-right:auto;display:flex;align-items:center;gap:0;}
+.hd-logo-dot{color:var(--red);}
+.hd-nav{display:flex;align-items:center;gap:2px;}
+.hd-nav a{padding:7px 14px;border-radius:var(--r);font-size:13px;font-weight:500;color:#666;transition:all .15s;cursor:pointer;}
+.hd-nav a:hover,.hd-nav a.active{background:var(--off);color:var(--ink);}
+.hd-divider{width:1px;height:20px;background:var(--border);margin:0 6px;}
+.btn-cat{background:var(--red);color:#fff;padding:8px 18px;border-radius:var(--r);font-size:13px;font-weight:600;letter-spacing:.3px;transition:background .15s;white-space:nowrap;}
+.btn-cat:hover{background:var(--red2);}
+.hd-lang{display:flex;align-items:center;gap:2px;margin-left:6px;}
+.hd-lang button{padding:5px 9px;border-radius:4px;font-size:12px;font-weight:700;letter-spacing:.5px;color:#888;transition:all .15s;}
+.hd-lang button.on{background:var(--dark);color:#fff;}
+.hd-lang button:hover:not(.on){background:var(--off);color:var(--ink);}
+.hd-burger{display:none;flex-direction:column;gap:5px;padding:8px;margin-left:auto;}
+.hd-burger span{display:block;width:22px;height:2px;background:var(--ink);border-radius:2px;transition:all .25s;}
+
+/* ─── MOBILE MENU ─── */
+.mob-menu{display:none;position:fixed;top:62px;left:0;right:0;background:#fff;border-bottom:1px solid var(--border);padding:12px 20px 20px;z-index:999;flex-direction:column;gap:4px;box-shadow:var(--shadow-lg);}
+.mob-menu.open{display:flex;}
+.mob-menu a{padding:11px 14px;border-radius:var(--r);font-size:14px;font-weight:500;color:var(--ink);cursor:pointer;transition:background .15s;}
+.mob-menu a:hover{background:var(--off);}
+.mob-sep{height:1px;background:var(--border);margin:8px 0;}
+.mob-menu .btn-cat{text-align:center;padding:12px;margin-top:4px;}
+.mob-lang{display:flex;gap:8px;padding:4px 14px;}
+.mob-lang button{padding:6px 14px;border-radius:4px;font-size:13px;font-weight:700;color:#888;border:1px solid var(--border);transition:all .15s;}
+.mob-lang button.on{background:var(--dark);color:#fff;border-color:var(--dark);}
+
+/* ─── PAGES ─── */
+.page{display:none;padding-top:62px;}
+.page.active{display:block;}
+
+/* ─── HERO ─── */
+.hero{min-height:100vh;background:var(--dark);position:relative;display:flex;align-items:center;overflow:hidden;}
+.hero-grid-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);background-size:64px 64px;}
+.hero-glow{position:absolute;top:-20%;right:-10%;width:60%;height:80%;background:radial-gradient(ellipse,rgba(254,0,0,.07) 0%,transparent 65%);pointer-events:none;}
+.hero-inner{position:relative;z-index:2;max-width:1240px;margin:0 auto;padding:100px 40px 80px;width:100%;}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(254,0,0,.1);border:1px solid rgba(254,0,0,.2);color:var(--red);padding:6px 14px;border-radius:100px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:28px;}
+.hero-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--red);animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+.hero h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(58px,8.5vw,116px);line-height:.93;color:#fff;letter-spacing:2px;margin-bottom:28px;}
+.hero h1 em{color:var(--red);font-style:normal;}
+.hero-sub{font-size:clamp(14px,1.4vw,17px);color:rgba(255,255,255,.55);max-width:540px;line-height:1.75;margin-bottom:44px;}
+.hero-btns{display:flex;gap:14px;flex-wrap:wrap;}
+.btn-hero{background:var(--red);color:#fff;padding:14px 28px;border-radius:var(--r);font-size:14px;font-weight:600;letter-spacing:.3px;transition:all .18s;display:inline-flex;align-items:center;gap:8px;}
+.btn-hero:hover{background:var(--red2);transform:translateY(-1px);}
+.btn-hero svg{transition:transform .18s;}
+.btn-hero:hover svg{transform:translateX(3px);}
+.btn-hero-ghost{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.85);padding:14px 28px;border-radius:var(--r);font-size:14px;font-weight:500;transition:all .18s;display:inline-flex;align-items:center;gap:8px;}
+.btn-hero-ghost:hover{background:rgba(255,255,255,.13);}
+.hero-stats{margin-top:80px;display:flex;gap:0;border-top:1px solid rgba(255,255,255,.07);padding-top:40px;flex-wrap:wrap;}
+.h-stat{flex:1;min-width:140px;padding:0 36px 0 0;border-right:1px solid rgba(255,255,255,.07);}
+.h-stat:first-child{padding-left:0;}
+.h-stat:last-child{border-right:none;}
+.h-stat-v{font-family:'Bebas Neue',sans-serif;font-size:44px;letter-spacing:1px;color:#fff;line-height:1;}
+.h-stat-v span{color:var(--red);}
+.h-stat-l{font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.8px;margin-top:4px;}
+
+/* ─── SECTIONS ─── */
+.sec{padding:88px 40px;}
+.sec-inner{max-width:1240px;margin:0 auto;}
+.sec-tag{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:10px;}
+.sec-h{font-family:'Bebas Neue',sans-serif;font-size:clamp(36px,4vw,54px);letter-spacing:1.5px;color:var(--dark);line-height:1;margin-bottom:14px;}
+.sec-sub{font-size:15px;color:var(--ink2);max-width:580px;line-height:1.75;margin-bottom:52px;}
+.sec-gray{background:var(--off);}
+.sec-dark{background:var(--dark);}
+
+/* ─── ACTIVITÉ ─── */
+.act-grid{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:center;}
+.act-text p{font-size:15px;line-height:1.85;color:#444;margin-bottom:18px;}
+.act-text p strong{color:var(--ink);}
+.act-list{display:flex;flex-direction:column;gap:10px;margin:24px 0 32px;}
+.act-list li{display:flex;align-items:flex-start;gap:12px;font-size:14px;color:#555;line-height:1.5;}
+.act-list li::before{content:'';flex-shrink:0;width:5px;height:5px;border-radius:50%;background:var(--red);margin-top:7px;}
+.act-cards{display:flex;flex-direction:column;gap:14px;}
+.act-card{background:#fff;border:1px solid var(--border);border-radius:var(--rl);padding:22px 24px;display:flex;gap:16px;align-items:flex-start;box-shadow:var(--shadow);}
+.act-card-ico{flex-shrink:0;width:42px;height:42px;background:rgba(254,0,0,.07);border-radius:9px;display:flex;align-items:center;justify-content:center;color:var(--red);}
+.act-card h4{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:5px;}
+.act-card p{font-size:13px;color:#666;line-height:1.55;}
+
+/* ─── PRODUITS ─── */
+.prod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(162px,1fr));gap:12px;}
+.prod-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--rl);padding:26px 18px 22px;text-align:center;transition:all .2s;cursor:pointer;}
+.prod-card:hover{border-color:var(--red);transform:translateY(-3px);box-shadow:var(--shadow-lg);}
+.prod-ico{font-size:30px;margin-bottom:14px;display:block;}
+.prod-name{font-weight:700;font-size:13px;color:var(--ink);}
+.prod-sub{font-size:12px;color:var(--gray);margin-top:4px;line-height:1.4;}
+.prod-cta{margin-top:44px;text-align:center;}
+.btn-primary{background:var(--red);color:#fff;padding:13px 28px;border-radius:var(--r);font-size:14px;font-weight:600;transition:background .15s;display:inline-flex;align-items:center;gap:8px;}
+.btn-primary:hover{background:var(--red2);}
+.btn-outline{background:#fff;border:1.5px solid var(--red);color:var(--red);padding:12px 24px;border-radius:var(--r);font-size:14px;font-weight:600;transition:all .15s;display:inline-flex;align-items:center;gap:8px;}
+.btn-outline:hover{background:var(--red);color:#fff;}
+
+/* ─── LOGISTIQUE ─── */
+.logi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+.logi-card{padding:36px 30px;border:1px solid rgba(255,255,255,.1);border-radius:var(--rl);background:var(--dark2);}
+.logi-ico{width:52px;height:52px;background:rgba(254,0,0,.12);border:1px solid rgba(254,0,0,.2);border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--red);margin-bottom:22px;}
+.logi-card h3{font-size:16px;font-weight:600;color:#fff;margin-bottom:10px;}
+.logi-card p{font-size:14px;color:rgba(255,255,255,.45);line-height:1.65;}
+
+/* ─── CTA BANNER ─── */
+.cta-wrap{background:var(--red);padding:80px 40px;}
+.cta-inner{max-width:1240px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:40px;flex-wrap:wrap;}
+.cta-text h2{font-family:'Bebas Neue',sans-serif;font-size:clamp(34px,4vw,56px);color:#fff;letter-spacing:1.5px;line-height:1;}
+.cta-text p{font-size:15px;color:rgba(255,255,255,.65);margin-top:10px;}
+.cta-btns{display:flex;gap:12px;flex-wrap:wrap;flex-shrink:0;}
+.btn-white{background:#fff;color:var(--red);padding:13px 26px;border-radius:var(--r);font-size:14px;font-weight:700;transition:all .15s;display:inline-flex;align-items:center;gap:8px;}
+.btn-white:hover{background:rgba(255,255,255,.9);}
+.btn-wa{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:13px 22px;border-radius:var(--r);font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:8px;transition:all .15s;}
+.btn-wa:hover{background:rgba(255,255,255,.25);}
+
+/* ─── ABOUT ─── */
+.ab-hero{background:var(--dark);padding:110px 40px 88px;}
+.ab-hero-in{max-width:1240px;margin:0 auto;}
+.ab-hero h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(50px,7vw,90px);color:#fff;letter-spacing:2px;line-height:.93;margin-bottom:20px;}
+.ab-hero h1 em{color:var(--red);font-style:normal;}
+.ab-hero p{font-size:16px;color:rgba(255,255,255,.5);max-width:540px;line-height:1.75;}
+.ab-body{padding:88px 40px;}
+.ab-in{max-width:1240px;margin:0 auto;}
+.ab-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;margin-bottom:80px;}
+.ab-col h2{font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:1px;color:var(--dark);margin-bottom:18px;}
+.ab-col p{font-size:15px;color:#555;line-height:1.85;margin-bottom:14px;}
+.ab-nums{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:20px;}
+.ab-num{padding:28px 26px;border:1px solid var(--border);border-radius:var(--rl);background:var(--off);}
+.ab-num-v{font-family:'Bebas Neue',sans-serif;font-size:50px;color:var(--red);letter-spacing:1px;line-height:1;}
+.ab-num-l{font-size:13px;color:#777;margin-top:6px;line-height:1.4;}
+.ab-process{margin-top:80px;}
+.ab-process h2{font-family:'Bebas Neue',sans-serif;font-size:44px;letter-spacing:1px;color:var(--dark);margin-bottom:36px;}
+.ab-steps{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:24px;}
+.ab-step{padding:30px 26px;background:#fff;border:1px solid var(--border);border-radius:var(--rl);position:relative;}
+.ab-step-n{font-family:'Bebas Neue',sans-serif;font-size:48px;color:rgba(0,0,0,.05);position:absolute;top:16px;right:20px;line-height:1;}
+.ab-step-ico{width:44px;height:44px;background:rgba(254,0,0,.07);border-radius:9px;display:flex;align-items:center;justify-content:center;color:var(--red);margin-bottom:16px;}
+.ab-step h4{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:8px;}
+.ab-step p{font-size:13px;color:#666;line-height:1.55;}
+
+/* ─── CONTACT ─── */
+.ct-wrap{max-width:1240px;margin:0 auto;padding:88px 40px;display:grid;grid-template-columns:1fr 380px;gap:80px;align-items:start;}
+.ct-form-h h2{font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:1.5px;color:var(--dark);margin-bottom:6px;}
+.ct-form-h p{font-size:15px;color:#666;margin-bottom:44px;line-height:1.65;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.fg{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
+.fg label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#888;}
+.fg input,.fg textarea,.fg select{padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--ink);background:#fff;outline:none;transition:border-color .15s;width:100%;}
+.fg input:focus,.fg textarea:focus{border-color:var(--red);}
+.fg textarea{resize:vertical;min-height:130px;}
+.btn-submit{background:var(--red);color:#fff;padding:14px;border-radius:var(--r);font-size:14px;font-weight:600;transition:background .15s;width:100%;margin-top:4px;}
+.btn-submit:hover{background:var(--red2);}
+.btn-submit:disabled{background:#ccc;cursor:not-allowed;}
+.form-ok{display:none;text-align:center;padding:52px 24px;}
+.form-ok-ico{font-size:48px;margin-bottom:16px;}
+.form-ok h3{font-size:20px;font-weight:700;margin-bottom:8px;color:var(--ink);}
+.form-ok p{font-size:14px;color:#666;}
+.ct-aside{background:var(--dark);border-radius:var(--rl);padding:36px 32px;color:#fff;position:sticky;top:80px;}
+.ct-aside h3{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:1px;margin-bottom:28px;}
+.ci{display:flex;gap:14px;align-items:flex-start;margin-bottom:22px;padding-bottom:22px;border-bottom:1px solid rgba(255,255,255,.07);}
+.ci:last-of-type{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+.ci-ico{width:40px;height:40px;flex-shrink:0;background:rgba(255,255,255,.07);border-radius:8px;display:flex;align-items:center;justify-content:center;}
+.ci-lbl{font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+.ci-val{font-size:14px;color:rgba(255,255,255,.85);}
+.ci-val a{color:rgba(255,255,255,.85);transition:color .15s;}
+.ci-val a:hover{color:#fff;}
+.btn-wa2{background:#25D366;color:#fff;padding:13px 20px;border-radius:var(--r);font-size:14px;font-weight:600;display:flex;align-items:center;gap:10px;justify-content:center;margin-top:24px;transition:background .15s;width:100%;}
+.btn-wa2:hover{background:#1aab55;}
+
+/* ─── FOOTER ─── */
+footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36px 40px;}
+.foot-in{max-width:1240px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;}
+.foot-logo{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2.5px;color:#fff;}
+.foot-logo span{color:var(--red);}
+.foot-info{font-size:13px;color:rgba(255,255,255,.3);text-align:center;}
+.foot-info a{color:rgba(255,255,255,.45);transition:color .15s;}
+.foot-info a:hover{color:rgba(255,255,255,.8);}
+.foot-nav{display:flex;gap:20px;}
+.foot-nav a{font-size:13px;color:rgba(255,255,255,.35);cursor:pointer;transition:color .15s;}
+.foot-nav a:hover{color:rgba(255,255,255,.75);}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:900px){
+  .hd-nav,.hd-divider,.hd-lang,.btn-cat{display:none;}
+  .hd-burger{display:flex;}
+  .act-grid,.ab-grid{grid-template-columns:1fr;gap:40px;}
+  .logi-grid{grid-template-columns:1fr;}
+  .ct-wrap{grid-template-columns:1fr;gap:40px;}
+  .ct-aside{position:static;}
+  .form-row{grid-template-columns:1fr;}
+  .hero-stats{gap:24px;}
+  .h-stat{padding:0;border:none;min-width:calc(50% - 12px);}
+}
+@media(max-width:600px){
+  .hero-inner,.sec,.ab-hero,.ab-body,.cta-wrap,.ct-wrap,footer{padding-left:20px;padding-right:20px;}
+  .cta-inner{flex-direction:column;align-items:flex-start;}
+  .prod-grid{grid-template-columns:repeat(2,1fr);}
+  .ab-nums,.ab-steps{grid-template-columns:1fr 1fr;}
+  .foot-in{flex-direction:column;align-items:flex-start;gap:14px;}
+  .foot-info{text-align:left;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════ HEADER ══════════ -->
+<header class="hd">
+  <div class="hd-logo" onclick="showPage('home')" style="cursor:pointer">PRODI<span class="hd-logo-dot">.</span>CONSEIL</div>
+  <nav class="hd-nav">
+    <a onclick="showPage('home')" id="nav-home" class="active" data-i18n="nav_home">Accueil</a>
+    <a onclick="showPage('about')" id="nav-about" data-i18n="nav_about">À propos</a>
+    <a onclick="showPage('contact')" id="nav-contact" data-i18n="nav_contact">Contact</a>
+  </nav>
+  <div class="hd-divider"></div>
+  <a href="./index.html" class="btn-cat" data-i18n="nav_catalogue">Voir le stock →</a>
+  <div class="hd-lang">
+    <button onclick="setLang('fr')" id="lang-fr" class="on">FR</button>
+    <button onclick="setLang('en')" id="lang-en">EN</button>
+  </div>
+  <div class="hd-burger" onclick="toggleMob()" id="burger">
+    <span></span><span></span><span></span>
+  </div>
+</header>
+
+<!-- ══════════ MOBILE MENU ══════════ -->
+<div class="mob-menu" id="mob-menu">
+  <a onclick="showPage('home');toggleMob()" data-i18n="nav_home">Accueil</a>
+  <a onclick="showPage('about');toggleMob()" data-i18n="nav_about">À propos</a>
+  <a onclick="showPage('contact');toggleMob()" data-i18n="nav_contact">Contact</a>
+  <div class="mob-sep"></div>
+  <a href="./index.html" class="btn-cat" data-i18n="nav_catalogue">Voir le stock →</a>
+  <div class="mob-sep"></div>
+  <div class="mob-lang">
+    <button onclick="setLang('fr')" id="mob-lang-fr" class="on">FR</button>
+    <button onclick="setLang('en')" id="mob-lang-en">EN</button>
+  </div>
+</div>
+
+<!-- ══════════ PAGE ACCUEIL ══════════ -->
+<div id="page-home" class="page active">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-grid-bg"></div>
+    <div class="hero-glow"></div>
+    <div class="hero-inner">
+      <div class="hero-badge">
+        <span class="hero-badge-dot"></span>
+        <span data-i18n="hero_badge">Négociant européen</span>
+      </div>
+      <h1 data-i18n-h="hero_title">STOCKLOTS DE PAPIER<br><em>ET CARTON</em><br>EUROPÉENS</h1>
+      <p class="hero-sub" data-i18n="hero_sub">Stocks disponibles provenant de grandes papeteries européennes, expédition dans le monde entier.</p>
+      <div class="hero-btns">
+        <a href="./index.html" class="btn-hero">
+          <span data-i18n="hero_btn1">Voir le stock disponible</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <a onclick="showPage('contact')" class="btn-hero-ghost" style="cursor:pointer">
+          <span data-i18n="hero_btn2">Nous contacter</span>
+        </a>
+      </div>
+      <div class="hero-stats">
+        <div class="h-stat">
+          <div class="h-stat-v">5 800<span>+</span></div>
+          <div class="h-stat-l" data-i18n="stat1">Références en stock</div>
+        </div>
+        <div class="h-stat">
+          <div class="h-stat-v">100<span>%</span></div>
+          <div class="h-stat-l" data-i18n="stat2">Origine européenne</div>
+        </div>
+        <div class="h-stat">
+          <div class="h-stat-v">MONDE</div>
+          <div class="h-stat-l" data-i18n="stat3">Export international</div>
+        </div>
+        <div class="h-stat">
+          <div class="h-stat-v">24<span>H</span></div>
+          <div class="h-stat-l" data-i18n="stat4">Délai de chargement</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ACTIVITÉ -->
+  <section class="sec">
+    <div class="sec-inner">
+      <div class="act-grid">
+        <div class="act-text">
+          <div class="sec-tag" data-i18n="act_tag">Notre activité</div>
+          <h2 class="sec-h" data-i18n="act_h">NÉGOCIANT EN STOCKLOTS DE PAPIER</h2>
+          <p data-i18n="act_p1">Prodiconseil est une société européenne spécialisée dans la vente de stocklots de papier et carton provenant de grandes papeteries.</p>
+          <p data-i18n="act_p2">Ces lots peuvent provenir de surproductions, de commandes annulées ou de changements de spécifications. Les produits sont vendus à des transformateurs et négociants internationaux.</p>
+          <ul class="act-list">
+            <li data-i18n="act_l1">Surproductions de papeteries européennes</li>
+            <li data-i18n="act_l2">Commandes annulées ou spécifications modifiées</li>
+            <li data-i18n="act_l3">Stocks vendus à des transformateurs et négociants</li>
+            <li data-i18n="act_l4">Bobines et formats feuilles disponibles immédiatement</li>
+          </ul>
+        </div>
+        <div class="act-cards">
+          <div class="act-card">
+            <div class="act-card-ico">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+            </div>
+            <div>
+              <h4 data-i18n="card1_h">Surproductions</h4>
+              <p data-i18n="card1_p">Excédents de production de grandes papeteries européennes disponibles à prix compétitifs.</p>
+            </div>
+          </div>
+          <div class="act-card">
+            <div class="act-card-ico">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 14l-4-4 4-4"/><path d="M5 10h11a4 4 0 0 1 0 8h-1"/></svg>
+            </div>
+            <div>
+              <h4 data-i18n="card2_h">Commandes annulées</h4>
+              <p data-i18n="card2_p">Produits finis non livrés pour cause d'annulation ou de changement de spécifications client.</p>
+            </div>
+          </div>
+          <div class="act-card">
+            <div class="act-card-ico">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            </div>
+            <div>
+              <h4 data-i18n="card3_h">Qualité garantie</h4>
+              <p data-i18n="card3_p">Produits issus de papeteries reconnues, avec références qualité et photos disponibles pour chaque lot.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRODUITS -->
+  <section class="sec sec-gray">
+    <div class="sec-inner">
+      <div class="sec-tag" data-i18n="prod_tag">Catalogue</div>
+      <h2 class="sec-h" data-i18n="prod_h">NOS CATÉGORIES DE PRODUITS</h2>
+      <p class="sec-sub" data-i18n="prod_sub">Bobines et formats feuilles disponibles en stock, issus de papeteries européennes de premier rang.</p>
+      <div class="prod-grid">
+        <div class="prod-card" onclick="window.location='./index.html'">
+          <span class="prod-ico">📦</span>
+          <div class="prod-name">Kraft Paper</div>
+          <div class="prod-sub" data-i18n="p_kraft">Brun & blanc, bobines</div>
+        </div>
+        <div class="prod-card" onclick="window.location='./index.html'">
+          <span class="prod-ico">🗂️</span>
+          <div class="prod-name">SBS Board</div>
+          <div class="prod-sub" data-i18n="p_sbs">Carton couché blanc</div>
+        </div>
+        <div class="prod-card" onclick="window.location='./index.html'">
+          <span class="prod-ico">📋</span>
+          <div class="prod-name">FBB</div>
+          <div class="prod-sub" data-i18n="p_fbb">Folding box board</div>
+        </div>
+        <div class="prod-card" onclick="window.location='./index.html'">
+          <span class="prod-ico">🧱</span>
+          <div class="prod-name">Testliner</div>
+          <div class="prod-sub" data-i18n="p_test">Papier d'emballage</div>
+        </div>
+        <div class="prod-card" onclick="window.location='./index.html'">
+          <span class="prod-ico">〰️</span>
+          <div class="prod-name">Fluting</div>
+          <div class="prod-sub" data-i18n="p_flut">Papier ondulé</div>
+        </div>
+        <div class="prod-card" onclick="window.location='./index.html'">
+          <span class="prod-ico">✨</span>
+          <div class="prod-name">Coated Paper</div>
+          <div class="prod-sub" data-i18n="p_coat">1 & 2 faces</div>
+        </div>
+        <div class="prod-card" onclick="window.location='./index.html'">
+          <span class="prod-ico">🧻</span>
+          <div class="prod-name">Offset Paper</div>
+          <div class="prod-sub" data-i18n="p_off">Sans bois & newsprint</div>
+        </div>
+      </div>
+      <div class="prod-cta">
+        <a href="./index.html" class="btn-primary" style="margin-right:12px">
+          <span data-i18n="prod_cta1">Voir le catalogue complet</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- LOGISTIQUE -->
+  <section class="sec sec-dark">
+    <div class="sec-inner">
+      <div class="sec-tag" style="color:rgba(254,0,0,.8)" data-i18n="logi_tag">Logistique</div>
+      <h2 class="sec-h" style="color:#fff" data-i18n="logi_h">EXPÉDITION DEPUIS L'EUROPE</h2>
+      <p class="sec-sub" style="color:rgba(255,255,255,.45)" data-i18n="logi_sub">Nos stocks sont disponibles en entrepôts européens, prêts à être expédiés dans le monde entier.</p>
+      <div class="logi-grid">
+        <div class="logi-card">
+          <div class="logi-ico">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          </div>
+          <h3 data-i18n="logi1_h">Entrepôts européens</h3>
+          <p data-i18n="logi1_p">Stocks physiques disponibles en France et dans plusieurs pays européens. Délai de chargement rapide.</p>
+        </div>
+        <div class="logi-card">
+          <div class="logi-ico">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          </div>
+          <h3 data-i18n="logi2_h">Export mondial</h3>
+          <p data-i18n="logi2_p">Livraison dans tous les pays. Expérience dans les procédures douanières internationales.</p>
+        </div>
+        <div class="logi-card">
+          <div class="logi-ico">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          </div>
+          <h3 data-i18n="logi3_h">Conteneurs complets</h3>
+          <p data-i18n="logi3_p">Livraison en FCL. Lots à partir de quelques tonnes, adaptables selon les besoins de l'acheteur.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA BANNER -->
+  <div class="cta-wrap">
+    <div class="cta-inner">
+      <div class="cta-text">
+        <h2 data-i18n="cta_h">INTÉRESSÉ PAR NOS STOCKS ?</h2>
+        <p data-i18n="cta_sub">Consultez notre catalogue ou contactez-nous directement.</p>
+      </div>
+      <div class="cta-btns">
+        <a href="./index.html" class="btn-white">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          <span data-i18n="cta_btn1">Voir le catalogue</span>
+        </a>
+        <a href="https://wa.me/33649754915" target="_blank" class="btn-wa">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+          <span data-i18n="cta_btn2">WhatsApp</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div><!-- /page-home -->
+
+<!-- ══════════ PAGE À PROPOS ══════════ -->
+<div id="page-about" class="page">
+  <div class="ab-hero">
+    <div class="ab-hero-in">
+      <div class="sec-tag" style="color:rgba(254,0,0,.8);margin-bottom:16px" data-i18n="about_tag">À propos</div>
+      <h1 data-i18n-h="about_h1">NÉGOCIANT EUROPÉEN<br>EN PAPIER <em>&</em> CARTON</h1>
+      <p data-i18n="about_intro">Prodiconseil est spécialisé dans la commercialisation de stocklots de papier et carton issus de grandes papeteries européennes.</p>
+    </div>
+  </div>
+  <div class="ab-body">
+    <div class="ab-in">
+      <div class="ab-grid">
+        <div class="ab-col">
+          <h2 data-i18n="ab_h1">L'ENTREPRISE</h2>
+          <p data-i18n="ab_p1">Prodiconseil est un négociant européen spécialisé dans les stocklots de papier et carton. Nous travaillons avec des papeteries de premier rang pour proposer des lots à prix compétitifs.</p>
+          <p data-i18n="ab_p2">Notre activité repose sur une connaissance approfondie du marché du papier et sur un réseau de partenaires industriels en Europe.</p>
+          <p data-i18n="ab_p3">Nous fournissons des transformateurs, des imprimeurs et des négociants dans de nombreux pays, avec des solutions logistiques adaptées à chaque marché.</p>
+        </div>
+        <div class="ab-col">
+          <h2 data-i18n="ab_h2">NOS PRODUITS</h2>
+          <p data-i18n="ab_p4">Notre catalogue comprend des bobines et des formats feuilles dans de nombreuses qualités : papier couché, kraft, offset, carton SBS, FBB, testliner, fluting et bien d'autres.</p>
+          <p data-i18n="ab_p5">Chaque lot est documenté avec ses caractéristiques techniques (grammage, laize, poids, mandrin) et une photo du produit pour faciliter l'identification.</p>
+          <p data-i18n="ab_p6">Les stocks proviennent de surproductions et de commandes annulées, ce qui permet des prix très compétitifs par rapport au marché primaire.</p>
+        </div>
+      </div>
+      <div class="ab-nums">
+        <div class="ab-num">
+          <div class="ab-num-v">5 800<span style="font-size:28px">+</span></div>
+          <div class="ab-num-l" data-i18n="num1">Références disponibles en stock</div>
+        </div>
+        <div class="ab-num">
+          <div class="ab-num-v">100<span style="font-size:28px">%</span></div>
+          <div class="ab-num-l" data-i18n="num2">Stocks d'origine européenne</div>
+        </div>
+        <div class="ab-num">
+          <div class="ab-num-v">EU</div>
+          <div class="ab-num-l" data-i18n="num3">Papeteries européennes de référence</div>
+        </div>
+        <div class="ab-num">
+          <div class="ab-num-v">24H</div>
+          <div class="ab-num-l" data-i18n="num4">Délai de chargement typique</div>
+        </div>
+      </div>
+      <div class="ab-process">
+        <h2 data-i18n="ab_proc_h">COMMENT ÇA MARCHE</h2>
+        <div class="ab-steps">
+          <div class="ab-step">
+            <div class="ab-step-n">01</div>
+            <div class="ab-step-ico">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            </div>
+            <h4 data-i18n="step1_h">Consultez le catalogue</h4>
+            <p data-i18n="step1_p">Parcourez nos 5 800+ références avec filtres par qualité, grammage, laize et format.</p>
+          </div>
+          <div class="ab-step">
+            <div class="ab-step-n">02</div>
+            <div class="ab-step-ico">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            <h4 data-i18n="step2_h">Demandez un proforma</h4>
+            <p data-i18n="step2_p">Sélectionnez vos produits et envoyez une demande de proforma directement depuis le catalogue.</p>
+          </div>
+          <div class="ab-step">
+            <div class="ab-step-n">03</div>
+            <div class="ab-step-ico">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            </div>
+            <h4 data-i18n="step3_h">Confirmation & livraison</h4>
+            <p data-i18n="step3_p">Nous préparons votre commande et organisons l'expédition vers votre port de destination.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="cta-wrap">
+    <div class="cta-inner">
+      <div class="cta-text">
+        <h2 data-i18n="cta_h">INTÉRESSÉ PAR NOS STOCKS ?</h2>
+        <p data-i18n="cta_sub">Consultez notre catalogue ou contactez-nous directement.</p>
+      </div>
+      <div class="cta-btns">
+        <a href="./index.html" class="btn-white"><span data-i18n="cta_btn1">Voir le catalogue</span></a>
+        <a onclick="showPage('contact')" class="btn-wa" style="cursor:pointer"><span data-i18n="cta_btn2b">Nous contacter</span></a>
+      </div>
+    </div>
+  </div>
+</div><!-- /page-about -->
+
+<!-- ══════════ PAGE CONTACT ══════════ -->
+<div id="page-contact" class="page">
+  <div class="ct-wrap">
+    <div>
+      <div class="ct-form-h">
+        <div class="sec-tag" data-i18n="ct_tag">Contact</div>
+        <h2 data-i18n="ct_h">ENVOYEZ-NOUS UN MESSAGE</h2>
+        <p data-i18n="ct_sub">Remplissez le formulaire ci-dessous. Nous vous répondrons sous 24h.</p>
+      </div>
+      <div id="contact-form-wrap">
+        <form id="contact-form" onsubmit="submitContact(event)">
+          <div class="form-row">
+            <div class="fg">
+              <label data-i18n="f_nom">Nom</label>
+              <input type="text" id="f-nom" placeholder="Jean Dupont" required>
+            </div>
+            <div class="fg">
+              <label data-i18n="f_soc">Entreprise</label>
+              <input type="text" id="f-soc" placeholder="Entreprise SA" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="fg">
+              <label data-i18n="f_email">Email</label>
+              <input type="email" id="f-email" placeholder="nom@entreprise.com" required>
+            </div>
+            <div class="fg">
+              <label data-i18n="f_tel">Téléphone</label>
+              <input type="tel" id="f-tel" placeholder="+33 6 00 00 00 00">
+            </div>
+          </div>
+          <div class="fg">
+            <label data-i18n="f_msg">Message</label>
+            <textarea id="f-msg" placeholder="" required></textarea>
+          </div>
+          <button type="submit" class="btn-submit" id="f-submit" data-i18n="f_send">Envoyer le message</button>
+        </form>
+        <div id="form-ok" class="form-ok">
+          <div class="form-ok-ico">✅</div>
+          <h3 data-i18n="ok_h">Message envoyé !</h3>
+          <p data-i18n="ok_p">Nous vous répondrons dans les 24 heures.</p>
+        </div>
+      </div>
+    </div>
+    <div class="ct-aside">
+      <h3 data-i18n="aside_h">COORDONNÉES</h3>
+      <div class="ci">
+        <div class="ci-ico">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        </div>
+        <div>
+          <div class="ci-lbl">Email</div>
+          <div class="ci-val"><a href="mailto:eelbilia@gmail.com">eelbilia@gmail.com</a></div>
+        </div>
+      </div>
+      <div class="ci">
+        <div class="ci-ico">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        </div>
+        <div>
+          <div class="ci-lbl">WhatsApp</div>
+          <div class="ci-val"><a href="https://wa.me/33649754915" target="_blank">+33 6 49 75 49 15</a></div>
+        </div>
+      </div>
+      <div class="ci">
+        <div class="ci-ico">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </div>
+        <div>
+          <div class="ci-lbl" data-i18n="ci_web">Site catalogue</div>
+          <div class="ci-val"><a href="./index.html">ethanelb.github.io</a></div>
+        </div>
+      </div>
+      <a href="https://wa.me/33649754915" target="_blank" class="btn-wa2">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+        <span data-i18n="wa_btn">Écrire sur WhatsApp</span>
+      </a>
+    </div>
+  </div>
+</div><!-- /page-contact -->
+
+<!-- ══════════ FOOTER ══════════ -->
+<footer>
+  <div class="foot-in">
+    <div class="foot-logo">PRODI<span>.</span>CONSEIL</div>
+    <div class="foot-info">
+      © 2026 Prodiconseil &nbsp;·&nbsp;
+      <a href="mailto:eelbilia@gmail.com">eelbilia@gmail.com</a> &nbsp;·&nbsp;
+      <a href="https://wa.me/33649754915">+33 6 49 75 49 15</a>
+    </div>
+    <div class="foot-nav">
+      <a onclick="showPage('home')" data-i18n="nav_home">Accueil</a>
+      <a onclick="showPage('about')" data-i18n="nav_about">À propos</a>
+      <a onclick="showPage('contact')" data-i18n="nav_contact">Contact</a>
+      <a href="./index.html" data-i18n="nav_catalogue">Catalogue</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ─── TRANSLATIONS ───
+const T = {
+  fr: {
+    nav_home:'Accueil', nav_about:'À propos', nav_contact:'Contact', nav_catalogue:'Voir le stock →',
+    hero_badge:'Négociant européen',
+    hero_title:'STOCKLOTS DE PAPIER<br><em>ET CARTON</em><br>EUROPÉENS',
+    hero_sub:'Stocks disponibles provenant de grandes papeteries européennes, expédition dans le monde entier.',
+    hero_btn1:'Voir le stock disponible', hero_btn2:'Nous contacter',
+    stat1:'Références en stock', stat2:'Origine européenne', stat3:'Export international', stat4:'Délai de chargement',
+    act_tag:'Notre activité', act_h:'NÉGOCIANT EN STOCKLOTS DE PAPIER',
+    act_p1:'Prodiconseil est une société européenne spécialisée dans la vente de stocklots de papier et carton provenant de grandes papeteries.',
+    act_p2:'Ces lots peuvent provenir de surproductions, de commandes annulées ou de changements de spécifications. Les produits sont vendus à des transformateurs et négociants internationaux.',
+    act_l1:'Surproductions de papeteries européennes',
+    act_l2:'Commandes annulées ou spécifications modifiées',
+    act_l3:'Stocks vendus à des transformateurs et négociants',
+    act_l4:'Bobines et formats feuilles disponibles immédiatement',
+    card1_h:'Surproductions', card1_p:'Excédents de production de grandes papeteries européennes disponibles à prix compétitifs.',
+    card2_h:'Commandes annulées', card2_p:'Produits finis non livrés pour cause d\'annulation ou de changement de spécifications client.',
+    card3_h:'Qualité garantie', card3_p:'Produits issus de papeteries reconnues, avec références qualité et photos disponibles pour chaque lot.',
+    prod_tag:'Catalogue', prod_h:'NOS CATÉGORIES DE PRODUITS',
+    prod_sub:'Bobines et formats feuilles disponibles en stock, issus de papeteries européennes de premier rang.',
+    p_kraft:'Brun & blanc, bobines', p_sbs:'Carton couché blanc', p_fbb:'Folding box board',
+    p_test:'Papier d\'emballage', p_flut:'Papier ondulé', p_coat:'1 & 2 faces', p_off:'Sans bois & newsprint',
+    prod_cta1:'Voir le catalogue complet',
+    logi_tag:'Logistique', logi_h:'EXPÉDITION DEPUIS L\'EUROPE',
+    logi_sub:'Nos stocks sont disponibles en entrepôts européens, prêts à être expédiés dans le monde entier.',
+    logi1_h:'Entrepôts européens', logi1_p:'Stocks physiques disponibles en France et dans plusieurs pays européens. Délai de chargement rapide.',
+    logi2_h:'Export mondial', logi2_p:'Livraison dans tous les pays. Expérience dans les procédures douanières internationales.',
+    logi3_h:'Conteneurs complets', logi3_p:'Livraison en FCL. Lots à partir de quelques tonnes, adaptables selon les besoins de l\'acheteur.',
+    cta_h:'INTÉRESSÉ PAR NOS STOCKS ?', cta_sub:'Consultez notre catalogue ou contactez-nous directement.',
+    cta_btn1:'Voir le catalogue', cta_btn2:'WhatsApp', cta_btn2b:'Nous contacter',
+    about_tag:'À propos', about_h1:'NÉGOCIANT EUROPÉEN<br>EN PAPIER <em>&amp;</em> CARTON',
+    about_intro:'Prodiconseil est spécialisé dans la commercialisation de stocklots de papier et carton issus de grandes papeteries européennes.',
+    ab_h1:'L\'ENTREPRISE',
+    ab_p1:'Prodiconseil est un négociant européen spécialisé dans les stocklots de papier et carton. Nous travaillons avec des papeteries de premier rang pour proposer des lots à prix compétitifs.',
+    ab_p2:'Notre activité repose sur une connaissance approfondie du marché du papier et sur un réseau de partenaires industriels en Europe.',
+    ab_p3:'Nous fournissons des transformateurs, des imprimeurs et des négociants dans de nombreux pays, avec des solutions logistiques adaptées à chaque marché.',
+    ab_h2:'NOS PRODUITS',
+    ab_p4:'Notre catalogue comprend des bobines et des formats feuilles dans de nombreuses qualités : papier couché, kraft, offset, carton SBS, FBB, testliner, fluting et bien d\'autres.',
+    ab_p5:'Chaque lot est documenté avec ses caractéristiques techniques (grammage, laize, poids, mandrin) et une photo du produit.',
+    ab_p6:'Les stocks proviennent de surproductions et de commandes annulées, ce qui permet des prix très compétitifs par rapport au marché primaire.',
+    num1:'Références disponibles en stock', num2:'Stocks d\'origine européenne',
+    num3:'Papeteries européennes de référence', num4:'Délai de chargement typique',
+    ab_proc_h:'COMMENT ÇA MARCHE',
+    step1_h:'Consultez le catalogue', step1_p:'Parcourez nos 5 800+ références avec filtres par qualité, grammage, laize et format.',
+    step2_h:'Demandez un proforma', step2_p:'Sélectionnez vos produits et envoyez une demande de proforma directement depuis le catalogue.',
+    step3_h:'Confirmation & livraison', step3_p:'Nous préparons votre commande et organisons l\'expédition vers votre port de destination.',
+    ct_tag:'Contact', ct_h:'ENVOYEZ-NOUS UN MESSAGE',
+    ct_sub:'Remplissez le formulaire ci-dessous. Nous vous répondrons sous 24h.',
+    f_nom:'Nom', f_soc:'Entreprise', f_email:'Email', f_tel:'Téléphone', f_msg:'Message', f_send:'Envoyer le message',
+    ok_h:'Message envoyé !', ok_p:'Nous vous répondrons dans les 24 heures.',
+    aside_h:'COORDONNÉES', ci_web:'Site catalogue', wa_btn:'Écrire sur WhatsApp',
+  },
+  en: {
+    nav_home:'Home', nav_about:'About', nav_contact:'Contact', nav_catalogue:'View stock →',
+    hero_badge:'European trader',
+    hero_title:'EUROPEAN PAPER<br><em>&amp; BOARD</em><br>STOCKLOTS',
+    hero_sub:'Available stocks from major European paper mills, worldwide shipping.',
+    hero_btn1:'View available stock', hero_btn2:'Contact us',
+    stat1:'References in stock', stat2:'European origin', stat3:'International export', stat4:'Loading lead time',
+    act_tag:'Our activity', act_h:'PAPER & BOARD STOCKLOT TRADER',
+    act_p1:'Prodiconseil is a European company specialised in the sale of paper and board stocklots from major paper mills.',
+    act_p2:'These lots may come from overproductions, cancelled orders or specification changes. Products are sold to converters and international traders.',
+    act_l1:'Overproductions from European paper mills',
+    act_l2:'Cancelled orders or modified specifications',
+    act_l3:'Stocks sold to converters and traders',
+    act_l4:'Reels and sheets available immediately',
+    card1_h:'Overproductions', card1_p:'Production surplus from major European paper mills available at competitive prices.',
+    card2_h:'Cancelled orders', card2_p:'Finished products undelivered due to order cancellation or specification changes.',
+    card3_h:'Quality guaranteed', card3_p:'Products from recognised paper mills, with quality references and photos available for each lot.',
+    prod_tag:'Catalogue', prod_h:'OUR PRODUCT CATEGORIES',
+    prod_sub:'Reels and sheet formats available in stock, from top-tier European paper mills.',
+    p_kraft:'Brown & white, reels', p_sbs:'White coated board', p_fbb:'Folding box board',
+    p_test:'Packaging paper', p_flut:'Corrugating medium', p_coat:'1 & 2 sides', p_off:'Woodfree & newsprint',
+    prod_cta1:'View full catalogue',
+    logi_tag:'Logistics', logi_h:'SHIPPING FROM EUROPE',
+    logi_sub:'Our stocks are available in European warehouses, ready to be shipped worldwide.',
+    logi1_h:'European warehouses', logi1_p:'Physical stocks available in France and several European countries. Fast loading lead times.',
+    logi2_h:'Worldwide export', logi2_p:'Delivery to all countries. Experience with international customs procedures.',
+    logi3_h:'Full container loads', logi3_p:'FCL delivery. Lots from a few tonnes, adaptable to the buyer\'s requirements.',
+    cta_h:'INTERESTED IN OUR STOCKS?', cta_sub:'Browse our catalogue or contact us directly.',
+    cta_btn1:'View catalogue', cta_btn2:'WhatsApp', cta_btn2b:'Contact us',
+    about_tag:'About', about_h1:'EUROPEAN TRADER<br>IN PAPER <em>&amp;</em> BOARD',
+    about_intro:'Prodiconseil specialises in the sale of paper and board stocklots from major European paper mills.',
+    ab_h1:'THE COMPANY',
+    ab_p1:'Prodiconseil is a European trader specialising in paper and board stocklots. We work with top-tier paper mills to offer competitive lots.',
+    ab_p2:'Our business is built on deep knowledge of the paper market and an industrial partner network across Europe.',
+    ab_p3:'We supply converters, printers and traders in many countries, with logistics solutions tailored to each market.',
+    ab_h2:'OUR PRODUCTS',
+    ab_p4:'Our catalogue includes reels and sheet formats in many grades: coated paper, kraft, offset, SBS board, FBB, testliner, fluting and more.',
+    ab_p5:'Each lot is documented with its technical specifications (grammage, width, weight, core) and a product photo.',
+    ab_p6:'Stocks come from overproductions and cancelled orders, enabling very competitive prices vs. the primary market.',
+    num1:'References available in stock', num2:'European-origin stocks',
+    num3:'Reference European paper mills', num4:'Typical loading lead time',
+    ab_proc_h:'HOW IT WORKS',
+    step1_h:'Browse the catalogue', step1_p:'Search our 5,800+ references with filters by grade, grammage, width and format.',
+    step2_h:'Request a proforma', step2_p:'Select your products and send a proforma request directly from the catalogue.',
+    step3_h:'Confirmation & delivery', step3_p:'We prepare your order and arrange shipment to your destination port.',
+    ct_tag:'Contact', ct_h:'SEND US A MESSAGE',
+    ct_sub:'Fill in the form below. We will reply within 24 hours.',
+    f_nom:'Name', f_soc:'Company', f_email:'Email', f_tel:'Phone', f_msg:'Message', f_send:'Send message',
+    ok_h:'Message sent!', ok_p:'We will reply within 24 hours.',
+    aside_h:'CONTACT INFO', ci_web:'Catalogue site', wa_btn:'Chat on WhatsApp',
+  }
+};
+
+let lang = 'fr';
+
+function setLang(l) {
+  lang = l;
+  document.documentElement.lang = l;
+  document.documentElement.dataset.lang = l;
+  ['fr','en'].forEach(x => {
+    document.getElementById('lang-'+x)?.classList.toggle('on', x===l);
+    document.getElementById('mob-lang-'+x)?.classList.toggle('on', x===l);
+  });
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.dataset.i18n;
+    if (T[l][k] !== undefined) el.textContent = T[l][k];
+  });
+  document.querySelectorAll('[data-i18n-h]').forEach(el => {
+    const k = el.dataset.i18nH;
+    if (T[l][k] !== undefined) el.innerHTML = T[l][k];
+  });
+}
+
+// ─── PAGE NAVIGATION ───
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-'+id)?.classList.add('active');
+  document.querySelectorAll('.hd-nav a').forEach(a => a.classList.remove('active'));
+  document.getElementById('nav-'+id)?.classList.add('active');
+  window.scrollTo({top:0, behavior:'instant'});
+}
+
+// ─── MOBILE MENU ───
+function toggleMob() {
+  const m = document.getElementById('mob-menu');
+  m.classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  const m = document.getElementById('mob-menu');
+  const b = document.getElementById('burger');
+  if (m.classList.contains('open') && !m.contains(e.target) && !b.contains(e.target)) {
+    m.classList.remove('open');
+  }
+});
+
+// ─── CONTACT FORM ───
+const SURL = 'https://bvcgpdoukhcatjibmvnb.supabase.co';
+const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2Y2dwZG91a2hjYXRqaWJtdm5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNzg5MjgsImV4cCI6MjA4Nzg1NDkyOH0.Ip3ykSUS9sajTH04yXBerOG1haBKMD1kAvMQNjnGL1Q';
+
+async function submitContact(e) {
+  e.preventDefault();
+  const btn = document.getElementById('f-submit');
+  btn.disabled = true;
+  btn.textContent = '...';
+  const nom = document.getElementById('f-nom').value.trim();
+  const soc = document.getElementById('f-soc').value.trim();
+  const email = document.getElementById('f-email').value.trim();
+  const tel = document.getElementById('f-tel').value.trim();
+  const msg = document.getElementById('f-msg').value.trim();
+  try {
+    const r = await fetch(SURL+'/rest/v1/proforma_requests', {
+      method:'POST',
+      headers:{'apikey':SKEY,'Authorization':'Bearer '+SKEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body: JSON.stringify({nom, societe:soc, email, telephone:tel, message:msg, quantite_souhaitee:'Contact vitrine', statut:'vitrine_contact'})
+    });
+    document.getElementById('contact-form').style.display = 'none';
+    document.getElementById('form-ok').style.display = 'block';
+  } catch(err) {
+    btn.disabled = false;
+    btn.textContent = T[lang].f_send;
+    alert('Erreur — veuillez réessayer ou écrire à eelbilia@gmail.com');
+  }
+}
+</script>
+</body>
+</html>
