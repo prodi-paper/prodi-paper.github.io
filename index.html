@@ -139,6 +139,8 @@ header{background:rgba(255,255,255,.92);position:sticky;top:0;z-index:100;border
 .fi-unit-wrap{position:relative;flex:1;}
 .fi-unit-wrap .fi{width:100%;padding-right:38px;}
 .fi-unit{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--gray);font-weight:600;pointer-events:none;white-space:nowrap;}
+.fi[type="number"]::-webkit-inner-spin-button,.fi[type="number"]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
+.fi[type="number"]{-moz-appearance:textfield;}
 
 /* ── MULTI-SELECT DROPDOWN ── */
 .msd{position:relative;width:100%;}
@@ -620,7 +622,7 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
   <div class="slow-sub">Le stock met plus de temps à charger que prévu. Vérifiez votre connexion ou contactez-nous directement.</div>
   <div class="slow-btns">
     <button class="btn-reload" onclick="location.reload()">↺ Rafraîchir</button>
-    <button class="btn-wa" onclick="window.open('https://wa.me/33600000000','_blank')">💬 WhatsApp</button>
+    <button class="btn-wa" onclick="window.open('https://wa.me/33649754915','_blank')">💬 WhatsApp</button>
   </div>
 </div>
 <header>
@@ -1024,7 +1026,7 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
       <div class="footer-col">
         <div class="footer-col-title">Contact</div>
         <a href="mailto:contact@prodiconseil.com">contact@prodiconseil.com</a>
-        <a href="tel:+33600000000">+33 6 00 00 00 00</a>
+        <a href="https://wa.me/33649754915" target="_blank">+33 6 49 75 49 15</a>
         <span>Lun – Ven · 9h – 18h</span>
       </div>
       <div class="footer-col">
@@ -1215,7 +1217,7 @@ const TYPE_MAP={
   'Couché 2 faces':    ['R2SC','S2SC'],
   'Couleur':           ['RCOL','SCOL'],
   'Cuisson':           ['RCUI'],
-  'Divers':            ['RDIV','SDIV'],
+  'Autres':            ['RDIV','SDIV'],
   'Emballage':         ['RPAC','SPAC'],
   'Encre':             ['SINK'],
   'Enveloppes':        ['RENV','SENV'],
@@ -1254,7 +1256,7 @@ const _norm=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 const SEARCH_VOCAB=(()=>{
   const v=[];
   for(const[k,codes]of Object.entries(TYPE_MAP))v.push({display:k,norm:_norm(k),codes,kind:'type'});
-  for(const c of['Blanc','Brun','Noir','Gris','Ivoire','Vert','Rouge','Bleu','Jaune','Orange','Argent','Couleur','Divers'])v.push({display:c,norm:c.toLowerCase(),kind:'color'});
+  for(const c of['Blanc','Brun','Noir','Gris','Ivoire','Vert','Rouge','Bleu','Jaune','Orange','Argent','Couleur','Autres'])v.push({display:c,norm:c.toLowerCase(),kind:'color'});
   for(const f of['Bobine','Palette'])v.push({display:f,norm:f.toLowerCase(),kind:'format'});
   return v;
 })();
@@ -1442,7 +1444,7 @@ async function init(){
   updateFilterVisibility();
   // Hardcoded filter options — no DB query needed for these
   const typeVals=Object.keys(TYPE_MAP).sort((a,b)=>a.localeCompare(b));
-  const couleurVals=['Blanc','Brun','Ivoire','Gris','Noir','Vert','Rouge','Bleu','Jaune','Orange','Argent','Couleur','Divers'];
+  const couleurVals=['Blanc','Brun','Ivoire','Gris','Noir','Vert','Rouge','Bleu','Jaune','Orange','Argent','Couleur','Autres'];
   buildMsdOptions('msd-type',typeVals,'Tous');
   buildMsdOptions('sb-msd-type',typeVals,'Type',undefined,'msd-type');
   buildMsdOptions('msd-couleur',couleurVals,'Couleurs');
@@ -1453,7 +1455,7 @@ async function init(){
   // Also build mobile msd panels (msd-type-mob, msd-mandrin-mob, msd-couleur-mob)
   buildMsdOptions('msd-type-mob',typeVals,'Tous');
   buildMsdOptions('msd-couleur-mob',
-    ['Blanc','Brun','Ivoire','Gris','Noir','Vert','Rouge','Bleu','Jaune','Orange','Argent','Couleur','Divers'],
+    ['Blanc','Brun','Ivoire','Gris','Noir','Vert','Rouge','Bleu','Jaune','Orange','Argent','Couleur','Autres'],
     'Couleurs');
   buildMsdOptions('msd-mandrin-mob',['70','76','150','152'],'Mandrins',v=>v+' mm');
 
