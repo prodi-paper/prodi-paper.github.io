@@ -64,30 +64,26 @@ button{cursor:pointer;border:none;font-family:inherit;background:none;}
 .page.active{display:block;}
 
 /* ─── HERO ─── */
-.hero{min-height:100vh;background:var(--dark);position:relative;display:flex;align-items:center;overflow:hidden;}
-.hero-grid-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);background-size:64px 64px;}
-.hero-glow{position:absolute;top:-20%;right:-10%;width:60%;height:80%;background:radial-gradient(ellipse,rgba(254,0,0,.07) 0%,transparent 65%);pointer-events:none;}
-.hero-inner{position:relative;z-index:2;max-width:1240px;margin:0 auto;padding:100px 40px 80px;width:100%;}
-.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(254,0,0,.1);border:1px solid rgba(254,0,0,.2);color:var(--red);padding:6px 14px;border-radius:100px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:28px;}
-.hero-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--red);animation:blink 2s infinite;}
-@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
-.hero h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(58px,8.5vw,116px);line-height:.93;color:#fff;letter-spacing:2px;margin-bottom:28px;}
+.hero{background:#fff;border-bottom:1px solid var(--border);}
+.hero-inner{max-width:1240px;margin:0 auto;padding:64px 40px 52px;width:100%;}
+.hero-split{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;}
+.hero h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(42px,5vw,76px);line-height:.93;color:var(--dark);letter-spacing:1.5px;margin-bottom:20px;}
 .hero h1 em{color:var(--red);font-style:normal;}
-.hero-sub{font-size:clamp(14px,1.4vw,17px);color:rgba(255,255,255,.55);max-width:540px;line-height:1.75;margin-bottom:44px;}
-.hero-btns{display:flex;gap:14px;flex-wrap:wrap;}
-.btn-hero{background:var(--red);color:#fff;padding:14px 28px;border-radius:var(--r);font-size:14px;font-weight:600;letter-spacing:.3px;transition:all .18s;display:inline-flex;align-items:center;gap:8px;}
-.btn-hero:hover{background:var(--red2);transform:translateY(-1px);}
-.btn-hero svg{transition:transform .18s;}
-.btn-hero:hover svg{transform:translateX(3px);}
-.btn-hero-ghost{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.85);padding:14px 28px;border-radius:var(--r);font-size:14px;font-weight:500;transition:all .18s;display:inline-flex;align-items:center;gap:8px;}
-.btn-hero-ghost:hover{background:rgba(255,255,255,.13);}
-.hero-stats{margin-top:80px;display:flex;gap:0;border-top:1px solid rgba(255,255,255,.07);padding-top:40px;flex-wrap:wrap;}
-.h-stat{flex:1;min-width:140px;padding:0 36px 0 0;border-right:1px solid rgba(255,255,255,.07);}
+.hero-sub{font-size:15px;color:var(--ink2);max-width:480px;line-height:1.8;margin-bottom:32px;}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap;}
+.btn-hero{background:var(--red);color:#fff;padding:13px 28px;border-radius:var(--r);font-size:13px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;transition:background .15s;display:inline-flex;align-items:center;}
+.btn-hero:hover{background:var(--red2);}
+.btn-hero-outline{background:#fff;border:1.5px solid var(--dark);color:var(--dark);padding:12px 26px;border-radius:var(--r);font-size:13px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;transition:all .15s;display:inline-flex;align-items:center;cursor:pointer;}
+.btn-hero-outline:hover{background:var(--dark);color:#fff;}
+.hero-video-wrap{position:relative;width:100%;aspect-ratio:16/9;border-radius:var(--rl);overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.15);}
+.hero-video-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:none;}
+.hero-stats{margin-top:48px;display:flex;gap:0;border-top:1px solid var(--border);padding-top:36px;flex-wrap:wrap;}
+.h-stat{flex:1;min-width:130px;padding:0 32px 0 0;border-right:1px solid var(--border);}
 .h-stat:first-child{padding-left:0;}
 .h-stat:last-child{border-right:none;}
-.h-stat-v{font-family:'Bebas Neue',sans-serif;font-size:44px;letter-spacing:1px;color:#fff;line-height:1;}
+.h-stat-v{font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:1px;color:var(--dark);line-height:1;}
 .h-stat-v span{color:var(--red);}
-.h-stat-l{font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.8px;margin-top:4px;}
+.h-stat-l{font-size:11px;color:var(--gray);text-transform:uppercase;letter-spacing:.8px;margin-top:5px;}
 
 /* ─── SECTIONS ─── */
 .sec{padding:88px 40px;}
@@ -211,6 +207,7 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
 @media(max-width:900px){
   .hd-nav,.hd-divider,.hd-lang,.btn-cat{display:none;}
   .hd-burger{display:flex;}
+  .hero-split{grid-template-columns:1fr;gap:36px;}
   .act-grid,.ab-grid{grid-template-columns:1fr;gap:40px;}
   .logi-grid{grid-template-columns:1fr;}
   .ct-wrap{grid-template-columns:1fr;gap:40px;}
@@ -269,23 +266,19 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
 
   <!-- HERO -->
   <section class="hero">
-    <div class="hero-grid-bg"></div>
-    <div class="hero-glow"></div>
     <div class="hero-inner">
-      <div class="hero-badge">
-        <span class="hero-badge-dot"></span>
-        <span data-i18n="hero_badge">Négociant européen</span>
-      </div>
-      <h1 data-i18n-h="hero_title">STOCKLOTS DE PAPIER<br><em>ET CARTON</em><br>EUROPÉENS</h1>
-      <p class="hero-sub" data-i18n="hero_sub">Stocks disponibles provenant de grandes papeteries européennes, expédition dans le monde entier.</p>
-      <div class="hero-btns">
-        <a href="./index.html" class="btn-hero">
-          <span data-i18n="hero_btn1">Voir le stock disponible</span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </a>
-        <a onclick="showPage('contact')" class="btn-hero-ghost" style="cursor:pointer">
-          <span data-i18n="hero_btn2">Nous contacter</span>
-        </a>
+      <div class="hero-split">
+        <div class="hero-text">
+          <h1 data-i18n-h="hero_title">VOTRE FOURNISSEUR<br>PAPIER &amp; CARTON<br><em>DEPUIS 1991</em></h1>
+          <p class="hero-sub" data-i18n="hero_sub">Import/Export international — 10 000+ tonnes en stock en France 🇫🇷. Kraft, offset, couché, bobines &amp; formats, tous grammages.</p>
+          <div class="hero-btns">
+            <a href="./index.html" class="btn-hero" data-i18n="hero_btn1">NOS PRODUITS</a>
+            <a onclick="showPage('contact')" class="btn-hero-outline" data-i18n="hero_btn2">NOUS CONTACTER</a>
+          </div>
+        </div>
+        <div class="hero-video-wrap">
+          <iframe src="https://www.youtube.com/embed/LiAmyPGTnko?start=8" title="Prodiconseil 2026" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
       </div>
       <div class="hero-stats">
         <div class="h-stat">
@@ -664,9 +657,9 @@ const T = {
   fr: {
     nav_home:'Accueil', nav_about:'À propos', nav_contact:'Contact', nav_catalogue:'Voir le stock →',
     hero_badge:'Négociant européen depuis 1991',
-    hero_title:'STOCKLOTS DE PAPIER<br><em>ET CARTON</em><br>EUROPÉENS',
-    hero_sub:'Stocks disponibles provenant de grandes papeteries européennes, expédition dans le monde entier.',
-    hero_btn1:'Voir le stock disponible', hero_btn2:'Nous contacter',
+    hero_title:'VOTRE FOURNISSEUR<br>PAPIER &amp; CARTON<br><em>DEPUIS 1991</em>',
+    hero_sub:'Import/Export international — 10 000+ tonnes en stock en France 🇫🇷. Kraft, offset, couché, bobines & formats, tous grammages.',
+    hero_btn1:'NOS PRODUITS', hero_btn2:'NOUS CONTACTER',
     stat1:'Fondés en', stat2:'Références en stock', stat3:'Tonnes disponibles', stat4:'Délai de chargement',
     act_tag:'Notre activité', act_h:'NÉGOCIANT EN STOCKLOTS DE PAPIER',
     act_p1:'Prodiconseil est une société européenne fondée en 1991, spécialisée dans la vente de stocklots de papier et carton provenant de grandes papeteries.',
@@ -715,9 +708,9 @@ const T = {
   en: {
     nav_home:'Home', nav_about:'About', nav_contact:'Contact', nav_catalogue:'View stock →',
     hero_badge:'European paper trader since 1991',
-    hero_title:'EUROPEAN PAPER<br><em>&amp; BOARD</em><br>STOCKLOTS',
-    hero_sub:'Available stocks from major European paper mills, worldwide shipping.',
-    hero_btn1:'View available stock', hero_btn2:'Contact us',
+    hero_title:'YOUR PAPER &amp; BOARD<br>SUPPLIER<br><em>SINCE 1991</em>',
+    hero_sub:'International import/export — 10,000+ tonnes in stock in France 🇫🇷. Kraft, offset, coated, reels & sheets, all grammages.',
+    hero_btn1:'OUR PRODUCTS', hero_btn2:'CONTACT US',
     stat1:'Founded in', stat2:'References in stock', stat3:'Tonnes available', stat4:'Loading lead time',
     act_tag:'Our activity', act_h:'PAPER & BOARD STOCKLOT TRADER',
     act_p1:'Prodiconseil is a European company founded in 1991, specialising in the sale of paper and board stocklots from major paper mills.',
