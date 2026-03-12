@@ -289,16 +289,16 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
       </div>
       <div class="hero-stats">
         <div class="h-stat">
+          <div class="h-stat-v">1991</div>
+          <div class="h-stat-l" data-i18n="stat1">Fondés en</div>
+        </div>
+        <div class="h-stat">
           <div class="h-stat-v">5 800<span>+</span></div>
-          <div class="h-stat-l" data-i18n="stat1">Références en stock</div>
+          <div class="h-stat-l" data-i18n="stat2">Références en stock</div>
         </div>
         <div class="h-stat">
-          <div class="h-stat-v">100<span>%</span></div>
-          <div class="h-stat-l" data-i18n="stat2">Origine européenne</div>
-        </div>
-        <div class="h-stat">
-          <div class="h-stat-v">MONDE</div>
-          <div class="h-stat-l" data-i18n="stat3">Export international</div>
+          <div class="h-stat-v">10<span>K+</span></div>
+          <div class="h-stat-l" data-i18n="stat3">Tonnes disponibles</div>
         </div>
         <div class="h-stat">
           <div class="h-stat-v">24<span>H</span></div>
@@ -421,7 +421,7 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
           </div>
           <h3 data-i18n="logi1_h">Entrepôts européens</h3>
-          <p data-i18n="logi1_p">Stocks physiques disponibles en France et dans plusieurs pays européens. Délai de chargement rapide.</p>
+          <p data-i18n="logi1_p">Stocks physiques disponibles en France (Ivry-sur-Seine, Amiens) et dans plusieurs pays européens. Délai de chargement rapide.</p>
         </div>
         <div class="logi-card">
           <div class="logi-ico">
@@ -616,6 +616,15 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
       </div>
       <div class="ci">
         <div class="ci-ico">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        </div>
+        <div>
+          <div class="ci-lbl" data-i18n="ci_addr">Adresse</div>
+          <div class="ci-val">9 Promenée Jeanne Hachette<br>94200 Ivry-sur-Seine, France</div>
+        </div>
+      </div>
+      <div class="ci">
+        <div class="ci-ico">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
         </div>
         <div>
@@ -654,13 +663,13 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
 const T = {
   fr: {
     nav_home:'Accueil', nav_about:'À propos', nav_contact:'Contact', nav_catalogue:'Voir le stock →',
-    hero_badge:'Négociant européen',
+    hero_badge:'Négociant européen depuis 1991',
     hero_title:'STOCKLOTS DE PAPIER<br><em>ET CARTON</em><br>EUROPÉENS',
     hero_sub:'Stocks disponibles provenant de grandes papeteries européennes, expédition dans le monde entier.',
     hero_btn1:'Voir le stock disponible', hero_btn2:'Nous contacter',
-    stat1:'Références en stock', stat2:'Origine européenne', stat3:'Export international', stat4:'Délai de chargement',
+    stat1:'Fondés en', stat2:'Références en stock', stat3:'Tonnes disponibles', stat4:'Délai de chargement',
     act_tag:'Notre activité', act_h:'NÉGOCIANT EN STOCKLOTS DE PAPIER',
-    act_p1:'Prodiconseil est une société européenne spécialisée dans la vente de stocklots de papier et carton provenant de grandes papeteries.',
+    act_p1:'Prodiconseil est une société européenne fondée en 1991, spécialisée dans la vente de stocklots de papier et carton provenant de grandes papeteries.',
     act_p2:'Ces lots peuvent provenir de surproductions, de commandes annulées ou de changements de spécifications. Les produits sont vendus à des transformateurs et négociants internationaux.',
     act_l1:'Surproductions de papeteries européennes',
     act_l2:'Commandes annulées ou spécifications modifiées',
@@ -676,7 +685,7 @@ const T = {
     prod_cta1:'Voir le catalogue complet',
     logi_tag:'Logistique', logi_h:'EXPÉDITION DEPUIS L\'EUROPE',
     logi_sub:'Nos stocks sont disponibles en entrepôts européens, prêts à être expédiés dans le monde entier.',
-    logi1_h:'Entrepôts européens', logi1_p:'Stocks physiques disponibles en France et dans plusieurs pays européens. Délai de chargement rapide.',
+    logi1_h:'Entrepôts européens', logi1_p:'Stocks physiques disponibles en France (Ivry-sur-Seine, Amiens) et dans plusieurs pays européens. Délai de chargement rapide.',
     logi2_h:'Export mondial', logi2_p:'Livraison dans tous les pays. Expérience dans les procédures douanières internationales.',
     logi3_h:'Conteneurs complets', logi3_p:'Livraison en FCL. Lots à partir de quelques tonnes, adaptables selon les besoins de l\'acheteur.',
     cta_h:'INTÉRESSÉ PAR NOS STOCKS ?', cta_sub:'Consultez notre catalogue ou contactez-nous directement.',
@@ -684,7 +693,7 @@ const T = {
     about_tag:'À propos', about_h1:'NÉGOCIANT EUROPÉEN<br>EN PAPIER <em>&amp;</em> CARTON',
     about_intro:'Prodiconseil est spécialisé dans la commercialisation de stocklots de papier et carton issus de grandes papeteries européennes.',
     ab_h1:'L\'ENTREPRISE',
-    ab_p1:'Prodiconseil est un négociant européen spécialisé dans les stocklots de papier et carton. Nous travaillons avec des papeteries de premier rang pour proposer des lots à prix compétitifs.',
+    ab_p1:'Prodiconseil est un négociant européen fondé en 1991, spécialisé dans les stocklots de papier et carton. Depuis plus de 30 ans, nous travaillons avec des papeteries de premier rang pour proposer des lots à prix compétitifs.',
     ab_p2:'Notre activité repose sur une connaissance approfondie du marché du papier et sur un réseau de partenaires industriels en Europe.',
     ab_p3:'Nous fournissons des transformateurs, des imprimeurs et des négociants dans de nombreux pays, avec des solutions logistiques adaptées à chaque marché.',
     ab_h2:'NOS PRODUITS',
@@ -701,17 +710,17 @@ const T = {
     ct_sub:'Remplissez le formulaire ci-dessous. Nous vous répondrons sous 24h.',
     f_nom:'Nom', f_soc:'Entreprise', f_email:'Email', f_tel:'Téléphone', f_msg:'Message', f_send:'Envoyer le message',
     ok_h:'Message envoyé !', ok_p:'Nous vous répondrons dans les 24 heures.',
-    aside_h:'COORDONNÉES', ci_web:'Site catalogue', wa_btn:'Écrire sur WhatsApp',
+    aside_h:'COORDONNÉES', ci_addr:'Adresse', ci_web:'Site catalogue', wa_btn:'Écrire sur WhatsApp',
   },
   en: {
     nav_home:'Home', nav_about:'About', nav_contact:'Contact', nav_catalogue:'View stock →',
-    hero_badge:'European trader',
+    hero_badge:'European paper trader since 1991',
     hero_title:'EUROPEAN PAPER<br><em>&amp; BOARD</em><br>STOCKLOTS',
     hero_sub:'Available stocks from major European paper mills, worldwide shipping.',
     hero_btn1:'View available stock', hero_btn2:'Contact us',
-    stat1:'References in stock', stat2:'European origin', stat3:'International export', stat4:'Loading lead time',
+    stat1:'Founded in', stat2:'References in stock', stat3:'Tonnes available', stat4:'Loading lead time',
     act_tag:'Our activity', act_h:'PAPER & BOARD STOCKLOT TRADER',
-    act_p1:'Prodiconseil is a European company specialised in the sale of paper and board stocklots from major paper mills.',
+    act_p1:'Prodiconseil is a European company founded in 1991, specialising in the sale of paper and board stocklots from major paper mills.',
     act_p2:'These lots may come from overproductions, cancelled orders or specification changes. Products are sold to converters and international traders.',
     act_l1:'Overproductions from European paper mills',
     act_l2:'Cancelled orders or modified specifications',
@@ -727,7 +736,7 @@ const T = {
     prod_cta1:'View full catalogue',
     logi_tag:'Logistics', logi_h:'SHIPPING FROM EUROPE',
     logi_sub:'Our stocks are available in European warehouses, ready to be shipped worldwide.',
-    logi1_h:'European warehouses', logi1_p:'Physical stocks available in France and several European countries. Fast loading lead times.',
+    logi1_h:'European warehouses', logi1_p:'Physical stocks available in France (Ivry-sur-Seine, Amiens) and several European countries. Fast loading lead times.',
     logi2_h:'Worldwide export', logi2_p:'Delivery to all countries. Experience with international customs procedures.',
     logi3_h:'Full container loads', logi3_p:'FCL delivery. Lots from a few tonnes, adaptable to the buyer\'s requirements.',
     cta_h:'INTERESTED IN OUR STOCKS?', cta_sub:'Browse our catalogue or contact us directly.',
@@ -735,7 +744,7 @@ const T = {
     about_tag:'About', about_h1:'EUROPEAN TRADER<br>IN PAPER <em>&amp;</em> BOARD',
     about_intro:'Prodiconseil specialises in the sale of paper and board stocklots from major European paper mills.',
     ab_h1:'THE COMPANY',
-    ab_p1:'Prodiconseil is a European trader specialising in paper and board stocklots. We work with top-tier paper mills to offer competitive lots.',
+    ab_p1:'Prodiconseil is a European trader founded in 1991, specialising in paper and board stocklots. For over 30 years, we have worked with top-tier paper mills to offer competitive lots.',
     ab_p2:'Our business is built on deep knowledge of the paper market and an industrial partner network across Europe.',
     ab_p3:'We supply converters, printers and traders in many countries, with logistics solutions tailored to each market.',
     ab_h2:'OUR PRODUCTS',
@@ -752,7 +761,7 @@ const T = {
     ct_sub:'Fill in the form below. We will reply within 24 hours.',
     f_nom:'Name', f_soc:'Company', f_email:'Email', f_tel:'Phone', f_msg:'Message', f_send:'Send message',
     ok_h:'Message sent!', ok_p:'We will reply within 24 hours.',
-    aside_h:'CONTACT INFO', ci_web:'Catalogue site', wa_btn:'Chat on WhatsApp',
+    aside_h:'CONTACT INFO', ci_addr:'Address', ci_web:'Catalogue site', wa_btn:'Chat on WhatsApp',
   }
 };
 

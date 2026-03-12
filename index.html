@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -423,6 +423,13 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
   .btn-panier-txt{display:none;}
 }
 
+/* ── LANG TOGGLE ── */
+.lang-sep{width:1px;height:16px;background:var(--border);margin:0 2px;}
+.lang-btn{padding:4px 7px;border-radius:4px;font-size:11px;font-weight:700;color:var(--gray);background:none;border:none;cursor:pointer;transition:all .15s;letter-spacing:.3px;}
+.lang-btn.on{background:var(--black);color:#fff;}
+.lang-btn:hover:not(.on){background:var(--off2);color:var(--ink);}
+@media(max-width:480px){.lang-sep,.lang-btn{display:none;}}
+
 /* ── PAGINATION ── */
 .pager{display:flex;align-items:center;justify-content:center;gap:4px;margin:28px 0 12px;padding:0 16px;flex-wrap:wrap;}
 .parrow{width:36px;height:36px;border:1.5px solid var(--border);border-radius:50%;background:var(--white);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all .15s;color:var(--ink2);line-height:1;flex-shrink:0;}
@@ -639,7 +646,10 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
       </button>
     </div>
     <div class="hright">
-      <div class="live-pill"><div class="live-dot"></div> Stock en direct</div>
+      <div class="live-pill"><div class="live-dot"></div> <span data-i18n="t_live">Stock en direct</span></div>
+      <div class="lang-sep"></div>
+      <button onclick="setLang('fr')" id="lang-fr" class="lang-btn on">FR</button>
+      <button onclick="setLang('en')" id="lang-en" class="lang-btn">EN</button>
       <div class="cart-wrap">
         <button class="btn-head btn-head-panier" onclick="openCartDrawer()" id="cart-btn" title="My Container">
           <svg width="22" height="14" viewBox="0 0 34 22" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-2px"><polygon points="2,9 26,9 31,4 7,4" fill="#C47A0F"/><polygon points="26,9 31,4 31,20 26,20" fill="#A86510"/><polygon points="2,9 26,9 26,20 2,20" fill="#E8930F"/><line x1="5.5" y1="9" x2="5.5" y2="20" stroke="#C47A0F" stroke-width="1.1"/><line x1="9" y1="9" x2="9" y2="20" stroke="#C47A0F" stroke-width="1.1"/><line x1="12.5" y1="9" x2="12.5" y2="20" stroke="#C47A0F" stroke-width="1.1"/><line x1="16" y1="9" x2="16" y2="20" stroke="#C47A0F" stroke-width="1.1"/><line x1="19.5" y1="9" x2="19.5" y2="20" stroke="#C47A0F" stroke-width="1.1"/><line x1="23" y1="9" x2="23" y2="20" stroke="#C47A0F" stroke-width="1.1"/><polygon points="2,9 26,9 31,4 7,4" fill="none" stroke="#1D2B45" stroke-width="1.4" stroke-linejoin="round"/><polygon points="26,9 31,4 31,20 26,20" fill="none" stroke="#1D2B45" stroke-width="1.4" stroke-linejoin="round"/><polygon points="2,9 26,9 26,20 2,20" fill="none" stroke="#1D2B45" stroke-width="1.4" stroke-linejoin="round"/></svg> <span class="btn-panier-txt">My Container</span>
@@ -651,11 +661,11 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
   </div>
   <div class="trust-bar">
     <div class="trust-inner">
-      <span class="trust-item">Stock Europe</span>
-      <span class="trust-item">Mise à jour quotidienne</span>
-      <span class="trust-item">Chargement 24–48h</span>
-      <span class="trust-item">Documents sur demande (EUR1, COO…)</span>
-      <span class="trust-item">Recyclé &amp; Fabrication</span>
+      <span class="trust-item" data-i18n="t_stock">Stock Europe</span>
+      <span class="trust-item" data-i18n="t_update">Mise à jour quotidienne</span>
+      <span class="trust-item" data-i18n="t_loading">Chargement 24–48h</span>
+      <span class="trust-item" data-i18n="t_docs">Documents sur demande (EUR1, COO…)</span>
+      <span class="trust-item" data-i18n="t_quality">Recyclé &amp; Fabrication</span>
     </div>
   </div>
 </header>
@@ -738,15 +748,15 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
 <div id="results-bar">
   <div class="rbar-inner">
     <div class="rbar-count" id="rbar-count" role="status">
-      <span id="rbar-refs">—</span> références • <span id="rbar-tons">—</span> t
+      <span id="rbar-refs">—</span> <span id="rbar-refs-lbl" data-i18n="t_refs">références</span> • <span id="rbar-tons">—</span> t
       <span id="correction-note"></span>
     </div>
     <div class="rbar-sort">
       <span class="rbar-sort-lbl">Trier :</span>
       <select class="rbar-sel" id="sort-sel" onchange="_doFilter()">
-        <option value="date_desc">Plus récents</option>
-        <option value="gsm_asc">Grammage ↑</option>
-        <option value="gsm_desc">Grammage ↓</option>
+        <option value="date_desc" data-i18n-opt="t_sort_new">Plus récents</option>
+        <option value="gsm_asc" data-i18n-opt="t_sort_gsm_asc">Grammage ↑</option>
+        <option value="gsm_desc" data-i18n-opt="t_sort_gsm_desc">Grammage ↓</option>
         <option value="price_asc">Prix ↑</option>
         <option value="price_desc">Prix ↓</option>
       </select>
@@ -861,9 +871,9 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
       <div class="sort-wrap">
         <span class="sort-lbl">Trier :</span>
         <select class="sort-sel" id="sort-select" onchange="filterProducts()">
-          <option value="date">Plus récents</option>
-          <option value="grammage_asc">Grammage ↑</option>
-          <option value="grammage_desc">Grammage ↓</option>
+          <option value="date" data-i18n-opt="t_sort_new">Plus récents</option>
+          <option value="grammage_asc" data-i18n-opt="t_sort_gsm_asc">Grammage ↑</option>
+          <option value="grammage_desc" data-i18n-opt="t_sort_gsm_desc">Grammage ↓</option>
           <option value="prix_asc">Prix ↑</option>
           <option value="prix_desc">Prix ↓</option>
         </select>
@@ -929,8 +939,8 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
   <div class="drawer-items" id="drawer-items">
     <div class="drawer-empty">
       <div class="drawer-empty-ico">📦</div>
-      <div class="drawer-empty-t">CONTAINER EMPTY</div>
-      <div class="drawer-empty-s">Ajoutez des produits depuis le catalogue</div>
+      <div class="drawer-empty-t" data-i18n="t_container_empty">CONTAINER EMPTY</div>
+      <div class="drawer-empty-s" data-i18n="t_add_from_cat">Ajoutez des produits depuis le catalogue</div>
       <button class="btn-drawer-browse" onclick="closeCartDrawer()">← Voir le catalogue</button>
     </div>
   </div>
@@ -951,9 +961,9 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
         <div class="drawer-total-val" id="drawer-price-val" style="font-size:26px">—</div>
       </div>
     </div>
-    <button class="btn-pf-drawer" onclick="openCartProforma()">📄 DEMANDER UN DEVIS</button>
+    <button class="btn-pf-drawer" onclick="openCartProforma()" data-i18n="t_pf_btn">📄 DEMANDER UN DEVIS</button>
     <div class="pf-microcopy">Réponse sous 24h ouvrées &bull; Origine UE &bull; Documents disponibles</div>
-    <button class="btn-clear-drawer" onclick="confirmClearCart()">Empty the container</button>
+    <button class="btn-clear-drawer" onclick="confirmClearCart()" data-i18n="t_clear_cart">Vider le container</button>
   </div>
 </div>
 
@@ -961,21 +971,21 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
 <div class="pf-bg" id="proforma-bg" onclick="if(event.target===this)closeProforma()">
   <div class="pf-box">
     <div class="pf-stripe"></div>
-    <div class="pf-title">DEMANDE DE DEVIS</div>
+    <div class="pf-title" data-i18n="t_pf_title">DEMANDE DE DEVIS</div>
     <div class="pf-sub" id="pf-prod-name">—</div>
     <div class="grid2">
-      <div class="form-fg" id="fg-pf-nom"><label class="form-fl">Nom *</label><input class="form-fi" id="pf-nom" placeholder="Jean Dupont"><span class="form-err">Nom requis</span></div>
-      <div class="form-fg" id="fg-pf-societe"><label class="form-fl">Société *</label><input class="form-fi" id="pf-societe" placeholder="Dupont SA"><span class="form-err">Société requise</span></div>
+      <div class="form-fg" id="fg-pf-nom"><label class="form-fl" data-i18n="t_f_name">Nom *</label><input class="form-fi" id="pf-nom" placeholder="Jean Dupont"><span class="form-err" data-i18n="t_f_name_err">Nom requis</span></div>
+      <div class="form-fg" id="fg-pf-societe"><label class="form-fl" data-i18n="t_f_company">Société *</label><input class="form-fi" id="pf-societe" placeholder="Dupont SA"><span class="form-err" data-i18n="t_f_company_err">Société requise</span></div>
     </div>
     <div class="grid2">
-      <div class="form-fg" id="fg-pf-email"><label class="form-fl">Email *</label><input class="form-fi" type="email" id="pf-email" placeholder="jean@dupont.fr"><span class="form-err">Email invalide</span></div>
-      <div class="form-fg"><label class="form-fl">Téléphone</label><input class="form-fi" type="tel" id="pf-tel" placeholder="+33 6..."></div>
+      <div class="form-fg" id="fg-pf-email"><label class="form-fl" data-i18n="t_f_email">Email *</label><input class="form-fi" type="email" id="pf-email" placeholder="jean@dupont.fr"><span class="form-err" data-i18n="t_f_email_err">Email invalide</span></div>
+      <div class="form-fg"><label class="form-fl" data-i18n="t_f_phone">Téléphone</label><input class="form-fi" type="tel" id="pf-tel" placeholder="+33 6..."></div>
     </div>
-    <div class="form-fg"><label class="form-fl">Quantité souhaitée</label><input class="form-fi" id="pf-qty" placeholder="ex: 10 tonnes, 5 bobines..."></div>
-    <div class="form-fg"><label class="form-fl">Message</label><textarea class="form-fi" id="pf-msg" placeholder="Précisez vos besoins..."></textarea></div>
+    <div class="form-fg"><label class="form-fl" data-i18n="t_f_qty">Quantité souhaitée</label><input class="form-fi" id="pf-qty" placeholder="ex: 10 tonnes, 5 bobines..."></div>
+    <div class="form-fg"><label class="form-fl" data-i18n="t_f_msg">Message</label><textarea class="form-fi" id="pf-msg" placeholder="Précisez vos besoins..."></textarea></div>
     <div class="form-actions">
       <button class="btn-cancel" onclick="closeProforma()">Annuler</button>
-      <button class="btn-send" id="pf-btn" onclick="sendProforma()">ENVOYER</button>
+      <button class="btn-send" id="pf-btn" onclick="sendProforma()" data-i18n="t_send">ENVOYER</button>
     </div>
   </div>
 </div>
@@ -984,21 +994,21 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
 <div class="pf-bg" id="proforma-cart-bg" onclick="if(event.target===this)closeCartProforma()">
   <div class="pf-box">
     <div class="pf-stripe"></div>
-    <div class="pf-title">DEVIS PANIER</div>
+    <div class="pf-title" data-i18n="t_cart_pf_title">DEVIS PANIER</div>
     <div class="pf-sub">Demande groupée — <span id="pf-cart-count">—</span> produit(s)</div>
     <div class="pf-items-list" id="pf-cart-items"></div>
     <div class="grid2">
-      <div class="form-fg" id="fg-pfc-nom"><label class="form-fl">Nom *</label><input class="form-fi" id="pfc-nom" placeholder="Jean Dupont"><span class="form-err">Nom requis</span></div>
-      <div class="form-fg" id="fg-pfc-societe"><label class="form-fl">Société *</label><input class="form-fi" id="pfc-societe" placeholder="Dupont SA"><span class="form-err">Société requise</span></div>
+      <div class="form-fg" id="fg-pfc-nom"><label class="form-fl" data-i18n="t_f_name">Nom *</label><input class="form-fi" id="pfc-nom" placeholder="Jean Dupont"><span class="form-err" data-i18n="t_f_name_err">Nom requis</span></div>
+      <div class="form-fg" id="fg-pfc-societe"><label class="form-fl" data-i18n="t_f_company">Société *</label><input class="form-fi" id="pfc-societe" placeholder="Dupont SA"><span class="form-err" data-i18n="t_f_company_err">Société requise</span></div>
     </div>
     <div class="grid2">
-      <div class="form-fg" id="fg-pfc-email"><label class="form-fl">Email *</label><input class="form-fi" type="email" id="pfc-email" placeholder="jean@dupont.fr"><span class="form-err">Email invalide</span></div>
-      <div class="form-fg"><label class="form-fl">Téléphone</label><input class="form-fi" type="tel" id="pfc-tel" placeholder="+33 6..."></div>
+      <div class="form-fg" id="fg-pfc-email"><label class="form-fl" data-i18n="t_f_email">Email *</label><input class="form-fi" type="email" id="pfc-email" placeholder="jean@dupont.fr"><span class="form-err" data-i18n="t_f_email_err">Email invalide</span></div>
+      <div class="form-fg"><label class="form-fl" data-i18n="t_f_phone">Téléphone</label><input class="form-fi" type="tel" id="pfc-tel" placeholder="+33 6..."></div>
     </div>
-    <div class="form-fg"><label class="form-fl">Message</label><textarea class="form-fi" id="pfc-msg" placeholder="Délai, conditionnement..."></textarea></div>
+    <div class="form-fg"><label class="form-fl" data-i18n="t_f_msg">Message</label><textarea class="form-fi" id="pfc-msg" placeholder="Délai, conditionnement..."></textarea></div>
     <div class="form-actions">
       <button class="btn-cancel" onclick="closeCartProforma()">Annuler</button>
-      <button class="btn-send" id="pfc-btn" onclick="sendCartProforma()">ENVOYER</button>
+      <button class="btn-send" id="pfc-btn" onclick="sendCartProforma()" data-i18n="t_send">ENVOYER</button>
     </div>
   </div>
 </div>
@@ -2356,7 +2366,7 @@ function renderDrawer(){
   const footer=document.getElementById('drawer-footer');
   const meta=document.getElementById('drawer-meta');
   if(!cart.length){
-    items.innerHTML=`<div class="drawer-empty"><div class="drawer-empty-ico">🛒</div><div class="drawer-empty-t">PANIER VIDE</div><div class="drawer-empty-s">Ajoutez des produits depuis le catalogue</div><button class="btn-drawer-browse" onclick="closeCartDrawer()">← Voir le catalogue</button></div>`;
+    items.innerHTML=`<div class="drawer-empty"><div class="drawer-empty-ico">🛒</div><div class="drawer-empty-t">${lang==='en'?'EMPTY CART':'PANIER VIDE'}</div><div class="drawer-empty-s">${lang==='en'?'Add products from the catalogue':'Ajoutez des produits depuis le catalogue'}</div><button class="btn-drawer-browse" onclick="closeCartDrawer()">${lang==='en'?'← Browse catalogue':'← Voir le catalogue'}</button></div>`;
     footer.style.display='none';
     meta.textContent='0 produit';
     return;
@@ -2575,6 +2585,62 @@ function hasActiveFilters(){return countActiveFilters()>0;}
 
 updateCartBadge();
 init();
+
+// ── LANGUAGE TOGGLE ──
+let lang='fr';
+const LT={
+  fr:{
+    t_live:'Stock en direct',
+    t_stock:'Stock Europe', t_update:'Mise à jour quotidienne',
+    t_loading:'Chargement 24–48h', t_docs:'Documents sur demande (EUR1, COO…)',
+    t_quality:'Recyclé & Fabrication',
+    t_refs:'références',
+    t_sort_new:'Plus récents', t_sort_gsm_asc:'Grammage ↑', t_sort_gsm_desc:'Grammage ↓',
+    t_container_empty:'CONTAINER VIDE', t_add_from_cat:'Ajoutez des produits depuis le catalogue',
+    t_pf_title:'DEMANDE DE DEVIS', t_cart_pf_title:'DEVIS PANIER',
+    t_f_name:'Nom *', t_f_name_err:'Nom requis',
+    t_f_company:'Société *', t_f_company_err:'Société requise',
+    t_f_email:'Email *', t_f_email_err:'Email invalide',
+    t_f_phone:'Téléphone', t_f_qty:'Quantité souhaitée', t_f_msg:'Message',
+    t_send:'ENVOYER',
+    t_pf_btn:'📄 DEMANDER UN DEVIS', t_clear_cart:'Vider le container',
+  },
+  en:{
+    t_live:'Live stock',
+    t_stock:'European stock', t_update:'Daily updates',
+    t_loading:'24–48h loading', t_docs:'Docs on request (EUR1, COO…)',
+    t_quality:'Virgin & Recycled',
+    t_refs:'references',
+    t_sort_new:'Most recent', t_sort_gsm_asc:'Grammage ↑', t_sort_gsm_desc:'Grammage ↓',
+    t_container_empty:'EMPTY CONTAINER', t_add_from_cat:'Add products from the catalogue',
+    t_pf_title:'REQUEST A QUOTE', t_cart_pf_title:'CART QUOTE',
+    t_f_name:'Name *', t_f_name_err:'Name required',
+    t_f_company:'Company *', t_f_company_err:'Company required',
+    t_f_email:'Email *', t_f_email_err:'Invalid email',
+    t_f_phone:'Phone', t_f_qty:'Desired quantity', t_f_msg:'Message',
+    t_send:'SEND',
+    t_pf_btn:'📄 REQUEST A QUOTE', t_clear_cart:'Clear container',
+  }
+};
+function setLang(l){
+  lang=l;
+  document.documentElement.lang=l;
+  document.documentElement.dataset.lang=l;
+  ['fr','en'].forEach(x=>{
+    document.getElementById('lang-'+x)?.classList.toggle('on',x===l);
+  });
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const k=el.dataset.i18n;
+    if(LT[l][k]!==undefined) el.textContent=LT[l][k];
+  });
+  [document.getElementById('sort-sel'),document.getElementById('sort-select')].forEach(sel=>{
+    if(!sel) return;
+    sel.querySelectorAll('option[data-i18n-opt]').forEach(opt=>{
+      const k=opt.dataset.i18nOpt;
+      if(LT[l][k]) opt.textContent=LT[l][k];
+    });
+  });
+}
 </script>
 </body>
 </html>
