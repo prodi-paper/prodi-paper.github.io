@@ -65,7 +65,7 @@ button{cursor:pointer;border:none;font-family:inherit;background:none;}
 
 /* ─── HERO ─── */
 .hero{background:#fff;border-bottom:1px solid var(--border);}
-.hero-inner{max-width:1240px;margin:0 auto;padding:64px 40px 52px;width:100%;}
+.hero-inner{max-width:1120px;margin:0 auto;padding:64px 48px 52px;width:100%;}
 .hero-split{display:grid;grid-template-columns:1fr 300px;gap:56px;align-items:center;}
 .hero h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(42px,5vw,76px);line-height:.93;color:var(--dark);letter-spacing:1.5px;margin-bottom:20px;}
 .hero h1 em{color:var(--red);font-style:normal;}
@@ -138,6 +138,21 @@ button{cursor:pointer;border:none;font-family:inherit;background:none;}
 .btn-white:hover{background:rgba(255,255,255,.9);}
 .btn-wa{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:13px 22px;border-radius:var(--r);font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:8px;transition:all .15s;}
 .btn-wa:hover{background:rgba(255,255,255,.25);}
+
+/* ─── MARQUEE PAYS ─── */
+.marquee-sec{padding:36px 0;border-bottom:1px solid var(--border);overflow:hidden;background:#fff;}
+.marquee-label{text-align:center;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gray);margin-bottom:22px;}
+.marquee-track{overflow:hidden;position:relative;}
+.marquee-track::before,.marquee-track::after{content:'';position:absolute;top:0;bottom:0;width:100px;z-index:2;pointer-events:none;}
+.marquee-track::before{left:0;background:linear-gradient(to right,#fff 60%,transparent);}
+.marquee-track::after{right:0;background:linear-gradient(to left,#fff 60%,transparent);}
+.marquee-inner{display:flex;width:max-content;animation:marquee 40s linear infinite;}
+.marquee-inner:hover{animation-play-state:paused;}
+@keyframes marquee{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+.mq-item{display:flex;align-items:center;gap:10px;padding:0 28px;white-space:nowrap;}
+.mq-flag{font-size:24px;line-height:1;}
+.mq-name{font-size:13px;font-weight:500;color:var(--ink2);}
+.mq-dot{width:4px;height:4px;border-radius:50%;background:var(--border);flex-shrink:0;}
 
 /* ─── ABOUT ─── */
 .ab-hero{background:var(--dark);padding:110px 40px 88px;}
@@ -281,7 +296,7 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
         </div>
         <div class="hero-video-col">
           <div class="hero-video-wrap">
-            <iframe src="https://www.youtube.com/embed/LiAmyPGTnko?autoplay=1&mute=1&start=8&loop=1&playlist=LiAmyPGTnko" title="Prodiconseil 2026" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            <iframe src="https://www.youtube.com/embed/LiAmyPGTnko?autoplay=1&mute=1&loop=1&playlist=LiAmyPGTnko" title="Prodiconseil 2026" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
           </div>
         </div>
       </div>
@@ -305,6 +320,77 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
       </div>
     </div>
   </section>
+
+  <!-- MARQUEE PAYS -->
+  <div class="marquee-sec">
+    <p class="marquee-label" data-i18n="mq_label">Présents dans 30+ pays à travers le monde</p>
+    <div class="marquee-track">
+      <div class="marquee-inner" id="marquee-inner">
+        <!-- set 1 -->
+        <div class="mq-item"><span class="mq-flag">🇫🇷</span><span class="mq-name">France</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇩🇪</span><span class="mq-name">Allemagne</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇪🇸</span><span class="mq-name">Espagne</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇮🇹</span><span class="mq-name">Italie</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇧🇪</span><span class="mq-name">Belgique</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇳🇱</span><span class="mq-name">Pays-Bas</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇵🇱</span><span class="mq-name">Pologne</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇵🇹</span><span class="mq-name">Portugal</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇬🇧</span><span class="mq-name">Royaume-Uni</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇸🇪</span><span class="mq-name">Suède</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇨🇭</span><span class="mq-name">Suisse</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇦🇹</span><span class="mq-name">Autriche</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇬🇷</span><span class="mq-name">Grèce</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇷🇴</span><span class="mq-name">Roumanie</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇹🇷</span><span class="mq-name">Turquie</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇲🇦</span><span class="mq-name">Maroc</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇩🇿</span><span class="mq-name">Algérie</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇹🇳</span><span class="mq-name">Tunisie</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇸🇳</span><span class="mq-name">Sénégal</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇨🇮</span><span class="mq-name">Côte d'Ivoire</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇪🇬</span><span class="mq-name">Égypte</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇦🇪</span><span class="mq-name">Émirats arabes</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇸🇦</span><span class="mq-name">Arabie Saoudite</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇺🇸</span><span class="mq-name">États-Unis</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇨🇦</span><span class="mq-name">Canada</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇧🇷</span><span class="mq-name">Brésil</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇲🇽</span><span class="mq-name">Mexique</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇨🇳</span><span class="mq-name">Chine</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇮🇳</span><span class="mq-name">Inde</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇯🇵</span><span class="mq-name">Japon</span></div><div class="mq-dot"></div>
+        <!-- set 2 (duplicate pour boucle seamless) -->
+        <div class="mq-item"><span class="mq-flag">🇫🇷</span><span class="mq-name">France</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇩🇪</span><span class="mq-name">Allemagne</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇪🇸</span><span class="mq-name">Espagne</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇮🇹</span><span class="mq-name">Italie</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇧🇪</span><span class="mq-name">Belgique</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇳🇱</span><span class="mq-name">Pays-Bas</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇵🇱</span><span class="mq-name">Pologne</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇵🇹</span><span class="mq-name">Portugal</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇬🇧</span><span class="mq-name">Royaume-Uni</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇸🇪</span><span class="mq-name">Suède</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇨🇭</span><span class="mq-name">Suisse</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇦🇹</span><span class="mq-name">Autriche</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇬🇷</span><span class="mq-name">Grèce</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇷🇴</span><span class="mq-name">Roumanie</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇹🇷</span><span class="mq-name">Turquie</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇲🇦</span><span class="mq-name">Maroc</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇩🇿</span><span class="mq-name">Algérie</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇹🇳</span><span class="mq-name">Tunisie</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇸🇳</span><span class="mq-name">Sénégal</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇨🇮</span><span class="mq-name">Côte d'Ivoire</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇪🇬</span><span class="mq-name">Égypte</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇦🇪</span><span class="mq-name">Émirats arabes</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇸🇦</span><span class="mq-name">Arabie Saoudite</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇺🇸</span><span class="mq-name">États-Unis</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇨🇦</span><span class="mq-name">Canada</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇧🇷</span><span class="mq-name">Brésil</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇲🇽</span><span class="mq-name">Mexique</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇨🇳</span><span class="mq-name">Chine</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇮🇳</span><span class="mq-name">Inde</span></div><div class="mq-dot"></div>
+        <div class="mq-item"><span class="mq-flag">🇯🇵</span><span class="mq-name">Japon</span></div><div class="mq-dot"></div>
+      </div>
+    </div>
+  </div>
 
   <!-- ACTIVITÉ -->
   <section class="sec">
@@ -666,6 +752,7 @@ const T = {
     hero_sub:'Import/Export international — 10 000+ tonnes en stock en France 🇫🇷. Kraft, offset, couché, bobines & formats, tous grammages.',
     hero_btn1:'NOS PRODUITS', hero_btn2:'NOUS CONTACTER',
     stat1:'Fondés en', stat2:'Références en stock', stat3:'Tonnes disponibles', stat4:'Délai de chargement',
+    mq_label:'Présents dans 30+ pays à travers le monde',
     act_tag:'Notre activité', act_h:'NÉGOCIANT EN STOCKLOTS DE PAPIER',
     act_p1:'Prodiconseil est une société européenne fondée en 1991, spécialisée dans la vente de stocklots de papier et carton provenant de grandes papeteries.',
     act_p2:'Ces lots peuvent provenir de surproductions, de commandes annulées ou de changements de spécifications. Les produits sont vendus à des transformateurs et négociants internationaux.',
@@ -717,6 +804,7 @@ const T = {
     hero_sub:'International import/export — 10,000+ tonnes in stock in France 🇫🇷. Kraft, offset, coated, reels & sheets, all grammages.',
     hero_btn1:'OUR PRODUCTS', hero_btn2:'CONTACT US',
     stat1:'Founded in', stat2:'References in stock', stat3:'Tonnes available', stat4:'Loading lead time',
+    mq_label:'Active in 30+ countries worldwide',
     act_tag:'Our activity', act_h:'PAPER & BOARD STOCKLOT TRADER',
     act_p1:'Prodiconseil is a European company founded in 1991, specialising in the sale of paper and board stocklots from major paper mills.',
     act_p2:'These lots may come from overproductions, cancelled orders or specification changes. Products are sold to converters and international traders.',
