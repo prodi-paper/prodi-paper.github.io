@@ -35,8 +35,8 @@ button{cursor:pointer;border:none;font-family:inherit;background:none;}
 
 /* ─── HEADER ─── */
 .hd{position:fixed;top:0;left:0;right:0;height:62px;background:rgba(255,255,255,.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);z-index:1000;display:flex;align-items:center;padding:0 32px;gap:16px;}
-.hd-logo{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2.5px;color:var(--dark);margin-right:auto;display:flex;align-items:center;gap:0;}
-.hd-logo-dot{color:var(--red);}
+.hd-logo{margin-right:auto;display:flex;align-items:center;cursor:pointer;}
+.hd-logo img{height:36px;width:auto;display:block;}
 .hd-nav{display:flex;align-items:center;gap:2px;}
 .hd-nav a{padding:7px 14px;border-radius:var(--r);font-size:13px;font-weight:500;color:#666;transition:all .15s;cursor:pointer;}
 .hd-nav a:hover,.hd-nav a.active{background:var(--off);color:var(--ink);}
@@ -248,8 +248,7 @@ button{cursor:pointer;border:none;font-family:inherit;background:none;}
 /* ─── FOOTER ─── */
 footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36px 40px;}
 .foot-in{max-width:1240px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;}
-.foot-logo{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2.5px;color:#fff;}
-.foot-logo span{color:var(--red);}
+.foot-logo img{height:30px;width:auto;filter:brightness(0) invert(1);}
 .foot-info{font-size:13px;color:rgba(255,255,255,.3);text-align:center;}
 .foot-info a{color:rgba(255,255,255,.45);transition:color .15s;}
 .foot-info a:hover{color:rgba(255,255,255,.8);}
@@ -291,7 +290,7 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
 
 <!-- ══════════ HEADER ══════════ -->
 <header class="hd">
-  <div class="hd-logo" onclick="showPage('home')" style="cursor:pointer">PRODI<span class="hd-logo-dot">.</span>CONSEIL</div>
+  <div class="hd-logo" onclick="showPage('home')"><img src="img/logo.png" alt="Prodiconseil"></div>
   <nav class="hd-nav">
     <a onclick="showPage('home')" id="nav-home" class="active" data-i18n="nav_home">Accueil</a>
     <a onclick="showPage('about')" id="nav-about" data-i18n="nav_about">À propos</a>
@@ -928,7 +927,7 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
 <!-- ══════════ FOOTER ══════════ -->
 <footer>
   <div class="foot-in">
-    <div class="foot-logo">PRODI<span>.</span>CONSEIL</div>
+    <div class="foot-logo"><img src="img/logo.png" alt="Prodiconseil"></div>
     <div class="foot-info">
       © 2026 Prodiconseil &nbsp;·&nbsp;
       <a href="mailto:eelbilia@gmail.com">eelbilia@gmail.com</a> &nbsp;·&nbsp;
