@@ -293,7 +293,6 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
   <div class="hd-logo" onclick="showPage('home')"><img src="img/logo.png" alt="Prodiconseil"></div>
   <nav class="hd-nav">
     <a onclick="showPage('home')" id="nav-home" class="active" data-i18n="nav_home">Accueil</a>
-    <a onclick="showPage('about')" id="nav-about" data-i18n="nav_about">À propos</a>
     <a onclick="showPage('contact')" id="nav-contact" data-i18n="nav_contact">Contact</a>
   </nav>
   <div class="hd-divider"></div>
@@ -310,7 +309,6 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
 <!-- ══════════ MOBILE MENU ══════════ -->
 <div class="mob-menu" id="mob-menu">
   <a onclick="showPage('home');toggleMob()" data-i18n="nav_home">Accueil</a>
-  <a onclick="showPage('about');toggleMob()" data-i18n="nav_about">À propos</a>
   <a onclick="showPage('contact');toggleMob()" data-i18n="nav_contact">Contact</a>
   <div class="mob-sep"></div>
   <a href="./index.html" class="btn-cat" data-i18n="nav_catalogue">Voir le stock →</a>
@@ -335,29 +333,6 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
             <a href="./index.html" class="btn-hero" data-i18n="hero_btn1">NOS PRODUITS</a>
             <a onclick="showPage('contact')" class="btn-hero-outline" data-i18n="hero_btn2">NOUS CONTACTER</a>
           </div>
-        </div>
-        <div class="hero-video-col">
-          <div class="hero-video-wrap">
-            <iframe src="https://www.youtube.com/embed/LiAmyPGTnko?autoplay=1&mute=1&loop=1&playlist=LiAmyPGTnko" title="Prodiconseil 2026" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-          </div>
-        </div>
-      </div>
-      <div class="hero-stats">
-        <div class="h-stat">
-          <div class="h-stat-v">1991</div>
-          <div class="h-stat-l" data-i18n="stat1">Fondés en</div>
-        </div>
-        <div class="h-stat">
-          <div class="h-stat-v">5 800<span>+</span></div>
-          <div class="h-stat-l" data-i18n="stat2">Références en stock</div>
-        </div>
-        <div class="h-stat">
-          <div class="h-stat-v">10<span>K+</span></div>
-          <div class="h-stat-l" data-i18n="stat3">Tonnes disponibles</div>
-        </div>
-        <div class="h-stat">
-          <div class="h-stat-v">24<span>H</span></div>
-          <div class="h-stat-l" data-i18n="stat4">Délai de chargement</div>
         </div>
       </div>
     </div>
@@ -430,54 +405,6 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
     </div>
   </section>
 
-  <!-- ACTIVITÉ -->
-  <section class="sec">
-    <div class="sec-inner">
-      <div class="act-grid">
-        <div class="act-text">
-          <div class="sec-tag" data-i18n="act_tag">Notre activité</div>
-          <h2 class="sec-h" data-i18n="act_h">NÉGOCIANT EN STOCKLOTS DE PAPIER</h2>
-          <p data-i18n="act_p1">Prodiconseil est une société européenne spécialisée dans la vente de stocklots de papier et carton provenant de grandes papeteries.</p>
-          <p data-i18n="act_p2">Ces lots peuvent provenir de surproductions, de commandes annulées ou de changements de spécifications. Les produits sont vendus à des transformateurs et négociants internationaux.</p>
-          <ul class="act-list">
-            <li data-i18n="act_l1">Surproductions de papeteries européennes</li>
-            <li data-i18n="act_l2">Commandes annulées ou spécifications modifiées</li>
-            <li data-i18n="act_l3">Stocks vendus à des transformateurs et négociants</li>
-            <li data-i18n="act_l4">Bobines et formats feuilles disponibles immédiatement</li>
-          </ul>
-        </div>
-        <div class="act-cards">
-          <div class="act-card">
-            <div class="act-card-ico">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-            </div>
-            <div>
-              <h4 data-i18n="card1_h">Surproductions</h4>
-              <p data-i18n="card1_p">Excédents de production de grandes papeteries européennes disponibles à prix compétitifs.</p>
-            </div>
-          </div>
-          <div class="act-card">
-            <div class="act-card-ico">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 14l-4-4 4-4"/><path d="M5 10h11a4 4 0 0 1 0 8h-1"/></svg>
-            </div>
-            <div>
-              <h4 data-i18n="card2_h">Commandes annulées</h4>
-              <p data-i18n="card2_p">Produits finis non livrés pour cause d'annulation ou de changement de spécifications client.</p>
-            </div>
-          </div>
-          <div class="act-card">
-            <div class="act-card-ico">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-            </div>
-            <div>
-              <h4 data-i18n="card3_h">Qualité garantie</h4>
-              <p data-i18n="card3_p">Produits issus de papeteries reconnues, avec références qualité et photos disponibles pour chaque lot.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
 
   <!-- PRODUITS -->
   <section class="sec sec-gray">
@@ -573,41 +500,28 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
         <svg id="geo-svg" viewBox="0 0 1000 360" xmlns="http://www.w3.org/2000/svg" class="geo-svg">
           <rect width="1000" height="360" fill="#E2E3EA"/>
           <defs>
-            <!-- Blue outline container (isometric): door left, corrugations right -->
-            <symbol id="geo-ctr" viewBox="-15 -13 30 26" overflow="visible">
-              <!-- Faces — white fill, no stroke (outline drawn last) -->
-              <polygon points="-14,-6 -2,-12 14,-6 2,0"    fill="#fff"/>
-              <polygon points="-14,-6 -2,-12 -2,6 -14,12"  fill="#fff"/>
-              <polygon points="-2,-12 14,-6 14,10 -2,6"    fill="#fff"/>
-              <!-- Door center divider -->
-              <line x1="-8" y1="-10.5" x2="-8" y2="9.5" stroke="#1E3A72" stroke-width="0.6"/>
-              <!-- Left door lock bars -->
-              <line x1="-13.5" y1="-3.5" x2="-8.5" y2="-2.5" stroke="#1E3A72" stroke-width="1.1"/>
-              <line x1="-13.5" y1="-0.5" x2="-8.5" y2="0.5"  stroke="#1E3A72" stroke-width="1.1"/>
-              <line x1="-13.5" y1="2.5"  x2="-8.5" y2="3.5"  stroke="#1E3A72" stroke-width="1.1"/>
-              <!-- Right door lock bars -->
-              <line x1="-7.5" y1="-4.5" x2="-2.5" y2="-3.5" stroke="#1E3A72" stroke-width="1.1"/>
-              <line x1="-7.5" y1="-1.5" x2="-2.5" y2="-0.5" stroke="#1E3A72" stroke-width="1.1"/>
-              <line x1="-7.5" y1="1.5"  x2="-2.5" y2="2.5"  stroke="#1E3A72" stroke-width="1.1"/>
-              <!-- Corrugation stripes (thick blue lines on white) -->
-              <line x1="0"  y1="-11.25" x2="0"  y2="6.5"  stroke="#1E3A72" stroke-width="1.8"/>
-              <line x1="2"  y1="-10.5"  x2="2"  y2="7"    stroke="#1E3A72" stroke-width="1.8"/>
-              <line x1="4"  y1="-9.75"  x2="4"  y2="7.5"  stroke="#1E3A72" stroke-width="1.8"/>
-              <line x1="6"  y1="-9"     x2="6"  y2="8"    stroke="#1E3A72" stroke-width="1.8"/>
-              <line x1="8"  y1="-8.25"  x2="8"  y2="8.5"  stroke="#1E3A72" stroke-width="1.8"/>
-              <line x1="10" y1="-7.5"   x2="10" y2="9"    stroke="#1E3A72" stroke-width="1.8"/>
-              <line x1="12" y1="-6.75"  x2="12" y2="9.5"  stroke="#1E3A72" stroke-width="1.8"/>
-              <!-- Corner castings -->
-              <rect x="-15.5" y="-7.5"  width="2.5" height="2.5" rx="0.2" fill="#fff" stroke="#1E3A72" stroke-width="0.7"/>
-              <rect x="-3.5"  y="-13.5" width="2.5" height="2.5" rx="0.2" fill="#fff" stroke="#1E3A72" stroke-width="0.7"/>
-              <rect x="12.5"  y="-7.5"  width="2.5" height="2.5" rx="0.2" fill="#fff" stroke="#1E3A72" stroke-width="0.7"/>
-              <rect x="-15.5" y="10.5"  width="2.5" height="2.5" rx="0.2" fill="#fff" stroke="#1E3A72" stroke-width="0.7"/>
-              <rect x="-3.5"  y="4.5"   width="2.5" height="2.5" rx="0.2" fill="#fff" stroke="#1E3A72" stroke-width="0.7"/>
-              <rect x="12.5"  y="8.5"   width="2.5" height="2.5" rx="0.2" fill="#fff" stroke="#1E3A72" stroke-width="0.7"/>
-              <!-- Frame outline (drawn last, on top) -->
-              <polyline points="-14,-6 -2,-12 14,-6 14,10 -2,6 -14,12 -14,-6" fill="none" stroke="#1E3A72" stroke-width="1.2" stroke-linejoin="round"/>
-              <line x1="-2" y1="-12" x2="-2" y2="6"  stroke="#1E3A72" stroke-width="1.2"/>
-              <polyline points="-14,-6 2,0 14,-6"      fill="none" stroke="#1E3A72" stroke-width="0.8"/>
+            <!-- Container: dark navy steel + red brand stripe, minimal design -->
+            <symbol id="geo-ctr" viewBox="-13 -10 26 20" overflow="visible">
+              <!-- Ground shadow -->
+              <ellipse cx="0" cy="10" rx="12" ry="1.8" fill="rgba(0,0,0,0.2)"/>
+              <!-- Top face -->
+              <polygon points="-12,-4 0,-9 12,-4 0,1" fill="#3D5470"/>
+              <!-- Door face (left, short end) -->
+              <polygon points="-12,-4 0,1 0,9 -12,4" fill="#1C2C3E"/>
+              <!-- Long corrugated face (right) -->
+              <polygon points="0,-9 12,-4 12,8 0,9" fill="#243444"/>
+              <!-- Corrugations: 3 subtle white lines on right face -->
+              <line x1="3"  y1="-7.75" x2="3"  y2="8.75" stroke="rgba(255,255,255,0.18)" stroke-width="1.5"/>
+              <line x1="6"  y1="-6.5"  x2="6"  y2="8.5"  stroke="rgba(255,255,255,0.18)" stroke-width="1.5"/>
+              <line x1="9"  y1="-5.25" x2="9"  y2="8.25" stroke="rgba(255,255,255,0.18)" stroke-width="1.5"/>
+              <!-- Red brand stripe near bottom of right face -->
+              <line x1="0.2" y1="6.8" x2="12" y2="5.9" stroke="#FE0000" stroke-width="2"/>
+              <!-- Door divider -->
+              <line x1="-6" y1="-6.5" x2="-6" y2="6.5" stroke="rgba(255,255,255,0.12)" stroke-width="0.7"/>
+              <!-- White outline -->
+              <polyline points="-12,-4 0,-9 12,-4 12,8 0,9 -12,4 -12,-4" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="0.9" stroke-linejoin="round"/>
+              <line x1="0" y1="-9" x2="0" y2="9" stroke="rgba(255,255,255,0.35)" stroke-width="0.9"/>
+              <polyline points="-12,-4 0,1 12,-4" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="0.6"/>
             </symbol>
           </defs>
           <!-- Pays (JS topojson) -->
@@ -651,6 +565,13 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
           <div class="mq-item"><span class="mq-flag">🇲🇦</span><span class="mq-name">Maroc</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇩🇿</span><span class="mq-name">Algérie</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇹🇳</span><span class="mq-name">Tunisie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇱🇾</span><span class="mq-name">Libye</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇲🇷</span><span class="mq-name">Mauritanie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇲🇱</span><span class="mq-name">Mali</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇳🇪</span><span class="mq-name">Niger</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇹🇩</span><span class="mq-name">Tchad</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇬🇭</span><span class="mq-name">Ghana</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇨🇲</span><span class="mq-name">Cameroun</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇸🇳</span><span class="mq-name">Sénégal</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇨🇮</span><span class="mq-name">Côte d'Ivoire</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇳🇬</span><span class="mq-name">Nigeria</span></div><div class="mq-dot"></div>
@@ -701,6 +622,13 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
           <div class="mq-item"><span class="mq-flag">🇲🇦</span><span class="mq-name">Maroc</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇩🇿</span><span class="mq-name">Algérie</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇹🇳</span><span class="mq-name">Tunisie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇱🇾</span><span class="mq-name">Libye</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇲🇷</span><span class="mq-name">Mauritanie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇲🇱</span><span class="mq-name">Mali</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇳🇪</span><span class="mq-name">Niger</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇹🇩</span><span class="mq-name">Tchad</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇬🇭</span><span class="mq-name">Ghana</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇨🇲</span><span class="mq-name">Cameroun</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇸🇳</span><span class="mq-name">Sénégal</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇨🇮</span><span class="mq-name">Côte d'Ivoire</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇳🇬</span><span class="mq-name">Nigeria</span></div><div class="mq-dot"></div>
@@ -941,7 +869,6 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
     </div>
     <div class="foot-nav">
       <a onclick="showPage('home')" data-i18n="nav_home">Accueil</a>
-      <a onclick="showPage('about')" data-i18n="nav_about">À propos</a>
       <a onclick="showPage('contact')" data-i18n="nav_contact">Contact</a>
       <a href="./index.html" data-i18n="nav_catalogue">Catalogue</a>
     </div>
@@ -1162,7 +1089,10 @@ const GEO_PTS=[
   {f:'🇺🇦',lon:32,   lat:49   },{f:'🇦🇹',lon:14.6,lat:47.5 },
   // Africa
   {f:'🇲🇦',lon:-5.8, lat:31.8 },{f:'🇩🇿',lon:3,   lat:28   },{f:'🇹🇳',lon:9,   lat:34   },
-  {f:'🇸🇳',lon:-14.5,lat:14   },{f:'🇨🇮',lon:-5.5,lat:7.5  },{f:'🇳🇬',lon:8,   lat:10   },
+  {f:'🇱🇾',lon:17,   lat:27   },{f:'🇲🇷',lon:-11, lat:20   },{f:'🇲🇱',lon:-2,  lat:17   },
+  {f:'🇳🇪',lon:8,    lat:17   },{f:'🇹🇩',lon:18,  lat:15   },
+  {f:'🇸🇳',lon:-14.5,lat:14   },{f:'🇨🇮',lon:-5.5,lat:7.5  },{f:'🇬🇭',lon:-1,  lat:8    },
+  {f:'🇨🇲',lon:12,   lat:4    },{f:'🇳🇬',lon:8,   lat:10   },
   {f:'🇪🇬',lon:30,   lat:27   },{f:'🇰🇪',lon:37.5,lat:0    },{f:'🇿🇦',lon:25,  lat:-29  },
   // Middle East
   {f:'🇦🇪',lon:54,   lat:24   },{f:'🇸🇦',lon:45,  lat:24   },{f:'🇮🇱',lon:34.8,lat:31.5 },
@@ -1176,8 +1106,10 @@ const GEO_PTS=[
   {f:'🇵🇪',lon:-76,  lat:-10  },{f:'🇨🇱',lon:-71, lat:-35  },
 ];
 
-// Container route indices (long intercontinental arcs)
-const GEO_SHIP_IDX=[40,36,44,20]; // US, CN, BR, MA
+// Container route indices — recalculated after Africa additions (+7 countries)
+// Europe:0-19, Africa:20-35(MA=20,CN_asia=43), ME:36-38, Asia:39-46, Americas:47-54
+// US=47, CN=43, BR=51, MA=20
+const GEO_SHIP_IDX=[47,43,51,20];
 
 async function initGeoMap(){
   const svg=document.getElementById('geo-svg');
@@ -1250,13 +1182,6 @@ async function initGeoMap(){
     dot.style.transformOrigin=`${cx.toFixed(1)}px ${cy.toFixed(1)}px`;dot.style.transform='scale(0)';
     mrkG.appendChild(dot);
 
-    // Flag emoji
-    const txt=document.createElementNS('http://www.w3.org/2000/svg','text');
-    txt.setAttribute('x',cx.toFixed(1));txt.setAttribute('y',(cy-8).toFixed(1));
-    txt.setAttribute('text-anchor','middle');txt.setAttribute('font-size','13');
-    txt.setAttribute('opacity','0');txt.textContent=c.f;
-    txt.style.animation=`dotPop .25s ease-out ${(parseFloat(delay)+1.1).toFixed(2)}s forwards`;
-    mrkG.appendChild(txt);
   });
 
   // 3. Container icon animations on key routes (SVG symbol #geo-ctr)
@@ -1268,8 +1193,8 @@ async function initGeoMap(){
     const g=document.createElementNS('http://www.w3.org/2000/svg','g');
     const u=document.createElementNS('http://www.w3.org/2000/svg','use');
     u.setAttribute('href','#geo-ctr');
-    u.setAttribute('width','22');u.setAttribute('height','19');
-    u.setAttribute('x','-11');u.setAttribute('y','-9.5');
+    u.setAttribute('width','26');u.setAttribute('height','20');
+    u.setAttribute('x','-13');u.setAttribute('y','-10');
     g.appendChild(u);
     const am=document.createElementNS('http://www.w3.org/2000/svg','animateMotion');
     am.setAttribute('dur',`${dur}s`);am.setAttribute('begin',`${startDelay}s`);
