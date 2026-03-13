@@ -131,8 +131,8 @@ button{cursor:pointer;border:none;font-family:inherit;background:none;}
 .logi-card p{font-size:14px;color:rgba(255,255,255,.45);line-height:1.65;}
 
 /* ─── GEO MAP ─── */
-.geo-sec{background:#EEEEF3;padding:48px 40px 0;}
-.geo-wrap{margin-top:24px;border-radius:var(--rl);overflow:hidden;box-shadow:0 6px 32px rgba(0,0,0,.08);position:relative;}
+.geo-sec{background:#EEEEF3;padding:28px 40px 0;}
+.geo-wrap{margin-top:16px;border-radius:var(--rl);overflow:hidden;box-shadow:0 6px 32px rgba(0,0,0,.08);position:relative;}
 .geo-svg{width:100%;height:auto;display:block;}
 @keyframes arcDraw{from{stroke-dashoffset:var(--pl);opacity:0;}10%{opacity:0.65;}to{stroke-dashoffset:0;opacity:0.65;}}
 @keyframes arcGlow{from{stroke-dashoffset:var(--pl);opacity:0;}10%{opacity:0.15;}to{stroke-dashoffset:0;opacity:0.15;}}
@@ -571,8 +571,26 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
       <h2 class="sec-h" data-i18n="geo_h">NOTRE PRÉSENCE À L'INTERNATIONAL</h2>
       <p class="sec-sub" data-i18n="geo_sub">Présents sur 5 continents. Expédition depuis nos entrepôts en France et en Europe vers le monde entier.</p>
       <div class="geo-wrap">
-        <svg id="geo-svg" viewBox="0 0 1000 440" xmlns="http://www.w3.org/2000/svg" class="geo-svg">
-          <rect width="1000" height="440" fill="#E2E3EA"/>
+        <svg id="geo-svg" viewBox="0 0 1000 360" xmlns="http://www.w3.org/2000/svg" class="geo-svg">
+          <rect width="1000" height="360" fill="#E2E3EA"/>
+          <defs>
+            <!-- Shipping container icon (isometric) -->
+            <symbol id="geo-ctr" viewBox="-18 -11 36 23" overflow="visible">
+              <polygon points="-14,-4 0,-9 14,-4 0,1" fill="#2C3D4F"/>
+              <polygon points="-14,-4 0,1 0,11 -14,6" fill="#D87D12"/>
+              <line x1="-10.5" y1="-3"   x2="-10.5" y2="10"  stroke="#F09020" stroke-width="1.2"/>
+              <line x1="-7"    y1="-2"   x2="-7"    y2="11"  stroke="#F09020" stroke-width="1.2"/>
+              <line x1="-3.5"  y1="-1"   x2="-3.5"  y2="12"  stroke="#F09020" stroke-width="1.2"/>
+              <polygon points="0,1 14,-4 14,6 0,11" fill="#B06808"/>
+              <line x1="3.5"   y1="-3"   x2="3.5"   y2="10"  stroke="#C87810" stroke-width="1.2"/>
+              <line x1="7"     y1="-4"   x2="7"     y2="9"   stroke="#C87810" stroke-width="1.2"/>
+              <line x1="10.5"  y1="-5"   x2="10.5"  y2="8"   stroke="#C87810" stroke-width="1.2"/>
+              <polygon points="11.5,-5.5 14,-6.5 14,5 11.5,6.5" fill="#9A5008"/>
+              <polyline points="-14,-4 0,-9 14,-4 14,6 0,11 -14,6 -14,-4" fill="none" stroke="#1B2B3C" stroke-width="1.8" stroke-linejoin="round"/>
+              <line x1="0" y1="-9" x2="0" y2="1"  stroke="#1B2B3C" stroke-width="1.8"/>
+              <line x1="0" y1="1"  x2="0" y2="11" stroke="#1B2B3C" stroke-width="1.8"/>
+            </symbol>
+          </defs>
           <!-- Pays (JS topojson) -->
           <g id="geo-countries"></g>
           <!-- Arcs (JS) -->
@@ -582,9 +600,9 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
           <!-- Markers (JS) -->
           <g id="geo-markers"></g>
           <!-- France origin -->
-          <circle cx="507" cy="101" r="16" fill="#FE0000" opacity="0.12" style="animation:originPulse 2.5s ease-in-out infinite"/>
-          <circle cx="507" cy="101" r="5" fill="#FE0000"/>
-          <circle cx="507" cy="101" r="2.5" fill="#fff"/>
+          <circle cx="507" cy="82" r="16" fill="#FE0000" opacity="0.12" style="animation:originPulse 2.5s ease-in-out infinite"/>
+          <circle cx="507" cy="82" r="5" fill="#FE0000"/>
+          <circle cx="507" cy="82" r="2.5" fill="#fff"/>
         </svg>
       </div>
       <!-- Marquee pays intégré -->
@@ -1106,13 +1124,13 @@ async function submitContact(e) {
 }
 
 // ─── GEO MAP ───
-// Lat/lon → SVG coords (equirectangular, viewBox 1000×440)
+// Lat/lon → SVG coords (equirectangular, viewBox 1000×360)
 function geoProj(lon,lat){
-  return [(lon+180)/360*1000, (90-lat)/180*440];
+  return [(lon+180)/360*1000, (90-lat)/180*360];
 }
 // France origin
 const GEO_FR=[2.35,48.85]; // lon,lat
-const [GEO_FX,GEO_FY]=geoProj(...GEO_FR); // ≈ 507, 101
+const [GEO_FX,GEO_FY]=geoProj(...GEO_FR); // ≈ 507, 82
 
 const GEO_PTS=[
   // Europe
@@ -1222,21 +1240,21 @@ async function initGeoMap(){
     mrkG.appendChild(txt);
   });
 
-  // 3. Container (📦) animations on key routes
+  // 3. Container icon animations on key routes (SVG symbol #geo-ctr)
   GEO_SHIP_IDX.forEach((ptIdx,si)=>{
     const arcId=`geo-arc-${ptIdx}`;
-    const arcEl=document.getElementById(arcId);
-    if(!arcEl) return;
+    if(!document.getElementById(arcId)) return;
     const dur=[18,22,20,14][si];
     const startDelay=(parseFloat((0.15+ptIdx*0.07).toFixed(2))+1.5+si*2).toFixed(1);
     const g=document.createElementNS('http://www.w3.org/2000/svg','g');
-    const t=document.createElementNS('http://www.w3.org/2000/svg','text');
-    t.setAttribute('text-anchor','middle');t.setAttribute('dominant-baseline','middle');
-    t.setAttribute('font-size','14');t.textContent='📦';
-    g.appendChild(t);
+    const u=document.createElementNS('http://www.w3.org/2000/svg','use');
+    u.setAttribute('href','#geo-ctr');
+    u.setAttribute('width','36');u.setAttribute('height','23');
+    u.setAttribute('x','-18');u.setAttribute('y','-11');
+    g.appendChild(u);
     const am=document.createElementNS('http://www.w3.org/2000/svg','animateMotion');
     am.setAttribute('dur',`${dur}s`);am.setAttribute('begin',`${startDelay}s`);
-    am.setAttribute('repeatCount','indefinite');am.setAttribute('rotate','auto');
+    am.setAttribute('repeatCount','indefinite');am.setAttribute('rotate','0');
     const mp=document.createElementNS('http://www.w3.org/2000/svg','mpath');
     mp.setAttribute('href',`#${arcId}`);
     am.appendChild(mp);g.appendChild(am);shipsG.appendChild(g);
