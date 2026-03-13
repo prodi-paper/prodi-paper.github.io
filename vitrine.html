@@ -573,44 +573,41 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
         <svg id="geo-svg" viewBox="0 0 1000 360" xmlns="http://www.w3.org/2000/svg" class="geo-svg">
           <rect width="1000" height="360" fill="#E2E3EA"/>
           <defs>
-            <!-- Black/white shipping container (isometric): door left, corrugations right -->
+            <!-- Blue outline container (isometric): door left, corrugations right -->
             <symbol id="geo-ctr" viewBox="-15 -13 30 26" overflow="visible">
-              <!-- Top face -->
-              <polygon points="-14,-6 -2,-12 14,-6 2,0" fill="#2A2A2A"/>
-              <!-- Left face (door end) -->
-              <polygon points="-14,-6 -2,-12 -2,6 -14,12" fill="#1A1A1A"/>
-              <!-- Door center vertical divider -->
-              <line x1="-8" y1="-10.5" x2="-8" y2="9.5" stroke="#fff" stroke-width="0.55"/>
-              <!-- Left door panel — horizontal lock bars -->
-              <line x1="-13.5" y1="-3.5" x2="-8.5" y2="-2.5" stroke="#fff" stroke-width="1.1"/>
-              <line x1="-13.5" y1="-0.5" x2="-8.5" y2="0.5"  stroke="#fff" stroke-width="1.1"/>
-              <line x1="-13.5" y1="2.5"  x2="-8.5" y2="3.5"  stroke="#fff" stroke-width="1.1"/>
-              <!-- Right door panel — horizontal lock bars -->
-              <line x1="-7.5" y1="-4.5" x2="-2.5" y2="-3.5" stroke="#fff" stroke-width="1.1"/>
-              <line x1="-7.5" y1="-1.5" x2="-2.5" y2="-0.5" stroke="#fff" stroke-width="1.1"/>
-              <line x1="-7.5" y1="1.5"  x2="-2.5" y2="2.5"  stroke="#fff" stroke-width="1.1"/>
-              <!-- Right face (corrugated long side) -->
-              <polygon points="-2,-12 14,-6 14,10 -2,6" fill="#1A1A1A"/>
-              <!-- Corrugation lines -->
-              <line x1="0"  y1="-11.25" x2="0"  y2="6.5"  stroke="#fff" stroke-width="0.65"/>
-              <line x1="2"  y1="-10.5"  x2="2"  y2="7"    stroke="#fff" stroke-width="0.65"/>
-              <line x1="4"  y1="-9.75"  x2="4"  y2="7.5"  stroke="#fff" stroke-width="0.65"/>
-              <line x1="6"  y1="-9"     x2="6"  y2="8"    stroke="#fff" stroke-width="0.65"/>
-              <line x1="8"  y1="-8.25"  x2="8"  y2="8.5"  stroke="#fff" stroke-width="0.65"/>
-              <line x1="10" y1="-7.5"   x2="10" y2="9"    stroke="#fff" stroke-width="0.65"/>
-              <line x1="12" y1="-6.75"  x2="12" y2="9.5"  stroke="#fff" stroke-width="0.65"/>
+              <!-- Faces — white fill, no stroke (outline drawn last) -->
+              <polygon points="-14,-6 -2,-12 14,-6 2,0"    fill="#fff"/>
+              <polygon points="-14,-6 -2,-12 -2,6 -14,12"  fill="#fff"/>
+              <polygon points="-2,-12 14,-6 14,10 -2,6"    fill="#fff"/>
+              <!-- Door center divider -->
+              <line x1="-8" y1="-10.5" x2="-8" y2="9.5" stroke="#1E3A72" stroke-width="0.6"/>
+              <!-- Left door lock bars -->
+              <line x1="-13.5" y1="-3.5" x2="-8.5" y2="-2.5" stroke="#1E3A72" stroke-width="1.1"/>
+              <line x1="-13.5" y1="-0.5" x2="-8.5" y2="0.5"  stroke="#1E3A72" stroke-width="1.1"/>
+              <line x1="-13.5" y1="2.5"  x2="-8.5" y2="3.5"  stroke="#1E3A72" stroke-width="1.1"/>
+              <!-- Right door lock bars -->
+              <line x1="-7.5" y1="-4.5" x2="-2.5" y2="-3.5" stroke="#1E3A72" stroke-width="1.1"/>
+              <line x1="-7.5" y1="-1.5" x2="-2.5" y2="-0.5" stroke="#1E3A72" stroke-width="1.1"/>
+              <line x1="-7.5" y1="1.5"  x2="-2.5" y2="2.5"  stroke="#1E3A72" stroke-width="1.1"/>
+              <!-- Corrugation stripes (thick blue lines on white) -->
+              <line x1="0"  y1="-11.25" x2="0"  y2="6.5"  stroke="#1E3A72" stroke-width="1.8"/>
+              <line x1="2"  y1="-10.5"  x2="2"  y2="7"    stroke="#1E3A72" stroke-width="1.8"/>
+              <line x1="4"  y1="-9.75"  x2="4"  y2="7.5"  stroke="#1E3A72" stroke-width="1.8"/>
+              <line x1="6"  y1="-9"     x2="6"  y2="8"    stroke="#1E3A72" stroke-width="1.8"/>
+              <line x1="8"  y1="-8.25"  x2="8"  y2="8.5"  stroke="#1E3A72" stroke-width="1.8"/>
+              <line x1="10" y1="-7.5"   x2="10" y2="9"    stroke="#1E3A72" stroke-width="1.8"/>
+              <line x1="12" y1="-6.75"  x2="12" y2="9.5"  stroke="#1E3A72" stroke-width="1.8"/>
               <!-- Corner castings -->
-              <rect x="-15.5" y="-7.5"  width="2.5" height="2.5" rx="0.2" fill="#1A1A1A" stroke="#fff" stroke-width="0.6"/>
-              <rect x="-3.5"  y="-13.5" width="2.5" height="2.5" rx="0.2" fill="#2A2A2A" stroke="#fff" stroke-width="0.6"/>
-              <rect x="12.5"  y="-7.5"  width="2.5" height="2.5" rx="0.2" fill="#2A2A2A" stroke="#fff" stroke-width="0.6"/>
-              <rect x="-15.5" y="10.5"  width="2.5" height="2.5" rx="0.2" fill="#1A1A1A" stroke="#fff" stroke-width="0.6"/>
-              <rect x="-3.5"  y="4.5"   width="2.5" height="2.5" rx="0.2" fill="#1A1A1A" stroke="#fff" stroke-width="0.6"/>
-              <rect x="12.5"  y="8.5"   width="2.5" height="2.5" rx="0.2" fill="#1A1A1A" stroke="#fff" stroke-width="0.6"/>
-              <!-- Frame outline -->
-              <polyline points="-14,-6 -2,-12 14,-6 14,10 -2,6 -14,12 -14,-6" fill="none" stroke="#fff" stroke-width="1.1" stroke-linejoin="round"/>
-              <line x1="-2" y1="-12" x2="-2" y2="6" stroke="#fff" stroke-width="1.1"/>
-              <!-- Top face front ridge -->
-              <polyline points="-14,-6 2,0 14,-6" fill="none" stroke="#fff" stroke-width="0.7"/>
+              <rect x="-15.5" y="-7.5"  width="2.5" height="2.5" rx="0.2" fill="#fff" stroke="#1E3A72" stroke-width="0.7"/>
+              <rect x="-3.5"  y="-13.5" width="2.5" height="2.5" rx="0.2" fill="#fff" stroke="#1E3A72" stroke-width="0.7"/>
+              <rect x="12.5"  y="-7.5"  width="2.5" height="2.5" rx="0.2" fill="#fff" stroke="#1E3A72" stroke-width="0.7"/>
+              <rect x="-15.5" y="10.5"  width="2.5" height="2.5" rx="0.2" fill="#fff" stroke="#1E3A72" stroke-width="0.7"/>
+              <rect x="-3.5"  y="4.5"   width="2.5" height="2.5" rx="0.2" fill="#fff" stroke="#1E3A72" stroke-width="0.7"/>
+              <rect x="12.5"  y="8.5"   width="2.5" height="2.5" rx="0.2" fill="#fff" stroke="#1E3A72" stroke-width="0.7"/>
+              <!-- Frame outline (drawn last, on top) -->
+              <polyline points="-14,-6 -2,-12 14,-6 14,10 -2,6 -14,12 -14,-6" fill="none" stroke="#1E3A72" stroke-width="1.2" stroke-linejoin="round"/>
+              <line x1="-2" y1="-12" x2="-2" y2="6"  stroke="#1E3A72" stroke-width="1.2"/>
+              <polyline points="-14,-6 2,0 14,-6"      fill="none" stroke="#1E3A72" stroke-width="0.8"/>
             </symbol>
           </defs>
           <!-- Pays (JS topojson) -->
