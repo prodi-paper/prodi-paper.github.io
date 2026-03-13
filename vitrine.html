@@ -574,21 +574,35 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
         <svg id="geo-svg" viewBox="0 0 1000 360" xmlns="http://www.w3.org/2000/svg" class="geo-svg">
           <rect width="1000" height="360" fill="#E2E3EA"/>
           <defs>
-            <!-- Shipping container icon (isometric) -->
-            <symbol id="geo-ctr" viewBox="-18 -11 36 23" overflow="visible">
-              <polygon points="-14,-4 0,-9 14,-4 0,1" fill="#2C3D4F"/>
-              <polygon points="-14,-4 0,1 0,11 -14,6" fill="#D87D12"/>
-              <line x1="-10.5" y1="-3"   x2="-10.5" y2="10"  stroke="#F09020" stroke-width="1.2"/>
-              <line x1="-7"    y1="-2"   x2="-7"    y2="11"  stroke="#F09020" stroke-width="1.2"/>
-              <line x1="-3.5"  y1="-1"   x2="-3.5"  y2="12"  stroke="#F09020" stroke-width="1.2"/>
-              <polygon points="0,1 14,-4 14,6 0,11" fill="#B06808"/>
-              <line x1="3.5"   y1="-3"   x2="3.5"   y2="10"  stroke="#C87810" stroke-width="1.2"/>
-              <line x1="7"     y1="-4"   x2="7"     y2="9"   stroke="#C87810" stroke-width="1.2"/>
-              <line x1="10.5"  y1="-5"   x2="10.5"  y2="8"   stroke="#C87810" stroke-width="1.2"/>
-              <polygon points="11.5,-5.5 14,-6.5 14,5 11.5,6.5" fill="#9A5008"/>
-              <polyline points="-14,-4 0,-9 14,-4 14,6 0,11 -14,6 -14,-4" fill="none" stroke="#1B2B3C" stroke-width="1.8" stroke-linejoin="round"/>
-              <line x1="0" y1="-9" x2="0" y2="1"  stroke="#1B2B3C" stroke-width="1.8"/>
-              <line x1="0" y1="1"  x2="0" y2="11" stroke="#1B2B3C" stroke-width="1.8"/>
+            <!-- Red shipping container (isometric): door left, corrugations right -->
+            <!-- ViewBox centered at 0,0 so animateMotion places it correctly -->
+            <symbol id="geo-ctr" viewBox="-15 -13 30 26" overflow="visible">
+              <!-- Top face -->
+              <polygon points="-14,-6 -2,-12 14,-6 2,0" fill="#D01600"/>
+              <!-- Left face — door end (smaller, ~1/3 of width) -->
+              <polygon points="-14,-6 -2,-12 -2,6 -14,12" fill="#A81200"/>
+              <!-- Door panels: 2 cols × 3 rows -->
+              <rect x="-13"  y="-5"   width="4.5" height="3.2" fill="none" stroke="#831000" stroke-width="0.75"/>
+              <rect x="-7.5" y="-5.8" width="4.5" height="3.2" fill="none" stroke="#831000" stroke-width="0.75"/>
+              <rect x="-13"  y="-0.8" width="4.5" height="3.2" fill="none" stroke="#831000" stroke-width="0.75"/>
+              <rect x="-7.5" y="-1.6" width="4.5" height="3.2" fill="none" stroke="#831000" stroke-width="0.75"/>
+              <rect x="-13"  y="3.5"  width="4.5" height="3.2" fill="none" stroke="#831000" stroke-width="0.75"/>
+              <rect x="-7.5" y="2.8"  width="4.5" height="3.2" fill="none" stroke="#831000" stroke-width="0.75"/>
+              <!-- Right face — corrugated long side (~2/3 of width) -->
+              <polygon points="-2,-12 14,-6 14,10 -2,6" fill="#BE1400"/>
+              <!-- Corrugation lines (interpolated top/bottom per x) -->
+              <line x1="0"  y1="-11.25" x2="0"  y2="6.5"  stroke="#961000" stroke-width="1.1"/>
+              <line x1="2"  y1="-10.5"  x2="2"  y2="7"    stroke="#961000" stroke-width="1.1"/>
+              <line x1="4"  y1="-9.75"  x2="4"  y2="7.5"  stroke="#961000" stroke-width="1.1"/>
+              <line x1="6"  y1="-9"     x2="6"  y2="8"    stroke="#961000" stroke-width="1.1"/>
+              <line x1="8"  y1="-8.25"  x2="8"  y2="8.5"  stroke="#961000" stroke-width="1.1"/>
+              <line x1="10" y1="-7.5"   x2="10" y2="9"    stroke="#961000" stroke-width="1.1"/>
+              <line x1="12" y1="-6.75"  x2="12" y2="9.5"  stroke="#961000" stroke-width="1.1"/>
+              <!-- Frame outline -->
+              <polyline points="-14,-6 -2,-12 14,-6 14,10 -2,6 -14,12 -14,-6" fill="none" stroke="#780C00" stroke-width="1.6" stroke-linejoin="round"/>
+              <line x1="-2" y1="-12" x2="-2" y2="6" stroke="#780C00" stroke-width="1.6"/>
+              <!-- Top edge highlight -->
+              <polyline points="-14,-6 -2,-12 14,-6" fill="none" stroke="#E82000" stroke-width="0.7"/>
             </symbol>
           </defs>
           <!-- Pays (JS topojson) -->
@@ -1249,8 +1263,8 @@ async function initGeoMap(){
     const g=document.createElementNS('http://www.w3.org/2000/svg','g');
     const u=document.createElementNS('http://www.w3.org/2000/svg','use');
     u.setAttribute('href','#geo-ctr');
-    u.setAttribute('width','36');u.setAttribute('height','23');
-    u.setAttribute('x','-18');u.setAttribute('y','-11');
+    u.setAttribute('width','30');u.setAttribute('height','26');
+    u.setAttribute('x','-15');u.setAttribute('y','-13');
     g.appendChild(u);
     const am=document.createElementNS('http://www.w3.org/2000/svg','animateMotion');
     am.setAttribute('dur',`${dur}s`);am.setAttribute('begin',`${startDelay}s`);
