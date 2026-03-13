@@ -13,7 +13,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="dns-prefetch" href="https://bvcgpdoukhcatjibmvnb.supabase.co">
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
-<script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -68,7 +67,7 @@ button{cursor:pointer;border:none;font-family:inherit;background:none;}
 /* ─── HERO ─── */
 .hero{background:#fff;border-bottom:1px solid var(--border);}
 .hero-inner{max-width:1120px;margin:0 auto;padding:64px 48px 52px;width:100%;}
-.hero-split{display:grid;grid-template-columns:1fr 300px;gap:56px;align-items:center;}
+.hero-split{display:grid;grid-template-columns:1fr;max-width:720px;}
 .hero h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(42px,5vw,76px);line-height:.93;color:var(--dark);letter-spacing:1.5px;margin-bottom:20px;}
 .hero h1 em{color:var(--red);font-style:normal;}
 .hero-sub{font-size:15px;color:var(--ink2);max-width:480px;line-height:1.8;margin-bottom:32px;}
@@ -256,6 +255,35 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
 .foot-nav a{font-size:13px;color:rgba(255,255,255,.35);cursor:pointer;transition:color .15s;}
 .foot-nav a:hover{color:rgba(255,255,255,.75);}
 
+/* ─── AVAIL STRIP ─── */
+.avail-strip{background:var(--dark);border-bottom:1px solid rgba(255,255,255,.06);}
+.avail-inner{max-width:1240px;margin:0 auto;display:flex;align-items:stretch;flex-wrap:wrap;}
+.avail-item{flex:1;min-width:120px;padding:18px 20px;border-right:1px solid rgba(255,255,255,.07);text-align:center;}
+.avail-item:last-child{border-right:none;}
+.avail-type{font-size:10px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:5px;}
+.avail-tons{font-family:'Bebas Neue',sans-serif;font-size:26px;color:#fff;letter-spacing:.5px;line-height:1;}
+.avail-tons em{color:var(--red);font-style:normal;}
+.avail-unit{font-size:10px;color:rgba(255,255,255,.22);margin-top:2px;letter-spacing:.5px;}
+
+/* ─── ZONE GÉO ─── */
+.zone-sec{background:var(--off);padding:72px 40px;}
+.zone-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-top:44px;}
+.zone-card{background:#fff;border:1px solid var(--border);border-radius:var(--rl);padding:22px 18px;}
+.zone-name{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:var(--dark);margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--red);}
+.zone-countries{font-size:12px;color:#777;line-height:1.75;}
+
+/* ─── QUICK DEVIS ─── */
+.qd-sec{background:var(--dark);padding:72px 40px;}
+.qd-sec .sec-h{color:#fff;}
+.qd-sec .sec-sub{color:rgba(255,255,255,.45);}
+.qd-form{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;margin-top:32px;align-items:end;}
+.qd-field{display:flex;flex-direction:column;gap:6px;}
+.qd-field label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.4);}
+.qd-field input{padding:11px 14px;border:1.5px solid rgba(255,255,255,.12);border-radius:var(--r);background:rgba(255,255,255,.06);color:#fff;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .15s;}
+.qd-field input::placeholder{color:rgba(255,255,255,.3);}
+.qd-field input:focus{border-color:var(--red);}
+.qd-ok{display:none;color:rgba(255,255,255,.7);font-size:14px;margin-top:16px;padding:14px 20px;background:rgba(255,255,255,.06);border-radius:var(--r);}
+
 /* ─── PROCESS ─── */
 .proc-sec{background:#fff;padding:80px 40px;}
 .proc-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:48px;}
@@ -285,7 +313,7 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
 
 /* ─── RESPONSIVE ─── */
 @media(max-width:1100px){.bento-grid{grid-template-columns:1fr 1fr;grid-template-rows:220px 200px 180px;}.bn-1{grid-column:1/3;grid-row:1/2;}.bn-2{grid-column:1/2;grid-row:2/3;}.bn-3{grid-column:2/3;grid-row:2/3;}.bn-4{grid-column:1/2;grid-row:3/4;}.bn-5{grid-column:2/3;grid-row:3/4;}}
-@media(max-width:1100px){.proc-steps{grid-template-columns:1fr 1fr;}}
+@media(max-width:1100px){.proc-steps{grid-template-columns:1fr 1fr;}.zone-grid{grid-template-columns:repeat(3,1fr);}.qd-form{grid-template-columns:1fr 1fr;}}
 @media(max-width:900px){
   .hd-nav,.hd-divider,.hd-lang,.btn-cat{display:none;}
   .hd-burger{display:flex;}
@@ -302,7 +330,12 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
 }
 @media(max-width:600px){
   .proc-steps{grid-template-columns:1fr;}
-  .proc-sec{padding:56px 20px;}
+  .proc-sec,.zone-sec,.qd-sec{padding:56px 20px;}
+  .zone-grid{grid-template-columns:1fr 1fr;}
+  .qd-form{grid-template-columns:1fr;}
+  .avail-item{min-width:calc(50% - 1px);}
+  .avail-item:nth-child(2n){border-right:none;}
+  .avail-item:nth-child(3),.avail-item:nth-child(4){border-top:1px solid rgba(255,255,255,.07);}
   .hero-inner,.sec,.bento-sec,.ab-hero,.ab-body,.cta-wrap,.ct-wrap,footer{padding-left:20px;padding-right:20px;}
   .bento-grid{grid-template-columns:1fr;grid-template-rows:280px 240px 240px 240px 200px;}
   .bn-1,.bn-2,.bn-3,.bn-4,.bn-5{grid-column:1/2;}
@@ -357,8 +390,8 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
     <div class="hero-inner">
       <div class="hero-split">
         <div class="hero-text">
-          <h1 data-i18n-h="hero_title">VOTRE FOURNISSEUR<br>PAPIER &amp; CARTON<br><em>DEPUIS 1991</em></h1>
-          <p class="hero-sub" data-i18n="hero_sub">Import/Export international — 10 000+ tonnes en stock en France 🇫🇷. Kraft, offset, couché, bobines &amp; formats, tous grammages.</p>
+          <h1 data-i18n-h="hero_title">STOCKLOTS DE PAPIER<br>&amp; CARTON<br><em>DISPONIBLES IMMÉDIATEMENT</em></h1>
+          <p class="hero-sub" data-i18n="hero_sub">Bobines · Palettes feuilles · Kraft · Offset · Couché · SBS · Tous grammages — Expédition mondiale depuis la France 🇫🇷</p>
           <div class="hero-btns">
             <a href="./index.html" class="btn-hero" data-i18n="hero_btn1">NOS PRODUITS</a>
             <a onclick="showPage('contact')" class="btn-hero-outline" data-i18n="hero_btn2">NOUS CONTACTER</a>
@@ -385,6 +418,37 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
       </div>
     </div>
   </section>
+
+  <!-- AVAIL STRIP -->
+  <div class="avail-strip">
+    <div class="avail-inner">
+      <div class="avail-item">
+        <div class="avail-type">Kraft</div>
+        <div class="avail-tons">~2 400<em>T</em></div>
+        <div class="avail-unit">en stock</div>
+      </div>
+      <div class="avail-item">
+        <div class="avail-type">Offset</div>
+        <div class="avail-tons">~1 800<em>T</em></div>
+        <div class="avail-unit">en stock</div>
+      </div>
+      <div class="avail-item">
+        <div class="avail-type">Couché</div>
+        <div class="avail-tons">~3 200<em>T</em></div>
+        <div class="avail-unit">en stock</div>
+      </div>
+      <div class="avail-item">
+        <div class="avail-type">SBS / FBB</div>
+        <div class="avail-tons">~900<em>T</em></div>
+        <div class="avail-unit">en stock</div>
+      </div>
+      <div class="avail-item">
+        <div class="avail-type">Carton ondulé</div>
+        <div class="avail-tons">~1 600<em>T</em></div>
+        <div class="avail-unit">en stock</div>
+      </div>
+    </div>
+  </div>
 
   <!-- BENTO PRODUITS -->
   <section class="bento-sec">
@@ -454,6 +518,39 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
   </section>
 
 
+  <!-- PAPETERIES SOURCES -->
+  <div class="mills-sec">
+    <div class="mills-label" data-i18n="mills_label">Stocks issus des plus grandes papeteries européennes</div>
+    <div class="mills-track">
+      <div class="mills-inner">
+        <span class="mills-item">Stora Enso</span><span class="mills-dot">·</span>
+        <span class="mills-item">Mondi</span><span class="mills-dot">·</span>
+        <span class="mills-item">Sappi</span><span class="mills-dot">·</span>
+        <span class="mills-item">Smurfit Kappa</span><span class="mills-dot">·</span>
+        <span class="mills-item">Holmen</span><span class="mills-dot">·</span>
+        <span class="mills-item">DS Smith</span><span class="mills-dot">·</span>
+        <span class="mills-item">UPM</span><span class="mills-dot">·</span>
+        <span class="mills-item">Burgo</span><span class="mills-dot">·</span>
+        <span class="mills-item">Lecta</span><span class="mills-dot">·</span>
+        <span class="mills-item">Navigator</span><span class="mills-dot">·</span>
+        <span class="mills-item">Arctic Paper</span><span class="mills-dot">·</span>
+        <span class="mills-item">Billerud</span><span class="mills-dot">·</span>
+        <span class="mills-item">Stora Enso</span><span class="mills-dot">·</span>
+        <span class="mills-item">Mondi</span><span class="mills-dot">·</span>
+        <span class="mills-item">Sappi</span><span class="mills-dot">·</span>
+        <span class="mills-item">Smurfit Kappa</span><span class="mills-dot">·</span>
+        <span class="mills-item">Holmen</span><span class="mills-dot">·</span>
+        <span class="mills-item">DS Smith</span><span class="mills-dot">·</span>
+        <span class="mills-item">UPM</span><span class="mills-dot">·</span>
+        <span class="mills-item">Burgo</span><span class="mills-dot">·</span>
+        <span class="mills-item">Lecta</span><span class="mills-dot">·</span>
+        <span class="mills-item">Navigator</span><span class="mills-dot">·</span>
+        <span class="mills-item">Arctic Paper</span><span class="mills-dot">·</span>
+        <span class="mills-item">Billerud</span><span class="mills-dot">·</span>
+      </div>
+    </div>
+  </div>
+
   <!-- PROCESS -->
   <section class="proc-sec">
     <div class="sec-inner">
@@ -505,210 +602,59 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
     </div>
   </section>
 
-  <!-- PAPETERIES SOURCES -->
-  <div class="mills-sec">
-    <div class="mills-label" data-i18n="mills_label">Stocks issus des plus grandes papeteries européennes</div>
-    <div class="mills-track">
-      <div class="mills-inner">
-        <span class="mills-item">Stora Enso</span><span class="mills-dot">·</span>
-        <span class="mills-item">Mondi</span><span class="mills-dot">·</span>
-        <span class="mills-item">Sappi</span><span class="mills-dot">·</span>
-        <span class="mills-item">Smurfit Kappa</span><span class="mills-dot">·</span>
-        <span class="mills-item">Holmen</span><span class="mills-dot">·</span>
-        <span class="mills-item">DS Smith</span><span class="mills-dot">·</span>
-        <span class="mills-item">UPM</span><span class="mills-dot">·</span>
-        <span class="mills-item">Burgo</span><span class="mills-dot">·</span>
-        <span class="mills-item">Lecta</span><span class="mills-dot">·</span>
-        <span class="mills-item">Navigator</span><span class="mills-dot">·</span>
-        <span class="mills-item">Arctic Paper</span><span class="mills-dot">·</span>
-        <span class="mills-item">Billerud</span><span class="mills-dot">·</span>
-        <span class="mills-item">Stora Enso</span><span class="mills-dot">·</span>
-        <span class="mills-item">Mondi</span><span class="mills-dot">·</span>
-        <span class="mills-item">Sappi</span><span class="mills-dot">·</span>
-        <span class="mills-item">Smurfit Kappa</span><span class="mills-dot">·</span>
-        <span class="mills-item">Holmen</span><span class="mills-dot">·</span>
-        <span class="mills-item">DS Smith</span><span class="mills-dot">·</span>
-        <span class="mills-item">UPM</span><span class="mills-dot">·</span>
-        <span class="mills-item">Burgo</span><span class="mills-dot">·</span>
-        <span class="mills-item">Lecta</span><span class="mills-dot">·</span>
-        <span class="mills-item">Navigator</span><span class="mills-dot">·</span>
-        <span class="mills-item">Arctic Paper</span><span class="mills-dot">·</span>
-        <span class="mills-item">Billerud</span><span class="mills-dot">·</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- GEO MAP -->
-  <section class="geo-sec">
+  <!-- ZONE GÉOGRAPHIQUE -->
+  <section class="zone-sec">
     <div class="sec-inner">
       <div class="sec-tag" data-i18n="geo_tag">Export mondial</div>
-      <h2 class="sec-h" data-i18n="geo_h">NOTRE PRÉSENCE À L'INTERNATIONAL</h2>
-      <p class="sec-sub" data-i18n="geo_sub">Présents sur 5 continents. Expédition depuis nos entrepôts en France et en Europe vers le monde entier.</p>
-      <div class="geo-wrap">
-        <svg id="geo-svg" viewBox="0 0 1000 360" xmlns="http://www.w3.org/2000/svg" class="geo-svg">
-          <rect width="1000" height="360" fill="#E2E3EA"/>
-          <defs>
-            <!-- Cargo ship: side view, navy hull + red waterline + white superstructure -->
-            <symbol id="geo-ctr" viewBox="-16 -12 32 24" overflow="visible">
-              <!-- Water shadow -->
-              <ellipse cx="0" cy="10" rx="14" ry="2" fill="rgba(0,0,0,0.18)"/>
-              <!-- Hull: deep navy -->
-              <path d="M-15,2 L-15,8 Q-14,10 -10,10 L10,10 Q14,10 15,8 L15,2 Z" fill="#1C2C3E"/>
-              <!-- Red waterline stripe -->
-              <rect x="-15" y="6.5" width="30" height="2" fill="#FE0000" rx="0.5"/>
-              <!-- Deck / cargo hold area (lighter navy) -->
-              <rect x="-15" y="-1" width="30" height="3.5" fill="#243444"/>
-              <!-- Cargo containers on deck (3 stacked groups) -->
-              <rect x="-12" y="-5" width="7" height="4" fill="#2E86AB" rx="0.5"/>
-              <rect x="-4"  y="-5" width="7" height="4" fill="#E84855" rx="0.5"/>
-              <rect x="4"   y="-5" width="7" height="4" fill="#2E86AB" rx="0.5"/>
-              <!-- Superstructure (bridge) -->
-              <rect x="8" y="-11" width="7" height="6" fill="#3D5470" rx="1"/>
-              <!-- Bridge windows -->
-              <rect x="9"  y="-10" width="1.5" height="1.5" fill="rgba(255,255,255,0.7)" rx="0.3"/>
-              <rect x="11" y="-10" width="1.5" height="1.5" fill="rgba(255,255,255,0.7)" rx="0.3"/>
-              <rect x="13" y="-10" width="1.5" height="1.5" fill="rgba(255,255,255,0.7)" rx="0.3"/>
-              <!-- Chimney/funnel -->
-              <rect x="12" y="-13" width="2" height="3" fill="#1C2C3E" rx="0.5"/>
-              <rect x="11.5" y="-14" width="3" height="1.5" fill="#FE0000" rx="0.5"/>
-              <!-- Bow (front left) -->
-              <polygon points="-15,2 -18,6 -15,6" fill="#1C2C3E"/>
-              <!-- Outline -->
-              <path d="M-15,2 L-15,8 Q-14,10 -10,10 L10,10 Q14,10 15,8 L15,2" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="0.6"/>
-            </symbol>
-          </defs>
-          <!-- Pays (JS topojson) -->
-          <g id="geo-countries"></g>
-          <!-- Arcs (JS) -->
-          <g id="geo-arcs"></g>
-          <!-- Conteneurs (JS) -->
-          <g id="geo-ships"></g>
-          <!-- Markers (JS) -->
-          <g id="geo-markers"></g>
-          <!-- France origin -->
-          <circle cx="507" cy="82" r="16" fill="#FE0000" opacity="0.12" style="animation:originPulse 2.5s ease-in-out infinite"/>
-          <circle cx="507" cy="82" r="5" fill="#FE0000"/>
-          <circle cx="507" cy="82" r="2.5" fill="#fff"/>
-        </svg>
-      </div>
-      <!-- Marquee pays intégré -->
-      <div class="marquee-track">
-        <div class="marquee-inner">
-          <div class="mq-item"><span class="mq-flag">🇫🇷</span><span class="mq-name">France</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇩🇪</span><span class="mq-name">Allemagne</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇪🇸</span><span class="mq-name">Espagne</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇮🇹</span><span class="mq-name">Italie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇧🇪</span><span class="mq-name">Belgique</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇳🇱</span><span class="mq-name">Pays-Bas</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇵🇱</span><span class="mq-name">Pologne</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇵🇹</span><span class="mq-name">Portugal</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇬🇧</span><span class="mq-name">Royaume-Uni</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇸🇪</span><span class="mq-name">Suède</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇭</span><span class="mq-name">Suisse</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇦🇹</span><span class="mq-name">Autriche</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇬🇷</span><span class="mq-name">Grèce</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇷🇴</span><span class="mq-name">Roumanie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇹🇷</span><span class="mq-name">Turquie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇩🇰</span><span class="mq-name">Danemark</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇳🇴</span><span class="mq-name">Norvège</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇫🇮</span><span class="mq-name">Finlande</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇿</span><span class="mq-name">Tchéquie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇭🇺</span><span class="mq-name">Hongrie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇺🇦</span><span class="mq-name">Ukraine</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇲🇦</span><span class="mq-name">Maroc</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇩🇿</span><span class="mq-name">Algérie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇹🇳</span><span class="mq-name">Tunisie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇱🇾</span><span class="mq-name">Libye</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇲🇷</span><span class="mq-name">Mauritanie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇲🇱</span><span class="mq-name">Mali</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇳🇪</span><span class="mq-name">Niger</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇹🇩</span><span class="mq-name">Tchad</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇬🇭</span><span class="mq-name">Ghana</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇲</span><span class="mq-name">Cameroun</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇸🇳</span><span class="mq-name">Sénégal</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇮</span><span class="mq-name">Côte d'Ivoire</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇳🇬</span><span class="mq-name">Nigeria</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇪🇬</span><span class="mq-name">Égypte</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇰🇪</span><span class="mq-name">Kenya</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇿🇦</span><span class="mq-name">Afrique du Sud</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇦🇪</span><span class="mq-name">Émirats arabes</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇸🇦</span><span class="mq-name">Arabie Saoudite</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇮🇱</span><span class="mq-name">Israël</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇵🇰</span><span class="mq-name">Pakistan</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇮🇳</span><span class="mq-name">Inde</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇹🇭</span><span class="mq-name">Thaïlande</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇮🇩</span><span class="mq-name">Indonésie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇳</span><span class="mq-name">Chine</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇰🇷</span><span class="mq-name">Corée du Sud</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇯🇵</span><span class="mq-name">Japon</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇦🇺</span><span class="mq-name">Australie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇺🇸</span><span class="mq-name">États-Unis</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇦</span><span class="mq-name">Canada</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇲🇽</span><span class="mq-name">Mexique</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇴</span><span class="mq-name">Colombie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇧🇷</span><span class="mq-name">Brésil</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇵🇪</span><span class="mq-name">Pérou</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇦🇷</span><span class="mq-name">Argentine</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇱</span><span class="mq-name">Chili</span></div><div class="mq-dot"></div>
-          <!-- Duplicate for loop -->
-          <div class="mq-item"><span class="mq-flag">🇫🇷</span><span class="mq-name">France</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇩🇪</span><span class="mq-name">Allemagne</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇪🇸</span><span class="mq-name">Espagne</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇮🇹</span><span class="mq-name">Italie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇧🇪</span><span class="mq-name">Belgique</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇳🇱</span><span class="mq-name">Pays-Bas</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇵🇱</span><span class="mq-name">Pologne</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇵🇹</span><span class="mq-name">Portugal</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇬🇧</span><span class="mq-name">Royaume-Uni</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇸🇪</span><span class="mq-name">Suède</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇭</span><span class="mq-name">Suisse</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇦🇹</span><span class="mq-name">Autriche</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇬🇷</span><span class="mq-name">Grèce</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇷🇴</span><span class="mq-name">Roumanie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇹🇷</span><span class="mq-name">Turquie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇩🇰</span><span class="mq-name">Danemark</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇳🇴</span><span class="mq-name">Norvège</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇫🇮</span><span class="mq-name">Finlande</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇿</span><span class="mq-name">Tchéquie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇭🇺</span><span class="mq-name">Hongrie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇺🇦</span><span class="mq-name">Ukraine</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇲🇦</span><span class="mq-name">Maroc</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇩🇿</span><span class="mq-name">Algérie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇹🇳</span><span class="mq-name">Tunisie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇱🇾</span><span class="mq-name">Libye</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇲🇷</span><span class="mq-name">Mauritanie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇲🇱</span><span class="mq-name">Mali</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇳🇪</span><span class="mq-name">Niger</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇹🇩</span><span class="mq-name">Tchad</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇬🇭</span><span class="mq-name">Ghana</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇲</span><span class="mq-name">Cameroun</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇸🇳</span><span class="mq-name">Sénégal</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇮</span><span class="mq-name">Côte d'Ivoire</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇳🇬</span><span class="mq-name">Nigeria</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇪🇬</span><span class="mq-name">Égypte</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇰🇪</span><span class="mq-name">Kenya</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇿🇦</span><span class="mq-name">Afrique du Sud</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇦🇪</span><span class="mq-name">Émirats arabes</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇸🇦</span><span class="mq-name">Arabie Saoudite</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇮🇱</span><span class="mq-name">Israël</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇵🇰</span><span class="mq-name">Pakistan</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇮🇳</span><span class="mq-name">Inde</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇹🇭</span><span class="mq-name">Thaïlande</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇮🇩</span><span class="mq-name">Indonésie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇳</span><span class="mq-name">Chine</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇰🇷</span><span class="mq-name">Corée du Sud</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇯🇵</span><span class="mq-name">Japon</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇦🇺</span><span class="mq-name">Australie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇺🇸</span><span class="mq-name">États-Unis</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇦</span><span class="mq-name">Canada</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇲🇽</span><span class="mq-name">Mexique</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇴</span><span class="mq-name">Colombie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇧🇷</span><span class="mq-name">Brésil</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇵🇪</span><span class="mq-name">Pérou</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇦🇷</span><span class="mq-name">Argentine</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇱</span><span class="mq-name">Chili</span></div><div class="mq-dot"></div>
+      <h2 class="sec-h" data-i18n="geo_h">55 PAYS CLIENTS</h2>
+      <p class="sec-sub" data-i18n="geo_sub">Expédition depuis la France et l'Europe vers le monde entier — FCL, LCL, tous incoterms.</p>
+      <div class="zone-grid">
+        <div class="zone-card">
+          <div class="zone-name">Europe</div>
+          <div class="zone-countries">France · Allemagne · Espagne · Italie · Pologne · Belgique · Pays-Bas · Portugal · Royaume-Uni · Suède · Danemark · Finlande · Norvège · Autriche · Suisse · Grèce · Roumanie · Turquie · Tchéquie · Hongrie</div>
+        </div>
+        <div class="zone-card">
+          <div class="zone-name">Afrique du Nord &amp; Ouest</div>
+          <div class="zone-countries">Maroc · Algérie · Tunisie · Libye · Égypte · Sénégal · Côte d'Ivoire · Ghana · Cameroun · Nigeria · Mali · Niger · Mauritanie</div>
+        </div>
+        <div class="zone-card">
+          <div class="zone-name">Moyen-Orient</div>
+          <div class="zone-countries">Émirats Arabes Unis · Arabie Saoudite · Israël · Pakistan · Kenya · Afrique du Sud</div>
+        </div>
+        <div class="zone-card">
+          <div class="zone-name">Asie-Pacifique</div>
+          <div class="zone-countries">Inde · Chine · Corée du Sud · Japon · Thaïlande · Indonésie · Australie</div>
+        </div>
+        <div class="zone-card">
+          <div class="zone-name">Amériques</div>
+          <div class="zone-countries">États-Unis · Canada · Mexique · Brésil · Argentine · Colombie · Pérou · Chili</div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- QUICK DEVIS -->
+  <section class="qd-sec">
+    <div class="sec-inner">
+      <div class="sec-tag" style="color:rgba(254,0,0,.7)">Devis rapide</div>
+      <h2 class="sec-h" data-i18n="qd_h">DEMANDEZ UN PROFORMA</h2>
+      <p class="sec-sub" data-i18n="qd_sub">Décrivez votre besoin. Nous vous répondons sous 2H ouvrées avec disponibilités et prix.</p>
+      <form class="qd-form" id="qd-form" onsubmit="submitQuickDevis(event)">
+        <div class="qd-field">
+          <label data-i18n="qd_nom">Nom / Société</label>
+          <input type="text" id="qd-nom" placeholder="Votre société" required>
+        </div>
+        <div class="qd-field">
+          <label>Email</label>
+          <input type="email" id="qd-email" placeholder="email@societe.com" required>
+        </div>
+        <div class="qd-field">
+          <label data-i18n="qd_besoin">Type de papier · Grammage · Quantité</label>
+          <input type="text" id="qd-besoin" placeholder="ex: Kraft brun 90g, 5T, bobines">
+        </div>
+        <button type="submit" class="btn-hero" data-i18n="qd_send">ENVOYER →</button>
+      </form>
+      <div class="qd-ok" id="qd-ok" data-i18n="qd_ok">✓ Message envoyé — réponse sous 2H ouvrées.</div>
     </div>
   </section>
 
@@ -915,8 +861,11 @@ const T = {
   fr: {
     nav_home:'Accueil', nav_about:'À propos', nav_contact:'Contact', nav_catalogue:'Voir le stock →',
     hero_badge:'Négociant européen depuis 1991',
-    hero_title:'VOTRE FOURNISSEUR<br>PAPIER &amp; CARTON<br><em>DEPUIS 1991</em>',
-    hero_sub:'Import/Export international — 10 000+ tonnes en stock en France 🇫🇷. Kraft, offset, couché, bobines & formats, tous grammages.',
+    hero_title:'STOCKLOTS DE PAPIER<br>&amp; CARTON<br><em>DISPONIBLES IMMÉDIATEMENT</em>',
+    hero_sub:'Bobines · Palettes feuilles · Kraft · Offset · Couché · SBS · Tous grammages — Expédition mondiale depuis la France 🇫🇷',
+    qd_h:'DEMANDEZ UN PROFORMA', qd_sub:'Décrivez votre besoin. Nous vous répondons sous 2H ouvrées avec disponibilités et prix.',
+    qd_nom:'Nom / Société', qd_besoin:'Type de papier · Grammage · Quantité', qd_send:'ENVOYER →', qd_ok:'✓ Message envoyé — réponse sous 2H ouvrées.',
+    geo_h:'55 PAYS CLIENTS', geo_sub:'Expédition depuis la France et l\'Europe vers le monde entier — FCL, LCL, tous incoterms.',
     hero_btn1:'NOS PRODUITS', hero_btn2:'NOUS CONTACTER',
     stat1:'Fondés en', stat2:'Références en stock', stat3:'Tonnes disponibles', stat4:'Délai de chargement',
     mq_label:'Présents dans 30+ pays à travers le monde',
@@ -976,8 +925,11 @@ const T = {
   en: {
     nav_home:'Home', nav_about:'About', nav_contact:'Contact', nav_catalogue:'View stock →',
     hero_badge:'European paper trader since 1991',
-    hero_title:'YOUR PAPER &amp; BOARD<br>SUPPLIER<br><em>SINCE 1991</em>',
-    hero_sub:'International import/export — 10,000+ tonnes in stock in France 🇫🇷. Kraft, offset, coated, reels & sheets, all grammages.',
+    hero_title:'PAPER &amp; BOARD<br>STOCKLOTS<br><em>AVAILABLE IMMEDIATELY</em>',
+    hero_sub:'Reels · Sheet pallets · Kraft · Offset · Coated · SBS · All grammages — Worldwide shipping from France 🇫🇷',
+    qd_h:'REQUEST A PROFORMA', qd_sub:'Describe your need. We reply within 2 business hours with availability and pricing.',
+    qd_nom:'Name / Company', qd_besoin:'Paper type · Grammage · Quantity', qd_send:'SEND →', qd_ok:'✓ Message sent — reply within 2 business hours.',
+    geo_h:'55 CLIENT COUNTRIES', geo_sub:'Shipping from France and Europe worldwide — FCL, LCL, all incoterms.',
     hero_btn1:'OUR PRODUCTS', hero_btn2:'CONTACT US',
     stat1:'Founded in', stat2:'References in stock', stat3:'Tonnes available', stat4:'Loading lead time',
     mq_label:'Active in 30+ countries worldwide',
@@ -1107,8 +1059,26 @@ async function submitContact(e) {
   }
 }
 
-// ─── GEO MAP ───
-// Lat/lon → SVG coords (equirectangular, viewBox 1000×360)
+// ─── QUICK DEVIS ───
+async function submitQuickDevis(e){
+  e.preventDefault();
+  const btn=e.target.querySelector('button[type=submit]');
+  const nom=document.getElementById('qd-nom').value.trim();
+  const email=document.getElementById('qd-email').value.trim();
+  const besoin=document.getElementById('qd-besoin').value.trim();
+  btn.disabled=true;
+  try{
+    await fetch(SURL+'/rest/v1/proforma_requests',{
+      method:'POST',
+      headers:{'apikey':SKEY,'Authorization':'Bearer '+SKEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify({nom,email,message:besoin,quantite_souhaitee:'Quick devis vitrine',statut:'quick_devis'})
+    });
+  }catch(_){}
+  document.getElementById('qd-form').style.display='none';
+  document.getElementById('qd-ok').style.display='block';
+}
+
+// DEAD CODE — geo map removed
 function geoProj(lon,lat){
   return [(lon+180)/360*1000, (90-lat)/180*360];
 }
