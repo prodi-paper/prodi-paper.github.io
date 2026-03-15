@@ -13,6 +13,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="dns-prefetch" href="https://bvcgpdoukhcatjibmvnb.supabase.co">
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -602,59 +603,160 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
     </div>
   </section>
 
-  <!-- ZONE GÉOGRAPHIQUE -->
-  <section class="zone-sec">
+  <!-- GEO MAP -->
+  <section class="geo-sec">
     <div class="sec-inner">
       <div class="sec-tag" data-i18n="geo_tag">Export mondial</div>
-      <h2 class="sec-h" data-i18n="geo_h">55 PAYS CLIENTS</h2>
-      <p class="sec-sub" data-i18n="geo_sub">Expédition depuis la France et l'Europe vers le monde entier — FCL, LCL, tous incoterms.</p>
-      <div class="zone-grid">
-        <div class="zone-card">
-          <div class="zone-name">Europe</div>
-          <div class="zone-countries">France · Allemagne · Espagne · Italie · Pologne · Belgique · Pays-Bas · Portugal · Royaume-Uni · Suède · Danemark · Finlande · Norvège · Autriche · Suisse · Grèce · Roumanie · Turquie · Tchéquie · Hongrie</div>
-        </div>
-        <div class="zone-card">
-          <div class="zone-name">Afrique du Nord &amp; Ouest</div>
-          <div class="zone-countries">Maroc · Algérie · Tunisie · Libye · Égypte · Sénégal · Côte d'Ivoire · Ghana · Cameroun · Nigeria · Mali · Niger · Mauritanie</div>
-        </div>
-        <div class="zone-card">
-          <div class="zone-name">Moyen-Orient</div>
-          <div class="zone-countries">Émirats Arabes Unis · Arabie Saoudite · Israël · Pakistan · Kenya · Afrique du Sud</div>
-        </div>
-        <div class="zone-card">
-          <div class="zone-name">Asie-Pacifique</div>
-          <div class="zone-countries">Inde · Chine · Corée du Sud · Japon · Thaïlande · Indonésie · Australie</div>
-        </div>
-        <div class="zone-card">
-          <div class="zone-name">Amériques</div>
-          <div class="zone-countries">États-Unis · Canada · Mexique · Brésil · Argentine · Colombie · Pérou · Chili</div>
+      <h2 class="sec-h" data-i18n="geo_h">NOTRE PRÉSENCE À L'INTERNATIONAL</h2>
+      <p class="sec-sub" data-i18n="geo_sub">Présents sur 5 continents. Expédition depuis nos entrepôts en France et en Europe vers le monde entier.</p>
+      <div class="geo-wrap">
+        <svg id="geo-svg" viewBox="0 0 1000 360" xmlns="http://www.w3.org/2000/svg" class="geo-svg">
+          <rect width="1000" height="360" fill="#E2E3EA"/>
+          <defs>
+            <symbol id="geo-ctr" viewBox="-16 -12 32 24" overflow="visible">
+              <ellipse cx="0" cy="10" rx="14" ry="2" fill="rgba(0,0,0,0.18)"/>
+              <path d="M-15,2 L-15,8 Q-14,10 -10,10 L10,10 Q14,10 15,8 L15,2 Z" fill="#1C2C3E"/>
+              <rect x="-15" y="6.5" width="30" height="2" fill="#FE0000" rx="0.5"/>
+              <rect x="-15" y="-1" width="30" height="3.5" fill="#243444"/>
+              <rect x="-12" y="-5" width="7" height="4" fill="#2E86AB" rx="0.5"/>
+              <rect x="-4"  y="-5" width="7" height="4" fill="#E84855" rx="0.5"/>
+              <rect x="4"   y="-5" width="7" height="4" fill="#2E86AB" rx="0.5"/>
+              <rect x="8" y="-11" width="7" height="6" fill="#3D5470" rx="1"/>
+              <rect x="9"  y="-10" width="1.5" height="1.5" fill="rgba(255,255,255,0.7)" rx="0.3"/>
+              <rect x="11" y="-10" width="1.5" height="1.5" fill="rgba(255,255,255,0.7)" rx="0.3"/>
+              <rect x="13" y="-10" width="1.5" height="1.5" fill="rgba(255,255,255,0.7)" rx="0.3"/>
+              <rect x="12" y="-13" width="2" height="3" fill="#1C2C3E" rx="0.5"/>
+              <rect x="11.5" y="-14" width="3" height="1.5" fill="#FE0000" rx="0.5"/>
+              <polygon points="-15,2 -18,6 -15,6" fill="#1C2C3E"/>
+              <path d="M-15,2 L-15,8 Q-14,10 -10,10 L10,10 Q14,10 15,8 L15,2" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="0.6"/>
+            </symbol>
+          </defs>
+          <g id="geo-countries"></g>
+          <g id="geo-arcs"></g>
+          <g id="geo-ships"></g>
+          <g id="geo-markers"></g>
+          <circle cx="507" cy="82" r="16" fill="#FE0000" opacity="0.12" style="animation:originPulse 2.5s ease-in-out infinite"/>
+          <circle cx="507" cy="82" r="5" fill="#FE0000"/>
+          <circle cx="507" cy="82" r="2.5" fill="#fff"/>
+        </svg>
+      </div>
+      <div class="marquee-track">
+        <div class="marquee-inner">
+          <div class="mq-item"><span class="mq-flag">🇫🇷</span><span class="mq-name">France</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇩🇪</span><span class="mq-name">Allemagne</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇪🇸</span><span class="mq-name">Espagne</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇮🇹</span><span class="mq-name">Italie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇧🇪</span><span class="mq-name">Belgique</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇳🇱</span><span class="mq-name">Pays-Bas</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇵🇱</span><span class="mq-name">Pologne</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇵🇹</span><span class="mq-name">Portugal</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇬🇧</span><span class="mq-name">Royaume-Uni</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇸🇪</span><span class="mq-name">Suède</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇨🇭</span><span class="mq-name">Suisse</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇦🇹</span><span class="mq-name">Autriche</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇬🇷</span><span class="mq-name">Grèce</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇷🇴</span><span class="mq-name">Roumanie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇹🇷</span><span class="mq-name">Turquie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇩🇰</span><span class="mq-name">Danemark</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇳🇴</span><span class="mq-name">Norvège</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇫🇮</span><span class="mq-name">Finlande</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇨🇿</span><span class="mq-name">Tchéquie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇭🇺</span><span class="mq-name">Hongrie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇺🇦</span><span class="mq-name">Ukraine</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇲🇦</span><span class="mq-name">Maroc</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇩🇿</span><span class="mq-name">Algérie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇹🇳</span><span class="mq-name">Tunisie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇱🇾</span><span class="mq-name">Libye</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇲🇷</span><span class="mq-name">Mauritanie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇲🇱</span><span class="mq-name">Mali</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇳🇪</span><span class="mq-name">Niger</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇹🇩</span><span class="mq-name">Tchad</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇬🇭</span><span class="mq-name">Ghana</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇨🇲</span><span class="mq-name">Cameroun</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇸🇳</span><span class="mq-name">Sénégal</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇨🇮</span><span class="mq-name">Côte d'Ivoire</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇳🇬</span><span class="mq-name">Nigeria</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇪🇬</span><span class="mq-name">Égypte</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇰🇪</span><span class="mq-name">Kenya</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇿🇦</span><span class="mq-name">Afrique du Sud</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇦🇪</span><span class="mq-name">Émirats arabes</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇸🇦</span><span class="mq-name">Arabie Saoudite</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇮🇱</span><span class="mq-name">Israël</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇵🇰</span><span class="mq-name">Pakistan</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇮🇳</span><span class="mq-name">Inde</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇹🇭</span><span class="mq-name">Thaïlande</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇮🇩</span><span class="mq-name">Indonésie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇨🇳</span><span class="mq-name">Chine</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇰🇷</span><span class="mq-name">Corée du Sud</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇯🇵</span><span class="mq-name">Japon</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇦🇺</span><span class="mq-name">Australie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇺🇸</span><span class="mq-name">États-Unis</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇨🇦</span><span class="mq-name">Canada</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇲🇽</span><span class="mq-name">Mexique</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇨🇴</span><span class="mq-name">Colombie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇧🇷</span><span class="mq-name">Brésil</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇵🇪</span><span class="mq-name">Pérou</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇦🇷</span><span class="mq-name">Argentine</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇨🇱</span><span class="mq-name">Chili</span></div><div class="mq-dot"></div>
+          <!-- Duplicate for loop -->
+          <div class="mq-item"><span class="mq-flag">🇫🇷</span><span class="mq-name">France</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇩🇪</span><span class="mq-name">Allemagne</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇪🇸</span><span class="mq-name">Espagne</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇮🇹</span><span class="mq-name">Italie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇧🇪</span><span class="mq-name">Belgique</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇳🇱</span><span class="mq-name">Pays-Bas</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇵🇱</span><span class="mq-name">Pologne</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇵🇹</span><span class="mq-name">Portugal</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇬🇧</span><span class="mq-name">Royaume-Uni</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇸🇪</span><span class="mq-name">Suède</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇨🇭</span><span class="mq-name">Suisse</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇦🇹</span><span class="mq-name">Autriche</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇬🇷</span><span class="mq-name">Grèce</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇷🇴</span><span class="mq-name">Roumanie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇹🇷</span><span class="mq-name">Turquie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇩🇰</span><span class="mq-name">Danemark</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇳🇴</span><span class="mq-name">Norvège</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇫🇮</span><span class="mq-name">Finlande</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇨🇿</span><span class="mq-name">Tchéquie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇭🇺</span><span class="mq-name">Hongrie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇺🇦</span><span class="mq-name">Ukraine</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇲🇦</span><span class="mq-name">Maroc</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇩🇿</span><span class="mq-name">Algérie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇹🇳</span><span class="mq-name">Tunisie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇱🇾</span><span class="mq-name">Libye</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇲🇷</span><span class="mq-name">Mauritanie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇲🇱</span><span class="mq-name">Mali</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇳🇪</span><span class="mq-name">Niger</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇹🇩</span><span class="mq-name">Tchad</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇬🇭</span><span class="mq-name">Ghana</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇨🇲</span><span class="mq-name">Cameroun</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇸🇳</span><span class="mq-name">Sénégal</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇨🇮</span><span class="mq-name">Côte d'Ivoire</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇳🇬</span><span class="mq-name">Nigeria</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇪🇬</span><span class="mq-name">Égypte</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇰🇪</span><span class="mq-name">Kenya</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇿🇦</span><span class="mq-name">Afrique du Sud</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇦🇪</span><span class="mq-name">Émirats arabes</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇸🇦</span><span class="mq-name">Arabie Saoudite</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇮🇱</span><span class="mq-name">Israël</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇵🇰</span><span class="mq-name">Pakistan</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇮🇳</span><span class="mq-name">Inde</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇹🇭</span><span class="mq-name">Thaïlande</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇮🇩</span><span class="mq-name">Indonésie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇨🇳</span><span class="mq-name">Chine</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇰🇷</span><span class="mq-name">Corée du Sud</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇯🇵</span><span class="mq-name">Japon</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇦🇺</span><span class="mq-name">Australie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇺🇸</span><span class="mq-name">États-Unis</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇨🇦</span><span class="mq-name">Canada</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇲🇽</span><span class="mq-name">Mexique</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇨🇴</span><span class="mq-name">Colombie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇧🇷</span><span class="mq-name">Brésil</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇵🇪</span><span class="mq-name">Pérou</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇦🇷</span><span class="mq-name">Argentine</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇨🇱</span><span class="mq-name">Chili</span></div><div class="mq-dot"></div>
         </div>
       </div>
-    </div>
-  </section>
-
-  <!-- QUICK DEVIS -->
-  <section class="qd-sec">
-    <div class="sec-inner">
-      <div class="sec-tag" style="color:rgba(254,0,0,.7)">Devis rapide</div>
-      <h2 class="sec-h" data-i18n="qd_h">DEMANDEZ UN PROFORMA</h2>
-      <p class="sec-sub" data-i18n="qd_sub">Décrivez votre besoin. Nous vous répondons sous 2H ouvrées avec disponibilités et prix.</p>
-      <form class="qd-form" id="qd-form" onsubmit="submitQuickDevis(event)">
-        <div class="qd-field">
-          <label data-i18n="qd_nom">Nom / Société</label>
-          <input type="text" id="qd-nom" placeholder="Votre société" required>
-        </div>
-        <div class="qd-field">
-          <label>Email</label>
-          <input type="email" id="qd-email" placeholder="email@societe.com" required>
-        </div>
-        <div class="qd-field">
-          <label data-i18n="qd_besoin">Type de papier · Grammage · Quantité</label>
-          <input type="text" id="qd-besoin" placeholder="ex: Kraft brun 90g, 5T, bobines">
-        </div>
-        <button type="submit" class="btn-hero" data-i18n="qd_send">ENVOYER →</button>
-      </form>
-      <div class="qd-ok" id="qd-ok" data-i18n="qd_ok">✓ Message envoyé — réponse sous 2H ouvrées.</div>
     </div>
   </section>
 
@@ -1078,7 +1180,7 @@ async function submitQuickDevis(e){
   document.getElementById('qd-ok').style.display='block';
 }
 
-// DEAD CODE — geo map removed
+// ─── GEO MAP ───
 function geoProj(lon,lat){
   return [(lon+180)/360*1000, (90-lat)/180*360];
 }
