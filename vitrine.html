@@ -217,33 +217,33 @@ button{cursor:pointer;border:none;font-family:inherit;background:none;}
 .btn-wa2:hover{background:#1aab55;}
 
 /* ─── BENTO PRODUITS ─── */
-.bento-sec{background:#F1F2F4;padding:56px 40px;}
-.bento-sec .sec-tag{color:var(--red);}
-.bento-sec .sec-h{color:var(--dark);}
-.bento-sec .sec-sub{color:var(--ink2);}
-.bento-grid{display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:240px 190px;gap:10px;margin-top:32px;}
-.bn{position:relative;overflow:hidden;border-radius:var(--rl);cursor:pointer;display:block;text-decoration:none;}
-.bn img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .55s ease;}
-.bn:hover img{transform:scale(1.07);}
-.bn-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.88) 0%,rgba(0,0,0,.28) 55%,rgba(0,0,0,.05) 100%);transition:background .3s;}
-.bn:hover .bn-overlay{background:linear-gradient(to top,rgba(0,0,0,.94) 0%,rgba(0,0,0,.42) 65%,rgba(0,0,0,.08) 100%);}
-.bn-body{position:absolute;bottom:0;left:0;right:0;padding:22px 24px 26px;}
-.bn-tag{font-size:10px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--red);margin-bottom:7px;}
-.bn-name{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:1.5px;color:#fff;line-height:1;margin-bottom:7px;}
-.bn-desc{font-size:12px;color:rgba(255,255,255,.52);line-height:1.55;}
-.bn-link{display:inline-flex;align-items:center;gap:6px;margin-top:14px;font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:rgba(255,255,255,.6);border-bottom:1px solid rgba(255,255,255,.2);padding-bottom:2px;transition:all .2s;}
-.bn:hover .bn-link{color:#fff;border-color:rgba(255,255,255,.5);}
-/* grid positions */
-.bn-1{grid-column:1/3;grid-row:1/2;}
-.bn-2{grid-column:3/4;grid-row:1/2;}
-.bn-3{grid-column:1/2;grid-row:2/3;}
-.bn-4{grid-column:2/3;grid-row:2/3;}
-.bn-5{grid-column:3/4;grid-row:2/3;background:#E4E5E9;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px;gap:6px;}
-.bn-5:hover{background:#DCDDE2;}
-.bn-big-num{font-family:'Bebas Neue',sans-serif;font-size:80px;line-height:.9;color:var(--red);letter-spacing:1px;}
-.bn-big-lbl{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#888;margin-bottom:18px;}
-.bn-cta-pill{background:var(--red);color:#fff;padding:12px 24px;border-radius:var(--r);font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;transition:background .15s;}
-.bn-5:hover .bn-cta-pill{background:var(--red2);}
+/* ─── SHOWCASE PRODUITS ─── */
+.showcase-sec{background:#F1F2F4;padding:56px 0 0;}
+.showcase-sec .sec-tag{color:var(--red);}
+.showcase-sec .sec-h{color:var(--dark);}
+.showcase-sec .sec-sub{color:var(--ink2);}
+.showcase-sec .sec-inner{padding-bottom:0;}
+.showcase-rows{margin-top:36px;overflow:hidden;display:flex;flex-direction:column;gap:12px;}
+.showcase-row{overflow:hidden;}
+.showcase-inner{display:flex;gap:12px;width:max-content;padding:4px 0;}
+.sr-left .showcase-inner{animation:spScrollL 60s linear infinite;}
+.sr-right .showcase-inner{animation:spScrollR 65s linear infinite;}
+.sr-left:hover .showcase-inner,.sr-right:hover .showcase-inner{animation-play-state:paused;}
+@keyframes spScrollL{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes spScrollR{from{transform:translateX(-50%)}to{transform:translateX(0)}}
+.sp-card{flex:none;width:210px;background:#fff;border-radius:10px;overflow:hidden;border:1px solid #E4E4E7;cursor:pointer;transition:box-shadow .22s,transform .22s;text-decoration:none;color:inherit;display:block;}
+.sp-card:hover{box-shadow:0 8px 28px rgba(0,0,0,.13);transform:translateY(-3px);}
+.sp-photo{height:150px;overflow:hidden;background:#E8E8E8;}
+.sp-photo img{width:100%;height:100%;object-fit:cover;object-position:center;transition:transform .4s;}
+.sp-card:hover .sp-photo img{transform:scale(1.06);}
+.sp-body{padding:11px 13px 13px;}
+.sp-name{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#111;margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sp-specs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;}
+.sp-spec{font-size:10px;color:#666;background:#F4F4F5;padding:2px 7px;border-radius:20px;white-space:nowrap;}
+.sp-footer{display:flex;align-items:baseline;justify-content:space-between;}
+.sp-price{font-family:'Bebas Neue',sans-serif;font-size:21px;letter-spacing:.5px;color:var(--red);}
+.sp-weight{font-size:10px;color:#aaa;}
+.showcase-cta{background:#F1F2F4;padding:28px 40px 52px;text-align:center;}
 
 /* ─── FOOTER ─── */
 footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36px 40px;}
@@ -313,7 +313,7 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
 .foot-addr{font-size:12px;color:rgba(255,255,255,.2);margin-top:4px;}
 
 /* ─── RESPONSIVE ─── */
-@media(max-width:1100px){.bento-grid{grid-template-columns:1fr 1fr;grid-template-rows:220px 200px 180px;}.bn-1{grid-column:1/3;grid-row:1/2;}.bn-2{grid-column:1/2;grid-row:2/3;}.bn-3{grid-column:2/3;grid-row:2/3;}.bn-4{grid-column:1/2;grid-row:3/4;}.bn-5{grid-column:2/3;grid-row:3/4;}}
+@media(max-width:1100px){.sp-card{width:185px;}.sp-photo{height:130px;}}
 @media(max-width:1100px){.proc-steps{grid-template-columns:1fr 1fr;}.zone-grid{grid-template-columns:repeat(3,1fr);}.qd-form{grid-template-columns:1fr 1fr;}}
 @media(max-width:900px){
   .hd-nav,.hd-divider,.hd-lang,.btn-cat{display:none;}
@@ -337,11 +337,9 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
   .avail-item{min-width:calc(50% - 1px);}
   .avail-item:nth-child(2n){border-right:none;}
   .avail-item:nth-child(3),.avail-item:nth-child(4){border-top:1px solid rgba(255,255,255,.07);}
-  .hero-inner,.sec,.bento-sec,.ab-hero,.ab-body,.cta-wrap,.ct-wrap,footer{padding-left:20px;padding-right:20px;}
-  .bento-grid{grid-template-columns:1fr;grid-template-rows:280px 240px 240px 240px 200px;}
-  .bn-1,.bn-2,.bn-3,.bn-4,.bn-5{grid-column:1/2;}
-  .bn-1{grid-row:1/2;}.bn-2{grid-row:2/3;}.bn-3{grid-row:3/4;}.bn-4{grid-row:4/5;}.bn-5{grid-row:5/6;}
-  .bn-big-num{font-size:60px;}
+  .hero-inner,.sec,.showcase-sec .sec-inner,.showcase-cta,.ab-hero,.ab-body,.cta-wrap,.ct-wrap,footer{padding-left:20px;padding-right:20px;}
+  .sp-card{width:160px;}.sp-photo{height:115px;}
+  .showcase-cta{padding:24px 20px 44px;}
   .cta-inner{flex-direction:column;align-items:flex-start;}
   .prod-grid{grid-template-columns:repeat(2,1fr);}
   .ab-nums,.ab-steps{grid-template-columns:1fr 1fr;}
@@ -452,69 +450,57 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
   </div>
 
   <!-- BENTO PRODUITS -->
-  <section class="bento-sec">
+  <section class="showcase-sec">
     <div class="sec-inner">
       <div class="sec-tag" data-i18n="sc_tag">Nos produits</div>
       <h2 class="sec-h" data-i18n="sc_h">APERÇU DE NOS STOCKS</h2>
       <p class="sec-sub" data-i18n="sc_sub">Plusieurs milliers de références en stock immédiat, issues de papeteries européennes de premier rang.</p>
-      <div class="bento-grid">
+    </div>
 
-        <!-- Bobines / Kraft — grande -->
-        <a class="bn bn-1" href="./index.html">
-          <img src="./img/bobinage.png" alt="Bobines Kraft">
-          <div class="bn-overlay"></div>
-          <div class="bn-body">
-            <div class="bn-tag" data-i18n="bn1_tag">Bobines</div>
-            <div class="bn-name" data-i18n="bn1_name">KRAFT &amp; OFFSET</div>
-            <div class="bn-desc" data-i18n="bn1_desc">40–250 g/m² · Laizes 500–3 200 mm · Mandrin Ø76/150 · Lots dès 5T</div>
-            <div class="bn-link" data-i18n="bn_link">Voir le stock →</div>
-          </div>
-        </a>
+    <div class="showcase-rows">
 
-        <!-- Papier couleur -->
-        <a class="bn bn-2" href="./index.html">
-          <img src="./img/couleur.jpg" alt="Papier Couleur">
-          <div class="bn-overlay"></div>
-          <div class="bn-body">
-            <div class="bn-tag" data-i18n="bn2_tag">Couleur</div>
-            <div class="bn-name" data-i18n="bn2_name">PAPIER COULEUR</div>
-            <div class="bn-desc" data-i18n="bn2_desc">60–300 g/m² · SRA2 / SRA3 / A4 · Offset &amp; numérique · Toutes couleurs</div>
-            <div class="bn-link" data-i18n="bn_link">Voir le stock →</div>
-          </div>
-        </a>
-
-        <!-- Palettes formats -->
-        <a class="bn bn-3" href="./index.html">
-          <img src="./img/palettes.jpg" alt="Palettes formats feuilles">
-          <div class="bn-overlay"></div>
-          <div class="bn-body">
-            <div class="bn-tag" data-i18n="bn3_tag">Palettes</div>
-            <div class="bn-name" data-i18n="bn3_name">FORMATS FEUILLES</div>
-            <div class="bn-desc" data-i18n="bn3_desc">40–350 g/m² · SRA2 / SRA3 / A4 · Kraft · Couché · Offset</div>
-            <div class="bn-link" data-i18n="bn_link">Voir le stock →</div>
-          </div>
-        </a>
-
-        <!-- Entrepôt -->
-        <a class="bn bn-4" href="./index.html">
-          <img src="./img/warehouse.webp" alt="Entrepôt Prodiconseil">
-          <div class="bn-overlay"></div>
-          <div class="bn-body">
-            <div class="bn-tag" data-i18n="bn4_tag">Logistique</div>
-            <div class="bn-name" data-i18n="bn4_name">STOCK EUROPE</div>
-            <div class="bn-desc" data-i18n="bn4_desc">Ivry-sur-Seine · Amiens · Départ sous 24H · FCL &amp; LCL</div>
-            <div class="bn-link" data-i18n="bn_link">Voir le stock →</div>
-          </div>
-        </a>
-
-        <!-- CTA card -->
-        <a class="bn bn-5" href="./index.html">
-          <div class="bn-big-num">10K+</div>
-          <div class="bn-big-lbl" data-i18n="bento_unit">Tonnes disponibles</div>
-          <div class="bn-cta-pill" data-i18n="sc_cta">Voir tout le stock →</div>
-        </a>
-
+      <!-- Row 1 — scroll left -->
+      <div class="showcase-row sr-left">
+        <div class="showcase-inner">
+          <!-- 6 cards -->
+          <a class="sp-card" href="./index.html"><div class="sp-photo"><img src="https://stock.prodi.net/albums/photo/970974.jpg" alt="SBS 1 FACE" loading="lazy"></div><div class="sp-body"><div class="sp-name">SBS 1 FACE</div><div class="sp-specs"><span class="sp-spec">370 g/m²</span><span class="sp-spec">Palette</span><span class="sp-spec">Blanc</span></div><div class="sp-footer"><span class="sp-price">580 €/T</span><span class="sp-weight">334 kg</span></div></div></a>
+          <a class="sp-card" href="./index.html"><div class="sp-photo"><img src="https://stock.prodi.net/albums/photo/919122.jpg" alt="Transition Grammage" loading="lazy"></div><div class="sp-body"><div class="sp-name">TRANSITION GRAMMAGE</div><div class="sp-specs"><span class="sp-spec">140 g/m²</span><span class="sp-spec">Bobine</span><span class="sp-spec">1900 mm</span></div><div class="sp-footer"><span class="sp-price">380 €/T</span><span class="sp-weight">969 kg</span></div></div></a>
+          <a class="sp-card" href="./index.html"><div class="sp-photo"><img src="https://stock.prodi.net/albums/photo/962098.jpg" alt="LWC Dos Blanc Noël" loading="lazy"></div><div class="sp-body"><div class="sp-name">LWC DOS BLANC — NOËL</div><div class="sp-specs"><span class="sp-spec">65 g/m²</span><span class="sp-spec">Bobine</span><span class="sp-spec">Ø76 mm</span></div><div class="sp-footer"><span class="sp-price">570 €/T</span><span class="sp-weight">81 kg</span></div></div></a>
+          <a class="sp-card" href="./index.html"><div class="sp-photo"><img src="https://stock.prodi.net/albums/photo/981140.jpg" alt="A3 Satiné CIE160" loading="lazy"></div><div class="sp-body"><div class="sp-name">A3 — SATINÉ CIE 160</div><div class="sp-specs"><span class="sp-spec">80 g/m²</span><span class="sp-spec">Palette</span><span class="sp-spec">297×420</span></div><div class="sp-footer"><span class="sp-price">810 €/T</span><span class="sp-weight">500 kg</span></div></div></a>
+          <a class="sp-card" href="./index.html"><div class="sp-photo"><img src="https://stock.prodi.net/albums/photo/985565.jpg" alt="A4 CIE 160" loading="lazy"></div><div class="sp-body"><div class="sp-name">A4 CIE 160</div><div class="sp-specs"><span class="sp-spec">75 g/m²</span><span class="sp-spec">Palette</span><span class="sp-spec">210×297</span></div><div class="sp-footer"><span class="sp-price">830 €/T</span><span class="sp-weight">468 kg</span></div></div></a>
+          <a class="sp-card" href="./index.html"><div class="sp-photo"><img src="https://stock.prodi.net/albums/photo/900392.jpg" alt="Pour Étiquette" loading="lazy"></div><div class="sp-body"><div class="sp-name">POUR ÉTIQUETTE</div><div class="sp-specs"><span class="sp-spec">80 g/m²</span><span class="sp-spec">Bobine</span><span class="sp-spec">475 mm</span></div><div class="sp-footer"><span class="sp-price">720 €/T</span><span class="sp-weight">730 kg</span></div></div></a>
+          <!-- duplicate for loop -->
+          <a class="sp-card" href="./index.html"><div class="sp-photo"><img src="https://stock.prodi.net/albums/photo/970974.jpg" alt="SBS 1 FACE" loading="lazy"></div><div class="sp-body"><div class="sp-name">SBS 1 FACE</div><div class="sp-specs"><span class="sp-spec">370 g/m²</span><span class="sp-spec">Palette</span><span class="sp-spec">Blanc</span></div><div class="sp-footer"><span class="sp-price">580 €/T</span><span class="sp-weight">334 kg</span></div></div></a>
+          <a class="sp-card" href="./index.html"><div class="sp-photo"><img src="https://stock.prodi.net/albums/photo/919122.jpg" alt="Transition Grammage" loading="lazy"></div><div class="sp-body"><div class="sp-name">TRANSITION GRAMMAGE</div><div class="sp-specs"><span class="sp-spec">140 g/m²</span><span class="sp-spec">Bobine</span><span class="sp-spec">1900 mm</span></div><div class="sp-footer"><span class="sp-price">380 €/T</span><span class="sp-weight">969 kg</span></div></div></a>
+          <a class="sp-card" href="./index.html"><div class="sp-photo"><img src="https://stock.prodi.net/albums/photo/962098.jpg" alt="LWC Dos Blanc Noël" loading="lazy"></div><div class="sp-body"><div class="sp-name">LWC DOS BLANC — NOËL</div><div class="sp-specs"><span class="sp-spec">65 g/m²</span><span class="sp-spec">Bobine</span><span class="sp-spec">Ø76 mm</span></div><div class="sp-footer"><span class="sp-price">570 €/T</span><span class="sp-weight">81 kg</span></div></div></a>
+          <a class="sp-card" href="./index.html"><div class="sp-photo"><img src="https://stock.prodi.net/albums/photo/981140.jpg" alt="A3 Satiné CIE160" loading="lazy"></div><div class="sp-body"><div class="sp-name">A3 — SATINÉ CIE 160</div><div class="sp-specs"><span class="sp-spec">80 g/m²</span><span class="sp-spec">Palette</span><span class="sp-spec">297×420</span></div><div class="sp-footer"><span class="sp-price">810 €/T</span><span class="sp-weight">500 kg</span></div></div></a>
+          <a class="sp-card" href="./index.html"><div class="sp-photo"><img src="https://stock.prodi.net/albums/photo/985565.jpg" alt="A4 CIE 160" loading="lazy"></div><div class="sp-body"><div class="sp-name">A4 CIE 160</div><div class="sp-specs"><span class="sp-spec">75 g/m²</span><span class="sp-spec">Palette</span><span class="sp-spec">210×297</span></div><div class="sp-footer"><span class="sp-price">830 €/T</span><span class="sp-weight">468 kg</span></div></div></a>
+          <a class="sp-card" href="./index.html"><div class="sp-photo"><img src="https://stock.prodi.net/albums/photo/900392.jpg" alt="Pour Étiquette" loading="lazy"></div><div class="sp-body"><div class="sp-name">POUR ÉTIQUETTE</div><div class="sp-specs"><span class="sp-spec">80 g/m²</span><span class="sp-spec">Bobine</span><span class="sp-spec">475 mm</span></div><div class="sp-footer"><span class="sp-price">720 €/T</span><span class="sp-weight">730 kg</span></div></div></a>
+        </div>
       </div>
+
+      <!-- Row 2 — scroll right -->
+      <div class="showcase-row sr-right">
+        <div class="showcase-inner">
+          <!-- 5 cards -->
+          <a class="sp-card" href="./index.html"><div class="sp-photo"><img src="https://stock.prodi.net/albums/photo/979732.jpg" alt="Ø800mm" loading="lazy"></div><div class="sp-body"><div class="sp-name">Ø800MM</div><div class="sp-specs"><span class="sp-spec">26 g/m²</span><span class="sp-spec">Bobine</span><span class="sp-spec">640 mm</span></div><div class="sp-footer"><span class="sp-price">730 €/T</span><span class="sp-weight">228 kg</span></div></div></a>
+          <a class="sp-card" href="./index.html"><div class="sp-photo"><img src="https://stock.prodi.net/albums/photo/973344.jpg" alt="SBS 2 FACES" loading="lazy"></div><div class="sp-body"><div class="sp-name">SBS 2 FACES</div><div class="sp-specs"><span class="sp-spec">380 g/m²</span><span class="sp-spec">Palette</span><span class="sp-spec">880×680</span></div><div class="sp-footer"><span class="sp-price">710 €/T</span><span class="sp-weight">500 kg</span></div></div></a>
+          <a class="sp-card" href="./index.html"><div class="sp-photo"><img src="https://stock.prodi.net/albums/photo/806006.jpg" alt="Silicone 1F" loading="lazy"></div><div class="sp-body"><div class="sp-name">SILICONE 1F</div><div class="sp-specs"><span class="sp-spec">90 g/m²</span><span class="sp-spec">Bobine</span><span class="sp-spec">420 mm</span></div><div class="sp-footer"><span class="sp-price">410 €/T</span><span class="sp-weight">51 kg</span></div></div></a>
+          <a class="sp-card" href="./index.html"><div class="sp-photo"><img src="https://stock.prodi.net/albums/photo/978031.jpg" alt="Mat" loading="lazy"></div><div class="sp-body"><div class="sp-name">COUCHÉ MAT</div><div class="sp-specs"><span class="sp-spec">70 g/m²</span><span class="sp-spec">Bobine</span><span class="sp-spec">830 mm</span></div><div class="sp-footer"><span class="sp-price">460 €/T</span><span class="sp-weight">938 kg</span></div></div></a>
+          <a class="sp-card" href="./index.html"><div class="sp-photo"><img src="https://stock.prodi.net/albums/photo/804145.jpg" alt="Tissu Isolation" loading="lazy"></div><div class="sp-body"><div class="sp-name">TISSU ISOLATION</div><div class="sp-specs"><span class="sp-spec">170 g/m²</span><span class="sp-spec">Bobine</span><span class="sp-spec">1030 mm</span></div><div class="sp-footer"><span class="sp-price">510 €/T</span><span class="sp-weight">331 kg</span></div></div></a>
+          <!-- duplicate for loop -->
+          <a class="sp-card" href="./index.html"><div class="sp-photo"><img src="https://stock.prodi.net/albums/photo/979732.jpg" alt="Ø800mm" loading="lazy"></div><div class="sp-body"><div class="sp-name">Ø800MM</div><div class="sp-specs"><span class="sp-spec">26 g/m²</span><span class="sp-spec">Bobine</span><span class="sp-spec">640 mm</span></div><div class="sp-footer"><span class="sp-price">730 €/T</span><span class="sp-weight">228 kg</span></div></div></a>
+          <a class="sp-card" href="./index.html"><div class="sp-photo"><img src="https://stock.prodi.net/albums/photo/973344.jpg" alt="SBS 2 FACES" loading="lazy"></div><div class="sp-body"><div class="sp-name">SBS 2 FACES</div><div class="sp-specs"><span class="sp-spec">380 g/m²</span><span class="sp-spec">Palette</span><span class="sp-spec">880×680</span></div><div class="sp-footer"><span class="sp-price">710 €/T</span><span class="sp-weight">500 kg</span></div></div></a>
+          <a class="sp-card" href="./index.html"><div class="sp-photo"><img src="https://stock.prodi.net/albums/photo/806006.jpg" alt="Silicone 1F" loading="lazy"></div><div class="sp-body"><div class="sp-name">SILICONE 1F</div><div class="sp-specs"><span class="sp-spec">90 g/m²</span><span class="sp-spec">Bobine</span><span class="sp-spec">420 mm</span></div><div class="sp-footer"><span class="sp-price">410 €/T</span><span class="sp-weight">51 kg</span></div></div></a>
+          <a class="sp-card" href="./index.html"><div class="sp-photo"><img src="https://stock.prodi.net/albums/photo/978031.jpg" alt="Mat" loading="lazy"></div><div class="sp-body"><div class="sp-name">COUCHÉ MAT</div><div class="sp-specs"><span class="sp-spec">70 g/m²</span><span class="sp-spec">Bobine</span><span class="sp-spec">830 mm</span></div><div class="sp-footer"><span class="sp-price">460 €/T</span><span class="sp-weight">938 kg</span></div></div></a>
+          <a class="sp-card" href="./index.html"><div class="sp-photo"><img src="https://stock.prodi.net/albums/photo/804145.jpg" alt="Tissu Isolation" loading="lazy"></div><div class="sp-body"><div class="sp-name">TISSU ISOLATION</div><div class="sp-specs"><span class="sp-spec">170 g/m²</span><span class="sp-spec">Bobine</span><span class="sp-spec">1030 mm</span></div><div class="sp-footer"><span class="sp-price">510 €/T</span><span class="sp-weight">331 kg</span></div></div></a>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="showcase-cta">
+      <a href="./index.html" class="btn-hero" data-i18n="sc_cta">Voir tout le stock →</a>
     </div>
   </section>
 
@@ -973,13 +959,8 @@ const T = {
     mq_label:'Présents dans 30+ pays à travers le monde',
     geo_tag:'Export mondial', geo_h:'30+ PAYS PARTENAIRES', geo_sub:'Présents sur 5 continents. Expédition depuis nos entrepôts en France et en Europe vers le monde entier.',
     sc_tag:'Nos produits', sc_h:'APERÇU DE NOS STOCKS', sc_sub:'Plusieurs milliers de références en stock immédiat, issues de papeteries européennes de premier rang.', sc_cta:'Voir tout le stock →',
-    bn1_tag:'Bobines', bn1_name:'KRAFT &amp; OFFSET', bn1_desc:'40–250 g/m² · Laizes 500–3 200 mm · Mandrin Ø76/150 · Lots dès 5T',
-    bn2_tag:'Couleur', bn2_name:'PAPIER COULEUR', bn2_desc:'60–300 g/m² · SRA2 / SRA3 / A4 · Offset &amp; numérique · Toutes couleurs',
-    bn3_tag:'Palettes', bn3_name:'FORMATS FEUILLES', bn3_desc:'40–350 g/m² · SRA2 / SRA3 / A4 · Kraft · Couché · Offset',
-    bn4_tag:'Logistique', bn4_name:'STOCK EUROPE', bn4_desc:'Ivry-sur-Seine · Amiens · Départ sous 24H · FCL &amp; LCL',
     step4_h:'Expédition rapide', step4_p:'Départ depuis nos entrepôts en France sous 24–48H. Livraison FCL ou LCL dans le monde entier.',
     mills_label:'Stocks issus des plus grandes papeteries européennes',
-    bn_link:'Voir le stock →', bento_unit:'Tonnes disponibles',
     act_tag:'Notre activité', act_h:'NÉGOCIANT EN STOCKLOTS DE PAPIER',
     act_p1:'Prodiconseil est une société européenne fondée en 1991, spécialisée dans la vente de stocklots de papier et carton provenant de grandes papeteries.',
     act_p2:'Ces lots peuvent provenir de surproductions, de commandes annulées ou de changements de spécifications. Les produits sont vendus à des transformateurs et négociants internationaux.',
@@ -1037,13 +1018,9 @@ const T = {
     mq_label:'Active in 30+ countries worldwide',
     geo_tag:'Global reach', geo_h:'30+ PARTNER COUNTRIES', geo_sub:'Active on 5 continents. Shipping from our warehouses in France and Europe to the rest of the world.',
     sc_tag:'Our products', sc_h:'STOCK OVERVIEW', sc_sub:'Thousands of references in immediate stock, from major European paper mills.', sc_cta:'View full stock →',
-    bn1_tag:'Reels', bn1_name:'KRAFT &amp; OFFSET', bn1_desc:'40–250 gsm · Widths 500–3 200 mm · Core Ø76/150 · Lots from 5T',
-    bn2_tag:'Colour', bn2_name:'COLOUR PAPER', bn2_desc:'60–300 gsm · SRA2 / SRA3 / A4 · Offset &amp; digital · All colours',
-    bn3_tag:'Pallets', bn3_name:'SHEET FORMATS', bn3_desc:'40–350 gsm · SRA2 / SRA3 / A4 · Kraft · Coated · Offset',
-    bn4_tag:'Logistics', bn4_name:'EUROPEAN STOCK', bn4_desc:'Ivry-sur-Seine · Amiens · Ships within 24H · FCL &amp; LCL',
+    sc_cta:'View full stock →',
     step4_h:'Fast shipping', step4_p:'Dispatch from our French warehouses within 24–48H. FCL or LCL delivery worldwide.',
     mills_label:'Stocks sourced from Europe\'s leading paper mills',
-    bn_link:'View stock →', bento_unit:'Tonnes available',
     act_tag:'Our activity', act_h:'PAPER & BOARD STOCKLOT TRADER',
     act_p1:'Prodiconseil is a European company founded in 1991, specialising in the sale of paper and board stocklots from major paper mills.',
     act_p2:'These lots may come from overproductions, cancelled orders or specification changes. Products are sold to converters and international traders.',
