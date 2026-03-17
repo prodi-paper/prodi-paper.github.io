@@ -58,6 +58,9 @@ const T = {
     f_nom:'Nom', f_soc:'Entreprise', f_email:'Email', f_tel:'Téléphone', f_msg:'Message', f_send:'Envoyer le message',
     ok_h:'Message envoyé !', ok_p:'Nous vous répondrons dans les 24 heures.',
     aside_h:'COORDONNÉES', ci_addr:'Adresse', ci_web:'Site catalogue', wa_btn:'Écrire sur WhatsApp',
+    err_nom:'Nom requis (min. 2 car.)', err_soc:'Entreprise requise', err_email:'Email invalide', err_msg:'Message trop court (min. 10 car.)',
+    err_server:'Erreur — veuillez réessayer ou écrire à eelbilia@gmail.com',
+    snd_on:'SON', snd_off:'SON',
   },
   en: {
     nav_home:'Home', nav_about:'About', nav_contact:'Contact', nav_catalogue:'View stock →',
@@ -72,7 +75,6 @@ const T = {
     mq_label:'Active in 30+ countries worldwide',
     geo_tag:'Global reach', geo_h:'30+ PARTNER COUNTRIES', geo_sub:'Active on 5 continents. Shipping from our warehouses in France and Europe to the rest of the world.',
     sc_tag:'Our products', sc_h:'STOCK OVERVIEW', sc_sub:'Thousands of references in immediate stock, from major European paper mills.', sc_cta:'View full stock →',
-    sc_cta:'View full stock →',
     step4_h:'Fast shipping', step4_p:'Dispatch from our French warehouses within 24–48H. FCL or LCL delivery worldwide.',
     mills_label:'Stocks sourced from Europe\'s leading paper mills',
     act_tag:'Our activity', act_h:'PAPER & BOARD STOCKLOT TRADER',
@@ -118,6 +120,9 @@ const T = {
     f_nom:'Name', f_soc:'Company', f_email:'Email', f_tel:'Phone', f_msg:'Message', f_send:'Send message',
     ok_h:'Message sent!', ok_p:'We will reply within 24 hours.',
     aside_h:'CONTACT INFO', ci_addr:'Address', ci_web:'Catalogue site', wa_btn:'Chat on WhatsApp',
+    err_nom:'Name required (min. 2 chars.)', err_soc:'Company required', err_email:'Invalid email', err_msg:'Message too short (min. 10 chars.)',
+    err_server:'Error — please retry or email eelbilia@gmail.com',
+    snd_on:'SOUND', snd_off:'SOUND',
   }
 };
 
@@ -188,7 +193,7 @@ async function submitContact(e) {
   } catch(err) {
     btn.disabled = false;
     btn.textContent = T[lang].f_send;
-    alert('Erreur — veuillez réessayer ou écrire à eelbilia@gmail.com');
+    alert(T[lang].err_server);
   }
 }
 
@@ -241,11 +246,11 @@ async function submitQuickDevis(e){
 // ─── FORM VALIDATION ───
 (function(){
   const RULES = {
-    'f-nom':   {required:true, min:2, msgErr:'Nom requis (min. 2 car.)', msgOk:''},
-    'f-soc':   {required:true, min:2, msgErr:'Entreprise requise', msgOk:''},
-    'f-email': {required:true, email:true, msgErr:'Email invalide', msgOk:''},
-    'f-tel':   {required:false, msgErr:'', msgOk:''},
-    'f-msg':   {required:true, min:10, msgErr:'Message trop court (min. 10 car.)', msgOk:''},
+    'f-nom':   {required:true, min:2, errKey:'err_nom'},
+    'f-soc':   {required:true, min:2, errKey:'err_soc'},
+    'f-email': {required:true, email:true, errKey:'err_email'},
+    'f-tel':   {required:false, errKey:''},
+    'f-msg':   {required:true, min:10, errKey:'err_msg'},
   };
   function validate(id){
     const input = document.getElementById(id);
@@ -261,7 +266,7 @@ async function submitQuickDevis(e){
     if(ok && rule.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) ok = false;
     fg.classList.toggle('fv-valid', ok);
     fg.classList.toggle('fv-invalid', !ok);
-    if(msgEl) msgEl.textContent = ok ? '' : rule.msgErr;
+    if(msgEl) msgEl.textContent = ok ? '' : (T[lang][rule.errKey] || '');
     return ok;
   }
   Object.keys(RULES).forEach(id => {
@@ -436,8 +441,8 @@ function toggleSound(){
   const icoSound=document.getElementById('vid-icon-sound');
   v.muted=!v.muted;
   if(v.muted){
-    icoMute.style.display='';icoSound.style.display='none';btnTxt.textContent='SON';
+    icoMute.style.display='';icoSound.style.display='none';btnTxt.textContent=T[lang].snd_on;
   } else {
-    icoMute.style.display='none';icoSound.style.display='';btnTxt.textContent='SON';
+    icoMute.style.display='none';icoSound.style.display='';btnTxt.textContent=T[lang].snd_off;
   }
 }
