@@ -14,11 +14,11 @@
 <link rel="dns-prefetch" href="https://bvcgpdoukhcatjibmvnb.supabase.co">
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{scroll-behavior:smooth;}
-body{font-family:'DM Sans',sans-serif;font-size:15px;color:#222;background:#fff;overflow-x:hidden;}
+body{font-family:'Space Grotesk',sans-serif;font-size:15px;color:#222;background:#fff;overflow-x:hidden;}
 a{text-decoration:none;color:inherit;}
 ul{list-style:none;}
 button{cursor:pointer;border:none;font-family:inherit;background:none;}
@@ -313,6 +313,63 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
 .wa-sticky:hover{transform:scale(1.1);box-shadow:0 6px 28px rgba(37,211,102,.55);}
 .foot-addr{font-size:12px;color:rgba(255,255,255,.2);margin-top:4px;}
 
+/* ─── HERO ENHANCEMENTS ─── */
+.hero{background:#FAFAF8;}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:5px 14px;background:rgba(254,0,0,.06);border:1px solid rgba(254,0,0,.18);border-radius:20px;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--red);margin-bottom:20px;}
+.hero-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--red);animation:bdot 2s ease-in-out infinite;}
+@keyframes bdot{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(.7);}}
+
+/* ─── STATS STAGGER ─── */
+.h-stat{opacity:0;transform:translateY(12px);transition:opacity .45s ease,transform .45s ease;}
+.h-stat.appeared{opacity:1;transform:none;}
+.h-stat:nth-child(1){transition-delay:.04s;}
+.h-stat:nth-child(2){transition-delay:.14s;}
+.h-stat:nth-child(3){transition-delay:.24s;}
+.h-stat:nth-child(4){transition-delay:.34s;}
+.h-stat-v{font-variant-numeric:tabular-nums;}
+
+/* ─── PROCESS CONNECTOR ─── */
+@media(min-width:901px){
+  .proc-steps{position:relative;}
+  .proc-steps::before{content:'';position:absolute;top:46px;left:calc(12.5% + 18px);right:calc(12.5% + 18px);height:0;border-top:1.5px dashed #E0E0E0;z-index:0;pointer-events:none;}
+  .proc-step{z-index:1;position:relative;background:#fff;}
+}
+
+/* ─── FORM VALIDATION ─── */
+.fg input,.fg textarea,.fg select{transition:border-color .2s,box-shadow .2s;}
+.fg.fv-valid input,.fg.fv-valid textarea{border-color:#16a34a;box-shadow:0 0 0 3px rgba(22,163,74,.07);}
+.fg.fv-invalid input,.fg.fv-invalid textarea{border-color:#dc2626;box-shadow:0 0 0 3px rgba(220,38,38,.07);}
+.fg.fv-valid label{color:#16a34a;}
+.fg.fv-invalid label{color:#dc2626;}
+.fg-msg{font-size:11px;margin-top:4px;min-height:0;max-height:0;overflow:hidden;transition:max-height .2s;}
+.fg.fv-invalid .fg-msg{max-height:20px;color:#dc2626;}
+.fg.fv-valid .fg-msg{max-height:20px;color:#16a34a;}
+.btn-submit{position:relative;overflow:hidden;letter-spacing:.4px;}
+.btn-submit::after{content:'';position:absolute;inset:0;background:rgba(255,255,255,.12);transform:scaleX(0);transform-origin:left;transition:transform .3s;}
+.btn-submit:not(:disabled):hover::after{transform:scaleX(1);}
+
+/* ─── FORM SUCCESS ─── */
+.form-ok{animation:foUp .5s ease-out forwards;}
+@keyframes foUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
+
+/* ─── SHOWCASE HOVER ─── */
+.sp-card{position:relative;overflow:hidden;}
+.sp-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--red);opacity:0;transition:opacity .2s;}
+.sp-card:hover::after{opacity:1;}
+.sp-price{display:inline-block;transition:transform .2s;}
+.sp-card:hover .sp-price{transform:scale(1.06);}
+
+/* ─── ACT + LOGI CARD HOVER ─── */
+.act-card{transition:all .2s;border-left:3px solid transparent;}
+.act-card:hover{border-left-color:var(--red);transform:translateX(3px);}
+.logi-card{transition:transform .2s,box-shadow .2s;}
+.logi-card:hover{transform:translateY(-2px);box-shadow:0 10px 36px rgba(0,0,0,.25);}
+
+/* ─── BUTTONS IMPROVED ─── */
+.btn-hero,.btn-hero-outline{letter-spacing:.8px;}
+.btn-hero{box-shadow:0 2px 12px rgba(254,0,0,.3);}
+.btn-hero:hover{box-shadow:0 4px 20px rgba(254,0,0,.45);}
+
 /* ─── RESPONSIVE ─── */
 @media(max-width:1100px){.sp-card{width:185px;}.sp-photo{height:130px;}}
 @media(max-width:1100px){.proc-steps{grid-template-columns:1fr 1fr;}.zone-grid{grid-template-columns:repeat(3,1fr);}.qd-form{grid-template-columns:1fr 1fr;}}
@@ -346,6 +403,19 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
   .ab-nums,.ab-steps{grid-template-columns:1fr 1fr;}
   .foot-in{flex-direction:column;align-items:flex-start;gap:14px;}
   .foot-info{text-align:left;}
+  /* Hero stats 2×2 grid on mobile */
+  .hero-stats{display:grid!important;grid-template-columns:1fr 1fr;gap:0;padding-top:28px;}
+  .h-stat{padding:14px 0!important;border-right:none!important;min-width:unset!important;}
+  .h-stat:nth-child(odd){border-right:1px solid var(--border)!important;padding-right:12px!important;}
+  .h-stat:nth-child(1),.h-stat:nth-child(2){border-bottom:1px solid var(--border)!important;}
+  .h-stat:nth-child(odd){padding-left:0!important;}
+  .h-stat:nth-child(even){padding-left:12px!important;}
+  /* Hero buttons full-width on mobile */
+  .hero-btns{flex-direction:column;gap:10px;}
+  .btn-hero,.btn-hero-outline{width:100%;justify-content:center;padding:14px 20px;}
+  .hero h1{font-size:clamp(36px,10vw,52px);}
+  /* Contact form */
+  .ct-wrap{padding:48px 20px;}
 }
 </style>
 </head>
@@ -390,6 +460,7 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
     <div class="hero-inner">
       <div class="hero-split">
         <div class="hero-text">
+          <div class="hero-badge" id="hero-badge"><span class="hero-badge-dot"></span><span data-i18n="hero_badge">Négociant européen depuis 1991</span></div>
           <h1 data-i18n-h="hero_title">STOCKLOTS DE PAPIER<br>&amp; CARTON<br><em>DISPONIBLES IMMÉDIATEMENT</em></h1>
           <p class="hero-sub" data-i18n="hero_sub">Bobines · Palettes feuilles · Kraft · Offset · Couché · SBS · Tous grammages — Expédition mondiale depuis la France 🇫🇷</p>
           <div class="hero-btns">
@@ -876,25 +947,30 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
             <div class="fg">
               <label data-i18n="f_nom">Nom</label>
               <input type="text" id="f-nom" placeholder="Jean Dupont" required>
+              <div class="fg-msg" id="fg-msg-nom"></div>
             </div>
             <div class="fg">
               <label data-i18n="f_soc">Entreprise</label>
               <input type="text" id="f-soc" placeholder="Entreprise SA" required>
+              <div class="fg-msg" id="fg-msg-soc"></div>
             </div>
           </div>
           <div class="form-row">
             <div class="fg">
               <label data-i18n="f_email">Email</label>
               <input type="email" id="f-email" placeholder="nom@entreprise.com" required>
+              <div class="fg-msg" id="fg-msg-email"></div>
             </div>
             <div class="fg">
               <label data-i18n="f_tel">Téléphone</label>
               <input type="tel" id="f-tel" placeholder="+33 6 00 00 00 00">
+              <div class="fg-msg" id="fg-msg-tel"></div>
             </div>
           </div>
           <div class="fg">
             <label data-i18n="f_msg">Message</label>
             <textarea id="f-msg" placeholder="" required></textarea>
+            <div class="fg-msg" id="fg-msg-msg"></div>
           </div>
           <button type="submit" class="btn-submit" id="f-submit" data-i18n="f_send">Envoyer le message</button>
         </form>
@@ -1181,6 +1257,64 @@ async function submitQuickDevis(e){
   document.getElementById('qd-form').style.display='none';
   document.getElementById('qd-ok').style.display='block';
 }
+
+// ─── STATS SCROLL REVEAL ───
+(function(){
+  const statsEl = document.querySelector('.hero-stats');
+  if(!statsEl) return;
+  const stats = statsEl.querySelectorAll('.h-stat');
+  const obs = new IntersectionObserver(entries => {
+    if(entries[0].isIntersecting){
+      stats.forEach(s => s.classList.add('appeared'));
+      obs.disconnect();
+    }
+  },{threshold:.3});
+  obs.observe(statsEl);
+})();
+
+// ─── FORM VALIDATION ───
+(function(){
+  const RULES = {
+    'f-nom':   {required:true, min:2, msgErr:'Nom requis (min. 2 car.)', msgOk:''},
+    'f-soc':   {required:true, min:2, msgErr:'Entreprise requise', msgOk:''},
+    'f-email': {required:true, email:true, msgErr:'Email invalide', msgOk:''},
+    'f-tel':   {required:false, msgErr:'', msgOk:''},
+    'f-msg':   {required:true, min:10, msgErr:'Message trop court (min. 10 car.)', msgOk:''},
+  };
+  function validate(id){
+    const input = document.getElementById(id);
+    const msgEl = document.getElementById('fg-msg-'+id.replace('f-',''));
+    if(!input) return true;
+    const rule = RULES[id];
+    const val = input.value.trim();
+    const fg = input.closest('.fg');
+    if(!val && !rule.required){ fg.classList.remove('fv-valid','fv-invalid'); return true; }
+    let ok = true;
+    if(rule.required && !val) ok = false;
+    if(ok && rule.min && val.length < rule.min) ok = false;
+    if(ok && rule.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) ok = false;
+    fg.classList.toggle('fv-valid', ok);
+    fg.classList.toggle('fv-invalid', !ok);
+    if(msgEl) msgEl.textContent = ok ? '' : rule.msgErr;
+    return ok;
+  }
+  Object.keys(RULES).forEach(id => {
+    const input = document.getElementById(id);
+    if(!input) return;
+    input.addEventListener('blur', () => validate(id));
+    input.addEventListener('input', () => { if(input.closest('.fg').classList.contains('fv-invalid')) validate(id); });
+  });
+  // Validate all on submit
+  const form = document.getElementById('contact-form');
+  if(form){
+    const orig = form.onsubmit;
+    form.addEventListener('submit', e => {
+      let allOk = true;
+      Object.keys(RULES).forEach(id => { if(!validate(id)) allOk = false; });
+      if(!allOk) e.preventDefault();
+    }, true);
+  }
+})();
 
 // ─── GEO MAP ───
 function geoProj(lon,lat){

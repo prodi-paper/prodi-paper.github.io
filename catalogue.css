@@ -114,7 +114,7 @@ header{background:rgba(255,255,255,.92);position:sticky;top:0;z-index:100;border
 .footer-col a:hover{color:#fff;}
 .footer-bottom{border-top:1px solid #333;margin-top:20px;padding-top:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
 @media(max-width:640px){.trust-inner{gap:14px;}.footer-grid{grid-template-columns:1fr;gap:14px;}.footer-bottom{flex-direction:column;text-align:center;}}
-.pcard-price{font-family:'Bebas Neue',sans-serif;font-size:17px;color:var(--red);letter-spacing:.5px;}
+.pcard-price{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--red);letter-spacing:.5px;}
 .pcard-price-ask{font-size:11px;color:#aaa;font-style:italic;}
 .fg:last-child{border-bottom:none;padding-bottom:0;}
 .fl{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--gray);margin-bottom:5px;}
@@ -435,7 +435,7 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
 /* Filter pills in bar */
 .fb-pill{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;border:1.5px solid var(--border);background:var(--white);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;color:var(--ink2);white-space:nowrap;flex-shrink:0;}
 .fb-pill:hover{border-color:var(--red);color:var(--red);}
-.fb-pill.active{background:var(--red);border-color:var(--red);color:#fff;}
+.fb-pill.active{background:var(--red);border-color:var(--red);color:#fff;box-shadow:0 2px 8px rgba(254,0,0,.28);}
 /* Compact range input in filter bar */
 .fb-range{display:flex;align-items:center;gap:4px;flex-shrink:0;}
 .fb-range-lbl{font-size:11px;color:var(--gray);font-weight:600;white-space:nowrap;}
@@ -482,7 +482,7 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
 .ptable-head th.col-prix{width:100px;text-align:right;}
 .ptable-head th.col-cta{width:40px;}
 .prow{border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s;}
-.prow:hover{background:var(--off);}
+.prow:hover{background:var(--off);box-shadow:inset 3px 0 0 var(--red);}
 .prow td{padding:0 8px;height:var(--row-h);vertical-align:middle;font-size:12px;color:var(--ink2);}
 .prow-badge{display:inline-flex;align-items:center;padding:2px 6px;border-radius:3px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;}
 .prow-badge.qb-kraft{background:#fef3c7;color:#92400e;}
@@ -494,7 +494,7 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
 .prow-name{font-size:13px;color:var(--ink);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px;}
 .prow-sub{font-size:11px;color:var(--gray);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px;}
 .prow-num{font-size:12px;color:var(--ink2);font-family:'DM Sans',sans-serif;font-weight:600;text-align:right;}
-.prow-prix{font-family:'Bebas Neue',sans-serif;font-size:14px;color:var(--red);letter-spacing:.3px;text-align:right;white-space:nowrap;}
+.prow-prix{font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--red);letter-spacing:.4px;text-align:right;white-space:nowrap;}
 .prow-ask{font-size:10px;color:var(--gray);font-style:italic;text-align:right;}
 .prow-add{width:30px;height:28px;background:var(--off);border:1.5px solid var(--border);border-radius:var(--r);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;}
 .prow-add:hover{background:var(--red);color:#fff;border-color:var(--red);}
@@ -502,9 +502,11 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
 .prow-zone{font-size:10px;color:var(--gray);font-weight:600;text-transform:uppercase;letter-spacing:.3px;}
 
 /* ── CARDS V2 ── */
-.pgrid-v2{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;}
+.pgrid-v2{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;}
 .pcard-v2{background:var(--white);border:1.5px solid var(--border);border-radius:var(--rl);padding:14px;cursor:pointer;transition:all .2s;position:relative;}
 .pcard-v2:hover{border-color:rgba(254,0,0,.35);box-shadow:0 6px 24px rgba(254,0,0,.1);transform:translateY(-2px);}
+.pcard-v2::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--red);border-radius:var(--rl) var(--rl) 0 0;opacity:0;transition:opacity .2s;}
+.pcard-v2:hover::before{opacity:1;}
 .pcard-v2-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;}
 .pcard-v2-badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:3px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
 .pcard-v2-badge.qb-kraft{background:#fef3c7;color:#92400e;}
@@ -518,7 +520,7 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
 .pcard-v2-specs b{color:var(--ink);font-weight:600;}
 .pcard-v2-zone{font-size:10px;color:var(--gray);font-weight:600;text-transform:uppercase;letter-spacing:.3px;margin-bottom:10px;}
 .pcard-v2-foot{display:flex;justify-content:space-between;align-items:center;padding-top:9px;border-top:1px solid var(--border);}
-.pcard-v2-price{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--red);letter-spacing:.4px;}
+.pcard-v2-price{font-family:'Bebas Neue',sans-serif;font-size:21px;color:var(--red);letter-spacing:.5px;}
 .pcard-v2-price-ask{font-size:11px;color:var(--gray);font-style:italic;}
 .pcard-v2-poids{font-size:12px;color:var(--ink2);font-weight:600;}
 .btn-add-v2{padding:7px 12px;background:var(--off);color:var(--ink);border:1.5px solid var(--border);border-radius:var(--r);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .18s;display:flex;align-items:center;gap:5px;white-space:nowrap;}
@@ -608,3 +610,25 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
   #results-bar{top:82px;}
 }
 
+
+/* ── DESIGN UPGRADES ── */
+/* pcard-v2 card appear animation */
+@keyframes cardIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+.pcard-v2{animation:cardIn .3s ease-out both;}
+
+/* pcard (image card) — red top stripe always visible on hover */
+.pcard:hover .pcard-stripe{background:var(--red2);}
+.pcard{transition:border-color .22s,box-shadow .22s,transform .22s;}
+
+/* Filter pill transition */
+.fb-pill{transition:all .18s;}
+
+/* Pagination hover glow */
+.parrow:hover:not([disabled]){box-shadow:0 0 0 3px rgba(254,0,0,.1);}
+.pnum:hover:not(.active){box-shadow:0 0 0 3px rgba(254,0,0,.1);}
+
+/* btn-add-cart improved */
+.prow-add{transition:all .15s;font-size:16px;}
+
+/* Space Grotesk for headings in catalogue */
+.rbar-count{font-family:'Bebas Neue',sans-serif;}
