@@ -1,3 +1,10 @@
+
+// ─── EMAILJS ───
+const EJS_PUB = 'e3aqMGO-mZiAECrb5';
+const EJS_SVC = 'service_k3060so';
+const EJS_TPL = 'template_atcwwc2';
+(function(){ try{ emailjs.init({ publicKey: EJS_PUB }); } catch(_){} })();
+
 const SURL='https://bvcgpdoukhcatjibmvnb.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2Y2dwZG91a2hjYXRqaWJtdm5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNzg5MjgsImV4cCI6MjA4Nzg1NDkyOH0.Ip3ykSUS9sajTH04yXBerOG1haBKMD1kAvMQNjnGL1Q';
 const SB_H={'apikey':SKEY,'Authorization':'Bearer '+SKEY,'Content-Type':'application/json'};
@@ -1052,6 +1059,7 @@ async function sendProforma(){
     const box=document.querySelector('#proforma-bg .pf-box');
     if(box)box.innerHTML=`<div class="pf-success"><div class="pf-success-ico">✅</div><div class="pf-success-t">${LT[lang].t_sent_ok}</div><div class="pf-success-s">${lang==='en'?'We will reply within 48h at':'Nous vous répondrons sous 48h à'} <strong>${email}</strong></div><button class="btn-pf-close" onclick="closeProforma();document.querySelector('#proforma-bg .pf-box').innerHTML=''">${lang==='en'?'Close':'Fermer'}</button></div>`;
     toast(lang==='en'?'✅ Request sent — reply within 48h':'✅ Demande envoyée — réponse sous 48h');
+    try{ emailjs.send(EJS_SVC, EJS_TPL, { from_name:nom, company:soc, reply_to:email, message:`Proforma produit\nProduit: ${cur?.name||''}${cur?.ref?' ('+cur.ref+')':''}\nQté: ${document.getElementById('pf-qty').value}\nTél: ${document.getElementById('pf-tel').value}\nMsg: ${document.getElementById('pf-msg').value}` }); }catch(_){}
     ['pf-nom','pf-societe','pf-email','pf-tel','pf-qty','pf-msg'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   }catch(err){
     btn.disabled=false;btn.textContent=LT[lang].t_send||'ENVOYER';
@@ -1220,6 +1228,7 @@ async function sendCartProforma(){
     }
     btn.disabled=false;btn.textContent=LT[lang].t_send||'ENVOYER';
     closeCartProforma();doClearCart();closeCartDrawer();
+    try{ emailjs.send(EJS_SVC, EJS_TPL, { from_name:nom, company:soc, reply_to:email, message:msg }); }catch(_){}
     toast(lang==='en'?'✅ Request sent for '+savedCart.length+' product(s)!':'✅ Demande envoyée pour '+savedCart.length+' produit(s) !',4000);
     ['pfc-nom','pfc-societe','pfc-email','pfc-tel','pfc-msg'].forEach(id=>document.getElementById(id).value='');
   }catch(err){
