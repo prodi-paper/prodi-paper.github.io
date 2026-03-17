@@ -68,7 +68,7 @@ button{cursor:pointer;border:none;font-family:inherit;background:none;}
 /* ─── HERO ─── */
 .hero{background:#fff;border-bottom:1px solid var(--border);}
 .hero-inner{max-width:1120px;margin:0 auto;padding:64px 48px 52px;width:100%;}
-.hero-split{display:grid;grid-template-columns:1fr;max-width:720px;}
+.hero-split{display:grid;grid-template-columns:1fr auto;gap:48px;align-items:center;max-width:1060px;}
 .hero h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(42px,5vw,76px);line-height:.93;color:var(--dark);letter-spacing:1.5px;margin-bottom:20px;}
 .hero h1 em{color:var(--red);font-style:normal;}
 .hero-sub{font-size:15px;color:var(--ink2);max-width:480px;line-height:1.8;margin-bottom:32px;}
@@ -466,6 +466,11 @@ footer{background:#080808;border-top:1px solid rgba(255,255,255,.05);padding:36p
           <div class="hero-btns">
             <a href="./index.html" class="btn-hero" data-i18n="hero_btn1">NOS PRODUITS</a>
             <a onclick="showPage('contact')" class="btn-hero-outline" data-i18n="hero_btn2">NOUS CONTACTER</a>
+          </div>
+        </div>
+        <div class="hero-video-col">
+          <div class="hero-video-wrap">
+            <iframe src="https://www.youtube.com/embed/LiAmyPGTnko?autoplay=1&mute=1&loop=1&playlist=LiAmyPGTnko&controls=0&rel=0&playsinline=1" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
           </div>
         </div>
       </div>
