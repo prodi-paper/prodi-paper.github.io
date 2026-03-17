@@ -310,9 +310,9 @@ async function submitQuickDevis(e){
 const GATE_KEY = 'prodi_access';
 
 // EmailJS config — remplacer avec vos identifiants emailjs.com
-const EJS_PUB  = 'VOTRE_PUBLIC_KEY';
-const EJS_SVC  = 'VOTRE_SERVICE_ID';
-const EJS_TPL  = 'VOTRE_TEMPLATE_ID';
+const EJS_PUB  = 'e3aqMGO-mZiAECrb5';
+const EJS_SVC  = 'service_k3060so';
+const EJS_TPL  = 'template_atcwwc2';
 
 (function(){ try{ emailjs.init({ publicKey: EJS_PUB }); } catch(_){} })();
 
