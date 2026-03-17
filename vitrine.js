@@ -61,6 +61,8 @@ const T = {
     err_nom:'Nom requis (min. 2 car.)', err_soc:'Entreprise requise', err_email:'Email invalide', err_msg:'Message trop court (min. 10 car.)',
     err_server:'Erreur — veuillez réessayer ou écrire à eelbilia@gmail.com',
     snd_on:'SON', snd_off:'SON',
+    ph_nom:'Jean Dupont', ph_soc:'Entreprise SA', ph_email:'nom@entreprise.com', ph_tel:'+33 6 00 00 00 00',
+    aria_sound:'Activer le son',
   },
   en: {
     nav_home:'Home', nav_about:'About', nav_contact:'Contact', nav_catalogue:'View stock →',
@@ -123,6 +125,8 @@ const T = {
     err_nom:'Name required (min. 2 chars.)', err_soc:'Company required', err_email:'Invalid email', err_msg:'Message too short (min. 10 chars.)',
     err_server:'Error — please retry or email eelbilia@gmail.com',
     snd_on:'SOUND', snd_off:'SOUND',
+    ph_nom:'John Smith', ph_soc:'Company Ltd', ph_email:'name@company.com', ph_tel:'+1 555 000 0000',
+    aria_sound:'Toggle sound',
   }
 };
 
@@ -143,6 +147,14 @@ function setLang(l) {
   document.querySelectorAll('[data-i18n-h]').forEach(el => {
     const k = el.dataset.i18nH;
     if (T[l][k] !== undefined) el.innerHTML = T[l][k];
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const k = el.dataset.i18nPlaceholder;
+    if (T[l][k] !== undefined) el.placeholder = T[l][k];
+  });
+  document.querySelectorAll('[data-i18n-aria]').forEach(el => {
+    const k = el.dataset.i18nAria;
+    if (T[l][k] !== undefined) el.setAttribute('aria-label', T[l][k]);
   });
 }
 

@@ -100,7 +100,7 @@
             <video id="hero-vid" autoplay muted loop playsinline preload="none">
               <source src="prodi2026.mp4" type="video/mp4">
             </video>
-            <button class="vid-sound" id="vid-sound" onclick="toggleSound()" aria-label="Activer le son">
+            <button class="vid-sound" id="vid-sound" onclick="toggleSound()" aria-label="Activer le son" data-i18n-aria="aria_sound">
               <svg id="vid-icon-mute" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
               <svg id="vid-icon-sound" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" style="display:none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
               <span id="vid-txt">SON</span>
@@ -514,24 +514,24 @@
           <div class="form-row">
             <div class="fg">
               <label data-i18n="f_nom">Nom</label>
-              <input type="text" id="f-nom" placeholder="Jean Dupont" required>
+              <input type="text" id="f-nom" placeholder="Jean Dupont" data-i18n-placeholder="ph_nom" required>
               <div class="fg-msg" id="fg-msg-nom"></div>
             </div>
             <div class="fg">
               <label data-i18n="f_soc">Entreprise</label>
-              <input type="text" id="f-soc" placeholder="Entreprise SA" required>
+              <input type="text" id="f-soc" placeholder="Entreprise SA" data-i18n-placeholder="ph_soc" required>
               <div class="fg-msg" id="fg-msg-soc"></div>
             </div>
           </div>
           <div class="form-row">
             <div class="fg">
               <label data-i18n="f_email">Email</label>
-              <input type="email" id="f-email" placeholder="nom@entreprise.com" required>
+              <input type="email" id="f-email" placeholder="nom@entreprise.com" data-i18n-placeholder="ph_email" required>
               <div class="fg-msg" id="fg-msg-email"></div>
             </div>
             <div class="fg">
               <label data-i18n="f_tel">Téléphone</label>
-              <input type="tel" id="f-tel" placeholder="+33 6 00 00 00 00">
+              <input type="tel" id="f-tel" placeholder="+33 6 00 00 00 00" data-i18n-placeholder="ph_tel">
               <div class="fg-msg" id="fg-msg-tel"></div>
             </div>
           </div>
