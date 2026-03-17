@@ -15,7 +15,7 @@
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="vitrine.css?v=4">
+<link rel="stylesheet" href="vitrine.css?v=5">
 </head>
 <body>
 
@@ -68,11 +68,15 @@
         </div>
         <div class="hero-video-col">
           <div class="hero-video-wrap">
-            <video autoplay muted loop playsinline>
+            <video id="hero-vid" autoplay muted loop playsinline>
               <source src="prodi2026.mp4" type="video/mp4">
             </video>
+            <button class="vid-sound" id="vid-sound" onclick="toggleSound()" aria-label="Activer le son">
+              <svg id="vid-icon-mute" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+              <svg id="vid-icon-sound" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" style="display:none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+              <span id="vid-txt">SON</span>
+            </button>
           </div>
-        </div>
       </div>
       <div class="hero-stats">
         <div class="h-stat">
@@ -649,7 +653,7 @@
   </div>
 </footer>
 
-<script src="vitrine.js?v=2"></script>
+<script src="vitrine.js?v=3"></script>
 
 <!-- WA STICKY -->
 <a href="https://wa.me/33649754915" target="_blank" class="wa-sticky" title="WhatsApp">

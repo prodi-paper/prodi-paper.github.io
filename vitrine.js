@@ -428,3 +428,16 @@ const _geoObs=new IntersectionObserver(entries=>{
 const _geoEl=document.getElementById('geo-svg');
 if(_geoEl) _geoObs.observe(_geoEl);
 
+
+function toggleSound(){
+  const v=document.getElementById('hero-vid');
+  const btnTxt=document.getElementById('vid-txt');
+  const icoMute=document.getElementById('vid-icon-mute');
+  const icoSound=document.getElementById('vid-icon-sound');
+  v.muted=!v.muted;
+  if(v.muted){
+    icoMute.style.display='';icoSound.style.display='none';btnTxt.textContent='SON';
+  } else {
+    icoMute.style.display='none';icoSound.style.display='';btnTxt.textContent='SON';
+  }
+}
