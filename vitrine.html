@@ -49,10 +49,10 @@
 
 <!-- ══════════ HEADER ══════════ -->
 <header class="hd">
-  <div class="hd-logo" onclick="showPage('home')"><img src="img/logo.png" alt="Prodiconseil"></div>
+  <div class="hd-logo" onclick="showPage('home')"><img src="img/logo.png" alt="Prodiconseil" width="196" height="32"></div>
   <nav class="hd-nav">
-    <a onclick="showPage('home')" id="nav-home" class="active" data-i18n="nav_home">Accueil</a>
-    <a onclick="showPage('contact')" id="nav-contact" data-i18n="nav_contact">Contact</a>
+    <a href="vitrine.html" onclick="showPage('home');return false;" id="nav-home" class="active" data-i18n="nav_home">Accueil</a>
+    <a href="#contact" onclick="showPage('contact');return false;" id="nav-contact" data-i18n="nav_contact">Contact</a>
   </nav>
   <div class="hd-divider"></div>
   <a href="./index.html" class="btn-cat" data-i18n="nav_catalogue">Voir le stock →</a>
@@ -67,8 +67,8 @@
 
 <!-- ══════════ MOBILE MENU ══════════ -->
 <div class="mob-menu" id="mob-menu">
-  <a onclick="showPage('home');toggleMob()" data-i18n="nav_home">Accueil</a>
-  <a onclick="showPage('contact');toggleMob()" data-i18n="nav_contact">Contact</a>
+  <a href="vitrine.html" onclick="showPage('home');toggleMob();return false;" data-i18n="nav_home">Accueil</a>
+  <a href="#contact" onclick="showPage('contact');toggleMob();return false;" data-i18n="nav_contact">Contact</a>
   <div class="mob-sep"></div>
   <a href="./index.html" class="btn-cat" data-i18n="nav_catalogue">Voir le stock →</a>
   <div class="mob-sep"></div>
@@ -89,7 +89,7 @@
           <h1 data-i18n-h="hero_title">VOTRE FOURNISSEUR<br>PAPIER &amp; CARTON<br><em>DEPUIS 1991</em></h1>
           <div class="hero-btns">
             <a href="./index.html" class="btn-hero" data-i18n="hero_btn1">NOS PRODUITS</a>
-            <a onclick="showPage('contact')" class="btn-hero-outline" data-i18n="hero_btn2">NOUS CONTACTER</a>
+            <a href="#contact" onclick="showPage('contact');return false;" class="btn-hero-outline" data-i18n="hero_btn2">NOUS CONTACTER</a>
           </div>
         </div>
         <div class="hero-video-col">
@@ -402,7 +402,7 @@
       </div>
       <div class="cta-btns">
         <a href="./index.html" class="btn-white"><span data-i18n="cta_btn1">Voir le catalogue</span></a>
-        <a onclick="showPage('contact')" class="btn-wa" style="cursor:pointer"><span data-i18n="cta_btn2b">Nous contacter</span></a>
+        <a href="#contact" onclick="showPage(\'contact\');return false;" class="btn-wa" style="cursor:pointer"><span data-i18n="cta_btn2b">Nous contacter</span></a>
       </div>
     </div>
   </div>
@@ -491,7 +491,7 @@
       </div>
       <div class="cta-btns">
         <a href="./index.html" class="btn-white"><span data-i18n="cta_btn1">Voir le catalogue</span></a>
-        <a onclick="showPage('contact')" class="btn-wa" style="cursor:pointer"><span data-i18n="cta_btn2b">Nous contacter</span></a>
+        <a href="#contact" onclick="showPage(\'contact\');return false;" class="btn-wa" style="cursor:pointer"><span data-i18n="cta_btn2b">Nous contacter</span></a>
       </div>
     </div>
   </div>
@@ -602,8 +602,8 @@
       <div class="foot-addr">17 rue des Barrières · 94200 Ivry-sur-Seine · France</div>
     </div>
     <div class="foot-nav">
-      <a onclick="showPage('home')" data-i18n="nav_home">Accueil</a>
-      <a onclick="showPage('contact')" data-i18n="nav_contact">Contact</a>
+      <a href="vitrine.html" onclick="showPage('home');return false;" data-i18n="nav_home">Accueil</a>
+      <a href="#contact" onclick="showPage('contact');return false;" data-i18n="nav_contact">Contact</a>
       <a href="./index.html" data-i18n="nav_catalogue">Catalogue</a>
     </div>
   </div>
