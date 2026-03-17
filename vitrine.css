@@ -203,7 +203,7 @@ button{cursor:pointer;border:none;font-family:inherit;background:none;}
 .marquee-track::after{right:0;background:linear-gradient(to left,var(--paper2) 60%,transparent);}
 .marquee-inner{display:flex;width:max-content;animation:marquee 55s linear infinite;}
 .marquee-inner:hover{animation-play-state:paused;}
-@keyframes marquee{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+@keyframes marquee{0%{transform:translateX(-50%);}100%{transform:translateX(0);}}
 .mq-item{display:flex;align-items:center;gap:7px;padding:0 16px;white-space:nowrap;}
 .mq-flag{font-size:15px;line-height:1;}
 .mq-name{font-size:11px;font-weight:600;color:var(--steel);letter-spacing:.1px;}
@@ -381,3 +381,23 @@ footer{background:#090909;border-top:1px solid var(--bd-d);padding:30px var(--pa
   .hero h1{font-size:40px;}
   .hd{padding:0 16px;}
 }
+
+/* ══════════ GATE MODAL ══════════ */
+.gate-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:400;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s;backdrop-filter:blur(4px);}
+.gate-overlay.open{opacity:1;pointer-events:all;}
+.gate-card{background:#fff;border-radius:10px;padding:40px 36px;max-width:420px;width:100%;box-shadow:0 32px 80px rgba(0,0,0,.3);transform:translateY(24px);transition:transform .28s cubic-bezier(.22,.8,.32,1);}
+.gate-overlay.open .gate-card{transform:translateY(0);}
+.gate-tag{font-size:9px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#C00000;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.gate-tag::before{content:'';display:inline-block;width:18px;height:1px;background:#C00000;}
+.gate-title{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:1px;line-height:1;color:#111;margin-bottom:10px;}
+.gate-sub{font-size:13px;color:#666;margin-bottom:28px;line-height:1.6;}
+.gate-form .fg{margin-bottom:14px;}
+.gate-form label{display:block;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#555;margin-bottom:5px;}
+.gate-form input{width:100%;padding:10px 12px;border:1.5px solid #DDD9D3;border-radius:4px;font-size:14px;font-family:inherit;outline:none;transition:border-color .18s;background:#FAFAF9;}
+.gate-form input:focus{border-color:#C00000;background:#fff;}
+.gate-btn{width:100%;background:#D00000;color:#fff;padding:13px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;border:none;font-family:inherit;margin-top:8px;transition:background .18s;}
+.gate-btn:hover{background:#B00000;}
+.gate-btn:disabled{background:#999;cursor:not-allowed;}
+.gate-skip{display:block;text-align:center;margin-top:16px;font-size:11px;color:#BBB;cursor:pointer;transition:color .18s;}
+.gate-skip:hover{color:#666;}
+@media(max-width:480px){.gate-card{padding:28px 20px;}}

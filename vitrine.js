@@ -63,6 +63,9 @@ const T = {
     snd_on:'SON', snd_off:'SON',
     ph_nom:'Jean Dupont', ph_soc:'Entreprise SA', ph_email:'nom@entreprise.com', ph_tel:'+33 6 00 00 00 00',
     aria_sound:'Activer le son',
+    gate_tag:'Accès catalogue', gate_title:'ACCÉDEZ AU STOCK',
+    gate_sub:'Laissez vos coordonnées pour consulter nos 5\u202f800+ références disponibles.',
+    gate_btn:'VOIR LE STOCK →', gate_skip:'Déjà inscrit\u00a0? Continuer →',
   },
   en: {
     nav_home:'Home', nav_about:'About', nav_contact:'Contact', nav_catalogue:'View stock →',
@@ -127,6 +130,9 @@ const T = {
     snd_on:'SOUND', snd_off:'SOUND',
     ph_nom:'John Smith', ph_soc:'Company Ltd', ph_email:'name@company.com', ph_tel:'+1 555 000 0000',
     aria_sound:'Toggle sound',
+    gate_tag:'Catalogue access', gate_title:'ACCESS OUR STOCK',
+    gate_sub:'Enter your details to browse our 5,800+ available references.',
+    gate_btn:'VIEW STOCK →', gate_skip:'Already registered? Continue →',
   }
 };
 
@@ -298,6 +304,73 @@ async function submitQuickDevis(e){
     }, true);
   }
 })();
+
+
+// ─── GATE ───
+const GATE_KEY = 'prodi_access';
+
+// EmailJS config — remplacer avec vos identifiants emailjs.com
+const EJS_PUB  = 'VOTRE_PUBLIC_KEY';
+const EJS_SVC  = 'VOTRE_SERVICE_ID';
+const EJS_TPL  = 'VOTRE_TEMPLATE_ID';
+
+(function(){ try{ emailjs.init({ publicKey: EJS_PUB }); } catch(_){} })();
+
+function openGate(e) {
+  if (e) e.preventDefault();
+  if (localStorage.getItem(GATE_KEY)) { window.location.href = './index.html'; return; }
+  document.getElementById('gate-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('g-nom').focus(), 280);
+}
+
+function skipGate() {
+  localStorage.setItem(GATE_KEY, '1');
+  window.location.href = './index.html';
+}
+
+async function submitGate(e) {
+  e.preventDefault();
+  const btn = document.getElementById('gate-btn');
+  btn.disabled = true; btn.textContent = '...';
+  const nom   = document.getElementById('g-nom').value.trim();
+  const soc   = document.getElementById('g-soc').value.trim();
+  const email = document.getElementById('g-email').value.trim();
+
+  // Save to Supabase
+  try {
+    await fetch(SURL + '/rest/v1/proforma_requests', {
+      method: 'POST',
+      headers: { 'apikey': SKEY, 'Authorization': 'Bearer ' + SKEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ nom, societe: soc, email, message: 'Accès catalogue', quantite_souhaitee: 'gate_catalogue', statut: 'gate_access' })
+    });
+  } catch(_) {}
+
+  // Send email via EmailJS
+  try {
+    await emailjs.send(EJS_SVC, EJS_TPL, { from_name: nom, company: soc, reply_to: email,
+      message: `Nouveau lead catalogue\nNom: ${nom}\nSociété: ${soc}\nEmail: ${email}` });
+  } catch(_) {}
+
+  localStorage.setItem(GATE_KEY, '1');
+  window.location.href = './index.html';
+}
+
+// Intercept tous les liens vers index.html
+document.addEventListener('click', function(e) {
+  const a = e.target.closest('a');
+  if (a && /index\.html$/.test(a.pathname || a.getAttribute('href') || '')) {
+    openGate(e);
+  }
+});
+
+// Fermer sur clic overlay
+document.getElementById('gate-overlay')?.addEventListener('click', function(e) {
+  if (e.target === this) {
+    this.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+});
 
 // ─── GEO MAP ───
 function geoProj(lon,lat){
