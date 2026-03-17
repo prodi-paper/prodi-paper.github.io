@@ -3,7 +3,7 @@ const T = {
   fr: {
     nav_home:'Accueil', nav_about:'À propos', nav_contact:'Contact', nav_catalogue:'Voir le stock →',
     hero_badge:'Négociant européen depuis 1991',
-    hero_title:'STOCKLOTS DE PAPIER<br>&amp; CARTON<br><em>DISPONIBLES IMMÉDIATEMENT</em>',
+    hero_title:'VOTRE FOURNISSEUR<br>PAPIER &amp; CARTON<br><em>DEPUIS 1991</em>',
     hero_sub:'Bobines · Palettes feuilles · Kraft · Offset · Couché · SBS · Tous grammages — Expédition mondiale depuis la France 🇫🇷',
     qd_h:'DEMANDEZ UN PROFORMA', qd_sub:'Décrivez votre besoin. Nous vous répondons sous 2H ouvrées avec disponibilités et prix.',
     qd_nom:'Nom / Société', qd_besoin:'Type de papier · Grammage · Quantité', qd_send:'ENVOYER →', qd_ok:'✓ Message envoyé — réponse sous 2H ouvrées.',
@@ -62,7 +62,7 @@ const T = {
   en: {
     nav_home:'Home', nav_about:'About', nav_contact:'Contact', nav_catalogue:'View stock →',
     hero_badge:'European paper trader since 1991',
-    hero_title:'PAPER &amp; BOARD<br>STOCKLOTS<br><em>AVAILABLE IMMEDIATELY</em>',
+    hero_title:'YOUR PAPER &amp; BOARD<br>SUPPLIER<br><em>SINCE 1991</em>',
     hero_sub:'Reels · Sheet pallets · Kraft · Offset · Coated · SBS · All grammages — Worldwide shipping from France 🇫🇷',
     qd_h:'REQUEST A PROFORMA', qd_sub:'Describe your need. We reply within 2 business hours with availability and pricing.',
     qd_nom:'Name / Company', qd_besoin:'Paper type · Grammage · Quantity', qd_send:'SEND →', qd_ok:'✓ Message sent — reply within 2 business hours.',
