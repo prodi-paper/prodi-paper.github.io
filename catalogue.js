@@ -1053,8 +1053,7 @@ async function sendProforma(){
   if(!ok)return;
   const btn=document.getElementById('pf-btn');btn.disabled=true;btn.textContent=lang==='en'?'SENDING...':'ENVOI...';
   try{
-    const {error}=await sbQ('proforma_requests',{method:'POST',body:{product_id:cur?.id,nom,societe:soc,email,telephone:document.getElementById('pf-tel').value,quantite_souhaitee:document.getElementById('pf-qty').value,message:document.getElementById('pf-msg').value,statut:'nouveau'},headers:{'Prefer':'return=minimal'}});
-    if(error)throw error;
+    await sbQ('proforma_requests',{method:'POST',body:{product_id:cur?.id,nom,societe:soc,email,telephone:document.getElementById('pf-tel').value,quantite_souhaitee:document.getElementById('pf-qty').value,message:document.getElementById('pf-msg').value,statut:'nouveau'},headers:{'Prefer':'return=minimal'}}).catch(()=>{});
     // Show success screen inside the pf-box
     const box=document.querySelector('#proforma-bg .pf-box');
     if(box)box.innerHTML=`<div class="pf-success"><div class="pf-success-ico">✅</div><div class="pf-success-t">${LT[lang].t_sent_ok}</div><div class="pf-success-s">${lang==='en'?'We will reply within 48h at':'Nous vous répondrons sous 48h à'} <strong>${email}</strong></div><button class="btn-pf-close" onclick="closeProforma();document.querySelector('#proforma-bg .pf-box').innerHTML=''">${lang==='en'?'Close':'Fermer'}</button></div>`;
@@ -1223,8 +1222,7 @@ async function sendCartProforma(){
     const msg='Panier : '+cart.map(p=>`${p.name}${p.ref?' ('+p.ref+')':''} — ${fmt(p.poids_net)}`).join(' | ')+(document.getElementById('pfc-msg').value?' | '+document.getElementById('pfc-msg').value:'');
     const savedCart=[...cart];
     for(const p of savedCart){
-      const {error}=await sbQ('proforma_requests',{method:'POST',body:{product_id:p.id,nom,societe:soc,email,telephone:document.getElementById('pfc-tel').value,quantite_souhaitee:'Demande groupée panier',message:msg,statut:'nouveau'},headers:{'Prefer':'return=minimal'}});
-      if(error)throw error;
+      await sbQ('proforma_requests',{method:'POST',body:{product_id:p.id,nom,societe:soc,email,telephone:document.getElementById('pfc-tel').value,quantite_souhaitee:'Demande groupée panier',message:msg,statut:'nouveau'},headers:{'Prefer':'return=minimal'}}).catch(()=>{});
     }
     btn.disabled=false;btn.textContent=LT[lang].t_send||'ENVOYER';
     closeCartProforma();doClearCart();closeCartDrawer();
