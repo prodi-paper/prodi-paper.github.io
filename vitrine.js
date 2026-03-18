@@ -320,6 +320,28 @@ const EJS_TPL  = 'template_atcwwc2';
 
 (function(){ try{ emailjs.init({ publicKey: EJS_PUB }); } catch(_){} })();
 
+/* ── SHOWCASE CAROUSEL ── */
+(function(){
+  const track = document.querySelector('.sc-track');
+  const dots  = document.querySelectorAll('.sc-dot');
+  const total = document.querySelectorAll('.sc-slide').length;
+  let cur = 0, timer;
+
+  function go(n){
+    cur = (n + total) % total;
+    track.style.transform = 'translateX(-' + (cur * 100) + '%)';
+    dots.forEach((d,i) => d.classList.toggle('active', i === cur));
+  }
+
+  function startAuto(){ timer = setInterval(() => go(cur + 1), 5000); }
+  function resetAuto(){ clearInterval(timer); startAuto(); }
+
+  document.querySelector('.sc-prev').addEventListener('click', () => { go(cur - 1); resetAuto(); });
+  document.querySelector('.sc-next').addEventListener('click', () => { go(cur + 1); resetAuto(); });
+  dots.forEach(d => d.addEventListener('click', () => { go(+d.dataset.sc); resetAuto(); }));
+  startAuto();
+})();
+
 function goSearch(e) {
   e.preventDefault();
   const q = document.getElementById('sc-search-input').value.trim();

@@ -148,15 +148,18 @@ button{cursor:pointer;border:none;font-family:inherit;background:none;}
 .sc-search-input::placeholder{color:var(--steel2);}
 .sc-search-btn{flex-shrink:0;background:var(--red);color:#fff;border:none;padding:14px 24px;font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;cursor:pointer;transition:background var(--tr);white-space:nowrap;}
 .sc-search-btn:hover{background:var(--red2);}
-.showcase-rows{margin-top:36px;overflow:hidden;display:flex;flex-direction:column;gap:8px;}
-.showcase-row{overflow:hidden;}
-.showcase-inner{display:flex;gap:8px;width:max-content;padding:4px 0;}
-.sr-left .showcase-inner{animation:spScrollL 60s linear infinite;}
-.sr-right .showcase-inner{animation:spScrollR 65s linear infinite;}
-.sr-left:hover .showcase-inner,.sr-right:hover .showcase-inner{animation-play-state:paused;}
-@keyframes spScrollL{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-@keyframes spScrollR{from{transform:translateX(-50%)}to{transform:translateX(0)}}
-.sp-card{flex:none;width:208px;background:#fff;border-radius:var(--rl);overflow:hidden;border:1px solid var(--bd);cursor:pointer;transition:all .25s;text-decoration:none;color:inherit;display:block;position:relative;}
+/* carousel */
+.sc-carousel-wrap{margin-top:28px;}
+.sc-nav{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-bottom:14px;}
+.sc-arrow{width:34px;height:34px;border-radius:50%;background:#fff;border:1.5px solid var(--border);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .2s;color:var(--ink);padding:0;flex-shrink:0;}
+.sc-arrow:hover{background:var(--red);border-color:var(--red);color:#fff;}
+.sc-dots{display:flex;gap:6px;align-items:center;}
+.sc-dot{width:8px;height:8px;border-radius:50%;background:var(--gray2);border:none;cursor:pointer;padding:0;transition:all .25s;}
+.sc-dot.active{background:var(--red);width:22px;border-radius:3px;}
+.sc-viewport{overflow:hidden;}
+.sc-track{display:flex;transition:transform .5s cubic-bezier(.4,0,.2,1);}
+.sc-slide{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;min-width:100%;flex-shrink:0;}
+.sp-card{width:auto;background:#fff;border-radius:var(--rl);overflow:hidden;border:1px solid var(--bd);cursor:pointer;transition:all .25s;text-decoration:none;color:inherit;display:block;position:relative;}
 .sp-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--red);opacity:0;transition:opacity .2s;z-index:1;}
 .sp-card:hover{box-shadow:0 8px 28px rgba(0,0,0,.12);transform:translateY(-3px);}
 .sp-card:hover::before{opacity:1;}
@@ -172,7 +175,7 @@ button{cursor:pointer;border:none;font-family:inherit;background:none;}
 .sp-price{font-family:'Bebas Neue',sans-serif;font-size:21px;letter-spacing:.5px;color:var(--ink);display:inline-block;transition:color .2s;}
 .sp-card:hover .sp-price{color:var(--red);}
 .sp-weight{font-size:10px;color:#767676;}
-.showcase-cta{background:var(--paper2);padding:24px var(--pad) 36px;text-align:center;}
+.showcase-cta{padding:28px 0 36px;text-align:center;}
 
 /* ── PAPETERIES ── */
 .mills-sec{background:var(--off2);padding:28px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
@@ -338,7 +341,8 @@ footer{background:#090909;border-top:1px solid var(--bd-d);padding:30px 0;}
 
 /* ── RESPONSIVE ── */
 @media(max-width:1100px){
-  .sp-card{width:182px;}.sp-photo{height:170px;}
+  .sc-slide{grid-template-columns:repeat(3,1fr);}
+  .sp-card{width:auto;}.sp-photo{height:170px;}
   .proc-steps{grid-template-columns:1fr 1fr;}
   .proc-step:nth-child(2){border-right:none;}
   .proc-step:nth-child(3){border-top:1px solid var(--bd-d);}
@@ -381,8 +385,9 @@ footer{background:#090909;border-top:1px solid var(--bd-d);padding:30px 0;}
   .ab-nums,.ab-steps{grid-template-columns:1fr 1fr;}
   .foot-in{flex-direction:column;align-items:flex-start;gap:14px;}
   .foot-info{text-align:left;}
-  .sp-card{width:158px;}.sp-photo{height:112px;}
-  .showcase-cta{padding:24px 20px 44px;}
+  .sc-slide{grid-template-columns:repeat(2,1fr);}
+  .sp-card{width:auto;}.sp-photo{height:140px;}
+  .showcase-cta{padding:24px 0 44px;}
 }
 @media(max-width:380px){
   .hero h1{font-size:40px;}
