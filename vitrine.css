@@ -86,6 +86,7 @@ button{cursor:pointer;border:none;font-family:inherit;background:none;}
 .stock-band{background:var(--dark);border-top:1px solid rgba(255,255,255,.06);}
 .stock-title-wrap{max-width:var(--max);margin:0 auto;padding:28px var(--pad) 20px;text-align:center;}
 .stock-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(28px,3.5vw,52px);color:#fff;letter-spacing:1px;line-height:1;}
+.stock-sub{font-family:'DM Sans',sans-serif;font-size:13px;color:rgba(255,255,255,.65);letter-spacing:.08em;text-transform:uppercase;margin-top:6px;}
 .stock-ticker-wrap{overflow:hidden;border-top:1px solid rgba(255,255,255,.07);padding:14px 0;}
 .stock-ticker{display:flex;width:max-content;animation:ticker 36s linear infinite;align-items:center;gap:0;}
 .stock-ticker:hover{animation-play-state:paused;}

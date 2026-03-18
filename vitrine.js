@@ -66,6 +66,7 @@ const T = {
     gate_tag:'Accès catalogue', gate_title:'ACCÉDEZ AU STOCK',
     gate_sub:'Laissez vos coordonnées pour consulter nos 5\u202f800+ références disponibles.',
     gate_btn:'VOIR LE STOCK →', gate_skip:'Déjà inscrit\u00a0? Continuer →',
+    stock_title:'+10\u202f000 TONNES DISPONIBLES', stock_sub:'lots et fabrication',
   },
   en: {
     nav_home:'Home', nav_about:'About', nav_contact:'Contact', nav_catalogue:'View stock →',
@@ -133,6 +134,7 @@ const T = {
     gate_tag:'Catalogue access', gate_title:'ACCESS OUR STOCK',
     gate_sub:'Enter your details to browse our 5,800+ available references.',
     gate_btn:'VIEW STOCK →', gate_skip:'Already registered? Continue →',
+    stock_title:'+10,000 TONNES AVAILABLE', stock_sub:'lots & manufacturing',
   }
 };
 
