@@ -181,7 +181,12 @@ button{cursor:pointer;border:none;font-family:inherit;background:none;}
 .mills-track::after{right:0;background:linear-gradient(to left,var(--dark2) 60%,transparent);}
 .mills-inner{display:flex;width:max-content;animation:marquee 30s linear infinite;}
 .mills-inner:hover{animation-play-state:paused;}
+.mills-inner-rev{animation:marqueeRev 24s linear infinite;}
+.mills-inner-rev:hover{animation-play-state:paused;}
+@keyframes marqueeRev{0%{transform:translateX(0);}100%{transform:translateX(50%);}}
+.mills-track-types{margin-top:10px;border-top:1px solid rgba(255,255,255,.05);}
 .mills-item{padding:0 24px;font-size:11px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.2);white-space:nowrap;text-transform:uppercase;}
+.mills-type{color:rgba(255,255,255,.38);letter-spacing:1.5px;}
 .mills-dot{color:rgba(255,255,255,.08);padding:0;align-self:center;}
 
 /* ── PROCESS ── */
