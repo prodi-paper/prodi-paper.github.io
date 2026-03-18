@@ -322,8 +322,8 @@ const EJS_TPL  = 'template_atcwwc2';
 
 function goSearch(e) {
   e.preventDefault();
-  const type = document.getElementById('sc-type-select').value;
-  window.location.href = './index.html' + (type ? '?type=' + encodeURIComponent(type) : '');
+  const q = document.getElementById('sc-search-input').value.trim();
+  window.location.href = './index.html' + (q ? '?q=' + encodeURIComponent(q) : '');
 }
 
 function openGate(e) {

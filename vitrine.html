@@ -45,7 +45,7 @@
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js" defer></script>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&display=optional" rel="stylesheet">
-<link rel="stylesheet" href="vitrine.css?v=27">
+<link rel="stylesheet" href="vitrine.css?v=28">
 </head>
 <body>
 
@@ -145,41 +145,8 @@
     <div class="sec-inner">
       <h2 class="sec-h" data-reveal data-d="1" data-i18n="sc_h">APERÇU DE NOS STOCKS</h2>
       <form class="sc-search" data-reveal data-d="2" onsubmit="goSearch(event)">
-        <select id="sc-type-select" class="sc-search-select">
-          <option value="" data-i18n="sc_type_default">Quel type de papier cherchez-vous ?</option>
-          <option value="Adhésif">Adhésif</option>
-          <option value="Autocopiant">Autocopiant</option>
-          <option value="Autres">Autres</option>
-          <option value="Bouffant">Bouffant</option>
-          <option value="Carton couché">Carton couché</option>
-          <option value="Carton non couché">Carton non couché</option>
-          <option value="Complexe">Complexe</option>
-          <option value="Couché 1 face">Couché 1 face</option>
-          <option value="Couché 2 faces">Couché 2 faces</option>
-          <option value="Couleur">Couleur</option>
-          <option value="Cuisson">Cuisson</option>
-          <option value="Emballage">Emballage</option>
-          <option value="Encre">Encre</option>
-          <option value="Enveloppes">Enveloppes</option>
-          <option value="Journal">Journal</option>
-          <option value="Kraft">Kraft</option>
-          <option value="Kraft armé">Kraft armé</option>
-          <option value="Kraft gomme">Kraft gomme</option>
-          <option value="Liner">Liner</option>
-          <option value="LWC">LWC</option>
-          <option value="Luxe">Luxe</option>
-          <option value="Offset">Offset</option>
-          <option value="Ouate">Ouate</option>
-          <option value="Papier affiche">Papier affiche</option>
-          <option value="Papier cadeau">Papier cadeau</option>
-          <option value="Plastique">Plastique</option>
-          <option value="Ramette">Ramette</option>
-          <option value="SBS">SBS</option>
-          <option value="Silicone-Glassine">Silicone-Glassine</option>
-          <option value="Spécial">Spécial</option>
-          <option value="Thermique">Thermique</option>
-        </select>
-        <svg class="sc-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg>
+        <svg class="sc-search-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="5.5"/><line x1="13.5" y1="13.5" x2="18" y2="18"/></svg>
+        <input type="text" id="sc-search-input" class="sc-search-input" data-i18n-placeholder="sc_search_ph" placeholder="Kraft 80g, SBS blanc, Testliner..." autocomplete="off">
         <button type="submit" class="sc-search-btn" data-i18n="sc_search_btn">Rechercher →</button>
       </form>
     </div>
