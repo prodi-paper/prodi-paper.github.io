@@ -173,17 +173,18 @@ button{cursor:pointer;border:none;font-family:inherit;background:none;}
 .showcase-cta{background:var(--paper2);padding:24px var(--pad) 36px;text-align:center;}
 
 /* ── PAPETERIES ── */
-.mills-sec{background:var(--dark2);padding:28px 0;border-top:1px solid var(--bd-d);border-bottom:1px solid var(--bd-d);}
-.mills-label{font-size:9px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,.50);text-align:center;margin-bottom:14px;}
+.mills-sec{background:var(--off2);padding:28px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.mills-inner-wrap{max-width:var(--max);margin:0 auto;padding:0 var(--pad);}
+.mills-label{font-size:9px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--gray);text-align:center;margin-bottom:14px;}
 .mills-track{overflow:hidden;position:relative;}
 .mills-track::before,.mills-track::after{content:'';position:absolute;top:0;bottom:0;width:80px;z-index:2;pointer-events:none;}
-.mills-track::before{left:0;background:linear-gradient(to right,var(--dark2) 60%,transparent);}
-.mills-track::after{right:0;background:linear-gradient(to left,var(--dark2) 60%,transparent);}
+.mills-track::before{left:0;background:linear-gradient(to right,var(--off2) 60%,transparent);}
+.mills-track::after{right:0;background:linear-gradient(to left,var(--off2) 60%,transparent);}
 .mills-inner{display:flex;width:max-content;animation:marquee 36s linear infinite;}
 .mills-inner:hover{animation-play-state:paused;}
 .mills-inner-types{animation:marquee 36s linear infinite;}
 .mills-inner-types:hover{animation-play-state:paused;}
-.mills-item{padding:0 28px;font-size:11px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.45);white-space:nowrap;text-transform:uppercase;}
+.mills-item{padding:0 28px;font-size:11px;font-weight:700;letter-spacing:2px;color:var(--ink2);white-space:nowrap;text-transform:uppercase;}
 .mills-dot{color:var(--red);font-size:8px;padding:0;align-self:center;flex-shrink:0;}
 
 /* ── PROCESS ── */
