@@ -139,6 +139,8 @@ button{cursor:pointer;border:none;font-family:inherit;background:none;}
 /* ── SHOWCASE PRODUITS ── */
 .showcase-sec{background:var(--paper2);padding:36px 0 0;}
 .showcase-sec .sec-inner{padding-bottom:0;}
+.sc-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:0;}
+.sc-stat{font-family:'Bebas Neue',sans-serif;font-size:clamp(20px,2.2vw,32px);color:var(--red);white-space:nowrap;letter-spacing:.5px;}
 .sc-search{display:flex;align-items:center;gap:0;margin-top:0;max-width:520px;background:#fff;border:1.5px solid var(--bd);border-radius:var(--r-btn);overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.06);transition:border-color .2s,box-shadow .2s;}
 .sc-search:focus-within{border-color:var(--ink);box-shadow:0 4px 20px rgba(0,0,0,.1);}
 .sc-search-ico{flex-shrink:0;width:18px;height:18px;color:var(--steel);margin-left:18px;}
