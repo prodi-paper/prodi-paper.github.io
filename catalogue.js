@@ -280,13 +280,22 @@ async function init(){
     setView('cards');
   }
 
-  // Pre-fill search from URL ?q= param (coming from vitrine search bar)
-  const _urlQ = new URLSearchParams(window.location.search).get('q');
+  // Pre-fill from URL params (coming from vitrine)
+  const _urlParams = new URLSearchParams(window.location.search);
+  const _urlQ = _urlParams.get('q');
   if(_urlQ){
     const si = document.getElementById('search-input');
     const sim = document.getElementById('search-input-mob');
     if(si) si.value = _urlQ;
     if(sim) sim.value = _urlQ;
+  }
+  const _urlType = _urlParams.get('type');
+  if(_urlType && Object.prototype.hasOwnProperty.call(TYPE_MAP, _urlType)){
+    msdState['msd-type'].add(_urlType);
+    document.querySelectorAll('#msd-type .msd-option').forEach(o => {
+      if(o.dataset.val === _urlType) o.classList.add('selected');
+    });
+    updateMsdBtn('msd-type');
   }
 
   // Single query: first page + total count
