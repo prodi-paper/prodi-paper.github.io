@@ -13,6 +13,7 @@ const T = {
     mq_label:'Présents dans 30+ pays à travers le monde',
     geo_tag:'Export mondial', geo_h:'30+ PAYS PARTENAIRES', geo_sub:'Présents sur 5 continents. Expédition depuis nos entrepôts en France et en Europe vers le monde entier.',
     sc_tag:'Nos produits', sc_h:'APERÇU DE NOS STOCKS', sc_sub:'Plusieurs milliers de références en stock immédiat, issues de papeteries européennes de premier rang.', sc_cta:'Voir tout le stock →',
+    sc_search_ph:'Kraft 80g, SBS blanc, Testliner...', sc_search_btn:'Rechercher →',
     step4_h:'Expédition rapide', step4_p:'Départ depuis nos entrepôts en France sous 24–48H. Livraison FCL ou LCL dans le monde entier.',
     mills_label:'Stocks issus des plus grandes papeteries européennes',
     act_tag:'Notre activité', act_h:'NÉGOCIANT EN STOCKLOTS DE PAPIER',
@@ -81,6 +82,7 @@ const T = {
     mq_label:'Active in 30+ countries worldwide',
     geo_tag:'Global reach', geo_h:'30+ PARTNER COUNTRIES', geo_sub:'Active on 5 continents. Shipping from our warehouses in France and Europe to the rest of the world.',
     sc_tag:'Our products', sc_h:'STOCK OVERVIEW', sc_sub:'Thousands of references in immediate stock, from major European paper mills.', sc_cta:'View full stock →',
+    sc_search_ph:'Kraft 80g, White SBS, Testliner...', sc_search_btn:'Search →',
     step4_h:'Fast shipping', step4_p:'Dispatch from our French warehouses within 24–48H. FCL or LCL delivery worldwide.',
     mills_label:'Stocks sourced from Europe\'s leading paper mills',
     act_tag:'Our activity', act_h:'PAPER & BOARD STOCKLOT TRADER',
@@ -317,6 +319,12 @@ const EJS_SVC  = 'service_k3060so';
 const EJS_TPL  = 'template_atcwwc2';
 
 (function(){ try{ emailjs.init({ publicKey: EJS_PUB }); } catch(_){} })();
+
+function goSearch(e) {
+  e.preventDefault();
+  const q = document.getElementById('sc-search-input').value.trim();
+  window.location.href = './index.html' + (q ? '?q=' + encodeURIComponent(q) : '');
+}
 
 function openGate(e) {
   if (e) e.preventDefault();

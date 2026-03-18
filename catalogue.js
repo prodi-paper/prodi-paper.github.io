@@ -280,6 +280,15 @@ async function init(){
     setView('cards');
   }
 
+  // Pre-fill search from URL ?q= param (coming from vitrine search bar)
+  const _urlQ = new URLSearchParams(window.location.search).get('q');
+  if(_urlQ){
+    const si = document.getElementById('search-input');
+    const sim = document.getElementById('search-input-mob');
+    if(si) si.value = _urlQ;
+    if(sim) sim.value = _urlQ;
+  }
+
   // Single query: first page + total count
   await _doFilter();
 }
