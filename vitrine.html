@@ -45,25 +45,27 @@
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js" defer></script>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&display=optional" rel="stylesheet">
-<link rel="stylesheet" href="vitrine.css?v=21">
+<link rel="stylesheet" href="vitrine.css?v=22">
 </head>
 <body>
 
 <!-- ══════════ HEADER ══════════ -->
 <header class="hd">
-  <div class="hd-logo" onclick="showPage('home')"><img src="img/logo.png" alt="Prodiconseil" width="196" height="32"></div>
-  <nav class="hd-nav">
-    <a href="vitrine.html" onclick="showPage('home');return false;" id="nav-home" class="active" data-i18n="nav_home">Accueil</a>
-    <a href="#contact" onclick="showPage('contact');return false;" id="nav-contact" data-i18n="nav_contact">Contact</a>
-  </nav>
-  <div class="hd-divider"></div>
-  <a href="./index.html" class="btn-cat" data-i18n="nav_catalogue">Voir le stock →</a>
-  <div class="hd-lang">
-    <button onclick="setLang('fr')" id="lang-fr" class="on">FR</button>
-    <button onclick="setLang('en')" id="lang-en">EN</button>
-  </div>
-  <div class="hd-burger" onclick="toggleMob()" id="burger">
-    <span></span><span></span><span></span>
+  <div class="hd-inner">
+    <div class="hd-logo" onclick="showPage('home')"><img src="img/logo.png" alt="Prodiconseil" width="196" height="32"></div>
+    <nav class="hd-nav">
+      <a href="vitrine.html" onclick="showPage('home');return false;" id="nav-home" class="active" data-i18n="nav_home">Accueil</a>
+      <a href="#contact" onclick="showPage('contact');return false;" id="nav-contact" data-i18n="nav_contact">Contact</a>
+    </nav>
+    <div class="hd-divider"></div>
+    <a href="./index.html" class="btn-cat" data-i18n="nav_catalogue">Voir le stock →</a>
+    <div class="hd-lang">
+      <button onclick="setLang('fr')" id="lang-fr" class="on">FR</button>
+      <button onclick="setLang('en')" id="lang-en">EN</button>
+    </div>
+    <div class="hd-burger" onclick="toggleMob()" id="burger">
+      <span></span><span></span><span></span>
+    </div>
   </div>
 </header>
 
