@@ -179,15 +179,12 @@ button{cursor:pointer;border:none;font-family:inherit;background:none;}
 .mills-track::before,.mills-track::after{content:'';position:absolute;top:0;bottom:0;width:80px;z-index:2;pointer-events:none;}
 .mills-track::before{left:0;background:linear-gradient(to right,var(--dark2) 60%,transparent);}
 .mills-track::after{right:0;background:linear-gradient(to left,var(--dark2) 60%,transparent);}
-.mills-inner{display:flex;width:max-content;animation:marquee 30s linear infinite;}
+.mills-inner{display:flex;width:max-content;animation:marquee 36s linear infinite;}
 .mills-inner:hover{animation-play-state:paused;}
-.mills-inner-rev{animation:marqueeRev 24s linear infinite;}
-.mills-inner-rev:hover{animation-play-state:paused;}
-@keyframes marqueeRev{0%{transform:translateX(0);}100%{transform:translateX(50%);}}
-.mills-track-types{margin-top:10px;border-top:1px solid rgba(255,255,255,.05);}
-.mills-item{padding:0 24px;font-size:11px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.2);white-space:nowrap;text-transform:uppercase;}
-.mills-type{color:rgba(255,255,255,.38);letter-spacing:1.5px;}
-.mills-dot{color:rgba(255,255,255,.08);padding:0;align-self:center;}
+.mills-inner-types{animation:marquee 36s linear infinite;}
+.mills-inner-types:hover{animation-play-state:paused;}
+.mills-item{padding:0 28px;font-size:11px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.45);white-space:nowrap;text-transform:uppercase;}
+.mills-dot{color:var(--red);font-size:8px;padding:0;align-self:center;flex-shrink:0;}
 
 /* ── PROCESS ── */
 .proc-sec{background:var(--dark);padding:var(--sec) var(--pad);}
