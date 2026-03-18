@@ -175,19 +175,11 @@ button{cursor:pointer;border:none;font-family:inherit;background:none;}
 .showcase-cta{background:var(--paper2);padding:24px var(--pad) 36px;text-align:center;}
 
 /* ── PAPETERIES ── */
-.mills-sec{background:var(--off2);padding:20px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);overflow:hidden;}
-.mills-track{overflow:hidden;position:relative;margin-bottom:10px;}
-.mills-track:last-child{margin-bottom:0;}
-.mills-track::before,.mills-track::after{content:'';position:absolute;top:0;bottom:0;width:120px;z-index:2;pointer-events:none;}
-.mills-track::before{left:0;background:linear-gradient(to right,var(--off2) 40%,transparent);}
-.mills-track::after{right:0;background:linear-gradient(to left,var(--off2) 40%,transparent);}
-.mills-inner{display:flex;align-items:center;width:max-content;}
-.mills-inner.fwd{animation:marquee 40s linear infinite;}
-.mills-inner.rev{animation:marqueeRev 40s linear infinite;}
-.mills-sec:hover .mills-inner{animation-play-state:paused;}
-.mills-item{display:inline-flex;align-items:center;padding:5px 16px;margin:0 6px;font-size:11px;font-weight:700;letter-spacing:1.8px;color:var(--ink2);white-space:nowrap;text-transform:uppercase;background:#fff;border:1px solid var(--border);border-radius:100px;}
-.mills-dot{color:var(--red);font-size:9px;margin:0 8px;flex-shrink:0;opacity:.5;}
-@keyframes marqueeRev{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+.mills-sec{background:var(--off2);padding:28px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.mills-inner-wrap{max-width:var(--max);margin:0 auto;padding:0 var(--pad);}
+.mills-label{font-size:9px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--gray);text-align:center;margin-bottom:16px;}
+.mills-tags{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;}
+.mills-item{display:inline-flex;align-items:center;padding:6px 16px;font-size:11px;font-weight:700;letter-spacing:1.8px;color:var(--ink2);white-space:nowrap;text-transform:uppercase;background:#fff;border:1px solid var(--border);border-radius:100px;}
 
 /* ── PROCESS ── */
 .proc-sec{background:var(--dark);padding:var(--sec) var(--pad);}
