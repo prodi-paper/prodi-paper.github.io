@@ -142,7 +142,7 @@ button{cursor:pointer;border:none;font-family:inherit;background:none;}
 /* ── SHOWCASE PRODUITS ── */
 .showcase-sec{background:var(--paper);padding:28px 0 0;}
 .showcase-sec .sec-inner{padding-bottom:0;}
-.sc-search{display:flex;align-items:center;gap:0;width:100%;background:#fff;border:1.5px solid var(--bd);border-radius:var(--r-btn);overflow:hidden;box-shadow:var(--shadow-card);transition:border-color .2s,box-shadow .2s;}
+.sc-search{display:flex;align-items:center;gap:0;width:100%;max-width:560px;margin-left:auto;margin-right:auto;background:#fff;border:1.5px solid var(--bd);border-radius:var(--r-btn);overflow:hidden;box-shadow:var(--shadow-card);transition:border-color .2s,box-shadow .2s;}
 .sc-search:focus-within{border-color:var(--ink);box-shadow:0 4px 20px rgba(0,0,0,.1);}
 .sc-search-ico{flex-shrink:0;width:18px;height:18px;color:var(--steel);margin-left:20px;}
 .sc-search-input{flex:1;border:none;outline:none;padding:15px 14px;font-family:'Space Grotesk',sans-serif;font-size:14px;color:var(--ink);background:transparent;}
