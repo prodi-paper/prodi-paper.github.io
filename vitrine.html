@@ -44,8 +44,8 @@
 <link rel="dns-prefetch" href="https://bvcgpdoukhcatjibmvnb.supabase.co">
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js" defer></script>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&display=optional" rel="stylesheet">
-<link rel="stylesheet" href="vitrine.css?v=45">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@600;700&family=Barlow+Condensed:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="vitrine.css?v=58">
 </head>
 <body>
 
@@ -55,6 +55,7 @@
     <div class="hd-logo" onclick="showPage('home')"><img src="img/logo.png" alt="Prodiconseil" width="196" height="32"></div>
     <nav class="hd-nav">
       <a href="vitrine.html" onclick="showPage('home');return false;" id="nav-home" class="active" data-i18n="nav_home">Accueil</a>
+      <a href="#about-section" onclick="showPage('about');return false;" id="nav-about" data-i18n="nav_about">À propos</a>
       <a href="#contact" onclick="showPage('contact');return false;" id="nav-contact" data-i18n="nav_contact">Contact</a>
     </nav>
     <div class="hd-divider"></div>
@@ -72,6 +73,7 @@
 <!-- ══════════ MOBILE MENU ══════════ -->
 <div class="mob-menu" id="mob-menu">
   <a href="vitrine.html" onclick="showPage('home');toggleMob();return false;" data-i18n="nav_home">Accueil</a>
+  <a href="#about-section" onclick="showPage('about');toggleMob();return false;" data-i18n="nav_about">À propos</a>
   <a href="#contact" onclick="showPage('contact');toggleMob();return false;" data-i18n="nav_contact">Contact</a>
   <div class="mob-sep"></div>
   <a href="./index.html" class="btn-cat" data-i18n="nav_catalogue">Voir le stock →</a>
@@ -109,8 +111,8 @@
               <span id="vid-txt">SON</span>
             </button>
           </div>
+        </div>
       </div>
-    </div>
     </div><!-- /hero-inner -->
   </section>
 
@@ -123,6 +125,10 @@
         <input type="text" id="sc-search-input" class="sc-search-input" data-i18n-placeholder="sc_search_ph" placeholder="Kraft 80g, SBS blanc, Testliner..." autocomplete="off">
         <button type="submit" class="sc-search-btn" data-i18n="sc_search_btn">Rechercher →</button>
       </form>
+      <div class="sc-stat">
+        <span class="sc-stat-num">+10 000</span>
+        <span class="sc-stat-label">TONNES DISPONIBLES EN STOCK</span>
+      </div>
 
       <!-- CAROUSEL -->
       <div class="sc-carousel-wrap">
@@ -177,26 +183,6 @@
   </section>
 
 
-  <!-- ── PAPETERIES ── -->
-  <div class="mills-sec">
-    <div class="mills-inner-wrap">
-      <div class="mills-label" data-i18n="mills_label">Stocks issus des plus grandes papeteries européennes</div>
-      <div class="mills-tags">
-        <span class="mills-item">FBB</span>
-        <span class="mills-item">Carton ondulé</span>
-        <span class="mills-item">Testliner</span>
-        <span class="mills-item">Fluting</span>
-        <span class="mills-item">Kraft</span>
-        <span class="mills-item">Offset</span>
-        <span class="mills-item">Couché</span>
-        <span class="mills-item">SBS</span>
-        <span class="mills-item">LWC</span>
-        <span class="mills-item">Liner</span>
-        <span class="mills-item">Silicone</span>
-        <span class="mills-item">Thermique</span>
-      </div>
-    </div>
-  </div>
 
   <!-- GEO MAP -->
   <section class="geo-sec">
@@ -235,7 +221,8 @@
           <circle cx="507" cy="82" r="2.5" fill="#fff"/>
         </svg>
       </div>
-      <div class="marquee-track">
+    </div><!-- /sec-inner -->
+    <div class="marquee-track">
         <div class="marquee-inner">
           <div class="mq-item"><span class="mq-flag">🇫🇷</span><span class="mq-name">France</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇩🇪</span><span class="mq-name">Allemagne</span></div><div class="mq-dot"></div>
@@ -376,21 +363,106 @@
           <div class="mq-item"><span class="mq-flag">🇨🇷</span><span class="mq-name">Costa Rica</span></div><div class="mq-dot"></div>
         </div>
       </div>
+  </section>
+
+  <!-- ── À PROPOS DE NOUS ── -->
+  <section class="habt-sec" id="about-section">
+    <div class="sec-inner">
+      <div class="habt-grid">
+        <div class="habt-content">
+          <div class="sec-tag" data-i18n="act_tag">À propos de nous</div>
+          <h2 class="sec-h" data-i18n="act_h">Négociant international en papier &amp; carton</h2>
+          <p class="habt-p">Prodiconseil est une société française fondée en 1991, basée à Ivry-sur-Seine (Île-de-France). Spécialisée dans le négoce international de papier et carton, stocks issus de grandes papeteries européennes.</p>
+          <div class="habt-range">
+            <span class="habt-range-label" data-i18n="range_label">Gamme</span>
+            <span class="habt-range-items">Offset · Couché mat &amp; brillant · Kraft · Emballage · SBS · Duplex · FBB · Testliner · Fluting · Thermique · Adhésif · Autocopiant</span>
+          </div>
+          <div class="habt-mills">
+            <span class="habt-range-label" data-i18n="mills_label">Papeteries</span>
+            <span class="habt-mills-names">
+              <span class="mills-mill">Mondi</span><span class="mills-sep">·</span>
+              <span class="mills-mill">Smurfit Kappa</span><span class="mills-sep">·</span>
+              <span class="mills-mill">Sappi</span><span class="mills-sep">·</span>
+              <span class="mills-mill">Stora Enso</span><span class="mills-sep">·</span>
+              <span class="mills-mill">UPM</span><span class="mills-sep">·</span>
+              <span class="mills-mill">Billerud</span><span class="mills-sep">·</span>
+              <span class="mills-mill">DS Smith</span><span class="mills-sep">·</span>
+              <span class="mills-mill">Koehler</span><span class="mills-sep">·</span>
+              <span class="mills-mill">Burgo</span><span class="mills-sep">·</span>
+              <span class="mills-mill">Lecta</span><span class="mills-sep">·</span>
+              <span class="mills-mill">Sylvamo</span>
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
-  <div class="cta-wrap">
-    <div class="cta-inner">
-      <div class="cta-text">
-        <h2 data-i18n="cta_h">INTÉRESSÉ PAR NOS STOCKS ?</h2>
-        <p data-i18n="cta_sub">Consultez notre catalogue ou contactez-nous directement.</p>
+
+  <!-- ── CONTACT ── -->
+  <section id="contact-section">
+    <div class="ct-header">
+      <div class="sec-tag" data-i18n="ct_tag">Contact</div>
+      <h2 data-i18n="ct_h">ENVOYEZ-NOUS UN MESSAGE</h2>
+      <p data-i18n="ct_sub">Remplissez le formulaire ci-dessous. Nous vous répondrons sous 24h.</p>
+    </div>
+    <div class="ct-wrap">
+      <div>
+        <div id="contact-form-wrap">
+          <form id="contact-form" onsubmit="submitContact(event)">
+            <div class="form-row">
+              <div class="fg">
+                <label data-i18n="f_nom">Nom</label>
+                <input type="text" id="f-nom" placeholder="Jean Dupont" data-i18n-placeholder="ph_nom" required>
+                <div class="fg-msg" id="fg-msg-nom"></div>
+              </div>
+              <div class="fg">
+                <label data-i18n="f_soc">Entreprise</label>
+                <input type="text" id="f-soc" placeholder="Entreprise SA" data-i18n-placeholder="ph_soc" required>
+                <div class="fg-msg" id="fg-msg-soc"></div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="fg">
+                <label data-i18n="f_email">Email</label>
+                <input type="email" id="f-email" placeholder="nom@entreprise.com" data-i18n-placeholder="ph_email" required>
+                <div class="fg-msg" id="fg-msg-email"></div>
+              </div>
+              <div class="fg">
+                <label data-i18n="f_tel">Téléphone</label>
+                <input type="tel" id="f-tel" placeholder="+33 6 00 00 00 00" data-i18n-placeholder="ph_tel">
+                <div class="fg-msg" id="fg-msg-tel"></div>
+              </div>
+            </div>
+            <div class="fg">
+              <label data-i18n="f_msg">Message</label>
+              <textarea id="f-msg" placeholder="" required></textarea>
+              <div class="fg-msg" id="fg-msg-msg"></div>
+            </div>
+            <button type="submit" class="btn-submit" id="f-submit" data-i18n="f_send">Envoyer le message</button>
+          </form>
+          <div id="form-ok" class="form-ok">
+            <div class="form-ok-ico">✅</div>
+            <h3 data-i18n="ok_h">Message envoyé !</h3>
+            <p data-i18n="ok_p">Nous vous répondrons dans les 24 heures.</p>
+          </div>
+        </div>
       </div>
-      <div class="cta-btns">
-        <a href="./index.html" class="btn-white"><span data-i18n="cta_btn1">Voir le catalogue</span></a>
-        <a href="#contact" onclick="showPage(\'contact\');return false;" class="btn-wa" style="cursor:pointer"><span data-i18n="cta_btn2b">Nous contacter</span></a>
+      <div class="ct-aside">
+        <h3 data-i18n="aside_h">COORDONNÉES</h3>
+        <div class="ci-btns">
+          <a href="https://wa.me/33649754915" target="_blank" class="btn-wa2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+            <span data-i18n="wa_btn">Écrire sur WhatsApp</span>
+          </a>
+          <a href="mailto:eelbilia@gmail.com" class="btn-mail">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 7 10-7"/></svg>
+            <span data-i18n="mail_btn">Envoyer un email</span>
+          </a>
+        </div>
       </div>
     </div>
-  </div>
+  </section>
 
 </div><!-- /page-home -->
 
@@ -482,100 +554,6 @@
   </div>
 </div><!-- /page-about -->
 
-<!-- ══════════ PAGE CONTACT ══════════ -->
-<div id="page-contact" class="page">
-  <div class="ct-wrap">
-    <div>
-      <div class="ct-form-h">
-        <div class="sec-tag" data-i18n="ct_tag">Contact</div>
-        <h2 data-i18n="ct_h">ENVOYEZ-NOUS UN MESSAGE</h2>
-        <p data-i18n="ct_sub">Remplissez le formulaire ci-dessous. Nous vous répondrons sous 24h.</p>
-      </div>
-      <div id="contact-form-wrap">
-        <form id="contact-form" onsubmit="submitContact(event)">
-          <div class="form-row">
-            <div class="fg">
-              <label data-i18n="f_nom">Nom</label>
-              <input type="text" id="f-nom" placeholder="Jean Dupont" data-i18n-placeholder="ph_nom" required>
-              <div class="fg-msg" id="fg-msg-nom"></div>
-            </div>
-            <div class="fg">
-              <label data-i18n="f_soc">Entreprise</label>
-              <input type="text" id="f-soc" placeholder="Entreprise SA" data-i18n-placeholder="ph_soc" required>
-              <div class="fg-msg" id="fg-msg-soc"></div>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="fg">
-              <label data-i18n="f_email">Email</label>
-              <input type="email" id="f-email" placeholder="nom@entreprise.com" data-i18n-placeholder="ph_email" required>
-              <div class="fg-msg" id="fg-msg-email"></div>
-            </div>
-            <div class="fg">
-              <label data-i18n="f_tel">Téléphone</label>
-              <input type="tel" id="f-tel" placeholder="+33 6 00 00 00 00" data-i18n-placeholder="ph_tel">
-              <div class="fg-msg" id="fg-msg-tel"></div>
-            </div>
-          </div>
-          <div class="fg">
-            <label data-i18n="f_msg">Message</label>
-            <textarea id="f-msg" placeholder="" required></textarea>
-            <div class="fg-msg" id="fg-msg-msg"></div>
-          </div>
-          <button type="submit" class="btn-submit" id="f-submit" data-i18n="f_send">Envoyer le message</button>
-        </form>
-        <div id="form-ok" class="form-ok">
-          <div class="form-ok-ico">✅</div>
-          <h3 data-i18n="ok_h">Message envoyé !</h3>
-          <p data-i18n="ok_p">Nous vous répondrons dans les 24 heures.</p>
-        </div>
-      </div>
-    </div>
-    <div class="ct-aside">
-      <h3 data-i18n="aside_h">COORDONNÉES</h3>
-      <div class="ci">
-        <div class="ci-ico">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-        </div>
-        <div>
-          <div class="ci-lbl">Email</div>
-          <div class="ci-val"><a href="mailto:eelbilia@gmail.com">eelbilia@gmail.com</a></div>
-        </div>
-      </div>
-      <div class="ci">
-        <div class="ci-ico">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-        </div>
-        <div>
-          <div class="ci-lbl">WhatsApp</div>
-          <div class="ci-val"><a href="https://wa.me/33649754915" target="_blank">+33 6 49 75 49 15</a></div>
-        </div>
-      </div>
-      <div class="ci">
-        <div class="ci-ico">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-        </div>
-        <div>
-          <div class="ci-lbl" data-i18n="ci_addr">Adresse</div>
-          <div class="ci-val">9 Promenée Jeanne Hachette<br>94200 Ivry-sur-Seine, France</div>
-        </div>
-      </div>
-      <div class="ci">
-        <div class="ci-ico">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-        </div>
-        <div>
-          <div class="ci-lbl" data-i18n="ci_web">Site catalogue</div>
-          <div class="ci-val"><a href="./index.html">ethanelb.github.io</a></div>
-        </div>
-      </div>
-      <a href="https://wa.me/33649754915" target="_blank" class="btn-wa2">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
-        <span data-i18n="wa_btn">Écrire sur WhatsApp</span>
-      </a>
-    </div>
-  </div>
-</div><!-- /page-contact -->
 
 <!-- ══════════ FOOTER ══════════ -->
 <footer>
@@ -596,7 +574,7 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script src="vitrine.js?v=5"></script>
+<script src="vitrine.js?v=10"></script>
 
 <!-- WA STICKY -->
 <a href="https://wa.me/33649754915" target="_blank" class="wa-sticky" title="WhatsApp">
@@ -607,6 +585,7 @@
 <!-- ══════════ GATE MODAL ══════════ -->
 <div class="gate-overlay" id="gate-overlay" role="dialog" aria-modal="true" aria-labelledby="gate-title">
   <div class="gate-card">
+    <button class="gate-close" onclick="closeGate()" aria-label="Fermer">✕</button>
     <div class="gate-tag" data-i18n="gate_tag">Accès catalogue</div>
     <h2 class="gate-title" id="gate-title" data-i18n="gate_title">ACCÉDEZ AU STOCK</h2>
     <p class="gate-sub" data-i18n="gate_sub">Laissez vos coordonnées pour consulter nos 5 800+ références disponibles.</p>
@@ -622,6 +601,10 @@
       <div class="fg">
         <label data-i18n="f_email">Email</label>
         <input type="email" id="g-email" placeholder="nom@entreprise.com" required data-i18n-placeholder="ph_email">
+      </div>
+      <div class="fg">
+        <label data-i18n="f_tel">Téléphone</label>
+        <input type="tel" id="g-tel" placeholder="+33 6 00 00 00 00" data-i18n-placeholder="ph_tel">
       </div>
       <button type="submit" class="gate-btn" id="gate-btn" data-i18n="gate_btn">VOIR LE STOCK →</button>
     </form>

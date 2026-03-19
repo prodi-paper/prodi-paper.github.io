@@ -393,6 +393,7 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
   .ptable-head{display:none;}
   .rbar-inner{padding:0 12px;}
   .footer-grid{grid-template-columns:1fr;}
+  .pgrid{grid-template-columns:1fr 1fr !important;gap:8px !important;}
   /* Cart drawer plein écran */
   .cart-drawer{width:100%;max-width:100vw;}
   /* Modals */
