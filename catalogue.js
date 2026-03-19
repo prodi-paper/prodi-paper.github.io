@@ -1181,7 +1181,7 @@ function renderDrawer(){
   const footer=document.getElementById('drawer-footer');
   const meta=document.getElementById('drawer-meta');
   if(!cart.length){
-    items.innerHTML=`<div class="drawer-empty"><div class="drawer-empty-ico">🛒</div><div class="drawer-empty-t">${LT[lang].t_container_empty}</div><div class="drawer-empty-s">${LT[lang].t_add_from_cat}</div><button class="btn-drawer-browse" onclick="closeCartDrawer()">${LT[lang].t_browse_cat}</button></div>`;
+    items.innerHTML=`<div class="drawer-empty"><div class="drawer-empty-s">${LT[lang].t_add_from_cat}</div><button class="btn-drawer-browse" onclick="closeCartDrawer()">${LT[lang].t_browse_cat}</button></div>`;
     footer.style.display='none';
     meta.textContent='0 '+(lang==='en'?'product':'produit');
     return;
