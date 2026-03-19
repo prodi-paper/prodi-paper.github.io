@@ -1401,9 +1401,6 @@ function countActiveFilters(){
 }
 function hasActiveFilters(){return countActiveFilters()>0;}
 
-updateCartBadge();
-init();
-
 // ── LANGUAGE TOGGLE ──
 let lang=localStorage.getItem('prodi_lang')||'fr';
 const LT={
@@ -1527,3 +1524,6 @@ function setLang(l){
   // Re-render drawer to update language-sensitive strings
   if(typeof renderDrawer==='function')renderDrawer();
 }
+
+updateCartBadge();
+init();
