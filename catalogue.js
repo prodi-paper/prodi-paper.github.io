@@ -619,7 +619,7 @@ async function _fetchAndRender(token){
 
   // Build URL params (replaces SDK query builder)
   const p=new URLSearchParams();
-  p.set('select','id,ref,quality,color,gsm,width,noyau,format,origine,details,weight_kg,price,photo_url,created_at');
+  p.set('select','*');
   parsed.text.forEach(term=>{const s=term.replace(/[%_]/g,'\\$&');p.append('or',`(quality.ilike.%${s}%,color.ilike.%${s}%,details.ilike.%${s}%,ref.ilike.%${s}%)`);});
   if(typeCodes.length>0)p.append('quality',`in.(${typeCodes.join(',')})`);
   if(gn)p.append('gsm',`gte.${gn}`);
