@@ -255,6 +255,7 @@ function hideLoadProgress(){
 }
 
 async function init(){
+  setLang(lang);
   updateFilterVisibility();
   // Hardcoded filter options — no DB query needed for these
   const typeVals=Object.keys(TYPE_MAP).sort((a,b)=>a.localeCompare(b));
@@ -1404,7 +1405,7 @@ updateCartBadge();
 init();
 
 // ── LANGUAGE TOGGLE ──
-let lang='fr';
+let lang=localStorage.getItem('prodi_lang')||'fr';
 const LT={
   fr:{
     t_live:'Stock en direct',
@@ -1487,6 +1488,7 @@ const LT={
 };
 function setLang(l){
   lang=l;
+  localStorage.setItem('prodi_lang',l);
   document.documentElement.lang=l;
   document.documentElement.dataset.lang=l;
   ['fr','en'].forEach(x=>{

@@ -130,10 +130,11 @@ const T = {
   }
 };
 
-let lang = 'fr';
+let lang = localStorage.getItem('prodi_lang') || 'fr';
 
 function setLang(l) {
   lang = l;
+  localStorage.setItem('prodi_lang', l);
   document.documentElement.lang = l;
   document.documentElement.dataset.lang = l;
   ['fr','en'].forEach(x => {
@@ -564,3 +565,6 @@ function toggleSound(){
     icoMute.style.display='none';icoSound.style.display='';btnTxt.textContent=T[lang].snd_off;
   }
 }
+
+// Appliquer la langue sauvegardée au chargement
+setLang(lang);
