@@ -1022,7 +1022,9 @@ async function openDetail(id){
   document.getElementById('det-name').textContent=p.name||p.qualite||'Produit';
 
   // Specs grid
+  const _typeLabel=Object.entries(TYPE_MAP).find(([,v])=>v.includes(p.qualite))?.[0]||p.qualite||null;
   const specDefs=[
+    {lbl: lang==='en'?'Type':'Type',             val: _typeLabel},
     {lbl: LT[lang].t_spec_couleur||'Couleur',   val: p.couleur},
     {lbl: LT[lang].t_spec_gsm||'Grammage',      val: p.grammage?p.grammage+' g/m²':null},
     {lbl: LT[lang].t_spec_laize||'Laize',       val: p.largeur?p.largeur+' mm':null},
