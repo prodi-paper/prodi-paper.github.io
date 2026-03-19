@@ -89,12 +89,14 @@ header{background:rgba(255,255,255,.92);position:sticky;top:0;z-index:100;border
 .fpill-ico{font-size:16px;}
 /* Bandeau réassurance */
 .trust-bar{background:#111;border-bottom:1px solid #222;padding:7px 0;overflow:hidden;}
-.trust-track{display:flex;}
-.trust-inner{max-width:1320px;margin:0 auto;padding:0 24px;display:flex;gap:28px;align-items:center;flex-wrap:wrap;justify-content:center;}
+.trust-track{display:block;}
+.trust-inner{max-width:1320px;margin:0 auto;padding:0 24px;display:flex;gap:28px;align-items:center;flex-wrap:nowrap;justify-content:center;}
+.trust-inner[aria-hidden]{display:none;}
 @keyframes trust-scroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}
 @media(max-width:768px){
-  .trust-track{width:max-content;animation:trust-scroll 22s linear infinite;flex-wrap:nowrap;}
-  .trust-inner{flex-shrink:0;flex-wrap:nowrap;width:max-content;padding:0 32px;justify-content:flex-start;}
+  .trust-track{display:flex;width:max-content;animation:trust-scroll 22s linear infinite;}
+  .trust-inner{flex-shrink:0;width:max-content;padding:0 32px;justify-content:flex-start;}
+  .trust-inner[aria-hidden]{display:flex;}
 }
 .trust-item{font-family:'DM Sans',sans-serif;font-size:11px;color:#aaa;font-weight:500;white-space:nowrap;display:flex;align-items:center;gap:5px;}
 .trust-item::before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--red);flex-shrink:0;}
