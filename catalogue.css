@@ -379,8 +379,9 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
 .f-sub{font-size:11px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.7px;}
 
 /* ── RESPONSIVE ── */
-.mob-search-bar{display:none;padding:10px 14px;background:var(--white);border-bottom:1px solid var(--border);}
+.mob-search-bar{display:none;padding:6px 12px;background:var(--white);border-bottom:1px solid var(--border);}
 .mob-search-bar .header-search{display:flex;max-width:100%;margin:0;}
+@media(max-width:768px){.mob-search-bar{display:block;}}
 .mob-filter-btn{display:none;}
 
 @media(max-width:1024px){
