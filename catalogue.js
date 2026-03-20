@@ -565,7 +565,6 @@ async function _fetchAndRender(token){
   const types=getMsdValues('msd-type');
   const gn=+document.getElementById('f-gmin').value||0;
   const gx=+document.getElementById('f-gmax').value||0;
-  const la=0;
   const pn=+document.getElementById('f-pmin').value||0;
   const px=+document.getElementById('f-pmax').value||0;
   const lmin=+document.getElementById('f-lmin').value||0;
@@ -621,7 +620,6 @@ async function _fetchAndRender(token){
   if(_gsm)p.append('gsm',`eq.${_gsm}`);
   if(lmin)p.append('width',`gte.${lmin}`);
   if(lmax)p.append('width',`lte.${lmax}`);
-  if(la&&!lmin&&!lmax)p.append('width',`eq.${la}`);
   if(_width)p.append('width',`eq.${_width}`);
   if(mandrins.size>0)p.append('noyau',`in.(${[...mandrins].join(',')})`);
   else if(_pNoyau)p.append('noyau',`eq.${_pNoyau}`);
@@ -741,7 +739,6 @@ function updateFilterChips(){
   const q=document.getElementById('search-input').value;
   const gn=document.getElementById('f-gmin').value;
   const gx=document.getElementById('f-gmax').value;
-  const la='';
   const lmin2=document.getElementById('f-lmin')?.value||'';
   const lmax2=document.getElementById('f-lmax')?.value||'';
   if(q)chips.push({label:LT[lang].t_chip_recherche+' : "'+q+'"',clear:()=>{document.getElementById('search-input').value='';document.getElementById('search-input-mob').value='';filterProducts();}});
@@ -758,7 +755,7 @@ function updateFilterChips(){
     }
   });
   if(gn||gx)chips.push({label:LT[lang].t_chip_gram+' : '+(gn||'—')+' → '+(gx||'—')+' g/m²',clear:()=>{document.getElementById('f-gmin').value='';document.getElementById('f-gmax').value='';filterProducts();}});
-  if(la)chips.push({label:LT[lang].t_chip_laize+' : '+la+'mm',clear:()=>{const el=document.getElementById('f-largeur');if(el)el.value='';filterProducts();}});
+
   if(lmin2||lmax2)chips.push({label:LT[lang].t_chip_laize+' : '+(lmin2||'—')+' → '+(lmax2||'—')+' mm',clear:()=>{['f-lmin','f-lmax','f-lmin-mob','f-lmax-mob'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});filterProducts();}});
   const longmin2=document.getElementById('f-longmin')?.value||'';
   const longmax2=document.getElementById('f-longmax')?.value||'';
@@ -867,7 +864,7 @@ function renderRows(list){
       <td><span class="prow-zone">${fmt2}</span></td>
       <td class="prow-num">${poids}</td>
       <td>${prixHtml}</td>
-      <td><button class="prow-add" id="radd-${p.id}" onclick="event.stopPropagation();addToCart(${p.id})" title="Ajouter">+</button></td>
+      <td><button class="prow-add" id="radd-${p.id}" onclick="event.stopPropagation();addToCart(${p.id})" title="${LT[lang].t_add_ctr||'+ Ajouter'}" aria-label="${LT[lang].t_add_ctr||'+ Ajouter'}">+</button></td>
     </tr>`;
   }).join('');
   const L=LT[lang];
@@ -924,7 +921,7 @@ function renderCards(list){
         <div class="pcard-name">${p.name||p.type||'—'}</div>
         <div class="tags">${tags}</div>
         <div class="pcard-bottom">
-          <button class="btn-add-cart" id="cadd-${p.id}" onclick="event.stopPropagation();addToCart(${p.id})"><span class="cart-icon">+</span><span class="cart-check">✓</span> ${lang==='en'?'Add':'Ajouter'}</button>
+          <button class="btn-add-cart" id="cadd-${p.id}" onclick="event.stopPropagation();addToCart(${p.id})" aria-label="${LT[lang].t_add_ctr||'+ Ajouter'} ${p.name}"><span class="cart-icon">+</span><span class="cart-check">✓</span> ${LT[lang].t_add_ctr?.replace('+ ','')||'Ajouter'}</button>
           <div class="pcard-foot">
             <div><div class="pton">${poids}<span class="pton-s"> T</span></div></div>
             ${prixHtml}
@@ -1086,8 +1083,8 @@ function addToCart(id){
     if(btn.getAttribute('onclick')?.includes(id)){
       btn.classList.add('added');
       const t=btn.querySelector('.cart-txt');
-      if(t){t.textContent=lang==='en'?'Added !':'Ajouté !';}
-      setTimeout(()=>{btn.classList.remove('added');if(t)t.textContent=lang==='en'?'+ Add':'+ Ajouter';},1800);
+      if(t){t.textContent=LT[lang].t_added_ctr||'✓ Ajouté';}
+      setTimeout(()=>{btn.classList.remove('added');if(t)t.textContent=LT[lang].t_add_ctr||'+ Ajouter';},1800);
     }
   });
   // Update row view button
@@ -1095,7 +1092,7 @@ function addToCart(id){
   if(raddBtn){raddBtn.classList.add('added');raddBtn.textContent='✓';setTimeout(()=>{raddBtn.classList.remove('added');raddBtn.textContent='+';},1800);}
   // Update card v2 button
   const caddBtn=document.getElementById('cadd-'+id);
-  if(caddBtn){caddBtn.classList.add('added');caddBtn.textContent=lang==='en'?'✓ Added':'✓ Ajouté';setTimeout(()=>{caddBtn.classList.remove('added');caddBtn.innerHTML=`<span class="cart-icon">+</span><span class="cart-check">✓</span> ${lang==='en'?'Add':'Ajouter'}`;},1800);}
+  if(caddBtn){caddBtn.classList.add('added');caddBtn.textContent=LT[lang].t_added_ctr||'✓ Ajouté';setTimeout(()=>{caddBtn.classList.remove('added');caddBtn.innerHTML=`<span class="cart-icon">+</span><span class="cart-check">✓</span> ${LT[lang].t_add_ctr||'+ Ajouter'}`;},1800);}
   toast(lang==='en'?'✅ Added to container !':'✅ Ajouté au container !');
   renderDrawer();
 }
@@ -1143,7 +1140,7 @@ function renderDrawer(){
   document.getElementById('drawer-total').textContent=fmt(ton);
   document.getElementById('drawer-items-count').textContent=cart.length+' '+(lang==='en'?'product'+(cart.length>1?'s':''):'produit'+(cart.length>1?'s':''));
   // Prix total estimé
-  const enriched=cart.map(p=>({...p,price:p.price??all.find(x=>x.id==p.id)?.price??null}));
+  const enriched=cart.map(p=>({...p,price:p.price??all.find(x=>x.id===+p.id)?.price??null}));
   const priceTotal=enriched.reduce((s,p)=>s+(p.price&&p.poids_net?p.price*p.poids_net/1000:0),0);
   const noPriceCount=enriched.filter(p=>!p.price).length;
   const prRow=document.getElementById('drawer-price-row');

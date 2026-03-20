@@ -316,7 +316,7 @@
 
 <!-- DETAIL MODAL -->
 <div class="modal-bg" id="detail-bg" onclick="if(event.target===this)closeDetail()">
-  <div class="dmodal">
+  <div class="dmodal" role="dialog" aria-modal="true" aria-labelledby="det-name">
     <!-- Col gauche : image -->
     <div class="dimg-col">
       <div class="dmain" id="det-main"></div>
@@ -634,6 +634,6 @@
 </div>
 <div class="spin-bg" id="spinner"><div class="spin"></div></div>
 
-<script src="catalogue.js?v=11"></script>
+<script src="catalogue.js?v=12"></script>
 </body>
 </html>
