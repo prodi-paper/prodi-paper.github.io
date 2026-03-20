@@ -564,7 +564,7 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
 /* ── SKELETON ROWS ── */
 .skel-row-wrap{width:100%;}
 .skel-row{display:flex;align-items:center;gap:12px;padding:0 8px;height:48px;border-bottom:1px solid var(--border);}
-.skel-block{border-radius:4px;background:linear-gradient(90deg,#E0E0E0 25%,#EFEFEF 50%,#E0E0E0 75%);background-size:400% 100%;animation:shimmer 1.4s infinite;}
+.skel-block{border-radius:4px;background:linear-gradient(90deg,#E0E0E0 25%,#EFEFEF 50%,#E0E0E0 75%);background-size:400% 100%;animation:shimmer 1.4s infinite;will-change:background-position;}
 
 /* ── HIDE OLD UI ELEMENTS ── */
 .stats-bar{display:none !important;}

@@ -130,7 +130,7 @@ const T = {
   }
 };
 
-let lang = localStorage.getItem('prodi_lang') || 'fr';
+let lang = (['fr','en'].includes(localStorage.getItem('prodi_lang'))?localStorage.getItem('prodi_lang'):'fr');
 
 function setLang(l) {
   lang = l;

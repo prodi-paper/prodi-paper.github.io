@@ -592,7 +592,7 @@ async function _fetchAndRender(token){
   if(parsed.text.length)rpcParams.q=parsed.text.join(' ').replace(/[%_]/g,'\\$&');
   if(typeCodes.length>0)rpcParams.quality_in=typeCodes;
   const _gsm=parsed.gsm&&!gn&&!gx?parsed.gsm:null;
-  const _width=parsed.width&&!la&&!lmin&&!lmax?parsed.width:null;
+  const _width=parsed.width&&!lmin&&!lmax?parsed.width:null;
   const _pformats=parsed.formats.length&&!formats.size?parsed.formats:[];
   const _pcolors=parsed.colors.length&&!couleurs.size?parsed.colors:[];
   if(gn)rpcParams.gsm_min=gn; if(gx)rpcParams.gsm_max=gx;
@@ -871,16 +871,16 @@ function renderRows(list){
   g.innerHTML=`<table class="ptable">
     <thead class="ptable-head">
       <tr>
-        <th>${L.t_col_type||'Référence'}</th>
-        <th class="col-ref">${L.t_col_ref||'Réf.'}</th>
-        <th>${L.t_col_details||'Nom / Détails'}</th>
-        <th class="col-gsm">${L.t_col_gsm||'Gsm'}</th>
-        <th class="col-larg">${L.t_col_larg||'Larg.'}</th>
-        <th class="col-mand">${L.t_col_mandrin||'Mandrin'}</th>
-        <th class="col-fmt">${L.t_col_fmt||'Format'}</th>
-        <th class="col-poids">${L.t_col_poids||'Poids'}</th>
-        <th class="col-prix">${L.t_col_prix||'Prix'}</th>
-        <th class="col-cta"></th>
+        <th scope="col">${L.t_col_type||'Référence'}</th>
+        <th scope="col" class="col-ref">${L.t_col_ref||'Réf.'}</th>
+        <th scope="col">${L.t_col_details||'Nom / Détails'}</th>
+        <th scope="col" class="col-gsm">${L.t_col_gsm||'Gsm'}</th>
+        <th scope="col" class="col-larg">${L.t_col_larg||'Larg.'}</th>
+        <th scope="col" class="col-mand">${L.t_col_mandrin||'Mandrin'}</th>
+        <th scope="col" class="col-fmt">${L.t_col_fmt||'Format'}</th>
+        <th scope="col" class="col-poids">${L.t_col_poids||'Poids'}</th>
+        <th scope="col" class="col-prix">${L.t_col_prix||'Prix'}</th>
+        <th scope="col" class="col-cta"></th>
       </tr>
     </thead>
     <tbody>${rows}</tbody>
@@ -1203,15 +1203,21 @@ async function sendCartProforma(){
   }
 }
 
-// Keyboard: close drawer on Escape
-// Reposition open panels on scroll
+/// Keyboard: close drawer on Escape
+// Reposition open panels on scroll (throttled)
+let _scrollTick=false;
 document.addEventListener('scroll',()=>{
-  document.querySelectorAll('.msd-panel.show').forEach(panel=>{
-    const wrapper=panel.closest('.msd')||panel.closest('.fb-msd');
-    if(!wrapper)return;
-    const id=wrapper.id;
-    const btn=document.querySelector(`#${id} .msd-btn`)||document.querySelector(`#${id} .fb-msd-btn`);
-    if(btn){const r=btn.getBoundingClientRect();panel.style.top=(r.bottom+4)+'px';panel.style.left=r.left+'px';}
+  if(_scrollTick)return;
+  _scrollTick=true;
+  requestAnimationFrame(()=>{
+    document.querySelectorAll('.msd-panel.show').forEach(panel=>{
+      const wrapper=panel.closest('.msd')||panel.closest('.fb-msd');
+      if(!wrapper)return;
+      const id=wrapper.id;
+      const btn=document.querySelector(`#${id} .msd-btn`)||document.querySelector(`#${id} .fb-msd-btn`);
+      if(btn){const r=btn.getBoundingClientRect();panel.style.top=(r.bottom+4)+'px';panel.style.left=r.left+'px';}
+    });
+    _scrollTick=false;
   });
 },true);
 document.addEventListener('keydown',e=>{
@@ -1350,7 +1356,7 @@ function countActiveFilters(){
 function hasActiveFilters(){return countActiveFilters()>0;}
 
 // ── LANGUAGE TOGGLE ──
-let lang=localStorage.getItem('prodi_lang')||'fr';
+let lang=(['fr','en'].includes(localStorage.getItem('prodi_lang'))?localStorage.getItem('prodi_lang'):'fr');
 const LT={
   fr:{
     t_live:'Stock en direct',

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://ethanelb.github.io/sitemap.xml
+Sitemap: https://paper.prodi.com/sitemap.xml
