@@ -89,7 +89,6 @@ function typesToQualityCodes(selectedTypes){
   for(const t of selectedTypes)(TYPE_MAP[t]||[]).forEach(c=>codes.add(c));
   return [...codes];
 }
-const qlabel=q=>q;
 const toast=(m,d=3000)=>{const e=document.getElementById('toast');e.textContent=m;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),d);};
 const sp=v=>document.getElementById('spinner').classList.toggle('show',v);
 
@@ -173,7 +172,7 @@ function updateCmpBar(){
   const slots=Array.from({length:3},(_,i)=>{
     const id=[...cmpSet][i];
     if(!id)return`<div class="cmp-thumb-empty">+</div>`;
-    const p=all.find(x=>x.id==id);
+    const p=all.find(x=>x.id===+id);
     return p&&p.image_url?`<img class="cmp-thumb" src="${p.image_url}" title="${p.name}">`:`<div class="cmp-thumb-empty" style="color:#aaa;font-size:10px">${p?.name?.substring(0,6)||'?'}</div>`;
   });
   items.innerHTML=slots.join('');
@@ -184,7 +183,7 @@ function clearCompare(){
   updateCmpBar();
 }
 function openCmpModal(){
-  const products=[...cmpSet].map(id=>all.find(x=>x.id==id)).filter(Boolean);
+  const products=[...cmpSet].map(id=>all.find(x=>x.id===+id)).filter(Boolean);
   if(products.length<2){toast(lang==='en'?'Select at least 2 products':'Sélectionnez au moins 2 produits');return;}
   const specs=[
     {lbl:'Image',key:'img'},
@@ -225,7 +224,7 @@ function openCmpModal(){
 function closeCmpModal(){document.getElementById('cmp-modal-bg').classList.remove('show');}
 
 function cardWa(id){
-  const p=all.find(x=>x.id==id);
+  const p=all.find(x=>x.id===+id);
   if(!p)return;
   const msg=`Bonjour, je suis intéressé par : ${p.name}${p.grammage?' '+p.grammage+'g/m²':''}${p.largeur?' '+p.largeur+'mm':''}${p.couleur?' '+p.couleur:''} — ${fmt(p.poids_net)} disponibles. Quel est votre prix ?`;
   window.open(`https://wa.me/${WA}?text=${encodeURIComponent(msg)}`,'_blank');
@@ -274,12 +273,7 @@ async function init(){
     'Couleurs');
   buildMsdOptions('msd-mandrin-mob',['70','76','150','152'],'Mandrins',v=>v+' mm');
 
-  // Set default view based on screen width
-  if(window.innerWidth>=768){
-    setView('cards');
-  }else{
-    setView('cards');
-  }
+  setView('cards');
 
   // Pre-fill from URL params (coming from vitrine)
   const _urlParams = new URLSearchParams(window.location.search);
@@ -876,18 +870,19 @@ function renderRows(list){
       <td><button class="prow-add" id="radd-${p.id}" onclick="event.stopPropagation();addToCart(${p.id})" title="Ajouter">+</button></td>
     </tr>`;
   }).join('');
+  const L=LT[lang];
   g.innerHTML=`<table class="ptable">
     <thead class="ptable-head">
       <tr>
-        <th>Référence</th>
-        <th class="col-ref">Réf.</th>
-        <th>Nom / Détails</th>
-        <th class="col-gsm">Gsm</th>
-        <th class="col-larg">Larg.</th>
-        <th class="col-mand">Mandrin</th>
-        <th class="col-fmt">Format</th>
-        <th class="col-poids">Poids</th>
-        <th class="col-prix">Prix</th>
+        <th>${L.t_col_type||'Référence'}</th>
+        <th class="col-ref">${L.t_col_ref||'Réf.'}</th>
+        <th>${L.t_col_details||'Nom / Détails'}</th>
+        <th class="col-gsm">${L.t_col_gsm||'Gsm'}</th>
+        <th class="col-larg">${L.t_col_larg||'Larg.'}</th>
+        <th class="col-mand">${L.t_col_mandrin||'Mandrin'}</th>
+        <th class="col-fmt">${L.t_col_fmt||'Format'}</th>
+        <th class="col-poids">${L.t_col_poids||'Poids'}</th>
+        <th class="col-prix">${L.t_col_prix||'Prix'}</th>
         <th class="col-cta"></th>
       </tr>
     </thead>
@@ -901,8 +896,9 @@ function renderCards(list){
   g.className='pgrid';
   g.innerHTML=list.map(p=>{
     const initials=(p.type||'?').substring(0,2).toUpperCase();
+    const _altTxt=[p.name,p.grammage?p.grammage+'g/m²':'',p.couleur].filter(Boolean).join(' — ')||'Produit';
     const imgHtml=p.image_url
-      ?`<img src="${p.image_url}" alt="${p.name||''}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'pcard-placeholder\\'><svg width=\\'40\\' height=\\'40\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'%23ccc\\' stroke-width=\\'1.5\\'><rect x=\\'3\\' y=\\'3\\' width=\\'18\\' height=\\'18\\' rx=\\'2\\'/><circle cx=\\'8.5\\' cy=\\'8.5\\' r=\\'1.5\\'/><polyline points=\\'21,15 16,10 5,21\\'/></svg><span class=\\'pcard-initials\\'>${initials}</span></div>'">`
+      ?`<img src="${p.image_url}" alt="${_altTxt}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'pcard-placeholder\\'><svg width=\\'40\\' height=\\'40\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'%23ccc\\' stroke-width=\\'1.5\\'><rect x=\\'3\\' y=\\'3\\' width=\\'18\\' height=\\'18\\' rx=\\'2\\'/><circle cx=\\'8.5\\' cy=\\'8.5\\' r=\\'1.5\\'/><polyline points=\\'21,15 16,10 5,21\\'/></svg><span class=\\'pcard-initials\\'>${initials}</span></div>'">`
       :`<div class="pcard-placeholder"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg><span class="pcard-initials">${initials}</span></div>`;
     const {cls:badgeCls,txt:badgeTxt}=decodeQuality(p.type);
     const originTxt=(p.type||'').charAt(0)==='R'?LT[lang].t_origine_recycl:LT[lang].t_origine_fab;
@@ -958,61 +954,16 @@ function render(list){
   else{renderCards(list);}
 }
 
-// Legacy render_old kept for reference (not called anymore)
-function _render_legacy(list){
-  const g=document.getElementById('pgrid');
-  // Count display uses _totalCount from server (or list.length for empty state)
-  const displayCount=_totalCount||list.length;
-  const _pc=document.getElementById('prod-count');if(_pc)_pc.textContent=displayCount.toLocaleString('fr-FR')+' PRODUIT'+(displayCount!==1?'S':'');
-  const _tc=document.getElementById('pcount-tons');if(_tc)_tc.textContent='';
-  if(!list.length){g.innerHTML=`<div class="empty">
-    <svg class="empty-svg" width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="30" cy="30" r="20" stroke="#C8C8C8" stroke-width="3" fill="none"/>
-      <line x1="45" y1="45" x2="62" y2="62" stroke="#C8C8C8" stroke-width="3" stroke-linecap="round"/>
-      <line x1="22" y1="30" x2="38" y2="30" stroke="#C8C8C8" stroke-width="2" stroke-linecap="round"/>
-      <line x1="30" y1="22" x2="30" y2="38" stroke="#C8C8C8" stroke-width="2" stroke-linecap="round"/>
-    </svg>
-    <div class="empty-lbl">AUCUN RÉSULTAT</div>
-    <div class="empty-sub">Aucun produit ne correspond à vos critères de recherche.</div>
-    <button class="btn-empty-reset" onclick="resetFilters()">↺ Réinitialiser les filtres</button>
-  </div>`;return;}
-  g.innerHTML=list.map(p=>{
-    const imgHtml = p.image_url
-      ? `<img src="${p.image_url}" alt="${p.name}" loading="lazy">`
-      : placeholderSvg(p.type);
-    return`<div class="pcard" onclick="openDetail('${p.id}')">
-      <div class="pcard-img">${imgHtml}</div>
-      <div class="pcard-stripe"></div>
-      <div class="pcard-body">
-        <div class="pcard-ref">${p.ref&&!p.ref.startsWith('Photo_')?p.ref:''}</div>
-        <div class="pcard-name">${p.name}</div>
-        <div class="tags">
-          ${p.grammage?`<span class="tag tag-gsm">${p.grammage} g/m²</span>`:''}
-          ${(!p.format?.toLowerCase().includes('palette')&&p.largeur)?`<span class="tag">${p.largeur} mm</span>`:''}
-          ${formatLabel(p)?`<span class="tag">${formatLabel(p)}</span>`:''}
-          ${p.couleur?`<span class="tag">${p.couleur}</span>`:''}
-        </div>
-        <div class="pcard-bottom">
-          <button class="btn-add-cart" onclick="event.stopPropagation();addToCart('${p.id}')"><span class="cart-icon">+</span><span class="cart-check">✓</span> ${lang==='en'?'Add':'Ajouter'}</button>
-          <div class="pcard-foot">
-            <div><div class="pton">${fmt(p.poids_net)}</div></div>
-            ${p.price?`<div class="pcard-price">${p.price} €/T</div>`:`<div class="pcard-price-ask">${LT[lang].t_sur_demande}</div>`}
-          </div>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-}
 
 async function openDetail(id){
-  // eslint-disable-next-line eqeqeq
-  const p = all.find(x=>x.id==id); if(!p) return;
+  const p = all.find(x=>x.id===+id); if(!p) return;
   cur = p;
 
   // Image
   const mi=document.getElementById('det-main');
+  const _detAlt=[p.name,p.grammage?p.grammage+'g/m²':'',p.couleur].filter(Boolean).join(' — ')||'Produit';
   mi.innerHTML=p.image_url
-    ?`<img src="${p.image_url}" loading="lazy" alt="${p.name}">`
+    ?`<img src="${p.image_url}" loading="lazy" alt="${_detAlt}">`
     :`<div style="display:flex;flex-direction:column;align-items:center;gap:12px;opacity:.3">${placeholderSvg(p.type)}</div>`;
 
   // Badge qualité
@@ -1125,10 +1076,8 @@ function updateCartBadge(){
 }
 
 function addToCart(id){
-  // eslint-disable-next-line eqeqeq
-  const p=all.find(x=>x.id==id);if(!p)return;
-  // eslint-disable-next-line eqeqeq
-  if(cart.find(x=>x.id==id)){toast(lang==='en'?'⚠️ Already in the container':'⚠️ Déjà dans le container');return;}
+  const p=all.find(x=>x.id===+id);if(!p)return;
+  if(cart.find(x=>x.id===+id)){toast(lang==='en'?'⚠️ Already in the container':'⚠️ Déjà dans le container');return;}
   cart.push({id:p.id,name:p.name,ref:p.ref,type:p.type,grammage:p.grammage,largeur:p.largeur,format:p.format,poids_net:p.poids_net,price:p.price||null,img:p.image_url||null});
   localStorage.setItem('prodi_cart',JSON.stringify(cart));
   updateCartBadge();
@@ -1152,7 +1101,7 @@ function addToCart(id){
 }
 
 function removeFromCart(id){
-  cart=cart.filter(x=>x.id!=+id);
+  cart=cart.filter(x=>x.id!==+id);
   localStorage.setItem('prodi_cart',JSON.stringify(cart));
   updateCartBadge();renderDrawer();
 }
@@ -1208,7 +1157,7 @@ function renderDrawer(){
   footer.style.display='block';
   items.innerHTML=cart.map(p=>`
     <div class="cart-item">
-      <div class="cart-item-img">${(p.img||(all.find(x=>x.id==p.id)?.image_url))?`<img src="${p.img||all.find(x=>x.id==p.id)?.image_url}">`:`${ico(p.type)}`}</div>
+      <div class="cart-item-img">${(p.img||(all.find(x=>x.id===+p.id)?.image_url))?`<img src="${p.img||all.find(x=>x.id===+p.id)?.image_url}">`:`${ico(p.type)}`}</div>
       <div class="cart-item-info">
         <div class="cart-item-ref">${p.ref&&!p.ref.startsWith('Photo_')?p.ref:''}</div>
         <div class="cart-item-name">${p.name}</div>
@@ -1444,6 +1393,9 @@ const LT={
     t_rechercher:'Rechercher',
     t_add_modal_btn:'+ Ajouter au container', t_added_modal_btn:'✓ Ajouté',
     t_cancel:'Annuler', t_vider:'VIDER',
+    t_col_type:'Référence', t_col_ref:'Réf.', t_col_details:'Nom / Détails',
+    t_col_gsm:'Gsm', t_col_larg:'Larg.', t_col_mandrin:'Mandrin',
+    t_col_fmt:'Format', t_col_poids:'Poids', t_col_prix:'Prix',
   },
   en:{
     t_live:'Live stock',
@@ -1483,6 +1435,9 @@ const LT={
     t_rechercher:'Search',
     t_add_modal_btn:'+ Add to container', t_added_modal_btn:'✓ Added to container',
     t_cancel:'Cancel', t_vider:'CLEAR',
+    t_col_type:'Type', t_col_ref:'Ref.', t_col_details:'Name / Details',
+    t_col_gsm:'GSM', t_col_larg:'Width', t_col_mandrin:'Core',
+    t_col_fmt:'Format', t_col_poids:'Weight', t_col_prix:'Price',
   }
 };
 function setLang(l){
