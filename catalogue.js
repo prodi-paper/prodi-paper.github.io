@@ -267,13 +267,11 @@ async function init(){
   buildMsdOptions('msd-mandrin',['70','76','150','152'],'Mandrins',v=>v+' mm');
 
   // Also build mobile msd panels (msd-type-mob, msd-mandrin-mob, msd-couleur-mob)
-  buildMsdOptions('msd-type-mob',typeVals,'Tous');
+  buildMsdOptions('msd-type-mob',typeVals,'Tous',null,'msd-type');
   buildMsdOptions('msd-couleur-mob',
     ['Blanc','Brun','Ivoire','Gris','Noir','Vert','Rouge','Bleu','Jaune','Orange','Argent','Couleur','Autres'],
-    'Couleurs');
-  buildMsdOptions('msd-mandrin-mob',['70','76','150','152'],'Mandrins',v=>v+' mm');
-
-  setView('cards');
+    'Couleurs',null,'msd-couleur');
+  buildMsdOptions('msd-mandrin-mob',['70','76','150','152'],'Mandrins',v=>v+' mm','msd-mandrin');
 
   // Pre-fill from URL params (coming from vitrine)
   const _urlParams = new URLSearchParams(window.location.search);
@@ -546,18 +544,8 @@ async function _doFilter(){
 async function _fetchAndRender(token){
   const g=document.getElementById('pgrid');
   if(g){
-    g.className=viewMode==='rows'?'':'pgrid';
-    g.innerHTML=`<div class="skel-row-wrap">${Array(8).fill(0).map((_,i)=>`
-  <div class="skel-row">
-    <div class="skel-block" style="width:50px;height:20px;border-radius:3px;"></div>
-    <div class="skel-block" style="width:70px;height:14px;"></div>
-    <div class="skel-block" style="flex:1;height:14px;"></div>
-    <div class="skel-block" style="width:40px;height:14px;"></div>
-    <div class="skel-block" style="width:40px;height:14px;"></div>
-    <div class="skel-block" style="width:60px;height:14px;"></div>
-    <div class="skel-block" style="width:30px;height:14px;"></div>
-    <div class="skel-block" style="width:80px;height:24px;border-radius:var(--r);"></div>
-  </div>`).join('')}</div>`;
+    g.className='pgrid';
+    g.innerHTML=Array(8).fill(0).map(()=>`<div class="skeleton"><div class="skel-img"></div><div class="skel-body"><div class="skel-line short"></div><div class="skel-line med"></div><div class="skel-line"></div></div></div>`).join('');
   }
 
   // Build query
@@ -798,15 +786,6 @@ function qbadge(qualite){
   const lbl=q.startsWith('R')?'♻ '+(LT[lang]?.t_origine_recycl||'Recyclé'):q.startsWith('S')?'★ '+(LT[lang]?.t_origine_fab||'Fabrication'):qualite;
   return `<div class="pcard-qbadge ${cls}">${lbl}</div>`;
 }
-let viewMode='cards'; // 'rows' or 'cards'
-
-function setView(mode){
-  viewMode=mode;
-  document.getElementById('view-rows-btn').classList.toggle('active',mode==='rows');
-  document.getElementById('view-cards-btn').classList.toggle('active',mode==='cards');
-  if(all.length)render(all);
-}
-
 // Decode quality codes like RKRA, SSBS, SPAC → {cls, txt}
 function decodeQuality(raw){
   if(!raw)return{cls:'qb-other',txt:'?'};
@@ -839,54 +818,6 @@ function formatLabel(p){
   return p.format;
 }
 
-function renderRows(list){
-  const g=document.getElementById('pgrid');
-  if(!g)return;
-  function qbadgeClass(type){return decodeQuality(type).cls;}
-  const rows=list.map(p=>{
-    const bclass=qbadgeClass(p.type);
-    const prixHtml=p.price
-      ?`<div class="prow-prix">${p.price.toLocaleString('fr-FR')} €/T</div>`
-      :`<div class="prow-ask">${LT[lang].t_sur_demande}</div>`;
-    const poids=p.poids_net?`${(p.poids_net/1000).toFixed(1)} T`:'—';
-    const gsm=p.grammage?`${p.grammage}`:'—';
-    const larg=p.largeur?`${p.largeur}`:'—';
-    const mand=p.noyau?`Ø${p.noyau}`:'—';
-    const fmt2=formatLabel(p)||'—';
-    const {txt:btext}=decodeQuality(p.type);
-    return`<tr class="prow" onclick="openDetail(${p.id})">
-      <td><span class="prow-badge ${bclass}">${btext}</span></td>
-      <td><span class="prow-ref">${p.ref||'—'}</span></td>
-      <td><div class="prow-name">${p.name||p.type||'—'}</div>${p.couleur?`<div class="prow-sub">${p.couleur}</div>`:''}</td>
-      <td class="prow-num">${gsm}</td>
-      <td class="prow-num">${larg}</td>
-      <td class="prow-num">${mand}</td>
-      <td><span class="prow-zone">${fmt2}</span></td>
-      <td class="prow-num">${poids}</td>
-      <td>${prixHtml}</td>
-      <td><button class="prow-add" id="radd-${p.id}" onclick="event.stopPropagation();addToCart(${p.id})" title="${LT[lang].t_add_ctr||'+ Ajouter'}" aria-label="${LT[lang].t_add_ctr||'+ Ajouter'}">+</button></td>
-    </tr>`;
-  }).join('');
-  const L=LT[lang];
-  g.innerHTML=`<table class="ptable">
-    <thead class="ptable-head">
-      <tr>
-        <th scope="col">${L.t_col_type||'Référence'}</th>
-        <th scope="col" class="col-ref">${L.t_col_ref||'Réf.'}</th>
-        <th scope="col">${L.t_col_details||'Nom / Détails'}</th>
-        <th scope="col" class="col-gsm">${L.t_col_gsm||'Gsm'}</th>
-        <th scope="col" class="col-larg">${L.t_col_larg||'Larg.'}</th>
-        <th scope="col" class="col-mand">${L.t_col_mandrin||'Mandrin'}</th>
-        <th scope="col" class="col-fmt">${L.t_col_fmt||'Format'}</th>
-        <th scope="col" class="col-poids">${L.t_col_poids||'Poids'}</th>
-        <th scope="col" class="col-prix">${L.t_col_prix||'Prix'}</th>
-        <th scope="col" class="col-cta"></th>
-      </tr>
-    </thead>
-    <tbody>${rows}</tbody>
-  </table>`;
-}
-
 function renderCards(list){
   const g=document.getElementById('pgrid');
   if(!g)return;
@@ -898,8 +829,6 @@ function renderCards(list){
       ?`<img src="${p.image_url}" alt="${_altTxt}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'pcard-placeholder\\'><svg width=\\'40\\' height=\\'40\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'%23ccc\\' stroke-width=\\'1.5\\'><rect x=\\'3\\' y=\\'3\\' width=\\'18\\' height=\\'18\\' rx=\\'2\\'/><circle cx=\\'8.5\\' cy=\\'8.5\\' r=\\'1.5\\'/><polyline points=\\'21,15 16,10 5,21\\'/></svg><span class=\\'pcard-initials\\'>${initials}</span></div>'">`
       :`<div class="pcard-placeholder"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg><span class="pcard-initials">${initials}</span></div>`;
     const {cls:badgeCls,txt:badgeTxt}=decodeQuality(p.type);
-    const originTxt=(p.type||'').charAt(0)==='R'?LT[lang].t_origine_recycl:LT[lang].t_origine_fab;
-    const originCls=(p.type||'').charAt(0)==='R'?'qb-recyc':'qb-other';
     const isPalette=p.format&&p.format.toLowerCase().includes('palette');
     const dimTag=!isPalette&&p.largeur?`${p.largeur} mm`:'';
     const tags=[
@@ -947,8 +876,7 @@ function render(list){
     </div>`;
     return;
   }
-  if(viewMode==='rows'){g.className='';renderRows(list);}
-  else{renderCards(list);}
+  renderCards(list);
 }
 
 
@@ -1087,10 +1015,7 @@ function addToCart(id){
       setTimeout(()=>{btn.classList.remove('added');if(t)t.textContent=LT[lang].t_add_ctr||'+ Ajouter';},1800);
     }
   });
-  // Update row view button
-  const raddBtn=document.getElementById('radd-'+id);
-  if(raddBtn){raddBtn.classList.add('added');raddBtn.textContent='✓';setTimeout(()=>{raddBtn.classList.remove('added');raddBtn.textContent='+';},1800);}
-  // Update card v2 button
+  // Update card button
   const caddBtn=document.getElementById('cadd-'+id);
   if(caddBtn){caddBtn.classList.add('added');caddBtn.textContent=LT[lang].t_added_ctr||'✓ Ajouté';setTimeout(()=>{caddBtn.classList.remove('added');caddBtn.innerHTML=`<span class="cart-icon">+</span><span class="cart-check">✓</span> ${LT[lang].t_add_ctr||'+ Ajouter'}`;},1800);}
   toast(lang==='en'?'✅ Added to container !':'✅ Ajouté au container !');
@@ -1396,9 +1321,24 @@ const LT={
     t_rechercher:'Rechercher',
     t_add_modal_btn:'+ Ajouter au container', t_added_modal_btn:'✓ Ajouté',
     t_cancel:'Annuler', t_vider:'VIDER',
-    t_col_type:'Référence', t_col_ref:'Réf.', t_col_details:'Nom / Détails',
-    t_col_gsm:'Gsm', t_col_larg:'Larg.', t_col_mandrin:'Mandrin',
-    t_col_fmt:'Format', t_col_poids:'Poids', t_col_prix:'Prix',
+    t_slow_title:'⏳ Chargement en cours…',
+    t_slow_msg:'Le stock met plus de temps à charger que prévu. Vérifiez votre connexion ou contactez-nous directement.',
+    t_slow_refresh:'↺ Rafraîchir',
+    t_cart_aria:'Produits dans le container',
+    t_loading_lbl:'Chargement',
+    t_pf_qty_ph:'ex: 10 tonnes, 5 bobines…',
+    t_pf_msg_ph:'Précisez vos besoins…',
+    t_pfc_msg_ph:'Délai, conditionnement…',
+    t_cmp_pre:'Comparer', t_cmp_suf:'produits →',
+    t_vider_title:'Vider',
+    t_ft_tagline:'Négoce papier & carton B2B',
+    t_ft_stock:'Stock Europe — Recyclé & Fabrication',
+    t_ft_update:'Mise à jour quotidienne du stock',
+    t_ft_hours:'Lun – Ven · 9h – 18h',
+    t_ft_docs:'EUR1, COO sur demande',
+    t_ft_quote:'Devis sous 24h ouvrées',
+    t_ft_loading:'Chargement Europe 24–48h',
+    t_ft_copy:'© 2026 Prodiconseil · Stock papier & carton B2B',
   },
   en:{
     t_live:'Live stock',
@@ -1438,9 +1378,24 @@ const LT={
     t_rechercher:'Search',
     t_add_modal_btn:'+ Add to container', t_added_modal_btn:'✓ Added to container',
     t_cancel:'Cancel', t_vider:'CLEAR',
-    t_col_type:'Type', t_col_ref:'Ref.', t_col_details:'Name / Details',
-    t_col_gsm:'GSM', t_col_larg:'Width', t_col_mandrin:'Core',
-    t_col_fmt:'Format', t_col_poids:'Weight', t_col_prix:'Price',
+    t_slow_title:'⏳ Loading catalogue…',
+    t_slow_msg:'The catalogue is taking longer than expected. Check your connection or contact us directly.',
+    t_slow_refresh:'↺ Refresh',
+    t_cart_aria:'Products in container',
+    t_loading_lbl:'Lead time',
+    t_pf_qty_ph:'e.g. 10 tonnes, 5 reels…',
+    t_pf_msg_ph:'Describe your needs…',
+    t_pfc_msg_ph:'Lead time, packaging…',
+    t_cmp_pre:'Compare', t_cmp_suf:'products →',
+    t_vider_title:'Clear',
+    t_ft_tagline:'Paper & board trading B2B',
+    t_ft_stock:'European stock — Recycled & Mill',
+    t_ft_update:'Daily stock updates',
+    t_ft_hours:'Mon – Fri · 9am – 6pm',
+    t_ft_docs:'EUR1, COO on request',
+    t_ft_quote:'Quote within 24 business hours',
+    t_ft_loading:'European loading 24–48h',
+    t_ft_copy:'© 2026 Prodiconseil · Paper & board stock B2B',
   }
 };
 function setLang(l){
@@ -1478,6 +1433,21 @@ function setLang(l){
   // Update aria-labels on search buttons
   document.querySelectorAll('[aria-label="Rechercher"],[aria-label="Search"]').forEach(el=>{
     el.setAttribute('aria-label',LT[l].t_rechercher||'Rechercher');
+  });
+  // Generic data-i18n-placeholder
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{
+    const k=el.dataset.i18nPlaceholder;
+    if(LT[l][k]!==undefined) el.placeholder=LT[l][k];
+  });
+  // Generic data-i18n-aria
+  document.querySelectorAll('[data-i18n-aria]').forEach(el=>{
+    const k=el.dataset.i18nAria;
+    if(LT[l][k]!==undefined) el.setAttribute('aria-label',LT[l][k]);
+  });
+  // Generic data-i18n-title
+  document.querySelectorAll('[data-i18n-title]').forEach(el=>{
+    const k=el.dataset.i18nTitle;
+    if(LT[l][k]!==undefined) el.title=LT[l][k];
   });
   // Re-render cards if products already loaded to update dynamic strings
   if(typeof render==='function'&&typeof all!=='undefined'&&all.length)render(all);

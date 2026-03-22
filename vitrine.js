@@ -59,9 +59,25 @@ const T = {
     snd_on:'SON', snd_off:'SON',
     ph_nom:'Jean Dupont', ph_soc:'Entreprise SA', ph_email:'nom@entreprise.com', ph_tel:'+33 6 00 00 00 00',
     aria_sound:'Activer le son',
-    gate_tag:'Accès catalogue', gate_title:'ACCÉDEZ AU STOCK',
-    gate_sub:'Laissez vos coordonnées pour consulter nos 5\u202f800+ références disponibles.',
-    gate_btn:'VOIR LE STOCK →', gate_skip:'Déjà client\u00a0? Continuer →',
+    sc_prev:'Précédent', sc_next:'Suivant',
+    c_de:'Allemagne', c_es:'Espagne', c_it:'Italie', c_be:'Belgique', c_nl:'Pays-Bas',
+    c_pl:'Pologne', c_gb:'Royaume-Uni', c_se:'Suède', c_ch:'Suisse', c_at:'Autriche',
+    c_gr:'Grèce', c_ro:'Roumanie', c_tr:'Turquie', c_dk:'Danemark', c_no:'Norvège',
+    c_fi:'Finlande', c_cz:'Tchéquie', c_hu:'Hongrie', c_ma:'Maroc', c_dz:'Algérie',
+    c_tn:'Tunisie', c_ly:'Libye', c_mr:'Mauritanie', c_cm:'Cameroun', c_sn:'Sénégal',
+    c_ci:"Côte d'Ivoire", c_eg:'Égypte', c_za:'Afrique du Sud', c_ae:'Émirats arabes',
+    c_sa:'Arabie Saoudite', c_in:'Inde', c_th:'Thaïlande', c_id:'Indonésie',
+    c_cn:'Chine', c_kr:'Corée du Sud', c_jp:'Japon',
+    c_td:'Tchad', c_il:'Israël', c_au:'Australie', c_us:'États-Unis',
+    c_mx:'Mexique', c_co:'Colombie', c_br:'Brésil', c_pe:'Pérou',
+    c_ar:'Argentine', c_cl:'Chili', c_ec:'Équateur', c_bo:'Bolivie', c_do:'Rép. Dominicaine',
+    t_sc_stat:'TONNES DISPONIBLES EN STOCK',
+    habt_intro:'Prodiconseil est une société française fondée en 1991, basée à Ivry-sur-Seine (Île-de-France). Spécialisée dans le négoce international de papier et carton, stocks issus de grandes papeteries européennes.',
+    habt_range:'Offset · Couché mat & brillant · Kraft · Emballage · SBS · Duplex · FBB · Testliner · Fluting · Thermique · Adhésif · Autocopiant',
+    spt_sbs:'Carton SBS', spt_couche:'Couché', spt_lwc:'LWC Couché',
+    spt_off_sat:'Offset Satiné', spt_emball:'Emballage', spt_silicone:'Siliconé',
+    spt_nontisse:'Non-tissé', spt_couche_mat:'Couché Mat', spt_etiquette:'Papier Étiquette',
+    spec_bobine:'Bobine', spec_palette:'Palette',
     stock_title:'+10\u202f000 TONNES DISPONIBLES', stock_sub:'lots et fabrication',
   },
   en: {
@@ -123,9 +139,25 @@ const T = {
     snd_on:'SOUND', snd_off:'SOUND',
     ph_nom:'John Smith', ph_soc:'Company Ltd', ph_email:'name@company.com', ph_tel:'+1 555 000 0000',
     aria_sound:'Toggle sound',
-    gate_tag:'Catalogue access', gate_title:'ACCESS OUR STOCK',
-    gate_sub:'Enter your details to browse our 5,800+ available references.',
-    gate_btn:'VIEW STOCK →', gate_skip:'Already a client? Continue →',
+    sc_prev:'Previous', sc_next:'Next',
+    c_de:'Germany', c_es:'Spain', c_it:'Italy', c_be:'Belgium', c_nl:'Netherlands',
+    c_pl:'Poland', c_gb:'United Kingdom', c_se:'Sweden', c_ch:'Switzerland', c_at:'Austria',
+    c_gr:'Greece', c_ro:'Romania', c_tr:'Turkey', c_dk:'Denmark', c_no:'Norway',
+    c_fi:'Finland', c_cz:'Czech Republic', c_hu:'Hungary', c_ma:'Morocco', c_dz:'Algeria',
+    c_tn:'Tunisia', c_ly:'Libya', c_mr:'Mauritania', c_cm:'Cameroon', c_sn:'Senegal',
+    c_ci:'Ivory Coast', c_eg:'Egypt', c_za:'South Africa', c_ae:'UAE',
+    c_sa:'Saudi Arabia', c_in:'India', c_th:'Thailand', c_id:'Indonesia',
+    c_cn:'China', c_kr:'South Korea', c_jp:'Japan',
+    c_td:'Chad', c_il:'Israel', c_au:'Australia', c_us:'United States',
+    c_mx:'Mexico', c_co:'Colombia', c_br:'Brazil', c_pe:'Peru',
+    c_ar:'Argentina', c_cl:'Chile', c_ec:'Ecuador', c_bo:'Bolivia', c_do:'Dominican Rep.',
+    t_sc_stat:'TONNES AVAILABLE IN STOCK',
+    habt_intro:'Prodiconseil is a French company founded in 1991, based in Ivry-sur-Seine (Île-de-France). Specialised in international paper and board trading, sourcing stocklots from major European paper mills.',
+    habt_range:'Offset · Matt & Gloss Coated · Kraft · Packaging · SBS · Duplex · FBB · Testliner · Fluting · Thermal · Self-adhesive · NCR',
+    spt_sbs:'SBS Board', spt_couche:'Coated', spt_lwc:'LWC Coated',
+    spt_off_sat:'Satin Offset', spt_emball:'Packaging', spt_silicone:'Silicone',
+    spt_nontisse:'Non-woven', spt_couche_mat:'Matt Coated', spt_etiquette:'Label Paper',
+    spec_bobine:'Reel', spec_palette:'Pallet',
     stock_title:'+10,000 TONNES AVAILABLE', stock_sub:'lots & manufacturing',
   }
 };
@@ -312,16 +344,6 @@ async function submitQuickDevis(e){
 })();
 
 
-// ─── GATE ───
-const GATE_KEY = 'prodi_access';
-
-// EmailJS config — remplacer avec vos identifiants emailjs.com
-const EJS_PUB  = 'e3aqMGO-mZiAECrb5';
-const EJS_SVC  = 'service_k3060so';
-const EJS_TPL  = 'template_atcwwc2';
-
-(function(){ try{ emailjs.init({ publicKey: EJS_PUB }); } catch(_){} })();
-
 /* ── SHOWCASE CAROUSEL ── */
 (function(){
   const track = document.querySelector('.sc-track');
@@ -349,62 +371,6 @@ function goSearch(e) {
   const q = document.getElementById('sc-search-input').value.trim();
   window.location.href = './index.html' + (q ? '?q=' + encodeURIComponent(q) : '');
 }
-
-function openGate(e) {
-  if (e) e.preventDefault();
-  if (localStorage.getItem(GATE_KEY)) { window.location.href = './index.html'; return; }
-  document.getElementById('gate-overlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
-  setTimeout(() => document.getElementById('g-nom').focus(), 280);
-}
-
-function skipGate() {
-  localStorage.setItem(GATE_KEY, '1');
-  window.location.href = './index.html';
-}
-
-function closeGate() {
-  document.getElementById('gate-overlay').classList.remove('open');
-  document.body.style.overflow = '';
-}
-
-async function submitGate(e) {
-  e.preventDefault();
-  const btn = document.getElementById('gate-btn');
-  btn.disabled = true; btn.textContent = '...';
-  const nom   = document.getElementById('g-nom').value.trim();
-  const soc   = document.getElementById('g-soc').value.trim();
-  const email = document.getElementById('g-email').value.trim();
-  const tel   = document.getElementById('g-tel').value.trim();
-
-  // Save to Supabase
-  try {
-    await fetch(SURL + '/rest/v1/proforma_requests', {
-      method: 'POST',
-      headers: { 'apikey': SKEY, 'Authorization': 'Bearer ' + SKEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ nom, societe: soc, email, telephone: tel, message: 'Accès catalogue', quantite_souhaitee: 'gate_catalogue', statut: 'gate_access' })
-    });
-  } catch(_) {}
-
-  // Send email via EmailJS
-  try {
-    await emailjs.send(EJS_SVC, EJS_TPL, { from_name: nom, company: soc, reply_to: email,
-      message: `Nouveau lead catalogue\nNom: ${nom}\nSociété: ${soc}\nEmail: ${email}\nTél: ${tel}` });
-  } catch(_) {}
-
-  localStorage.setItem(GATE_KEY, '1');
-  window.location.href = './index.html';
-}
-
-// Gate désactivé — accès direct au catalogue
-
-// Fermer sur clic overlay
-document.getElementById('gate-overlay')?.addEventListener('click', function(e) {
-  if (e.target === this) {
-    this.classList.remove('open');
-    document.body.style.overflow = '';
-  }
-});
 
 // ─── GEO MAP ───
 function geoProj(lon,lat){

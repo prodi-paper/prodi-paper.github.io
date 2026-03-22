@@ -38,17 +38,17 @@
 <link rel="preconnect" href="https://bvcgpdoukhcatjibmvnb.supabase.co">
 <link rel="dns-prefetch" href="https://stock.prodi.net">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="catalogue.css?v=8">
+<link rel="stylesheet" href="catalogue.css?v=12">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
 
 <div class="load-bar-wrap" id="load-bar-wrap" style="display:none"><div class="load-bar" id="load-bar"></div></div>
 <div class="slow-overlay" id="slow-overlay">
-  <div class="slow-title">⏳ Chargement en cours…</div>
-  <div class="slow-sub">Le stock met plus de temps à charger que prévu. Vérifiez votre connexion ou contactez-nous directement.</div>
+  <div class="slow-title" data-i18n="t_slow_title">⏳ Chargement en cours…</div>
+  <div class="slow-sub" data-i18n="t_slow_msg">Le stock met plus de temps à charger que prévu. Vérifiez votre connexion ou contactez-nous directement.</div>
   <div class="slow-btns">
-    <button class="btn-reload" onclick="location.reload()">↺ Rafraîchir</button>
+    <button class="btn-reload" onclick="location.reload()" data-i18n="t_slow_refresh">↺ Rafraîchir</button>
     <button class="btn-wa" onclick="window.open('https://wa.me/33649754915','_blank')">💬 WhatsApp</button>
   </div>
 </div>
@@ -71,7 +71,7 @@
       <div class="cart-wrap">
         <button class="btn-head btn-head-panier" onclick="openCartDrawer()" id="cart-btn" title="My Container">
           <svg width="22" height="14" viewBox="0 0 34 22" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-2px"><polygon points="2,9 26,9 31,4 7,4" fill="#C47A0F"/><polygon points="26,9 31,4 31,20 26,20" fill="#A86510"/><polygon points="2,9 26,9 26,20 2,20" fill="#E8930F"/><line x1="5.5" y1="9" x2="5.5" y2="20" stroke="#C47A0F" stroke-width="1.1"/><line x1="9" y1="9" x2="9" y2="20" stroke="#C47A0F" stroke-width="1.1"/><line x1="12.5" y1="9" x2="12.5" y2="20" stroke="#C47A0F" stroke-width="1.1"/><line x1="16" y1="9" x2="16" y2="20" stroke="#C47A0F" stroke-width="1.1"/><line x1="19.5" y1="9" x2="19.5" y2="20" stroke="#C47A0F" stroke-width="1.1"/><line x1="23" y1="9" x2="23" y2="20" stroke="#C47A0F" stroke-width="1.1"/><polygon points="2,9 26,9 31,4 7,4" fill="none" stroke="#1D2B45" stroke-width="1.4" stroke-linejoin="round"/><polygon points="26,9 31,4 31,20 26,20" fill="none" stroke="#1D2B45" stroke-width="1.4" stroke-linejoin="round"/><polygon points="2,9 26,9 26,20 2,20" fill="none" stroke="#1D2B45" stroke-width="1.4" stroke-linejoin="round"/></svg> <span class="btn-panier-txt">My Container</span>
-          <span class="cart-badge" id="cart-badge" aria-live="polite" aria-label="Produits dans le container">0</span>
+          <span class="cart-badge" id="cart-badge" aria-live="polite" aria-label="Produits dans le container" data-i18n-aria="t_cart_aria">0</span>
         </button>
       </div>
       <a href="mailto:eelbilia@gmail.com" class="btn-head primary btn-head-contact" style="text-decoration:none"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.61 21 3 13.39 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1.02l-2.2 2.2z"/></svg> <span class="btn-contact-txt">Contact</span></a>
@@ -188,10 +188,6 @@
         <option value="price_desc" data-i18n-opt="t_sort_price_desc">Prix ↓</option>
       </select>
     </div>
-    <div class="view-toggle">
-      <button class="view-btn" id="view-rows-btn" onclick="setView('rows')" title="Vue liste">≡</button>
-      <button class="view-btn active" id="view-cards-btn" onclick="setView('cards')" title="Vue grille">⊞</button>
-    </div>
     <button class="rbar-reset" id="rbar-reset" onclick="resetFilters()" style="display:none" data-i18n="t_effacer">Effacer</button>
   </div>
 </div>
@@ -208,7 +204,7 @@
 <div class="stats-bar">
   <div class="stats-inner">
     <div class="stat"><div class="stat-ico">📊</div><div><div class="stat-val" id="s-ton"><div class="stat-shimmer"></div></div><div class="stat-lbl" data-i18n="t_poids_total">Poids total</div></div></div>
-    <div class="stat" style="border-right:none"><div class="stat-ico">🚚</div><div><div class="stat-val">24-48H</div><div class="stat-lbl">Chargement</div></div></div>
+    <div class="stat" style="border-right:none"><div class="stat-ico">🚚</div><div><div class="stat-val">24-48H</div><div class="stat-lbl" data-i18n="t_loading_lbl">Chargement</div></div></div>
   </div>
 </div>
 
@@ -408,8 +404,8 @@
       <div class="form-fg" id="fg-pf-email"><label class="form-fl" data-i18n="t_f_email">Email *</label><input class="form-fi" type="email" id="pf-email" placeholder="jean@dupont.fr"><span class="form-err" data-i18n="t_f_email_err">Email invalide</span></div>
       <div class="form-fg"><label class="form-fl" data-i18n="t_f_phone">Téléphone</label><input class="form-fi" type="tel" id="pf-tel" placeholder="+33 6..."></div>
     </div>
-    <div class="form-fg"><label class="form-fl" data-i18n="t_f_qty">Quantité souhaitée</label><input class="form-fi" id="pf-qty" placeholder="ex: 10 tonnes, 5 bobines..."></div>
-    <div class="form-fg"><label class="form-fl" data-i18n="t_f_msg">Message</label><textarea class="form-fi" id="pf-msg" placeholder="Précisez vos besoins..."></textarea></div>
+    <div class="form-fg"><label class="form-fl" data-i18n="t_f_qty">Quantité souhaitée</label><input class="form-fi" id="pf-qty" placeholder="ex: 10 tonnes, 5 bobines..." data-i18n-placeholder="t_pf_qty_ph"></div>
+    <div class="form-fg"><label class="form-fl" data-i18n="t_f_msg">Message</label><textarea class="form-fi" id="pf-msg" placeholder="Précisez vos besoins..." data-i18n-placeholder="t_pf_msg_ph"></textarea></div>
     <div class="form-actions">
       <button class="btn-cancel" data-i18n="t_cancel" onclick="closeProforma()">Annuler</button>
       <button class="btn-send" id="pf-btn" onclick="sendProforma()" data-i18n="t_send">ENVOYER</button>
@@ -432,7 +428,7 @@
       <div class="form-fg" id="fg-pfc-email"><label class="form-fl" data-i18n="t_f_email">Email *</label><input class="form-fi" type="email" id="pfc-email" placeholder="jean@dupont.fr"><span class="form-err" data-i18n="t_f_email_err">Email invalide</span></div>
       <div class="form-fg"><label class="form-fl" data-i18n="t_f_phone">Téléphone</label><input class="form-fi" type="tel" id="pfc-tel" placeholder="+33 6..."></div>
     </div>
-    <div class="form-fg"><label class="form-fl" data-i18n="t_f_msg">Message</label><textarea class="form-fi" id="pfc-msg" placeholder="Délai, conditionnement..."></textarea></div>
+    <div class="form-fg"><label class="form-fl" data-i18n="t_f_msg">Message</label><textarea class="form-fi" id="pfc-msg" placeholder="Délai, conditionnement..." data-i18n-placeholder="t_pfc_msg_ph"></textarea></div>
     <div class="form-actions">
       <button class="btn-cancel" data-i18n="t_cancel" onclick="closeCartProforma()">Annuler</button>
       <button class="btn-send" id="pfc-btn" onclick="sendCartProforma()" data-i18n="t_send">ENVOYER</button>
@@ -458,26 +454,26 @@
     <div class="footer-grid">
       <div class="footer-col">
         <div class="footer-col-title">PRODICONSEIL</div>
-        <span>Négoce papier &amp; carton B2B</span>
-        <span>Stock Europe — Recyclé &amp; Fabrication</span>
-        <span>Mise à jour quotidienne du stock</span>
+        <span data-i18n="t_ft_tagline">Négoce papier &amp; carton B2B</span>
+        <span data-i18n="t_ft_stock">Stock Europe — Recyclé &amp; Fabrication</span>
+        <span data-i18n="t_ft_update">Mise à jour quotidienne du stock</span>
       </div>
       <div class="footer-col">
         <div class="footer-col-title">Contact</div>
         <a href="mailto:contact@prodiconseil.com">contact@prodiconseil.com</a>
         <a href="https://wa.me/33649754915" target="_blank">+33 6 49 75 49 15</a>
-        <span>Lun – Ven · 9h – 18h</span>
+        <span data-i18n="t_ft_hours">Lun – Ven · 9h – 18h</span>
       </div>
       <div class="footer-col">
         <div class="footer-col-title">Documents</div>
-        <span>EUR1, COO sur demande</span>
-        <span>Devis sous 24h ouvrées</span>
-        <span>Chargement Europe 24–48h</span>
+        <span data-i18n="t_ft_docs">EUR1, COO sur demande</span>
+        <span data-i18n="t_ft_quote">Devis sous 24h ouvrées</span>
+        <span data-i18n="t_ft_loading">Chargement Europe 24–48h</span>
       </div>
     </div>
     <div class="footer-bottom">
       <span style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:#fff;">PRODICONSEIL</span>
-      <div class="f-sub">© 2026 Prodiconseil · Stock papier &amp; carton B2B</div>
+      <div class="f-sub" data-i18n="t_ft_copy">© 2026 Prodiconseil · Stock papier &amp; carton B2B</div>
     </div>
   </div>
 </footer>
@@ -510,13 +506,13 @@
         <span class="fd-section-title">Type</span><span class="fd-section-arrow">▾</span>
       </div>
       <div class="fd-section-body">
-        <div class="msd" id="fd-type-wrap" style="margin-top:6px;">
-          <button class="msd-btn" id="fd-msd-type-btn" onclick="toggleMsd('msd-type-mob')">
+        <div class="msd" id="msd-type-mob" style="margin-top:6px;">
+          <button class="msd-btn" id="fd-msd-type-btn" data-msd-id="msd-type" onclick="toggleMsd('msd-type-mob')">
             <span class="msd-btn-label" id="fd-msd-type-label">Tous</span>
             <span class="msd-count" id="fd-msd-type-count" style="display:none"></span>
             <span class="msd-arrow">▾</span>
           </button>
-          <div class="msd-panel" id="msd-type-mob"></div>
+          <div class="msd-panel"></div>
         </div>
       </div>
     </div>
@@ -562,12 +558,12 @@
         <span class="fd-section-title">Mandrin (mm)</span><span class="fd-section-arrow">▾</span>
       </div>
       <div class="fd-section-body" style="margin-top:6px;">
-        <div class="msd">
-          <button class="msd-btn" onclick="toggleMsd('msd-mandrin-mob')">
+        <div class="msd" id="msd-mandrin-mob">
+          <button class="msd-btn" data-msd-id="msd-mandrin" onclick="toggleMsd('msd-mandrin-mob')">
             <span class="msd-btn-label" id="fd-msd-mandrin-label">Mandrins</span>
             <span class="msd-arrow">▾</span>
           </button>
-          <div class="msd-panel" id="msd-mandrin-mob"></div>
+          <div class="msd-panel"></div>
         </div>
       </div>
     </div>
@@ -577,12 +573,12 @@
         <span class="fd-section-title">Couleur</span><span class="fd-section-arrow">▾</span>
       </div>
       <div class="fd-section-body" style="margin-top:6px;">
-        <div class="msd">
-          <button class="msd-btn" onclick="toggleMsd('msd-couleur-mob')">
+        <div class="msd" id="msd-couleur-mob">
+          <button class="msd-btn" data-msd-id="msd-couleur" onclick="toggleMsd('msd-couleur-mob')">
             <span class="msd-btn-label" id="fd-msd-couleur-label">Couleurs</span>
             <span class="msd-arrow">▾</span>
           </button>
-          <div class="msd-panel" id="msd-couleur-mob"></div>
+          <div class="msd-panel"></div>
         </div>
       </div>
     </div>
@@ -616,8 +612,8 @@
 <!-- FLOATING COMPARE BAR -->
 <div class="cmp-bar" id="cmp-bar">
   <div class="cmp-bar-items" id="cmp-bar-items"></div>
-  <button class="btn-cmp-go" onclick="openCmpModal()">Comparer <span id="cmp-bar-count">0</span> produits →</button>
-  <button class="btn-cmp-clear" onclick="clearCompare()" title="Vider">✕</button>
+  <button class="btn-cmp-go" onclick="openCmpModal()"><span data-i18n="t_cmp_pre">Comparer</span> <span id="cmp-bar-count">0</span> <span data-i18n="t_cmp_suf">produits →</span></button>
+  <button class="btn-cmp-clear" onclick="clearCompare()" title="Vider" data-i18n-title="t_vider_title">✕</button>
 </div>
 
 <!-- COMPARE MODAL -->
@@ -634,6 +630,6 @@
 </div>
 <div class="spin-bg" id="spinner"><div class="spin"></div></div>
 
-<script src="catalogue.js?v=13"></script>
+<script src="catalogue.js?v=17"></script>
 </body>
 </html>
