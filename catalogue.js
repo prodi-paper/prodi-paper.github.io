@@ -1405,6 +1405,7 @@ function setLang(l){
   document.documentElement.dataset.lang=l;
   ['fr','en'].forEach(x=>{
     document.getElementById('lang-'+x)?.classList.toggle('on',x===l);
+    document.getElementById('lang-'+x+'-m')?.classList.toggle('on',x===l);
   });
   document.querySelectorAll('[data-i18n]').forEach(el=>{
     const k=el.dataset.i18n;
@@ -1457,3 +1458,12 @@ function setLang(l){
 
 updateCartBadge();
 init();
+
+// Sync results-bar sticky top to actual header height
+function syncResultsBarTop(){
+  const h=document.querySelector('header');
+  const rb=document.getElementById('results-bar');
+  if(h&&rb) rb.style.top=h.offsetHeight+'px';
+}
+syncResultsBarTop();
+window.addEventListener('resize',syncResultsBarTop);

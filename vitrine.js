@@ -360,8 +360,6 @@ async function submitQuickDevis(e){
   function startAuto(){ timer = setInterval(() => go(cur + 1), 5000); }
   function resetAuto(){ clearInterval(timer); startAuto(); }
 
-  document.querySelector('.sc-prev').addEventListener('click', () => { go(cur - 1); resetAuto(); });
-  document.querySelector('.sc-next').addEventListener('click', () => { go(cur + 1); resetAuto(); });
   dots.forEach(d => d.addEventListener('click', () => { go(+d.dataset.sc); resetAuto(); }));
   startAuto();
 })();

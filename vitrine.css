@@ -155,8 +155,7 @@ button{cursor:pointer;border:none;font-family:inherit;background:none;}
 /* carousel */
 .sc-carousel-wrap{margin-top:16px;}
 .sc-nav{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-bottom:10px;}
-.sc-arrow{width:38px;height:38px;border-radius:50%;background:#fff;border:1.5px solid var(--bd);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .2s;color:var(--ink);padding:0;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.07);}
-.sc-arrow:hover{background:var(--ink);border-color:var(--ink);color:#fff;}
+.sc-arrow{display:none;}
 .sc-dots{display:flex;gap:6px;align-items:center;}
 .sc-dot{width:7px;height:7px;border-radius:50%;background:var(--bd);border:none;cursor:pointer;padding:0;transition:all .25s;}
 .sc-dot.active{background:var(--red);width:20px;border-radius:3px;}
