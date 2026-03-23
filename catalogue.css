@@ -487,12 +487,10 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
 .fd-close{width:30px;height:30px;border:1.5px solid var(--border);border-radius:50%;background:var(--white);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
 .fd-body{flex:1;overflow-y:auto;padding:12px 16px;}
 .fd-section{border-bottom:1px solid var(--border);margin-bottom:0;}
-.fd-section-head{display:flex;align-items:center;justify-content:space-between;padding:12px 0;cursor:pointer;}
+.fd-section-head{padding:10px 0 4px;cursor:default;}
 .fd-section-title{font-size:13px;font-weight:600;color:var(--ink);}
-.fd-section-arrow{font-size:10px;color:var(--gray);transition:transform .2s;}
-.fd-section.open .fd-section-arrow{transform:rotate(180deg);}
-.fd-section-body{padding-bottom:12px;display:none;}
-.fd-section.open .fd-section-body{display:block;}
+.fd-section-arrow{display:none;}
+.fd-section-body{padding-bottom:12px;display:block;}
 .fd-foot{padding:12px 16px;border-top:1px solid var(--border);flex-shrink:0;}
 .btn-fd-apply{width:100%;padding:13px;background:var(--red);color:#fff;border:none;border-radius:var(--r);font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1.5px;cursor:pointer;}
 /* Mobile sticky bottom bar */
