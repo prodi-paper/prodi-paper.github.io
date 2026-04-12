@@ -56,9 +56,11 @@ def to_float(val):
     except (ValueError, TypeError):
         return None
 
+STOCK_DIR = '/Users/tantan/Downloads/1_STOCK ST OUEN  LOTS   DETAILLE  COUT ET FRET NORMAL-2'
+
 def parse_bobines():
-    """Parse 0R - Bobines. Data starts row 28."""
-    wb = openpyxl.load_workbook('/Users/tantan/Downloads/0R - STOCK DEPOT BOBINE.xlsx', data_only=True)
+    """Parse 0R REUNIS - Bobines. Data starts row 28."""
+    wb = openpyxl.load_workbook(f'{STOCK_DIR}/0R - STOCK BOBINE REUNIS EXTERIEURS ET DEPOT.xlsx', data_only=True)
     ws = wb.active
     products = []
     for row in ws.iter_rows(min_row=28, values_only=True):
@@ -103,8 +105,8 @@ def parse_bobines():
     return products
 
 def parse_palettes():
-    """Parse 0S - Palettes. Data starts row 32."""
-    wb = openpyxl.load_workbook('/Users/tantan/Downloads/0S - STOCK DEPOT PALETTE REUNIS EXTERIEURS ET DEPOT.xlsx', data_only=True)
+    """Parse 0S REUNIS - Palettes. Data starts row 32."""
+    wb = openpyxl.load_workbook(f'{STOCK_DIR}/0S - STOCK DEPOT PALETTE REUNIS EXTERIEURS ET DEPOT.xlsx', data_only=True)
     ws = wb.active
     products = []
     for row in ws.iter_rows(min_row=32, values_only=True):

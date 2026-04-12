@@ -215,6 +215,12 @@ header{background:rgba(255,255,255,.92);position:sticky;top:0;z-index:100;border
 .pcard-gsm-num{font-family:'Bebas Neue',sans-serif;font-size:26px;line-height:1;letter-spacing:.5px;color:#fff;}
 .pcard-gsm-lbl{font-size:10px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:rgba(255,255,255,.75);}
 
+/* Mini spec grid on card */
+.pcard-specs{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:12px;margin-top:auto;}
+.pcard-spec{display:flex;flex-direction:column;gap:2px;padding:6px 8px;background:var(--off);border:1px solid var(--border);border-radius:6px;}
+.pspec-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--gray);line-height:1;}
+.pspec-val{font-size:12px;font-weight:600;color:var(--ink);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
 /* Tags */
 .tags{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:12px;margin-top:auto;}
 .tag{padding:6px 10px;background:var(--off);border:1px solid var(--border);border-radius:20px;font-size:13px;font-weight:700;color:var(--ink2);text-align:center;text-transform:uppercase;letter-spacing:.3px;}

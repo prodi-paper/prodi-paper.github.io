@@ -1088,13 +1088,6 @@ function renderCards(list){
     const dimTag=!isPalette&&p.largeur?`${p.largeur} mm`:'';
     const fmtLabel=p.format?(isPalette?'Format':'Bobine'):null;
     const paletteDims=isPalette&&(p.largeur||p.longueur)?[p.largeur,p.longueur].filter(Boolean).join('×'):null;
-    const tags=[
-      fmtLabel?`<span class="tag tag-format">${fmtLabel}</span>`:'',
-      p.couleur?`<span class="tag">${p.couleur}</span>`:'',
-      dimTag?`<span class="tag tag-dim">${dimTag}</span>`:'',
-      p.noyau?`<span class="tag tag-dim">Ø${p.noyau} mm</span>`:'',
-      paletteDims?`<span class="tag tag-dim">${paletteDims}</span>`:'',
-    ].join('');
     const poids=p.poids_net?`${p.poids_net.toLocaleString('fr-FR')}`:'—';
     const prixHtml=p.price
       ?`<div class="pcard-price">${p.price.toLocaleString('fr-FR')} €/T</div>`
@@ -1102,12 +1095,20 @@ function renderCards(list){
     const typeOverlay=p.typeLabel?`<div class="pcard-type-overlay">${p.typeLabel}</div>`:'';
     const gsmOverlay=p.grammage?`<div class="pcard-gsm-overlay"><span class="pcard-gsm-num">${p.grammage}</span><span class="pcard-gsm-lbl">g/m²</span></div>`:'';
     const photoRef=p.ref&&p.ref.startsWith('Photo_')?`<div class="pcard-photo-ref">${p.ref}</div>`:'';
+    // Mini spec rows (label + value, only if value exists)
+    const specRows=[
+      p.couleur?['Couleur',p.couleur]:null,
+      dimTag?['Laize',dimTag]:paletteDims?['Format',paletteDims]:null,
+      p.noyau?['Mandrin',`Ø${p.noyau} mm`]:null,
+      fmtLabel?['Cond.',fmtLabel]:null,
+    ].filter(Boolean).slice(0,4);
+    const specsHtml=`<div class="pcard-specs">${specRows.map(([l,v])=>`<div class="pcard-spec"><span class="pspec-lbl">${l}</span><span class="pspec-val">${v}</span></div>`).join('')}</div>`;
     return`<div class="pcard" onclick="openDetail(${p.id})">
       <div class="pcard-img">${imgHtml}${typeOverlay}${gsmOverlay}${photoRef}</div>
       <div class="pcard-stripe"></div>
       <div class="pcard-body">
         <div class="pcard-name">${p.name||p.type||'—'}</div>
-        <div class="tags">${tags}</div>
+        ${specsHtml}
         <button class="btn-add-cart" id="cadd-${p.id}" onclick="event.stopPropagation();addToCart(${p.id})"><span class="cart-icon">+</span><span class="cart-check">✓</span> ${lang==='en'?'Add':'Ajouter'}</button>
         <div class="pcard-foot">
           <div class="pton">${poids}<span class="pton-s"> KGS</span></div>
