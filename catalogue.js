@@ -430,12 +430,12 @@ async function init(){
   const typeVals=Object.keys(TYPE_MAP).filter(k=>k!=='Couleur'&&k!=='Offset Couleur'&&k!=='Dossier Couleur').concat(['Offset Couleur','Dossier Couleur']).sort((a,b)=>a.localeCompare(b));
   const couleurVals=['Blanc','Brun','Ivoire','Gris','Noir','Vert','Rouge','Bleu','Jaune','Orange','Argent','Couleur','Autres'];
   buildMsdOptions('msd-type',typeVals,'Tous');
-  buildMsdOptions('sb-msd-type',typeVals,'Type',undefined,'msd-type');
+  buildMsdOptions('sb-msd-type',typeVals,'Qualité',undefined,'msd-type');
   buildMsdOptions('msd-couleur',couleurVals,'Couleurs');
   buildMsdOptions('sb-msd-couleur',couleurVals,'Couleurs',undefined,'msd-couleur');
 
   buildMsdOptions('msd-mandrin',['70','76','150','152'],'Mandrins',v=>v+' mm');
-  buildMsdOptions('sb-msd-qualite',QUALITE_CODES,'Qualité',v=>`${v} — ${QUALITE_LABELS[v]||v}`,'msd-qualite');
+  buildMsdOptions('sb-msd-qualite',QUALITE_CODES,'Type',v=>`${v} — ${QUALITE_LABELS[v]||v}`,'msd-qualite');
 
   // Also build mobile msd panels (msd-type-mob, msd-mandrin-mob, msd-couleur-mob)
   buildMsdOptions('msd-type-mob',typeVals,'Tous',null,'msd-type');
@@ -489,10 +489,10 @@ const msdState = {
   'msd-qualite': new Set(),
 };
 const msdLabels = {
-  'msd-type': 'Type',
+  'msd-type': 'Qualité',
   'msd-mandrin': 'Mandrins',
   'msd-couleur': 'Couleurs',
-  'msd-qualite': 'Qualité',
+  'msd-qualite': 'Type',
 };
 const QUALITE_CODES=['R1SC','R2SC','RADH','RAFF','RBOA','RBON','RBOU','RCAR','RCOL','RCUI','RDIV','RFLEX','RKDO','RKRA','RKRABRUN','RKRG','RKRR','RLINER','RLUX','RLWC','RNEW','RPAC','RPLA','RSIL','RTHERM','RTIS','S1SC','S2SC','SADH','SAFF','SBOA','SBON','SCAR','SCOL','SCUT','SDIV','SKDO','SKRA','SLUX','SNEW','SOFF','SPAC','SSBS','SSPE'];
 const QUALITE_LABELS={
