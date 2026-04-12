@@ -435,6 +435,7 @@ async function init(){
   buildMsdOptions('sb-msd-couleur',couleurVals,'Couleurs',undefined,'msd-couleur');
 
   buildMsdOptions('msd-mandrin',['70','76','150','152'],'Mandrins',v=>v+' mm');
+  buildMsdOptions('sb-msd-qualite',QUALITE_CODES,'Qualité',undefined,'msd-qualite');
 
   // Also build mobile msd panels (msd-type-mob, msd-mandrin-mob, msd-couleur-mob)
   buildMsdOptions('msd-type-mob',typeVals,'Tous',null,'msd-type');
@@ -485,12 +486,15 @@ const msdState = {
   'msd-type': new Set(),
   'msd-mandrin': new Set(),
   'msd-couleur': new Set(),
+  'msd-qualite': new Set(),
 };
 const msdLabels = {
   'msd-type': 'Type',
   'msd-mandrin': 'Mandrins',
   'msd-couleur': 'Couleurs',
+  'msd-qualite': 'Qualité',
 };
+const QUALITE_CODES=['R1SC','R2SC','RADH','RAFF','RBOA','RBON','RBOU','RCAR','RCOL','RCUI','RDIV','RFLEX','RKDO','RKRA','RKRABRUN','RKRG','RKRR','RLINER','RLUX','RLWC','RNEW','RPAC','RPLA','RSIL','RTHERM','RTIS','S1SC','S2SC','SADH','SAFF','SBOA','SBON','SCAR','SCOL','SCUT','SDIV','SKDO','SKRA','SLUX','SNEW','SOFF','SPAC','SSBS','SSPE'];
 
 function toggleMsd(id) {
   const panel = document.querySelector(`#${id} .msd-panel`);
@@ -558,6 +562,7 @@ function resetMsd(id) {
   document.querySelectorAll(`#${id} .msd-option`).forEach(o => o.classList.remove('selected'));
   if(id==='msd-type')document.querySelectorAll('#sb-msd-type .msd-option').forEach(o=>o.classList.remove('selected'));
   if(id==='msd-couleur')document.querySelectorAll('#sb-msd-couleur .msd-option').forEach(o=>o.classList.remove('selected'));
+  if(id==='msd-qualite')document.querySelectorAll('#sb-msd-qualite .msd-option').forEach(o=>o.classList.remove('selected'));
   updateMsdBtn(id);
 }
 
@@ -794,10 +799,11 @@ async function _fetchAndRender(token){
 
   const parsed=parseSearchQuery(q);
   _lastCorrections=parsed.corrections;
-  // Merge sidebar type codes + search-detected type codes
+  // Merge sidebar type codes + search-detected type codes + qualite direct codes
   const _sideCodes=types.size>0?typesToQualityCodes(types):[];
   const _pCodes=parsed.qualityCodes.length&&!_sideCodes.length?parsed.qualityCodes:[];
-  const typeCodes=[..._sideCodes,..._pCodes];
+  const _qualiteCodes=[...getMsdValues('msd-qualite')];
+  const typeCodes=[..._sideCodes,..._pCodes,..._qualiteCodes];
 
   // GSM constraint from Couleur split filter
   const _couleurOffsetSel=types.has('Offset Couleur')&&!types.has('Dossier Couleur');
@@ -909,7 +915,7 @@ async function _fetchAndRender(token){
   updateMobFilterBadge();
 
   // Update counters
-  const counters={'msd-type':'fl-count-type','msd-mandrin':'fl-count-mandrin','msd-couleur':'fl-count-couleur'};
+  const counters={'msd-type':'fl-count-type','msd-mandrin':'fl-count-mandrin','msd-couleur':'fl-count-couleur','msd-qualite':'fl-count-qualite'};
   Object.entries(counters).forEach(([msd,el])=>{const c=document.getElementById(el);if(c){const n=msdState[msd]?.size||0;c.textContent=n;c.style.display=n?'':'none';}});
 
   updateFilterChips();
@@ -990,10 +996,10 @@ function updateFilterChips(){
   const _activeOrigs=Array.from(document.querySelectorAll('.fpill-orig.active')).map(b=>b.dataset.origine==='R'?LT[lang].t_origine_recycl:LT[lang].t_origine_fab);
   if(_activeOrigs.length>0)chips.push({label:(lang==='en'?'Origin':'Origine')+' : '+_activeOrigs.join(', '),clear:()=>{document.querySelectorAll('.fpill-orig.active').forEach(b=>b.classList.remove('active'));filterProducts();}});
   if(_activeFmts.length>0)chips.push({label:LT[lang].t_fmt+' : '+_activeFmts.map(f=>f==='Bobine'?LT[lang].t_bobine:f==='Palette'?LT[lang].t_palette:f).join(', '),clear:()=>{document.querySelectorAll('.fpill.active').forEach(b=>b.classList.remove('active'));filterProducts();}});
-  ['msd-type','msd-mandrin','msd-couleur'].forEach(id=>{
+  ['msd-type','msd-mandrin','msd-couleur','msd-qualite'].forEach(id=>{
     const set=msdState[id];
     if(set.size>0){
-      const lbl={'msd-type':LT[lang].t_type_lbl,'msd-mandrin':LT[lang].t_mandrin_lbl,'msd-couleur':LT[lang].t_couleur_lbl}[id];
+      const lbl={'msd-type':LT[lang].t_type_lbl,'msd-mandrin':LT[lang].t_mandrin_lbl,'msd-couleur':LT[lang].t_couleur_lbl,'msd-qualite':'Qualité'}[id];
       chips.push({label:lbl+' : '+[...set].join(', '),clear:()=>{resetMsd(id);filterProducts();}});
     }
   });
@@ -1234,7 +1240,7 @@ function contactWA(){
 }
 function resetFilters(){
   document.querySelectorAll('.msd-option.selected').forEach(o=>o.classList.remove('selected'));
-  ['msd-type','msd-mandrin','msd-couleur'].forEach(id=>resetMsd(id));
+  ['msd-type','msd-mandrin','msd-couleur','msd-qualite'].forEach(id=>resetMsd(id));
   document.querySelectorAll('.fpill.active').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.fpill-orig.active').forEach(b=>b.classList.remove('active'));
   ['fb-bobine','fb-palette','fb-recyc','fb-fab'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('active');});
@@ -1531,7 +1537,7 @@ function countActiveFilters(){
   if(document.getElementById('f-lmax')?.value)n++;
   if(document.getElementById('f-pmin')?.value)n++;
   if(document.getElementById('f-pmax')?.value)n++;
-  ['msd-type','msd-mandrin','msd-couleur'].forEach(id=>{
+  ['msd-type','msd-mandrin','msd-couleur','msd-qualite'].forEach(id=>{
     if(msdState[id]&&msdState[id].size>0)n++;
   });
   return n;
