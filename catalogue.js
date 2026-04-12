@@ -435,7 +435,7 @@ async function init(){
   buildMsdOptions('sb-msd-couleur',couleurVals,'Couleurs',undefined,'msd-couleur');
 
   buildMsdOptions('msd-mandrin',['70','76','150','152'],'Mandrins',v=>v+' mm');
-  buildMsdOptions('sb-msd-qualite',QUALITE_CODES,'Qualité',undefined,'msd-qualite');
+  buildMsdOptions('sb-msd-qualite',QUALITE_CODES,'Qualité',v=>`${v} — ${QUALITE_LABELS[v]||v}`,'msd-qualite');
 
   // Also build mobile msd panels (msd-type-mob, msd-mandrin-mob, msd-couleur-mob)
   buildMsdOptions('msd-type-mob',typeVals,'Tous',null,'msd-type');
@@ -495,6 +495,52 @@ const msdLabels = {
   'msd-qualite': 'Qualité',
 };
 const QUALITE_CODES=['R1SC','R2SC','RADH','RAFF','RBOA','RBON','RBOU','RCAR','RCOL','RCUI','RDIV','RFLEX','RKDO','RKRA','RKRABRUN','RKRG','RKRR','RLINER','RLUX','RLWC','RNEW','RPAC','RPLA','RSIL','RTHERM','RTIS','S1SC','S2SC','SADH','SAFF','SBOA','SBON','SCAR','SCOL','SCUT','SDIV','SKDO','SKRA','SLUX','SNEW','SOFF','SPAC','SSBS','SSPE'];
+const QUALITE_LABELS={
+  'R1SC':'Couché 1 face',
+  'R2SC':'Couché 2 faces',
+  'RADH':'Adhésif',
+  'RAFF':'Papier affiche',
+  'RBOA':'Carton couché',
+  'RBON':'Carton non couché',
+  'RBOU':'Bouffant',
+  'RCAR':'Autocopiant',
+  'RCOL':'Offset couleur',
+  'RCUI':'Papier cuisson',
+  'RDIV':'Divers / Alu',
+  'RFLEX':'Complexe / Polyéthylène',
+  'RKDO':'Papier cadeau',
+  'RKRA':'Kraft',
+  'RKRABRUN':'Kraft brun',
+  'RKRG':'Kraft gomme',
+  'RKRR':'Kraft armé',
+  'RLINER':'Liner / Testliner',
+  'RLUX':'Papier luxe',
+  'RLWC':'LWC',
+  'RNEW':'Papier journal',
+  'RPAC':'Emballage',
+  'RPLA':'Plastique',
+  'RSIL':'Silicone / Glassine',
+  'RTHERM':'Thermique',
+  'RTIS':'Ouate / Tissue',
+  'S1SC':'Couché 1 face',
+  'S2SC':'Couché 2 faces',
+  'SADH':'Adhésif',
+  'SAFF':'Papier affiche',
+  'SBOA':'Carton couché',
+  'SBON':'Carton non couché',
+  'SCAR':'Autocopiant',
+  'SCOL':'Offset couleur',
+  'SCUT':'Ramette',
+  'SDIV':'Divers',
+  'SKDO':'Papier cadeau',
+  'SKRA':'Kraft',
+  'SLUX':'Papier luxe',
+  'SNEW':'Papier journal',
+  'SOFF':'Offset',
+  'SPAC':'Emballage',
+  'SSBS':'SBS / Carton blanc',
+  'SSPE':'Spécial',
+};
 
 function toggleMsd(id) {
   const panel = document.querySelector(`#${id} .msd-panel`);
