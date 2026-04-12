@@ -18,7 +18,8 @@ const WA='33649754915';
 let all=[],cur=null;
 const PAGE=52; let currentPage=1,_totalCount=0,_reqToken=0,_lastCorrections=[],_isFirstLoad=true;
 const ico=t=>({Kraft:'📦',FBB:'🗂️',SBS:'📋',Testliner:'🧱',Fluting:'〰️',Offset:'🧻',Thermique:'🏷️',Duplex:'📄',Triplex:'📑'}[t]||'📦');
-const fmt=kg=>!kg?'—':kg>=1000?(kg/1000).toFixed(1)+' t':kg+' kg';
+const icoType=n=>({'Kraft':'📦','Kraft armé':'🔩','Kraft gomme':'🔖','SBS':'📋','FBB':'🗂️','Liner':'📜','Testliner':'🧱','Fluting':'〰️','Offset':'🧻','Thermique':'🏷️','LWC':'📰','Couché 1 face':'🖨️','Couché 2 faces':'🖨️','Luxe':'✨','Ouate':'🤍','Journal':'📰','Duplex':'📄','Triplex':'📑','Couleur':'🎨','Adhésif':'🔖','Silicone-Glassine':'🫧','Complexe':'🧩','Emballage':'📦','Plastique':'🔲','Carton couché':'🗃️','Carton non couché':'🗃️','Bouffant':'📄','Autocopiant':'📄','Ramette':'📄','Spécial':'⭐','Papier affiche':'🖼️','Papier cadeau':'🎁','Cuisson':'🔥','Encre':'🖊️','Enveloppes':'✉️','Autres':'📦'}[n]||'📦');
+const fmt=kg=>!kg?'—':kg>=1000?(kg/1000).toFixed(1)+' t':kg+' KGS';
 // Maps user-visible type label → actual DB quality codes
 const TYPE_MAP={
   'Adhésif':           ['RADH','SADH'],
@@ -30,6 +31,8 @@ const TYPE_MAP={
   'Couché 1 face':     ['R1SC','S1SC'],
   'Couché 2 faces':    ['R2SC','S2SC'],
   'Couleur':           ['RCOL','SCOL'],
+  'Offset Couleur':    ['RCOL','SCOL'],
+  'Dossier Couleur':   ['RCOL','SCOL'],
   'Cuisson':           ['RCUI'],
   'Autres':            ['RDIV','SDIV'],
   'Emballage':         ['RPAC','SPAC'],
@@ -53,7 +56,7 @@ const TYPE_MAP={
   'Spécial':           ['SSPE'],
   'Thermique':         ['RTHERM'],
 };
-// ===== FUZZY SEARCH =====
+// ===== SMART SEARCH ENGINE =====
 function lev(a,b){
   if(!a.length)return b.length;
   if(!b.length)return a.length;
@@ -67,6 +70,150 @@ function lev(a,b){
   return prev[b.length];
 }
 const _norm=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+
+// Equivalence groups — for "Voir aussi" suggestions
+const EQUIV_GROUPS=[
+  ['Couché 2 faces','Couché 1 face','LWC','Luxe'],
+  ['Offset','Bouffant'],
+  ['Kraft','Emballage'],
+  ['SBS','Carton couché','Carton non couché'],
+  ['Liner','Adhésif'],
+  ['Autocopiant'],
+  ['Thermique'],
+  ['Silicone-Glassine'],
+  ['Ouate'],
+  ['Journal'],
+];
+function getEquivTypes(typeDisplay){
+  const grp=EQUIV_GROUPS.find(g=>g.includes(typeDisplay));
+  return grp?grp.filter(t=>t!==typeDisplay):[];
+}
+
+// Comprehensive alias map: normalized term → {kind, display, codes}
+const ALIAS_MAP=(()=>{
+  const m=new Map();
+  const t=(alias,display)=>m.set(_norm(alias),{kind:'type',display,codes:TYPE_MAP[display]||[]});
+  const c=(alias,display)=>m.set(_norm(alias),{kind:'color',display,codes:[]});
+  const f=(alias,display)=>m.set(_norm(alias),{kind:'format',display,codes:[]});
+  // ── Kraft ──
+  t('kraft','Kraft'); t('brown paper','Kraft'); t('sack paper','Kraft');
+  t('papier emballage','Kraft'); t('papier d emballage','Kraft'); t('wrapping','Kraft');
+  t('natural kraft','Kraft'); t('papier brun','Kraft'); t('bags','Kraft');
+  t('kraft arme','Kraft armé'); t('reinforced kraft','Kraft armé'); t('kraft renforce','Kraft armé');
+  t('kraft gomme','Kraft gomme'); t('gummed kraft','Kraft gomme'); t('gummed tape','Kraft gomme');
+  // ── Coated ──
+  t('coated','Couché 2 faces'); t('couche','Couché 2 faces'); t('couchee','Couché 2 faces');
+  t('coated paper','Couché 2 faces'); t('c2s','Couché 2 faces'); t('double couche','Couché 2 faces');
+  t('2 faces','Couché 2 faces'); t('deux faces','Couché 2 faces'); t('brillant','Couché 2 faces');
+  t('coated one side','Couché 1 face'); t('c1s','Couché 1 face'); t('1 face','Couché 1 face');
+  t('une face','Couché 1 face'); t('couche 1 face','Couché 1 face'); t('one side','Couché 1 face');
+  // ── LWC ──
+  t('lwc','LWC'); t('light weight coated','LWC'); t('lightweight coated','LWC');
+  t('magazine paper','LWC'); t('papier magazine','LWC'); t('sc paper','LWC');
+  t('super calendered','LWC'); t('rotogravure','LWC');
+  // ── Offset / uncoated woodfree ──
+  t('woodfree','Offset'); t('wood free','Offset'); t('wf','Offset');
+  t('uncoated','Offset'); t('non couche','Offset'); t('papier offset','Offset');
+  t('ufwf','Offset'); t('offset paper','Offset'); t('printing paper','Offset');
+  t('papier impression','Offset'); t('papier copie','Offset'); t('copy paper','Offset');
+  // ── Bouffant ──
+  t('bouffant','Bouffant'); t('bulky','Bouffant'); t('bible paper','Bouffant');
+  t('bible','Bouffant'); t('papier bible','Bouffant'); t('high bulk','Bouffant');
+  // ── SBS / Carton boards ──
+  t('sbs','SBS'); t('solid bleached','SBS'); t('solid bleached board','SBS');
+  t('gc1','SBS'); t('gc2','SBS'); t('carton blanc','SBS'); t('white board','SBS');
+  t('fbb','Carton couché'); t('folding boxboard','Carton couché'); t('carton couche','Carton couché');
+  t('carton plie','Carton couché'); t('folding carton','Carton couché'); t('wb','Carton couché');
+  t('gd1','Carton non couché'); t('gd2','Carton non couché'); t('carton gris','Carton non couché');
+  t('grey board','Carton non couché'); t('grayboard','Carton non couché'); t('chip board','Carton non couché');
+  t('carton non couche','Carton non couché');
+  // ── Liner / Testliner ──
+  t('liner','Liner'); t('testliner','Liner'); t('test liner','Liner');
+  t('kraftliner','Liner'); t('white top','Liner'); t('whitetop','Liner');
+  t('top liner','Liner'); t('recycled liner','Liner'); t('occ liner','Liner');
+  // ── Thermique ──
+  t('thermal','Thermique'); t('thermo','Thermique'); t('thermal paper','Thermique');
+  t('papier thermique','Thermique'); t('receipt paper','Thermique'); t('pos paper','Thermique');
+  t('caisse','Thermique'); t('ticket','Thermique');
+  // ── Ouate / Tissue ──
+  t('tissue','Ouate'); t('tissue paper','Ouate'); t('hygienique','Ouate');
+  t('mouchoir','Ouate'); t('essuie tout','Ouate'); t('serviette','Ouate');
+  // ── Silicone / Glassine ──
+  t('silicone','Silicone-Glassine'); t('glassine','Silicone-Glassine');
+  t('release paper','Silicone-Glassine'); t('siliconise','Silicone-Glassine');
+  t('antiadhesif','Silicone-Glassine'); t('release liner','Silicone-Glassine');
+  // ── Autocopiant ──
+  t('carbonless','Autocopiant'); t('ncr','Autocopiant'); t('no carbon','Autocopiant');
+  t('no carbon required','Autocopiant'); t('papier autocopiant','Autocopiant');
+  t('carbonless paper','Autocopiant'); t('sans carbone','Autocopiant');
+  // ── Journal ──
+  t('newsprint','Journal'); t('newspaper','Journal'); t('papier journal','Journal');
+  t('news','Journal'); t('journal paper','Journal');
+  // ── Adhésif ──
+  t('adhesive','Adhésif'); t('self adhesive','Adhésif'); t('etiquette','Adhésif');
+  t('label paper','Adhésif'); t('sticker','Adhésif'); t('label','Adhésif');
+  t('psa','Adhésif'); t('pressure sensitive','Adhésif');
+  // ── Luxe ──
+  t('luxury','Luxe'); t('cast coated','Luxe'); t('art paper','Luxe');
+  t('papier art','Luxe'); t('chromo','Luxe'); t('high gloss','Luxe');
+  // ── Complexe ──
+  t('complex','Complexe'); t('laminated','Complexe'); t('lamine','Complexe');
+  t('composite','Complexe'); t('multi layer','Complexe'); t('complexe','Complexe');
+  // ── Emballage ──
+  t('packaging','Emballage'); t('emballage','Emballage'); t('wrapping paper','Emballage');
+  t('papier cadeau','Papier cadeau'); t('gift wrap','Papier cadeau'); t('cadeau','Papier cadeau');
+  t('poster','Papier affiche'); t('affiche','Papier affiche'); t('display','Papier affiche');
+  // ── Recyclé ──
+  t('recycle','Recyclé'); t('recycled','Recyclé'); t('recyclee','Recyclé');
+  t('fluting','Recyclé'); t('medium','Recyclé'); t('cannelure','Recyclé');
+  t('ondule','Recyclé'); t('corrugated','Recyclé'); t('occ','Recyclé');
+  t('vieux papier','Recyclé'); t('demi chimique','Recyclé'); t('mi chimique','Recyclé');
+  // ── Autres / aluminium ──
+  t('alu','Autres'); t('aluminium','Autres'); t('aluminum','Autres');
+  t('foil','Autres'); t('menager','Autres'); t('aluminise','Autres');
+  t('plastique','Autres'); t('polyethylene','Autres'); t('pe','Autres');
+  t('filet','Autres'); t('nontisse','Autres'); t('non tisse','Autres');
+  // ── Industry codes courts ──
+  t('nc','Offset'); t('mf','Offset'); t('ufwf','Offset'); t('wfum','Offset');
+  t('sc','LWC'); t('glu','LWC'); t('mfc','Couché 2 faces');
+  t('ub','Kraft'); t('bkp','Kraft'); t('us','Kraft');
+  t('gd1','Carton non couché'); t('ws','Carton non couché');
+  t('duplex','Carton couché'); t('triplex','Carton couché'); t('bristol','SBS');
+  t('carte postale','SBS'); t('postcard','SBS'); t('ivoire board','SBS');
+  t('ns','Autocopiant'); t('cb','Autocopiant'); t('cfb','Autocopiant'); t('cf','Autocopiant');
+  // ── Couleur splits ──
+  t('offset couleur','Offset Couleur'); t('papier couleur','Offset Couleur');
+  t('colored paper','Offset Couleur'); t('coloured paper','Offset Couleur');
+  t('couleur','Offset Couleur'); t('color paper','Offset Couleur');
+  t('dossier couleur','Dossier Couleur'); t('carton couleur','Dossier Couleur');
+  t('colored board','Dossier Couleur'); t('coloured board','Dossier Couleur');
+  t('colour board','Dossier Couleur'); t('color board','Dossier Couleur');
+  // ── Colors EN/FR ──
+  c('white','Blanc'); c('blanc','Blanc'); c('blanchi','Blanc'); c('bleached','Blanc');
+  c('brown','Brun'); c('brun','Brun'); c('naturel','Brun'); c('nature','Brun');
+  c('black','Noir'); c('noir','Noir');
+  c('grey','Gris'); c('gray','Gris'); c('gris','Gris'); c('grise','Gris');
+  c('ivory','Ivoire'); c('cream','Ivoire'); c('ivoire','Ivoire'); c('creme','Ivoire');
+  c('ecru','Ivoire'); c('beige','Ivoire'); c('blanc casse','Ivoire');
+  c('green','Vert'); c('vert','Vert');
+  c('red','Rouge'); c('rouge','Rouge');
+  c('blue','Bleu'); c('bleu','Bleu');
+  c('yellow','Jaune'); c('jaune','Jaune');
+  c('orange','Orange');
+  c('silver','Argent'); c('argent','Argent'); c('argente','Argent');
+  c('rose','Rose'); c('pink','Rose');
+  c('violet','Violet'); c('purple','Violet');
+  c('divers','Divers'); c('multicolor','Divers'); c('various','Divers');
+  // ── Formats EN/FR ──
+  f('reel','Bobine'); f('roll','Bobine'); f('rolls','Bobine'); f('bobine','Bobine');
+  f('bobines','Bobine'); f('en bobine','Bobine'); f('en rouleau','Bobine'); f('rouleau','Bobine');
+  f('sheet','Palette'); f('sheets','Palette'); f('pallet','Palette'); f('skid','Palette');
+  f('feuille','Palette'); f('feuilles','Palette'); f('palette','Palette');
+  f('rame','Palette'); f('rames','Palette'); f('fardeau','Palette');
+  f('en feuille','Palette'); f('en palette','Palette');
+  return m;
+})();
+
 const SEARCH_VOCAB=(()=>{
   const v=[];
   for(const[k,codes]of Object.entries(TYPE_MAP))v.push({display:k,norm:_norm(k),codes,kind:'type'});
@@ -74,12 +221,30 @@ const SEARCH_VOCAB=(()=>{
   for(const f of['Bobine','Palette'])v.push({display:f,norm:f.toLowerCase(),kind:'format'});
   return v;
 })();
+
 function fuzzyVocab(tok){
+  // 1. Exact alias match
+  if(ALIAS_MAP.has(tok))return{match:ALIAS_MAP.get(tok),dist:0};
+  // 2. Exact vocab match
   const exact=SEARCH_VOCAB.find(v=>v.norm===tok);
   if(exact)return{match:exact,dist:0};
+  // 3. Prefix match in vocab (e.g. "couche" → "Couché 2 faces")
+  if(tok.length>=4){
+    const pre=SEARCH_VOCAB.find(v=>v.norm.startsWith(tok));
+    if(pre)return{match:pre,dist:1};
+    // Also check if vocab entry starts with token's first word
+    const firstWord=tok.split(' ')[0];
+    if(firstWord.length>=4){
+      const pre2=SEARCH_VOCAB.find(v=>v.norm.startsWith(firstWord));
+      if(pre2)return{match:pre2,dist:1};
+    }
+  }
+  // 4. Fuzzy match against alias keys
   const maxDist=tok.length<=4?1:tok.length<=7?2:3;
-  let best=null,bestDist=Infinity;
-  for(const v of SEARCH_VOCAB){const d=lev(tok,v.norm);if(d<bestDist){bestDist=d;best=v;}}
+  let best=null,bestDist=Infinity,bestIsAlias=false;
+  for(const[k,v]of ALIAS_MAP){const d=lev(tok,k);if(d<bestDist){bestDist=d;best=v;bestIsAlias=true;}}
+  // 5. Fuzzy match against vocab norms
+  for(const v of SEARCH_VOCAB){const d=lev(tok,v.norm);if(d<bestDist){bestDist=d;best=v;bestIsAlias=false;}}
   return bestDist<=maxDist?{match:best,dist:bestDist}:null;
 }
 // =========================
@@ -123,7 +288,12 @@ function rowToUi(r){
     if(!seg) return '';
     return seg.charAt(0).toUpperCase()+seg.slice(1).toLowerCase();
   })();
-  const _typeLabel=Object.entries(TYPE_MAP).find(([,v])=>v.includes(quality))?.[0]||'';
+  // Split Couleur (RCOL/SCOL) into Offset Couleur (<150g) vs Dossier Couleur (≥150g)
+  const _typeLabel=(()=>{
+    if((quality==='RCOL'||quality==='SCOL')&&gsm!=null)
+      return gsm<150?'Offset Couleur':'Dossier Couleur';
+    return Object.entries(TYPE_MAP).find(([,v])=>v.includes(quality))?.[0]||'';
+  })();
   const name=_detMain||[_typeLabel,simplCouleur(color)].filter(Boolean).join(' — ')||(ref&&!ref.startsWith('Photo_')?ref:'Produit');
   const type = quality || 'Produit';
 
@@ -135,6 +305,7 @@ function rowToUi(r){
     noyau: r.noyau || '',
     name,
     type,
+    typeLabel: _typeLabel,
     grammage: gsm,
     largeur: width,
     longueur: length,
@@ -142,7 +313,6 @@ function rowToUi(r){
     couleur: color,
     qualite: quality,
     zone: location,
-    // keep a direct image_url for the UI
     image_url
   };
 }
@@ -256,8 +426,8 @@ function hideLoadProgress(){
 async function init(){
   setLang(lang);
   updateFilterVisibility();
-  // Hardcoded filter options — no DB query needed for these
-  const typeVals=Object.keys(TYPE_MAP).sort((a,b)=>a.localeCompare(b));
+  // Hardcoded filter options — Couleur replaced by Offset Couleur + Dossier Couleur
+  const typeVals=Object.keys(TYPE_MAP).filter(k=>k!=='Couleur'&&k!=='Offset Couleur'&&k!=='Dossier Couleur').concat(['Offset Couleur','Dossier Couleur']).sort((a,b)=>a.localeCompare(b));
   const couleurVals=['Blanc','Brun','Ivoire','Gris','Noir','Vert','Rouge','Bleu','Jaune','Orange','Argent','Couleur','Autres'];
   buildMsdOptions('msd-type',typeVals,'Tous');
   buildMsdOptions('sb-msd-type',typeVals,'Type',undefined,'msd-type');
@@ -291,6 +461,7 @@ async function init(){
     updateMsdBtn('msd-type');
   }
 
+  // type tiles disabled
   // Single query: first page + total count
   await _doFilter();
 }
@@ -446,27 +617,54 @@ function showSuggestions(val,inp){
   const el=inp||document.getElementById('search-input');
   const raw=val.trim();
   if(!raw){hideSuggestions();return;}
-  // Last token being typed
-  const tokens=_norm(raw).split(/[\s,;/]+/).filter(Boolean);
+  const tokens=_norm(raw).split(/[\s,;/x×*]+/).filter(Boolean);
   const last=tokens[tokens.length-1];
-  if(!last||last.length<2){hideSuggestions();return;}
-  // Top 6 fuzzy matches
-  const scored=SEARCH_VOCAB.map(v=>({v,d:lev(last,v.norm)}))
-    .filter(x=>x.d<=3)
-    .sort((a,b)=>a.d-b.d||a.v.display.localeCompare(b.v.display))
-    .slice(0,6);
+  if(!last||last.length<1){hideSuggestions();return;}
+
+  // Number typed → suggest grammage/laize hint
+  const numMatch=last.match(/^(\d+)$/);
+  if(numMatch){
+    const n=+numMatch[1];
+    const hints=[];
+    if(n>=20&&n<=800)hints.push({label:`${n} g/m² — Filtrer par grammage`,action:`${raw.replace(/\d+$/,'')}${n}g `});
+    if(n>=200&&n<=3500)hints.push({label:`${n} mm — Filtrer par laize`,action:`${raw.replace(/\d+$/,'')}${n}mm `});
+    if(hints.length){
+      box.innerHTML=hints.map(h=>`<div class="suggest-item suggest-hint" onclick="document.getElementById('search-input').value='${h.action.trim()}';filterProducts();hideSuggestions()"><span>${h.label}</span></div>`).join('');
+      const rect=el.getBoundingClientRect();
+      box.style.cssText=`position:fixed;top:${rect.bottom+5}px;left:${rect.left}px;min-width:${rect.width+60}px;`;
+      box.classList.add('show');_sugIdx=-1;return;
+    }
+  }
+
+  // Score: 0=exact alias, 1=prefix alias, 2=prefix vocab, 3+=fuzzy
+  const seen=new Set();
+  const candidates=[];
+  for(const[k,v] of ALIAS_MAP){
+    if(seen.has(v.display))continue;
+    if(k===last){candidates.push({v,score:0});seen.add(v.display);}
+    else if(k.startsWith(last)){candidates.push({v,score:1});seen.add(v.display);}
+    else{const d=lev(last,k);if(d<=Math.min(3,Math.floor(last.length/2))){candidates.push({v,score:10+d});seen.add(v.display);}}
+  }
+  for(const v of SEARCH_VOCAB){
+    if(seen.has(v.display))continue;
+    if(v.norm===last){candidates.push({v,score:0});seen.add(v.display);}
+    else if(v.norm.startsWith(last)){candidates.push({v,score:2});seen.add(v.display);}
+    else{const d=lev(last,v.norm);if(d<=Math.min(3,Math.floor(last.length/2))){candidates.push({v,score:10+d});seen.add(v.display);}}
+  }
+  const scored=candidates.sort((a,b)=>a.score-b.score||a.v.display.localeCompare(b.v.display)).slice(0,7);
   if(!scored.length){hideSuggestions();return;}
-  const kindLabel={type:'Type',color:'Couleur',format:'Format'};
-  box.innerHTML=scored.map(({v,d},i)=>`
-    <div class="suggest-item" data-val="${v.display}" data-norm="${v.norm}" onclick="applySuggestion('${v.display}')">
-      <span>${v.display}</span>
-      <span class="suggest-kind">${kindLabel[v.kind]}</span>
-      ${d===0?'<span style="color:var(--gray);font-size:11px;margin-left:auto">✓</span>':''}
+
+  const kindLabel={type:'📄 Type',color:'🎨 Couleur',format:'📦 Format'};
+  const kindColor={type:'var(--ink)','color':'var(--red)',format:'#059669'};
+  box.innerHTML=scored.map(({v,score})=>`
+    <div class="suggest-item" onclick="applySuggestion('${v.display.replace(/'/g,"\\'")}')">
+      <span class="suggest-label">${v.display}</span>
+      <span class="suggest-kind" style="color:${kindColor[v.kind]||'var(--gray)'}">${kindLabel[v.kind]||v.kind}</span>
+      ${score===0?'<span class="suggest-check">✓</span>':''}
     </div>`).join('');
   _sugIdx=-1;
-  // Position fixed under input
   const rect=el.getBoundingClientRect();
-  box.style.cssText=`position:fixed;top:${rect.bottom+5}px;left:${rect.left}px;min-width:${rect.width+60}px;`;
+  box.style.cssText=`position:fixed;top:${rect.bottom+5}px;left:${rect.left}px;min-width:${Math.max(rect.width,280)}px;`;
   box.classList.add('show');
 }
 function hideSuggestions(){
@@ -489,44 +687,70 @@ document.addEventListener('click',e=>{
 });
 // =========================
 
+// Detected type display names from last search (for equivalents banner)
+let _lastDetectedTypes=[];
+
 function parseSearchQuery(raw){
-  if(!raw)return{text:[],gsm:null,width:null,formats:[],colors:[],qualityCodes:[],corrections:[]};
-  const STOP=new Set(['de','du','le','la','les','en','et','un','une','kg','kilo','tonne','tonnes']);
-  const CTX_GSM=new Set(['gramme','grammes','grammage','gms','gsm']);
+  if(!raw)return{text:[],gsm:null,width:null,formats:[],colors:[],qualityCodes:[],corrections:[],detectedTypes:[]};
+  const STOP=new Set(['de','du','le','la','les','en','et','un','une','kg','kilo','tonne','tonnes','paper','papier','carton','board','sur','stock','lot','lots','reel','sheet']);
+  const CTX_GSM=new Set(['gramme','grammes','grammage','gms','gsm','g/m2','g/m','grm','grms','gr','gm','gm2']);
   const CTX_WIDTH=new Set(['laize','largeur','millimetre','millimetres','mm','larg']);
   const CTX_NOYAU=new Set(['noyau','mandrin','noyaux','mandrins']);
-  const tokens=_norm(raw).split(/[\s,;/]+/).filter(Boolean);
-  const res={text:[],gsm:null,width:null,noyau:null,formats:[],colors:[],qualityCodes:[],corrections:[]};
-  let nextIs=null; // context hint for next number: 'gsm'|'width'|'noyau'
-  for(const tok of tokens){
+  // Pre-process: expand "700x1000" or "700×1000" dimension notation
+  const dimExpanded=raw.replace(/(\d+)\s*[x×*]\s*(\d+)/gi,(m,a,b)=>`${a} ${b}`);
+  const normed=_norm(dimExpanded);
+  const tokens=normed.split(/[\s,;/]+/).filter(Boolean);
+  const res={text:[],gsm:null,width:null,noyau:null,formats:[],colors:[],qualityCodes:[],corrections:[],detectedTypes:[]};
+  const usedIdx=new Set();
+
+  // ── Pass 1: multi-word phrase matching (3-word, then 2-word) ──
+  for(let i=0;i<tokens.length;i++){
+    for(const len of[3,2]){
+      if(i+len>tokens.length)continue;
+      const phrase=tokens.slice(i,i+len).join(' ');
+      const a=ALIAS_MAP.get(phrase);
+      if(a){
+        if(a.kind==='type'){res.qualityCodes.push(...a.codes);res.detectedTypes.push(a.display);}
+        else if(a.kind==='format')res.formats.push(a.display);
+        else if(a.kind==='color')res.colors.push(a.display);
+        for(let k=i;k<i+len;k++)usedIdx.add(k);
+        i+=len-1; break;
+      }
+    }
+  }
+
+  // ── Pass 2: single tokens ──
+  let nextIs=null;
+  for(let i=0;i<tokens.length;i++){
+    if(usedIdx.has(i))continue;
+    const tok=tokens[i];
     if(STOP.has(tok))continue;
     if(CTX_GSM.has(tok)){nextIs='gsm';continue;}
     if(CTX_WIDTH.has(tok)){nextIs='width';continue;}
     if(CTX_NOYAU.has(tok)){nextIs='noyau';continue;}
-    const nm=tok.match(/^(\d+)(g|gsm|gm2|gm|gramme|grammes|gms)?$/);
+    const nm=tok.match(/^(\d+)(g\/m2|g\/m²|grm|grms|g\/m|gsm|gm2|gm|gramme|grammes|gms|gr|g)?$/);
     if(nm){const n=+nm[1];
       const hasGsmSuffix=!!nm[2];
       if(nextIs==='gsm'||hasGsmSuffix){res.gsm=n;nextIs=null;continue;}
       if(nextIs==='width'){res.width=n;nextIs=null;continue;}
       if(nextIs==='noyau'){res.noyau=n;nextIs=null;continue;}
-      // no context → infer from range
       if(n>=20&&n<=800){res.gsm=n;continue;}
       if(n>800&&n<=3500){res.width=n;continue;}
     }
     const mm=tok.match(/^(\d+)mm$/);
     if(mm){res.width=+mm[1];nextIs=null;continue;}
     nextIs=null;
-    // Match against vocab (exact first, then fuzzy)
     const fz=fuzzyVocab(tok);
     if(fz){
       if(fz.dist>0)res.corrections.push({from:tok,to:fz.match.display});
-      if(fz.match.kind==='type')res.qualityCodes.push(...fz.match.codes);
+      if(fz.match.kind==='type'){res.qualityCodes.push(...(fz.match.codes||[]));res.detectedTypes.push(fz.match.display);}
       else if(fz.match.kind==='format')res.formats.push(fz.match.display);
       else if(fz.match.kind==='color')res.colors.push(fz.match.display);
       continue;
     }
     if(tok.length>=2)res.text.push(tok);
   }
+  _lastDetectedTypes=[...new Set(res.detectedTypes)];
   return res;
 }
 
@@ -536,8 +760,8 @@ function filterProducts(){
   _filterTimer=setTimeout(_doFilter,200);
 }
 async function _doFilter(){
-  if(_isFirstLoad){currentPage=1+Math.floor(Math.random()*20);_isFirstLoad=false;}
-  else{currentPage=1;}
+  currentPage=1;
+  _isFirstLoad=false;
   _maxKnownPage=1;
   await _fetchAndRender(++_reqToken);
 }
@@ -575,16 +799,24 @@ async function _fetchAndRender(token){
   const _pCodes=parsed.qualityCodes.length&&!_sideCodes.length?parsed.qualityCodes:[];
   const typeCodes=[..._sideCodes,..._pCodes];
 
+  // GSM constraint from Couleur split filter
+  const _couleurOffsetSel=types.has('Offset Couleur')&&!types.has('Dossier Couleur');
+  const _couleurDossierSel=types.has('Dossier Couleur')&&!types.has('Offset Couleur');
+  const _couleurGsmMax=_couleurOffsetSel&&!gn&&!gx?149:0;
+  const _couleurGsmMin=_couleurDossierSel&&!gn&&!gx?150:0;
+
   // Build RPC params for sum_weight_filtered
   const rpcParams={};
   if(parsed.text.length)rpcParams.q=parsed.text.join(' ').replace(/[%_]/g,'\\$&');
   if(typeCodes.length>0)rpcParams.quality_in=typeCodes;
-  const _gsm=parsed.gsm&&!gn&&!gx?parsed.gsm:null;
+  if(_couleurGsmMax)rpcParams.gsm_max=_couleurGsmMax;
+  if(_couleurGsmMin)rpcParams.gsm_min=_couleurGsmMin;
+  const _gsm=parsed.gsm&&!gn&&!gx&&!_couleurGsmMax&&!_couleurGsmMin?parsed.gsm:null;
   const _width=parsed.width&&!lmin&&!lmax?parsed.width:null;
   const _pformats=parsed.formats.length&&!formats.size?parsed.formats:[];
   const _pcolors=parsed.colors.length&&!couleurs.size?parsed.colors:[];
   if(gn)rpcParams.gsm_min=gn; if(gx)rpcParams.gsm_max=gx;
-  if(_gsm){rpcParams.gsm_min=_gsm;rpcParams.gsm_max=_gsm;}
+  if(_gsm){const _tol=Math.max(5,Math.round(_gsm*0.1));rpcParams.gsm_min=_gsm-_tol;rpcParams.gsm_max=_gsm+_tol;}
   if(lmin)rpcParams.width_min=lmin; if(lmax)rpcParams.width_max=lmax;
   if(_width){rpcParams.width_min=_width;rpcParams.width_max=_width;}
   const _pNoyau=parsed.noyau&&!mandrins.size?String(parsed.noyau):null;
@@ -603,9 +835,11 @@ async function _fetchAndRender(token){
   p.set('select','*');
   parsed.text.forEach(term=>{const s=term.replace(/[%_]/g,'\\$&');p.append('or',`(quality.ilike.%${s}%,color.ilike.%${s}%,details.ilike.%${s}%,ref.ilike.%${s}%)`);});
   if(typeCodes.length>0)p.append('quality',`in.(${typeCodes.join(',')})`);
+  if(_couleurGsmMax)p.append('gsm',`lte.${_couleurGsmMax}`);
+  if(_couleurGsmMin)p.append('gsm',`gte.${_couleurGsmMin}`);
   if(gn)p.append('gsm',`gte.${gn}`);
   if(gx)p.append('gsm',`lte.${gx}`);
-  if(_gsm)p.append('gsm',`eq.${_gsm}`);
+  if(_gsm){const _tol=Math.max(5,Math.round(_gsm*0.1));p.append('gsm',`gte.${_gsm-_tol}`);p.append('gsm',`lte.${_gsm+_tol}`);}
   if(lmin)p.append('width',`gte.${lmin}`);
   if(lmax)p.append('width',`lte.${lmax}`);
   if(_width)p.append('width',`eq.${_width}`);
@@ -654,8 +888,6 @@ async function _fetchAndRender(token){
   }
 
   all=(data||[]).map(rowToUi);
-  // Shuffle on default sort (landing page) to show variety
-  if(s==='date_desc'||s==='date'){for(let i=all.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[all[i],all[j]]=[all[j],all[i]];}}
   _totalCount=(_exactCount!=null)?_exactCount:all.length+(currentPage-1)*PAGE;
   _maxKnownPage=Math.ceil(_totalCount/PAGE)||1;
   // Update stats bar with real total
@@ -682,8 +914,31 @@ async function _fetchAndRender(token){
 
   updateFilterChips();
   render(all);
+  renderEquivBanner();
+  updateTilesActiveState();
   _updatePager();
 }
+function renderEquivBanner(){
+  let banner=document.getElementById('equiv-banner');
+  if(!banner){
+    banner=document.createElement('div');
+    banner.id='equiv-banner';
+    const grid=document.getElementById('pgrid');
+    if(grid)grid.parentElement.insertBefore(banner,grid);
+  }
+  const equivTypes=_lastDetectedTypes.flatMap(t=>getEquivTypes(t));
+  const unique=[...new Set(equivTypes)];
+  if(!unique.length||!_lastDetectedTypes.length){banner.innerHTML='';return;}
+  const equivLabel=lang==='en'?'See also:':'Voir aussi :';
+  banner.innerHTML=`<div class="equiv-banner"><span class="equiv-label">💡 ${equivLabel}</span>${unique.map(t=>`<button class="equiv-pill" onclick="applyEquivType('${t.replace(/'/g,"\\'")}')">${t}</button>`).join('')}</div>`;
+}
+function applyEquivType(typeName){
+  const inp=document.getElementById('search-input');
+  inp.value=typeName;
+  inp.dispatchEvent(new Event('input'));
+  filterProducts();
+}
+
 let _maxKnownPage=1;
 function _updatePager(){
   const isLast=all.length<PAGE;
@@ -826,35 +1081,37 @@ function renderCards(list){
     const initials=(p.type||'?').substring(0,2).toUpperCase();
     const _altTxt=[p.name,p.grammage?p.grammage+'g/m²':'',p.couleur].filter(Boolean).join(' — ')||'Produit';
     const imgHtml=p.image_url
-      ?`<img src="${p.image_url}" alt="${_altTxt}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'pcard-placeholder\\'><svg width=\\'40\\' height=\\'40\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'%23ccc\\' stroke-width=\\'1.5\\'><rect x=\\'3\\' y=\\'3\\' width=\\'18\\' height=\\'18\\' rx=\\'2\\'/><circle cx=\\'8.5\\' cy=\\'8.5\\' r=\\'1.5\\'/><polyline points=\\'21,15 16,10 5,21\\'/></svg><span class=\\'pcard-initials\\'>${initials}</span></div>'">`
-      :`<div class="pcard-placeholder"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg><span class="pcard-initials">${initials}</span></div>`;
+      ?`<img src="${p.image_url}" alt="${_altTxt}" loading="lazy" onerror="this.src='img/no-photo.png';this.className='pcard-nophoto'">`
+      :`<img src="img/no-photo.png" alt="Photo sur demande" class="pcard-nophoto">`;
     const {cls:badgeCls,txt:badgeTxt}=decodeQuality(p.type);
     const isPalette=p.format&&p.format.toLowerCase().includes('palette');
     const dimTag=!isPalette&&p.largeur?`${p.largeur} mm`:'';
+    const fmtLabel=p.format?(isPalette?'Format':'Bobine'):null;
+    const paletteDims=isPalette&&(p.largeur||p.longueur)?[p.largeur,p.longueur].filter(Boolean).join('×'):null;
     const tags=[
-      p.grammage?`<span class="tag tag-gsm">${p.grammage} g/m²</span>`:'',
-      dimTag?`<span class="tag">${dimTag}</span>`:'',
-      p.noyau?`<span class="tag">Ø${p.noyau} mm</span>`:'',
-      formatLabel(p)?`<span class="tag">${formatLabel(p)}</span>`:'',
+      fmtLabel?`<span class="tag tag-format">${fmtLabel}</span>`:'',
       p.couleur?`<span class="tag">${p.couleur}</span>`:'',
+      dimTag?`<span class="tag tag-dim">${dimTag}</span>`:'',
+      p.noyau?`<span class="tag tag-dim">Ø${p.noyau} mm</span>`:'',
+      paletteDims?`<span class="tag tag-dim">${paletteDims}</span>`:'',
     ].join('');
-    const poids=p.poids_net?`${(p.poids_net/1000).toFixed(2)}`:'—';
+    const poids=p.poids_net?`${p.poids_net.toLocaleString('fr-FR')}`:'—';
     const prixHtml=p.price
       ?`<div class="pcard-price">${p.price.toLocaleString('fr-FR')} €/T</div>`
       :`<div class="pcard-price-ask">${LT[lang].t_sur_demande}</div>`;
+    const typeOverlay=p.typeLabel?`<div class="pcard-type-overlay">${p.typeLabel}</div>`:'';
+    const gsmOverlay=p.grammage?`<div class="pcard-gsm-overlay"><span class="pcard-gsm-num">${p.grammage}</span><span class="pcard-gsm-lbl">g/m²</span></div>`:'';
+    const photoRef=p.ref&&p.ref.startsWith('Photo_')?`<div class="pcard-photo-ref">${p.ref}</div>`:'';
     return`<div class="pcard" onclick="openDetail(${p.id})">
-      <div class="pcard-img">${imgHtml}</div>
+      <div class="pcard-img">${imgHtml}${typeOverlay}${gsmOverlay}${photoRef}</div>
       <div class="pcard-stripe"></div>
       <div class="pcard-body">
-        <div class="pcard-ref">${p.ref||'—'}</div>
         <div class="pcard-name">${p.name||p.type||'—'}</div>
         <div class="tags">${tags}</div>
-        <div class="pcard-bottom">
-          <button class="btn-add-cart" id="cadd-${p.id}" onclick="event.stopPropagation();addToCart(${p.id})" aria-label="${LT[lang].t_add_ctr||'+ Ajouter'} ${p.name}"><span class="cart-icon">+</span><span class="cart-check">✓</span> ${LT[lang].t_add_ctr?.replace('+ ','')||'Ajouter'}</button>
-          <div class="pcard-foot">
-            <div><div class="pton">${poids}<span class="pton-s"> T</span></div></div>
-            ${prixHtml}
-          </div>
+        <button class="btn-add-cart" id="cadd-${p.id}" onclick="event.stopPropagation();addToCart(${p.id})"><span class="cart-icon">+</span><span class="cart-check">✓</span> ${lang==='en'?'Add':'Ajouter'}</button>
+        <div class="pcard-foot">
+          <div class="pton">${poids}<span class="pton-s"> KGS</span></div>
+          ${prixHtml}
         </div>
       </div>
     </div>`;
@@ -924,6 +1181,13 @@ async function openDetail(id){
     :`<span style="font-size:12px;color:#aaa;font-style:italic;">${LT[lang].t_sur_demande}</span>`;
   document.getElementById('det-poids-val').textContent=p.poids_net?fmt(p.poids_net):'—';
 
+  // Reset modal add button state
+  const mab=document.getElementById('modal-add-btn');
+  if(mab){
+    const alreadyIn=cart.find(x=>x.id===+p.id);
+    mab.classList.toggle('added',!!alreadyIn);
+    mab.innerHTML=alreadyIn?'✓ '+(lang==='en'?'Added':'Ajouté'):(LT[lang].t_add_modal_btn||'+ Ajouter au container');
+  }
   document.getElementById('detail-bg').classList.add('show');
   document.body.style.overflow='hidden';
 }
@@ -980,6 +1244,7 @@ function resetFilters(){
   // Reset mobile drawer inputs too
   ['f-gmin-mob','f-gmax-mob','f-lmin-mob','f-lmax-mob','f-pmin-mob','f-pmax-mob'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   updateFilterChips();
+  updateTilesActiveState();
   const ac=document.getElementById('active-chips');if(ac)ac.innerHTML='';
   const rr=document.getElementById('rbar-reset');if(rr)rr.style.display='none';
   currentPage=1;_doFilter();
@@ -1007,17 +1272,9 @@ function addToCart(id){
   localStorage.setItem('prodi_cart',JSON.stringify(cart));
   updateCartBadge();
   // Update legacy cards
-  document.querySelectorAll('.btn-add-cart').forEach(btn=>{
-    if(btn.getAttribute('onclick')?.includes(id)){
-      btn.classList.add('added');
-      const t=btn.querySelector('.cart-txt');
-      if(t){t.textContent=LT[lang].t_added_ctr||'✓ Ajouté';}
-      setTimeout(()=>{btn.classList.remove('added');if(t)t.textContent=LT[lang].t_add_ctr||'+ Ajouter';},1800);
-    }
-  });
-  // Update card button
+  // Update card button — stays green permanently
   const caddBtn=document.getElementById('cadd-'+id);
-  if(caddBtn){caddBtn.classList.add('added');caddBtn.textContent=LT[lang].t_added_ctr||'✓ Ajouté';setTimeout(()=>{caddBtn.classList.remove('added');caddBtn.innerHTML=`<span class="cart-icon">+</span><span class="cart-check">✓</span> ${LT[lang].t_add_ctr||'+ Ajouter'}`;},1800);}
+  if(caddBtn){caddBtn.classList.add('added');caddBtn.innerHTML=`<span class="cart-check">✓</span> ${lang==='en'?'Added':'Ajouté'}`;}
   toast(lang==='en'?'✅ Added to container !':'✅ Ajouté au container !');
   renderDrawer();
 }
@@ -1042,12 +1299,12 @@ function openCartDrawer(){
   renderDrawer();
   document.getElementById('drawer-overlay').classList.add('show');
   document.getElementById('cart-drawer').classList.add('show');
-  document.body.style.overflow='hidden';
+  document.body.classList.add('drawer-open');
 }
 function closeCartDrawer(){
   document.getElementById('drawer-overlay').classList.remove('show');
   document.getElementById('cart-drawer').classList.remove('show');
-  document.body.style.overflow='';
+  document.body.classList.remove('drawer-open');
 }
 
 function renderDrawer(){
@@ -1331,6 +1588,7 @@ const LT={
     t_pfc_msg_ph:'Délai, conditionnement…',
     t_cmp_pre:'Comparer', t_cmp_suf:'produits →',
     t_vider_title:'Vider',
+    t_browse_type:'Parcourir par type',
     t_ft_tagline:'Négoce papier & carton B2B',
     t_ft_stock:'Stock Europe — Recyclé & Fabrication',
     t_ft_update:'Mise à jour quotidienne du stock',
@@ -1396,6 +1654,7 @@ const LT={
     t_ft_quote:'Quote within 24 business hours',
     t_ft_loading:'European loading 24–48h',
     t_ft_copy:'© 2026 Prodiconseil · Paper & board stock B2B',
+    t_browse_type:'Browse by type',
   }
 };
 function setLang(l){
@@ -1458,6 +1717,32 @@ function setLang(l){
 
 updateCartBadge();
 init();
+
+
+function selectTypeTile(typeName){
+  const state = msdState['msd-type'];
+  if(state.has(typeName)) state.delete(typeName);
+  else state.add(typeName);
+  ['msd-type','sb-msd-type','msd-type-mob'].forEach(msdId=>{
+    const el=document.getElementById(msdId);
+    if(!el) return;
+    el.querySelectorAll('.msd-option').forEach(o=>{
+      o.classList.toggle('selected', state.has(o.dataset.val));
+    });
+  });
+  updateMsdBtn('msd-type');
+  updateTilesActiveState();
+  filterProducts();
+}
+
+function updateTilesActiveState(){
+  if(!_typeTilesData) return;
+  const state = msdState['msd-type'];
+  document.querySelectorAll('.type-tile').forEach(tile=>{
+    const name = tile.querySelector('.tile-name')?.textContent;
+    if(name) tile.classList.toggle('active', state.has(name));
+  });
+}
 
 // Sync results-bar sticky top to actual header height
 function syncResultsBarTop(){
