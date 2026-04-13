@@ -943,7 +943,7 @@ async function _fetchAndRender(token){
   _totalCount=(_exactCount!=null)?_exactCount:all.length+(currentPage-1)*PAGE;
   _maxKnownPage=Math.ceil(_totalCount/PAGE)||1;
   // Update stats bar with real total
-  const _st=document.getElementById('s-ton');if(_st&&_totalCount)_st.textContent=_totalCount.toLocaleString('fr-FR')+' réf.';
+  const _st=document.getElementById('s-ton');if(_st&&_totalCount)_st.textContent=_totalCount.toLocaleString('fr-FR')+' produits';
   // Update results bar
   const rbarRefs=document.getElementById('rbar-refs');
   const rbarTons=document.getElementById('rbar-tons');
