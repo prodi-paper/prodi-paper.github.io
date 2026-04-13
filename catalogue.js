@@ -1389,6 +1389,8 @@ function addToCart(id){
   // Update card button — stays green permanently
   const caddBtn=document.getElementById('cadd-'+id);
   if(caddBtn){caddBtn.classList.add('added');caddBtn.innerHTML=`<span class="cart-check">✓</span> ${lang==='en'?'Added':'Ajouté'}`;}
+  const laddBtn=document.getElementById('ladd-'+id);
+  if(laddBtn){laddBtn.classList.add('added');laddBtn.textContent=`✓ ${lang==='en'?'Added':'Ajouté'}`;}
   toast(lang==='en'?'✅ Added to container !':'✅ Ajouté au container !');
   renderDrawer();
 }
