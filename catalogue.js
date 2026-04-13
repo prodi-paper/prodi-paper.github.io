@@ -1171,9 +1171,69 @@ function renderCards(list){
   }).join('');
 }
 
+let _viewMode='grid';
+function setView(mode){
+  _viewMode=mode;
+  document.getElementById('vt-grid').classList.toggle('active',mode==='grid');
+  document.getElementById('vt-list').classList.toggle('active',mode==='list');
+  const g=document.getElementById('pgrid');
+  if(g&&g._lastList)render(g._lastList);
+}
+
+function renderList(list){
+  const g=document.getElementById('pgrid');
+  if(!g)return;
+  g.className='pgrid plist';
+  const rows=list.map(p=>{
+    const thumb=p.image_url
+      ?`<img src="${p.image_url}" alt="" class="plist-thumb" loading="lazy" onerror="this.src='img/no-photo.png'">`
+      :`<img src="img/no-photo.png" class="plist-thumb">`;
+    const price=p.price
+      ?`<span class="plist-price">${p.price.toLocaleString('fr-FR')} €/T</span>`
+      :`<span class="plist-price-ask">Sur demande</span>`;
+    const inCart=cart.find(x=>x.id===+p.id);
+    const addBtn=`<button class="plist-add${inCart?' added':''}" id="ladd-${p.id}" onclick="event.stopPropagation();addToCart(${p.id})">${inCart?'✓ Ajouté':'+ Ajouter'}</button>`;
+    const isPalette=p.format&&p.format.toLowerCase().includes('palette');
+    const fmt=p.format?`<span class="plist-fmt">${isPalette?'Palette':'Bobine'}</span>`:'';
+    const dims=isPalette
+      ?[p.largeur,p.longueur].filter(Boolean).join('×')||'—'
+      :p.largeur?`${p.largeur} mm`:'—';
+    return`<tr onclick="openDetail(${p.id})">
+      <td class="plist-td plist-thumb-wrap">${thumb}</td>
+      <td class="plist-td"><span class="plist-code">${p.typeLabel||p.type||'—'}</span></td>
+      <td class="plist-td wrap">${p.name||'—'}</td>
+      <td class="plist-td">${p.couleur||'—'}</td>
+      <td class="plist-td"><span class="plist-gsm">${p.grammage||'—'}</span></td>
+      <td class="plist-td">${dims}</td>
+      <td class="plist-td">${p.noyau?`Ø${p.noyau} mm`:'—'}</td>
+      <td class="plist-td">${p.poids_net?p.poids_net.toLocaleString('fr-FR')+' kg':'—'}</td>
+      <td class="plist-td">${price}</td>
+      <td class="plist-td">${fmt}</td>
+      <td class="plist-td">${addBtn}</td>
+    </tr>`;
+  }).join('');
+  g.innerHTML=`<table class="plist-table">
+    <thead><tr>
+      <th></th>
+      <th>Qualité</th>
+      <th>Désignation</th>
+      <th>Couleur</th>
+      <th>GSM</th>
+      <th>Laize</th>
+      <th>Mandrin</th>
+      <th>Poids</th>
+      <th>Prix</th>
+      <th>Format</th>
+      <th></th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
 function render(list){
   const g=document.getElementById('pgrid');
   if(!g)return;
+  g._lastList=list;
   if(!list||list.length===0){
     g.className='pgrid';
     g.innerHTML=`<div class="empty" style="grid-column:1/-1">
@@ -1186,7 +1246,8 @@ function render(list){
     </div>`;
     return;
   }
-  renderCards(list);
+  if(_viewMode==='list') renderList(list);
+  else renderCards(list);
 }
 
 

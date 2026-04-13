@@ -38,7 +38,7 @@
 <link rel="preconnect" href="https://bvcgpdoukhcatjibmvnb.supabase.co">
 <link rel="dns-prefetch" href="https://stock.prodi.net">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="catalogue.css?v=51">
+<link rel="stylesheet" href="catalogue.css?v=52">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
@@ -304,6 +304,14 @@
           <option value="prix_asc" data-i18n-opt="t_sort_price_asc">Prix ↑</option>
           <option value="prix_desc" data-i18n-opt="t_sort_price_desc">Prix ↓</option>
         </select>
+        <div class="view-toggle">
+          <button class="vt-btn active" id="vt-grid" onclick="setView('grid')" title="Vue grille">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="6" height="6" rx="1"/><rect x="8" y="0" width="6" height="6" rx="1"/><rect x="0" y="8" width="6" height="6" rx="1"/><rect x="8" y="8" width="6" height="6" rx="1"/></svg>
+          </button>
+          <button class="vt-btn" id="vt-list" onclick="setView('list')" title="Vue liste">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="14" height="2.5" rx="1"/><rect x="0" y="5.5" width="14" height="2.5" rx="1"/><rect x="0" y="11" width="14" height="2.5" rx="1"/></svg>
+          </button>
+        </div>
       </div>
     </div>
     <div class="pgrid" id="pgrid">
@@ -632,6 +640,6 @@
 </div>
 <div class="spin-bg" id="spinner"><div class="spin"></div></div>
 
-<script src="catalogue.js?v=49"></script>
+<script src="catalogue.js?v=50"></script>
 </body>
 </html>
