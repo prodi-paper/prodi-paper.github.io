@@ -38,7 +38,7 @@
 <link rel="preconnect" href="https://bvcgpdoukhcatjibmvnb.supabase.co">
 <link rel="dns-prefetch" href="https://stock.prodi.net">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="catalogue.css?v=52">
+<link rel="stylesheet" href="catalogue.css?v=80">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
@@ -161,30 +161,7 @@
   <div id="active-chips"></div>
 </div>
 
-<!-- ── RESULTS BAR ── -->
-<div id="results-bar">
-  <div class="rbar-inner">
-    <div class="rbar-lang">
-      <button onclick="setLang('fr')" id="lang-fr-m" class="lang-btn on">FR</button>
-      <button onclick="setLang('en')" id="lang-en-m" class="lang-btn">EN</button>
-    </div>
-    <div class="rbar-count" id="rbar-count" role="status" aria-live="polite">
-      <span id="rbar-refs">—</span> <span id="rbar-refs-lbl" data-i18n="t_refs">produits</span> • <span id="rbar-tons">—</span> t
-      <span id="correction-note"></span>
-    </div>
-    <div class="rbar-sort">
-      <span class="rbar-sort-lbl" data-i18n="t_trier">Trier :</span>
-      <select class="rbar-sel" id="sort-sel" onchange="_doFilter()">
-        <option value="date_desc" data-i18n-opt="t_sort_new">Plus récents</option>
-        <option value="gsm_asc" selected data-i18n-opt="t_sort_gsm_asc">Grammage ↑</option>
-        <option value="gsm_desc" data-i18n-opt="t_sort_gsm_desc">Grammage ↓</option>
-        <option value="price_asc" data-i18n-opt="t_sort_price_asc">Prix ↑</option>
-        <option value="price_desc" data-i18n-opt="t_sort_price_desc">Prix ↓</option>
-      </select>
-    </div>
-    <button class="rbar-reset" id="rbar-reset" onclick="resetFilters()" style="display:none" data-i18n="t_effacer">Effacer</button>
-  </div>
-</div>
+<!-- results-bar moved inside body-wrap -->
 
 <div class="mob-search-bar">
   <div class="header-search">
@@ -215,7 +192,7 @@
     <div class="filters-panel" id="filters-panel">
       <div class="fp-head">
         <div class="fp-title" data-i18n="t_filtres">FILTRES</div>
-        <button class="fp-reset" data-i18n="t_effacer" onclick="resetFilters()" style="background:none;border:none;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;color:var(--red);cursor:pointer;text-transform:uppercase;">Effacer</button>
+        <button class="fp-reset" onclick="resetFilters()" style="background:none;border:none;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;color:var(--red);cursor:pointer;text-transform:uppercase;letter-spacing:.5px;">Réinitialiser</button>
       </div>
       <div class="fg" style="border-bottom:2px solid var(--border);margin-bottom:14px;padding-bottom:14px;">
         <label class="fl" data-i18n="t_fmt">Format</label>
@@ -227,18 +204,9 @@
 
 
       <div class="fg">
-        <label class="fl"><span>Qualité</span><span class="fl-count" id="fl-count-type" style="display:none">0</span></label>
+        <label class="fl"><span>Type</span><span class="fl-count" id="fl-count-type" style="display:none">0</span></label>
         <div class="msd" id="sb-msd-type">
           <button class="msd-btn" data-msd-id="msd-type" onclick="toggleMsd('sb-msd-type')">
-            <span class="msd-btn-label">Qualité</span><span class="msd-arrow">▾</span>
-          </button>
-          <div class="msd-panel"></div>
-        </div>
-      </div>
-      <div class="fg">
-        <label class="fl"><span>Type</span><span class="fl-count" id="fl-count-qualite" style="display:none">0</span></label>
-        <div class="msd" id="sb-msd-qualite">
-          <button class="msd-btn" data-msd-id="msd-qualite" onclick="toggleMsd('sb-msd-qualite')">
             <span class="msd-btn-label">Type</span><span class="msd-arrow">▾</span>
           </button>
           <div class="msd-panel"></div>
@@ -264,35 +232,55 @@
           </div>
         </div>
       </div>
-      <div class="fg"><label class="fl"><span data-i18n="t_gsm_lbl">Grammage</span> <span style="font-weight:400;font-size:11px;color:var(--gray)">(g/m²)</span></label>
-        <div class="frow">
-          <div class="fi-unit-wrap"><input type="number" class="fi" id="f-gmin-sb" placeholder="Min" oninput="syncSbFilter('f-gmin',this.value)"><span class="fi-unit">g/m²</span></div>
-          <div class="fi-unit-wrap"><input type="number" class="fi" id="f-gmax-sb" placeholder="Max" oninput="syncSbFilter('f-gmax',this.value)"><span class="fi-unit">g/m²</span></div>
-        </div>
+      <div class="fg">
+        <div class="nmr-row"><label class="fl"><span data-i18n="t_gsm_lbl">Grammage</span> <span class="nmr-unit">(g/m²)</span></label><button type="button" class="nmr-reset" onclick="nmReset('gsm')">Tous</button></div>
+        <div class="nmr-wrap"><input type="number" class="nmr-in" id="f-gmin" placeholder="Min" min="0" oninput="filterProducts()"><span class="nmr-sep">—</span><input type="number" class="nmr-in" id="f-gmax" placeholder="Max" min="0" oninput="filterProducts()"></div>
       </div>
-      <div class="fg" id="sb-sec-laize"><label class="fl" id="sb-laize-lbl"><span data-i18n="t_laize_lbl">Laize</span> <span style="font-weight:400;font-size:11px;color:var(--gray)">(mm)</span></label>
-        <div class="frow">
-          <div class="fi-unit-wrap"><input type="number" class="fi" id="f-lmin-sb" placeholder="Min" oninput="syncSbFilter('f-lmin',this.value)"><span class="fi-unit">mm</span></div>
-          <div class="fi-unit-wrap"><input type="number" class="fi" id="f-lmax-sb" placeholder="Max" oninput="syncSbFilter('f-lmax',this.value)"><span class="fi-unit">mm</span></div>
-        </div>
+      <div class="fg" id="sb-sec-laize">
+        <div class="nmr-row"><label class="fl" id="sb-laize-lbl"><span data-i18n="t_laize_lbl">Laize</span> <span class="nmr-unit">(mm)</span></label><button type="button" class="nmr-reset" onclick="nmReset('lz')">Tous</button></div>
+        <div class="nmr-wrap"><input type="number" class="nmr-in" id="f-lmin" placeholder="Min" min="0" oninput="filterProducts()"><span class="nmr-sep">—</span><input type="number" class="nmr-in" id="f-lmax" placeholder="Max" min="0" oninput="filterProducts()"></div>
       </div>
-      <div class="fg" id="sb-sec-longueur"><label class="fl"><span data-i18n="t_longueur_lbl">Longueur</span> <span style="font-weight:400;font-size:11px;color:var(--gray)">(mm)</span></label>
-        <div class="frow">
-          <div class="fi-unit-wrap"><input type="number" class="fi" id="f-longmin-sb" placeholder="Min" oninput="syncSbFilter('f-longmin',this.value)"><span class="fi-unit">mm</span></div>
-          <div class="fi-unit-wrap"><input type="number" class="fi" id="f-longmax-sb" placeholder="Max" oninput="syncSbFilter('f-longmax',this.value)"><span class="fi-unit">mm</span></div>
-        </div>
+      <div class="fg" id="sb-sec-longueur">
+        <div class="nmr-row"><label class="fl"><span data-i18n="t_longueur_lbl">Longueur</span> <span class="nmr-unit">(mm)</span></label><button type="button" class="nmr-reset" onclick="nmReset('long')">Tous</button></div>
+        <div class="nmr-wrap"><input type="number" class="nmr-in" id="f-longmin" placeholder="Min" min="0" oninput="filterProducts()"><span class="nmr-sep">—</span><input type="number" class="nmr-in" id="f-longmax" placeholder="Max" min="0" oninput="filterProducts()"></div>
       </div>
-      <div class="fg"><label class="fl"><span data-i18n="t_prix_lbl">Prix</span> <span style="font-weight:400;font-size:11px;color:var(--gray)">(€/T)</span></label>
-        <div class="frow">
-          <div class="fi-unit-wrap"><input type="number" class="fi" id="f-pmin-sb" placeholder="Min" oninput="syncSbFilter('f-pmin',this.value)"><span class="fi-unit">€/T</span></div>
-          <div class="fi-unit-wrap"><input type="number" class="fi" id="f-pmax-sb" placeholder="Max" oninput="syncSbFilter('f-pmax',this.value)"><span class="fi-unit">€/T</span></div>
-        </div>
+      <div class="fg">
+        <div class="nmr-row"><label class="fl"><span data-i18n="t_prix_lbl">Prix</span> <span class="nmr-unit">(€/T)</span></label><button type="button" class="nmr-reset" onclick="nmReset('prix')">Tous</button></div>
+        <div class="nmr-wrap"><input type="number" class="nmr-in" id="f-pmin" placeholder="Min" min="0" oninput="filterProducts()"><span class="nmr-sep">—</span><input type="number" class="nmr-in" id="f-pmax" placeholder="Max" min="0" oninput="filterProducts()"></div>
       </div>
 
     </div>
   </div>
 
   <div>
+    <div id="shared-quote-banner" style="display:none"></div>
+    <div id="results-bar">
+      <div class="rbar-inner">
+        <div class="rbar-lang">
+          <button onclick="setLang('fr')" id="lang-fr-m" class="lang-btn on">FR</button>
+          <button onclick="setLang('en')" id="lang-en-m" class="lang-btn">EN</button>
+        </div>
+        <button class="vt-toggle-btn" id="vt-toggle" onclick="toggleView()">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="14" height="2.5" rx="1"/><rect x="0" y="5.5" width="14" height="2.5" rx="1"/><rect x="0" y="11" width="14" height="2.5" rx="1"/></svg>
+          <span>Vue liste</span>
+        </button>
+        <div class="rbar-count" id="rbar-count" role="status" aria-live="polite">
+          <span id="rbar-refs">—</span> <span id="rbar-refs-lbl" data-i18n="t_refs">produits</span> • <span id="rbar-tons">—</span> t
+          <span id="correction-note"></span>
+        </div>
+        <div class="rbar-sort">
+          <span class="rbar-sort-lbl" data-i18n="t_trier">Trier :</span>
+          <select class="rbar-sel" id="sort-sel" onchange="_doFilter()">
+            <option value="date_desc" data-i18n-opt="t_sort_new">Plus récents</option>
+            <option value="gsm_asc" selected data-i18n-opt="t_sort_gsm_asc">Grammage ↑</option>
+            <option value="gsm_desc" data-i18n-opt="t_sort_gsm_desc">Grammage ↓</option>
+            <option value="price_asc" data-i18n-opt="t_sort_price_asc">Prix ↑</option>
+            <option value="price_desc" data-i18n-opt="t_sort_price_desc">Prix ↓</option>
+          </select>
+        </div>
+        <button class="rbar-reset" id="rbar-reset" onclick="resetFilters()" style="display:none">Réinitialiser</button>
+      </div>
+    </div>
     <div class="prod-head">
       <div><div class="prod-count" id="prod-count"></div><div class="pcount-tons" id="pcount-tons"></div></div>
       <div class="sort-wrap">
@@ -304,26 +292,20 @@
           <option value="prix_asc" data-i18n-opt="t_sort_price_asc">Prix ↑</option>
           <option value="prix_desc" data-i18n-opt="t_sort_price_desc">Prix ↓</option>
         </select>
-        <div class="view-toggle">
-          <button class="vt-btn active" id="vt-grid" onclick="setView('grid')" title="Vue grille">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="6" height="6" rx="1"/><rect x="8" y="0" width="6" height="6" rx="1"/><rect x="0" y="8" width="6" height="6" rx="1"/><rect x="8" y="8" width="6" height="6" rx="1"/></svg>
-          </button>
-          <button class="vt-btn" id="vt-list" onclick="setView('list')" title="Vue liste">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="14" height="2.5" rx="1"/><rect x="0" y="5.5" width="14" height="2.5" rx="1"/><rect x="0" y="11" width="14" height="2.5" rx="1"/></svg>
-          </button>
-        </div>
+        <button class="vt-toggle-btn" id="vt-toggle" onclick="toggleView()">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="14" height="2.5" rx="1"/><rect x="0" y="5.5" width="14" height="2.5" rx="1"/><rect x="0" y="11" width="14" height="2.5" rx="1"/></svg>
+          <span>Vue liste</span>
+        </button>
       </div>
     </div>
-    <div class="pgrid" id="pgrid">
-      <div class="loading-grid">
-        <div class="skeleton"><div class="skel-img"></div><div class="skel-body"><div class="skel-line short"></div><div class="skel-line med"></div><div class="skel-line"></div></div></div><div class="skeleton"><div class="skel-img"></div><div class="skel-body"><div class="skel-line short"></div><div class="skel-line med"></div><div class="skel-line"></div></div></div><div class="skeleton"><div class="skel-img"></div><div class="skel-body"><div class="skel-line short"></div><div class="skel-line med"></div><div class="skel-line"></div></div></div><div class="skeleton"><div class="skel-img"></div><div class="skel-body"><div class="skel-line short"></div><div class="skel-line med"></div><div class="skel-line"></div></div></div><div class="skeleton"><div class="skel-img"></div><div class="skel-body"><div class="skel-line short"></div><div class="skel-line med"></div><div class="skel-line"></div></div></div><div class="skeleton"><div class="skel-img"></div><div class="skel-body"><div class="skel-line short"></div><div class="skel-line med"></div><div class="skel-line"></div></div></div><div class="skeleton"><div class="skel-img"></div><div class="skel-body"><div class="skel-line short"></div><div class="skel-line med"></div><div class="skel-line"></div></div></div><div class="skeleton"><div class="skel-img"></div><div class="skel-body"><div class="skel-line short"></div><div class="skel-line med"></div><div class="skel-line"></div></div></div>
-      </div>
-    </div>
+    <div class="pgrid" id="pgrid"></div>
+    <div class="pager" id="pager"></div>
   </div>
 </div>
 
 <!-- DETAIL MODAL -->
 <div class="modal-bg" id="detail-bg" onclick="if(event.target===this)closeDetail()">
+  <button class="dmod-nav dmod-prev" id="dmod-prev" onclick="navDetail(-1)" aria-label="Précédent">&#8592;</button>
   <div class="dmodal" role="dialog" aria-modal="true" aria-labelledby="det-name">
     <!-- Col gauche : image -->
     <div class="dimg-col">
@@ -348,7 +330,7 @@
         </div>
       </div>
       <div class="d-actions">
-        <button class="btn-cart-det" id="modal-add-btn" data-i18n="t_add_modal_btn" onclick="addToCart(cur?.id);this.classList.add('added');this.innerHTML='✓ '+(lang==='en'?'Added':'Ajouté');">+ Ajouter au container</button>
+        <button class="btn-cart-det" id="modal-add-btn" data-i18n="t_add_modal_btn" onclick="addToCart(cur?.id)">+ Ajouter au container</button>
         <button class="btn-pf" data-i18n="t_demander_devis" onclick="openProforma()">DEMANDER UN DEVIS</button>
         <button class="btn-wa2" onclick="contactWA()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.464 3.488"/></svg>
@@ -359,6 +341,7 @@
       </div>
     </div>
   </div>
+  <button class="dmod-nav dmod-next" id="dmod-next" onclick="navDetail(1)" aria-label="Suivant">&#8594;</button>
 </div>
 
 <!-- CART DRAWER -->
@@ -369,7 +352,10 @@
       <div class="drawer-title" data-i18n="t_my_container">MON CONTAINER</div>
       <div class="drawer-meta" id="drawer-meta">—</div>
     </div>
-    <button class="drawer-close" onclick="closeCartDrawer()">✕</button>
+    <div class="drawer-head-actions">
+      <button class="btn-clear-drawer-top" onclick="doClearCart()" data-i18n="t_clear_cart">Vider</button>
+      <button class="drawer-close" onclick="closeCartDrawer()">✕</button>
+    </div>
   </div>
   <div class="drawer-items" id="drawer-items">
     <div class="drawer-empty">
@@ -398,7 +384,7 @@
     </div>
     <button class="btn-pf-drawer" onclick="openCartProforma()" data-i18n="t_pf_btn">📄 DEMANDER UN DEVIS</button>
     <div class="pf-microcopy" data-i18n="t_pf_microcopy">Réponse sous 24h ouvrées · Origine UE · Documents disponibles</div>
-    <button class="btn-clear-drawer" onclick="confirmClearCart()" data-i18n="t_clear_cart">Vider le container</button>
+    <button class="btn-share-drawer" id="btn-share-cart" onclick="shareCart()">🔗 Partager cette sélection</button>
   </div>
 </div>
 
@@ -640,6 +626,6 @@
 </div>
 <div class="spin-bg" id="spinner"><div class="spin"></div></div>
 
-<script src="catalogue.js?v=51"></script>
+<script src="catalogue.js?v=93"></script>
 </body>
 </html>

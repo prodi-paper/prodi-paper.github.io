@@ -12,7 +12,8 @@ async function sbQ(path,opts={}){
   const r=await fetch(SURL+'/rest/v1/'+path,{method:opts.method||'GET',headers:{...SB_H,...(opts.headers||{})},body:opts.body!=null?JSON.stringify(opts.body):undefined,signal:opts.signal});
   const txt=await r.text();const d=txt?JSON.parse(txt):null;
   const cr=r.headers.get('Content-Range');
-  return{data:r.ok?d:null,error:r.ok?null:(d||{message:'HTTP '+r.status}),count:cr&&cr.includes('/')?+cr.split('/')[1]:null};
+  const _rawCnt=cr&&cr.includes('/')?+cr.split('/')[1]:null;
+  return{data:r.ok?d:null,error:r.ok?null:(d||{message:'HTTP '+r.status}),count:(_rawCnt!=null&&!isNaN(_rawCnt))?_rawCnt:null};
 }
 const WA='33649754915';
 let all=[],cur=null;
@@ -71,18 +72,56 @@ function lev(a,b){
 }
 const _norm=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 
+// Simple French stemmer for search tolerance
+function _stem(w){
+  if(w.length<=4)return w;
+  const sfx=[
+    ['ations','at'],['ation','at'],
+    ['ements',''],['ement',''],
+    ['issants','iss'],['issant','iss'],
+    ['tions','tion'],
+    ['eurs','eur'],['euse','eux'],
+    ['ées','e'],['ées',''],
+    ['aux','al'],
+    ['ées','ee'],
+    ['iers','ier'],
+    ['ices','ice'],
+    ['ues','u'],
+    ['es',''],['er',''],['s','']
+  ];
+  for(const [suf,rep] of sfx){
+    if(w.length>suf.length+3&&w.endsWith(suf))return w.slice(0,-suf.length)+rep;
+  }
+  return w;
+}
+
 // Equivalence groups — for "Voir aussi" suggestions
 const EQUIV_GROUPS=[
-  ['Couché 2 faces','Couché 1 face','LWC','Luxe'],
-  ['Offset','Bouffant'],
-  ['Kraft','Emballage'],
-  ['SBS','Carton couché','Carton non couché'],
-  ['Liner','Adhésif'],
-  ['Autocopiant'],
-  ['Thermique'],
-  ['Silicone-Glassine'],
-  ['Ouate'],
-  ['Journal'],
+  ['Couché 2 faces','Couché 1 face','LWC','Luxe','SBS'],
+  ['Couché 1 face','Couché 2 faces','LWC','Silicone-Glassine','Luxe'],
+  ['LWC','Couché 2 faces','Couché 1 face','Offset','Luxe'],
+  ['Luxe','Couché 2 faces','LWC','SBS','Couché 1 face'],
+  ['Offset','Bouffant','Journal','Couché 2 faces','LWC'],
+  ['Bouffant','Offset','Journal','Kraft','Emballage'],
+  ['Kraft','Emballage','Liner','Bouffant','Kraft armé'],
+  ['Kraft armé','Kraft','Complexe','Emballage','Liner'],
+  ['Kraft gomme','Kraft','Adhésif','Emballage'],
+  ['Emballage','Kraft','Liner','Bouffant','Papier cadeau'],
+  ['Liner','Kraft','Emballage','Bouffant','Carton non couché'],
+  ['SBS','Carton couché','Carton non couché','Couché 2 faces','Luxe'],
+  ['Carton couché','SBS','Carton non couché','Couché 2 faces','Luxe'],
+  ['Carton non couché','SBS','Carton couché','Liner','Bouffant'],
+  ['Thermique','Autocopiant','Adhésif','Silicone-Glassine'],
+  ['Autocopiant','Thermique','Adhésif','Silicone-Glassine'],
+  ['Adhésif','Silicone-Glassine','Thermique','Autocopiant'],
+  ['Silicone-Glassine','Adhésif','Thermique','Autocopiant','Complexe'],
+  ['Ouate','Emballage','Papier cadeau','Kraft'],
+  ['Journal','Offset','Bouffant','LWC'],
+  ['Papier affiche','Offset','Couché 2 faces','LWC'],
+  ['Papier cadeau','Kraft','Emballage','Ouate'],
+  ['Complexe','Adhésif','Silicone-Glassine','Kraft armé'],
+  ['Enveloppes','Offset','Couché 2 faces','Kraft'],
+  ['Ramette','Offset','Couché 2 faces','Bouffant'],
 ];
 function getEquivTypes(typeDisplay){
   const grp=EQUIV_GROUPS.find(g=>g.includes(typeDisplay));
@@ -429,16 +468,15 @@ async function init(){
   // Hardcoded filter options — Couleur replaced by Offset Couleur + Dossier Couleur
   const typeVals=Object.keys(TYPE_MAP).filter(k=>k!=='Couleur'&&k!=='Offset Couleur'&&k!=='Dossier Couleur').concat(['Offset Couleur','Dossier Couleur']).sort((a,b)=>a.localeCompare(b));
   const couleurVals=['Blanc','Brun','Ivoire','Gris','Noir','Vert','Rouge','Bleu','Jaune','Orange','Argent','Couleur','Autres'];
-  buildMsdOptions('msd-type',typeVals,'Tous');
-  buildMsdOptions('sb-msd-type',typeVals,'Qualité',undefined,'msd-type');
+  buildMsdOptions('msd-type',QUALITE_CODES,'Tous',v=>`${v} — ${QUALITE_LABELS[v]||v}`);
+  buildMsdOptions('sb-msd-type',QUALITE_CODES,'Type',v=>`${v} — ${QUALITE_LABELS[v]||v}`,'msd-type');
   buildMsdOptions('msd-couleur',couleurVals,'Couleurs');
   buildMsdOptions('sb-msd-couleur',couleurVals,'Couleurs',undefined,'msd-couleur');
 
   buildMsdOptions('msd-mandrin',['70','76','150','152'],'Mandrins',v=>v+' mm');
-  buildMsdOptions('sb-msd-qualite',QUALITE_CODES,'Type',v=>`${v} — ${QUALITE_LABELS[v]||v}`,'msd-qualite');
 
   // Also build mobile msd panels (msd-type-mob, msd-mandrin-mob, msd-couleur-mob)
-  buildMsdOptions('msd-type-mob',typeVals,'Tous',null,'msd-type');
+  buildMsdOptions('msd-type-mob',QUALITE_CODES,'Tous',v=>`${v} — ${QUALITE_LABELS[v]||v}`,'msd-type');
   buildMsdOptions('msd-couleur-mob',
     ['Blanc','Brun','Ivoire','Gris','Noir','Vert','Rouge','Bleu','Jaune','Orange','Argent','Couleur','Autres'],
     'Couleurs',null,'msd-couleur');
@@ -486,15 +524,14 @@ const msdState = {
   'msd-type': new Set(),
   'msd-mandrin': new Set(),
   'msd-couleur': new Set(),
-  'msd-qualite': new Set(),
 };
 const msdLabels = {
-  'msd-type': 'Qualité',
+  'msd-type': 'Type',
   'msd-mandrin': 'Mandrins',
   'msd-couleur': 'Couleurs',
-  'msd-qualite': 'Type',
 };
-const QUALITE_CODES=['R1SC','R2SC','RADH','RAFF','RBOA','RBON','RBOU','RCAR','RCOL','RCUI','RDIV','RFLEX','RKDO','RKRA','RKRABRUN','RKRG','RKRR','RLINER','RLUX','RLWC','RNEW','RPAC','RPLA','RSIL','RTHERM','RTIS','S1SC','S2SC','SADH','SAFF','SBOA','SBON','SCAR','SCOL','SCUT','SDIV','SKDO','SKRA','SLUX','SNEW','SOFF','SPAC','SSBS','SSPE'];
+const QUALITE_CODES=['R1SC','R2SC','RADH','RAFF','RBOA','RBON','RBOU','RCAR','RCOL','RCUI','RDIV','RFLEX','RKDO','RKRA','RKRABRUN','RKRG','RKRR','RLINER','RLUX','RLWC','RNEW','RPAC','RPLA','RSIL','RTHERM','RTIS','S1SC','S2SC','SADH','SAFF','SBOA','SBON','SCAR','SCOL','SCUT','SDIV','SKDO','SKRA','SLUX','SNEW','SOFF','SPAC','SSBS','SSPE','AUTRES'];
+const QUALITE_KNOWN=QUALITE_CODES.filter(c=>c!=='AUTRES');
 const QUALITE_LABELS={
   'R1SC':'Couché 1 face',
   'R2SC':'Couché 2 faces',
@@ -540,6 +577,7 @@ const QUALITE_LABELS={
   'SPAC':'Emballage',
   'SSBS':'SBS / Carton blanc',
   'SSPE':'Spécial',
+  'AUTRES':'Autres',
 };
 
 function toggleMsd(id) {
@@ -608,7 +646,7 @@ function resetMsd(id) {
   document.querySelectorAll(`#${id} .msd-option`).forEach(o => o.classList.remove('selected'));
   if(id==='msd-type')document.querySelectorAll('#sb-msd-type .msd-option').forEach(o=>o.classList.remove('selected'));
   if(id==='msd-couleur')document.querySelectorAll('#sb-msd-couleur .msd-option').forEach(o=>o.classList.remove('selected'));
-  if(id==='msd-qualite')document.querySelectorAll('#sb-msd-qualite .msd-option').forEach(o=>o.classList.remove('selected'));
+
   updateMsdBtn(id);
 }
 
@@ -742,7 +780,7 @@ document.addEventListener('click',e=>{
 let _lastDetectedTypes=[];
 
 function parseSearchQuery(raw){
-  if(!raw)return{text:[],gsm:null,width:null,formats:[],colors:[],qualityCodes:[],corrections:[],detectedTypes:[]};
+  if(!raw){_lastDetectedTypes=[];return{text:[],gsm:null,width:null,formats:[],colors:[],qualityCodes:[],corrections:[],detectedTypes:[]};}
   const STOP=new Set(['de','du','le','la','les','en','et','un','une','kg','kilo','tonne','tonnes','paper','papier','carton','board','sur','stock','lot','lots','reel','sheet']);
   const CTX_GSM=new Set(['gramme','grammes','grammage','gms','gsm','g/m2','g/m','grm','grms','gr','gm','gm2']);
   const CTX_WIDTH=new Set(['laize','largeur','millimetre','millimetres','mm','larg']);
@@ -811,6 +849,7 @@ function filterProducts(){
   _filterTimer=setTimeout(_doFilter,200);
 }
 async function _doFilter(){
+  if(_sharedMode)return; // shared link — don't overwrite with full catalogue
   currentPage=1;
   _isFirstLoad=false;
   _maxKnownPage=1;
@@ -846,10 +885,11 @@ async function _fetchAndRender(token){
   const parsed=parseSearchQuery(q);
   _lastCorrections=parsed.corrections;
   // Merge sidebar type codes + search-detected type codes + qualite direct codes
-  const _sideCodes=types.size>0?typesToQualityCodes(types):[];
-  const _pCodes=parsed.qualityCodes.length&&!_sideCodes.length?parsed.qualityCodes:[];
-  const _qualiteCodes=[...getMsdValues('msd-qualite')];
-  const typeCodes=[..._sideCodes,..._pCodes,..._qualiteCodes];
+  const _hasAutres=types.has('AUTRES');
+  const _knownSelected=[...types].filter(c=>c!=='AUTRES');
+  const _sideCodes=types.size>0?_knownSelected:[];
+  const _pCodes=parsed.qualityCodes.length&&!types.size?parsed.qualityCodes:[];
+  const typeCodes=[..._sideCodes,..._pCodes];
 
   // GSM constraint from Couleur split filter
   const _couleurOffsetSel=types.has('Offset Couleur')&&!types.has('Dossier Couleur');
@@ -885,8 +925,18 @@ async function _fetchAndRender(token){
   // Build URL params (replaces SDK query builder)
   const p=new URLSearchParams();
   p.set('select','*');
-  parsed.text.forEach(term=>{const s=term.replace(/[%_]/g,'\\$&');p.append('or',`(quality.ilike.%${s}%,color.ilike.%${s}%,details.ilike.%${s}%,ref.ilike.%${s}%)`);});
-  if(typeCodes.length>0)p.append('quality',`in.(${typeCodes.join(',')})`);
+  parsed.text.forEach(term=>{
+    const stem=_stem(_norm(term));
+    const s=stem.replace(/[%_]/g,'\\$&');
+    p.append('or',`(quality.ilike.%${s}%,color.ilike.%${s}%,details.ilike.%${s}%,ref.ilike.%${s}%)`);
+  });
+  if(_hasAutres&&typeCodes.length>0){
+    p.append('or',`(quality.in.(${typeCodes.join(',')}),quality.not.in.(${QUALITE_KNOWN.join(',')}),quality.is.null)`);
+  } else if(_hasAutres){
+    p.append('quality',`not.in.(${QUALITE_KNOWN.join(',')})`);
+  } else if(typeCodes.length>0){
+    p.append('quality',`in.(${typeCodes.join(',')})`);
+  }
   if(_couleurGsmMax)p.append('gsm',`lte.${_couleurGsmMax}`);
   if(_couleurGsmMin)p.append('gsm',`gte.${_couleurGsmMin}`);
   if(gn)p.append('gsm',`gte.${gn}`);
@@ -918,7 +968,7 @@ async function _fetchAndRender(token){
   let data,error,_exactCount=null,_totalWeightKg=0;
   try{
     const [mainRes,wRes]=await Promise.all([
-      sbQ('products?'+p,{headers:{'Prefer':'count=estimated','Range':offset+'-'+(offset+PAGE-1)},signal:ctrl.signal}),
+      sbQ('products?'+p,{headers:{'Prefer':'count=exact','Range':offset+'-'+(offset+PAGE-1)},signal:ctrl.signal}),
       sbQ('rpc/sum_weight_filtered',{method:'POST',body:rpcParams})
     ]);
     ({data,error,count:_exactCount}=mainRes);
@@ -940,8 +990,14 @@ async function _fetchAndRender(token){
   }
 
   all=(data||[]).map(rowToUi);
-  _totalCount=(_exactCount!=null)?_exactCount:all.length+(currentPage-1)*PAGE;
-  _maxKnownPage=Math.ceil(_totalCount/PAGE)||1;
+  // If this is the only page (all.length < PAGE on page 1), trust the actual result count
+  if(all.length<PAGE&&currentPage===1){
+    _totalCount=all.length;
+    _maxKnownPage=1;
+  } else {
+    _totalCount=(_exactCount!=null&&!isNaN(_exactCount))?_exactCount:all.length+(currentPage-1)*PAGE;
+    _maxKnownPage=Math.max(1,Math.ceil(_totalCount/PAGE)||1);
+  }
   // Update stats bar with real total
   const _st=document.getElementById('s-ton');if(_st&&_totalCount)_st.textContent=_totalCount.toLocaleString('fr-FR')+' produits';
   // Update results bar
@@ -961,7 +1017,7 @@ async function _fetchAndRender(token){
   updateMobFilterBadge();
 
   // Update counters
-  const counters={'msd-type':'fl-count-type','msd-mandrin':'fl-count-mandrin','msd-couleur':'fl-count-couleur','msd-qualite':'fl-count-qualite'};
+  const counters={'msd-type':'fl-count-type','msd-mandrin':'fl-count-mandrin','msd-couleur':'fl-count-couleur'};
   Object.entries(counters).forEach(([msd,el])=>{const c=document.getElementById(el);if(c){const n=msdState[msd]?.size||0;c.textContent=n;c.style.display=n?'':'none';}});
 
   updateFilterChips();
@@ -993,38 +1049,38 @@ function applyEquivType(typeName){
 
 let _maxKnownPage=1;
 function _updatePager(){
-  const isLast=all.length<PAGE;
-  if(!isLast&&currentPage>=_maxKnownPage)_maxKnownPage=currentPage+1;
-  else if(isLast)_maxKnownPage=Math.max(_maxKnownPage,currentPage);
-  let pager=document.getElementById('pager');
-  if(!pager){
-    pager=document.createElement('div');
-    pager.id='pager';pager.className='pager';
-    const grid=document.getElementById('pgrid');
-    if(grid)grid.parentElement.appendChild(pager);
-  }
-  if(currentPage===1&&isLast){pager.innerHTML='';return;}
-  const last=_maxKnownPage;
-  // Build page number list with ellipsis
-  const pageSet=new Set([1]);
-  for(let i=Math.max(1,currentPage-2);i<=Math.min(last,currentPage+2);i++)pageSet.add(i);
-  pageSet.add(last);
-  const pages=[...pageSet].sort((a,b)=>a-b);
-  let pagesHtml='';let prev=0;
-  for(const p of pages){
-    if(p-prev>1)pagesHtml+=`<span class="pellipsis">…</span>`;
-    pagesHtml+=`<button class="pnum${p===currentPage?' active':''}" onclick="_goToPage(${p})">${p}</button>`;
-    prev=p;
-  }
-  pager.innerHTML=`
-    <button class="parrow" ${currentPage<=1?'disabled':''} onclick="_goToPage(${currentPage-1})">‹</button>
-    ${pagesHtml}
-    <button class="parrow" ${isLast?'disabled':''} onclick="_goToPage(${currentPage+1})">›</button>`;
+  try{
+    const pager=document.getElementById('pager');
+    if(!pager)return;
+    const isLast=all.length<PAGE;
+    if(isLast&&currentPage===1){
+      // Definitively only one page — ignore any stale _maxKnownPage
+      _maxKnownPage=1;
+    } else if(!isLast&&currentPage>=_maxKnownPage){
+      _maxKnownPage=currentPage+1;
+    } else if(isLast){
+      // On a later last page — shrink to reality
+      _maxKnownPage=currentPage;
+    }
+    if(all.length===0||(isLast&&currentPage===1)){pager.innerHTML='';return;}
+    const last=_maxKnownPage;
+    const pageSet=new Set([1]);
+    for(let i=Math.max(1,currentPage-2);i<=Math.min(last,currentPage+2);i++)pageSet.add(i);
+    pageSet.add(last);
+    const pages=[...pageSet].sort((a,b)=>a-b);
+    let pagesHtml='';let prev=0;
+    for(const p of pages){
+      if(p-prev>1)pagesHtml+=`<span class="pellipsis">…</span>`;
+      pagesHtml+=`<button class="pnum${p===currentPage?' active':''}" onclick="_goToPage(${p})">${p}</button>`;
+      prev=p;
+    }
+    pager.innerHTML=`<button class="parrow" ${currentPage<=1?'disabled':''} onclick="_goToPage(${currentPage-1})">‹</button>${pagesHtml}<button class="parrow" ${isLast?'disabled':''} onclick="_goToPage(${currentPage+1})">›</button>`;
+  }catch(e){console.error('_updatePager:',e);}
 }
 function _goToPage(p){
   if(p<1||p===currentPage)return;
   currentPage=p;
-  _fetchAndRender(_reqToken);
+  _fetchAndRender(++_reqToken);
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -1042,10 +1098,10 @@ function updateFilterChips(){
   const _activeOrigs=Array.from(document.querySelectorAll('.fpill-orig.active')).map(b=>b.dataset.origine==='R'?LT[lang].t_origine_recycl:LT[lang].t_origine_fab);
   if(_activeOrigs.length>0)chips.push({label:(lang==='en'?'Origin':'Origine')+' : '+_activeOrigs.join(', '),clear:()=>{document.querySelectorAll('.fpill-orig.active').forEach(b=>b.classList.remove('active'));filterProducts();}});
   if(_activeFmts.length>0)chips.push({label:LT[lang].t_fmt+' : '+_activeFmts.map(f=>f==='Bobine'?LT[lang].t_bobine:f==='Palette'?LT[lang].t_palette:f).join(', '),clear:()=>{document.querySelectorAll('.fpill.active').forEach(b=>b.classList.remove('active'));filterProducts();}});
-  ['msd-type','msd-mandrin','msd-couleur','msd-qualite'].forEach(id=>{
+  ['msd-type','msd-mandrin','msd-couleur'].forEach(id=>{
     const set=msdState[id];
     if(set.size>0){
-      const lbl={'msd-type':LT[lang].t_type_lbl,'msd-mandrin':LT[lang].t_mandrin_lbl,'msd-couleur':LT[lang].t_couleur_lbl,'msd-qualite':'Qualité'}[id];
+      const lbl={'msd-type':LT[lang].t_type_lbl,'msd-mandrin':LT[lang].t_mandrin_lbl,'msd-couleur':LT[lang].t_couleur_lbl}[id];
       chips.push({label:lbl+' : '+[...set].join(', '),clear:()=>{resetMsd(id);filterProducts();}});
     }
   });
@@ -1132,9 +1188,12 @@ function renderCards(list){
   g.innerHTML=list.map(p=>{
     const initials=(p.type||'?').substring(0,2).toUpperCase();
     const _altTxt=[p.name,p.grammage?p.grammage+'g/m²':'',p.couleur].filter(Boolean).join(' — ')||'Produit';
-    const imgHtml=p.image_url
-      ?`<img src="${p.image_url}" alt="${_altTxt}" loading="lazy" onerror="this.src='img/no-photo.png';this.className='pcard-nophoto'">`
-      :`<img src="img/no-photo.png" alt="Photo sur demande" class="pcard-nophoto">`;
+    const _isFab=p.details&&p.details.toLowerCase().includes('fabrication sur demande');
+    const imgHtml=_isFab
+      ?`<img src="img/fabrication-sur-demande.png" alt="Fabrication sur demande" class="pcard-nophoto">`
+      :p.image_url
+        ?`<img src="${p.image_url}" alt="${_altTxt}" loading="lazy" onerror="this.src='img/no-photo.png';this.className='pcard-nophoto'">`
+        :`<img src="img/no-photo.png" alt="Photo sur demande" class="pcard-nophoto">`;
     const {cls:badgeCls,txt:badgeTxt}=decodeQuality(p.type);
     const isPalette=p.format&&p.format.toLowerCase().includes('palette');
     const dimTag=!isPalette&&p.largeur?`${p.largeur} mm`:'';
@@ -1161,7 +1220,7 @@ function renderCards(list){
       <div class="pcard-body">
         <div class="pcard-name">${p.name||p.type||'—'}</div>
         ${specsHtml}
-        <button class="btn-add-cart" id="cadd-${p.id}" onclick="event.stopPropagation();addToCart(${p.id})"><span class="cart-icon">+</span><span class="cart-check">✓</span> ${lang==='en'?'Add':'Ajouter'}</button>
+        <button class="btn-add-cart${cart.find(x=>x.id===+p.id)?' added':''}" id="cadd-${p.id}" onclick="event.stopPropagation();addToCart(${p.id})"><span class="cart-icon">+</span><span class="cart-check">✓</span> ${lang==='en'?'Add':'Ajouter'}</button>
         <div class="pcard-foot">
           <div class="pton">${poids}<span class="pton-s"> KGS</span></div>
           ${prixHtml}
@@ -1169,15 +1228,29 @@ function renderCards(list){
       </div>
     </div>`;
   }).join('');
+  _updatePager();
 }
 
 let _viewMode='grid';
+const _SVG_GRID='<svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="6" height="6" rx="1"/><rect x="8" y="0" width="6" height="6" rx="1"/><rect x="0" y="8" width="6" height="6" rx="1"/><rect x="8" y="8" width="6" height="6" rx="1"/></svg>';
+const _SVG_LIST='<svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="14" height="2.5" rx="1"/><rect x="0" y="5.5" width="14" height="2.5" rx="1"/><rect x="0" y="11" width="14" height="2.5" rx="1"/></svg>';
+function _updateToggleBtn(){
+  const btn=document.getElementById('vt-toggle');
+  if(!btn)return;
+  if(_viewMode==='list'){
+    btn.innerHTML=_SVG_GRID+'<span>Vue fiche</span>';
+  } else {
+    btn.innerHTML=_SVG_LIST+'<span>Vue liste</span>';
+  }
+}
+function toggleView(){
+  setView(_viewMode==='grid'?'list':'grid');
+}
 function setView(mode){
   _viewMode=mode;
-  document.getElementById('vt-grid').classList.toggle('active',mode==='grid');
-  document.getElementById('vt-list').classList.toggle('active',mode==='list');
+  _updateToggleBtn();
   const g=document.getElementById('pgrid');
-  if(g&&g._lastList)render(g._lastList);
+  if(g&&g._lastList){render(g._lastList);}
 }
 
 function renderList(list){
@@ -1185,9 +1258,12 @@ function renderList(list){
   if(!g)return;
   g.className='pgrid plist';
   const rows=list.map(p=>{
-    const thumb=p.image_url
-      ?`<img src="${p.image_url}" alt="" class="plist-thumb" loading="lazy" onerror="this.src='img/no-photo.png'">`
-      :`<img src="img/no-photo.png" class="plist-thumb">`;
+    const _isFabL=p.details&&p.details.toLowerCase().includes('fabrication sur demande');
+    const thumb=_isFabL
+      ?`<img src="img/fabrication-sur-demande.png" alt="Fabrication sur demande" class="plist-thumb">`
+      :p.image_url
+        ?`<img src="${p.image_url}" alt="" class="plist-thumb" loading="lazy" onerror="this.src='img/no-photo.png'">`
+        :`<img src="img/no-photo.png" class="plist-thumb">`;
     const price=p.price
       ?`<span class="plist-price">${p.price.toLocaleString('fr-FR')} €/T</span>`
       :`<span class="plist-price-ask">Sur demande</span>`;
@@ -1199,7 +1275,7 @@ function renderList(list){
       ?[p.largeur,p.longueur].filter(Boolean).join('×')||'—'
       :p.largeur?`${p.largeur} mm`:'—';
     return`<tr onclick="openDetail(${p.id})">
-      <td class="plist-td plist-thumb-wrap">${thumb}</td>
+      <td class="plist-td">${addBtn}</td>
       <td class="plist-td"><span class="plist-code">${p.typeLabel||p.type||'—'}</span></td>
       <td class="plist-td wrap">${p.name||'—'}</td>
       <td class="plist-td">${p.couleur||'—'}</td>
@@ -1209,13 +1285,13 @@ function renderList(list){
       <td class="plist-td">${p.poids_net?p.poids_net.toLocaleString('fr-FR')+' kg':'—'}</td>
       <td class="plist-td">${price}</td>
       <td class="plist-td">${fmt}</td>
-      <td class="plist-td">${addBtn}</td>
+      <td class="plist-td plist-thumb-wrap">${thumb}</td>
     </tr>`;
   }).join('');
-  g.innerHTML=`<table class="plist-table">
+  g.innerHTML=`<div style="overflow-x:auto"><table class="plist-table">
     <thead><tr>
-      <th></th>
-      <th>Qualité</th>
+      <th><button class="plist-sel-all" onclick="event.stopPropagation();toggleSelectAll(this)">+ Tout</button></th>
+      <th>Type</th>
       <th>Désignation</th>
       <th>Couleur</th>
       <th>GSM</th>
@@ -1224,10 +1300,11 @@ function renderList(list){
       <th>Poids</th>
       <th>Prix</th>
       <th>Format</th>
-      <th></th>
+      <th>Photo</th>
     </tr></thead>
     <tbody>${rows}</tbody>
-  </table>`;
+  </table></div>`;
+  _updatePager();
 }
 
 function render(list){
@@ -1251,16 +1328,38 @@ function render(list){
 }
 
 
+let _detIdx=-1;
+function _detKeyHandler(e){
+  if(e.key==='ArrowLeft')navDetail(-1);
+  else if(e.key==='ArrowRight')navDetail(1);
+  else if(e.key==='Escape')closeDetail();
+}
+function navDetail(dir){
+  const next=_detIdx+dir;
+  if(next<0||next>=all.length)return;
+  openDetail(all[next].id);
+}
+function _updateDetNav(){
+  const prev=document.getElementById('dmod-prev');
+  const next=document.getElementById('dmod-next');
+  if(prev)prev.disabled=(_detIdx<=0);
+  if(next)next.disabled=(_detIdx>=all.length-1);
+}
 async function openDetail(id){
-  const p = all.find(x=>x.id===+id); if(!p) return;
+  const idx=all.findIndex(x=>x.id===+id);
+  const p=idx>=0?all[idx]:null; if(!p) return;
+  _detIdx=idx;
   cur = p;
 
   // Image
   const mi=document.getElementById('det-main');
   const _detAlt=[p.name,p.grammage?p.grammage+'g/m²':'',p.couleur].filter(Boolean).join(' — ')||'Produit';
-  mi.innerHTML=p.image_url
-    ?`<img src="${p.image_url}" loading="lazy" alt="${_detAlt}">`
-    :`<div style="display:flex;flex-direction:column;align-items:center;gap:12px;opacity:.3">${placeholderSvg(p.type)}</div>`;
+  const _isFabDet=p.details&&p.details.toLowerCase().includes('fabrication sur demande');
+  mi.innerHTML=_isFabDet
+    ?`<img src="img/fabrication-sur-demande.png" alt="Fabrication sur demande" style="width:100%;height:100%;object-fit:cover">`
+    :p.image_url
+      ?`<img src="${p.image_url}" loading="lazy" alt="${_detAlt}">`
+      :`<div style="display:flex;flex-direction:column;align-items:center;gap:12px;opacity:.3">${placeholderSvg(p.type)}</div>`;
 
   // Badge qualité
 
@@ -1271,7 +1370,7 @@ async function openDetail(id){
   // Specs grid
   const _typeLabel=Object.entries(TYPE_MAP).find(([,v])=>v.includes(p.qualite))?.[0]||p.qualite||null;
   const specDefs=[
-    {lbl: lang==='en'?'Type':'Type',             val: _typeLabel},
+    {lbl: lang==='en'?'Quality':'Qualité',        val: _typeLabel},
     {lbl: LT[lang].t_spec_couleur||'Couleur',   val: p.couleur},
     {lbl: LT[lang].t_spec_gsm||'Grammage',      val: p.grammage?p.grammage+' g/m²':null},
     {lbl: LT[lang].t_spec_laize||'Laize',       val: p.largeur?p.largeur+' mm':null},
@@ -1302,10 +1401,16 @@ async function openDetail(id){
     mab.classList.toggle('added',!!alreadyIn);
     mab.innerHTML=alreadyIn?'✓ '+(lang==='en'?'Added':'Ajouté'):(LT[lang].t_add_modal_btn||'+ Ajouter au container');
   }
+  _updateDetNav();
   document.getElementById('detail-bg').classList.add('show');
   document.body.style.overflow='hidden';
+  document.addEventListener('keydown',_detKeyHandler);
 }
-function closeDetail(){document.getElementById('detail-bg').classList.remove('show');document.body.style.overflow='';}
+function closeDetail(){
+  document.getElementById('detail-bg').classList.remove('show');
+  document.body.style.overflow='';
+  document.removeEventListener('keydown',_detKeyHandler);
+}
 function swImg(el,url){document.getElementById('det-main').innerHTML=`<img src="${url}">`;document.querySelectorAll('.dthumb').forEach(t=>t.classList.remove('active'));el.classList.add('active');}
 function openProforma(){if(!cur)return;document.getElementById('pf-prod-name').textContent=cur.name+(cur.ref?' — '+cur.ref:'');document.getElementById('proforma-bg').classList.add('show');}
 function closeProforma(){document.getElementById('proforma-bg').classList.remove('show');}
@@ -1346,22 +1451,51 @@ function contactWA(){
   window.open(`https://wa.me/${WA}?text=${encodeURIComponent(`Bonjour, intéressé par : ${cur.name}${cur.ref?' ('+cur.ref+')':''} — ${fmt(cur.poids_net)} disponibles. Quel est votre prix ?`)}`, '_blank');
 }
 function resetFilters(){
-  document.querySelectorAll('.msd-option.selected').forEach(o=>o.classList.remove('selected'));
-  ['msd-type','msd-mandrin','msd-couleur','msd-qualite'].forEach(id=>resetMsd(id));
-  document.querySelectorAll('.fpill.active').forEach(b=>b.classList.remove('active'));
-  document.querySelectorAll('.fpill-orig.active').forEach(b=>b.classList.remove('active'));
-  ['fb-bobine','fb-palette','fb-recyc','fb-fab'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('active');});
-  ['f-pmin','f-pmax','f-lmin','f-lmax'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  ['f-gmin','f-gmax','f-lmin-sb','f-lmax-sb','f-longmin-sb','f-longmax-sb','f-longmin','f-longmax','f-ref-code'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  ['f-gmin-sb','f-gmax-sb','f-pmin-sb','f-pmax-sb'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  ['search-input','search-input-mob'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  // Reset mobile drawer inputs too
-  ['f-gmin-mob','f-gmax-mob','f-lmin-mob','f-lmax-mob','f-pmin-mob','f-pmax-mob'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  updateFilterChips();
-  updateTilesActiveState();
-  const ac=document.getElementById('active-chips');if(ac)ac.innerHTML='';
-  const rr=document.getElementById('rbar-reset');if(rr)rr.style.display='none';
-  currentPage=1;_doFilter();
+  try{
+    // 1. Clear msd state sets
+    Object.keys(msdState).forEach(id=>{ msdState[id].clear(); });
+
+    // 2. Remove selected class from all msd options everywhere
+    document.querySelectorAll('.msd-option.selected').forEach(o=>o.classList.remove('selected'));
+
+    // 3. Reset all msd button labels
+    ['msd-type','msd-mandrin','msd-couleur'].forEach(id=>{
+      // fbar button
+      const fbBtn=document.querySelector(`#${id} .fb-msd-btn`);
+      if(fbBtn){ const lbl=fbBtn.querySelector('span:first-child');if(lbl)lbl.textContent=msdLabels[id]; }
+      // sidebar button
+      const sbBtn=document.querySelector(`[data-msd-id="${id}"] .msd-btn-label`);
+      if(sbBtn) sbBtn.textContent=msdLabels[id];
+      // remove count badges
+      document.querySelectorAll(`#${id} .msd-count,[data-msd-id="${id}"] .msd-count`).forEach(b=>{b.textContent='';b.style.display='none';});
+    });
+
+    // 4. Reset format pills
+    document.querySelectorAll('.fpill.active,.fpill-orig.active,.fb-pill.active').forEach(b=>b.classList.remove('active'));
+    ['fb-bobine','fb-palette','fb-recyc','fb-fab'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('active');});
+
+    // 5. Clear all inputs
+    ['f-pmin','f-pmax','f-lmin','f-lmax','f-gmin','f-gmax',
+     'f-lmin-sb','f-lmax-sb','f-longmin-sb','f-longmax-sb','f-longmin','f-longmax',
+     'f-gmin-sb','f-gmax-sb','f-pmin-sb','f-pmax-sb',
+     'f-gmin-mob','f-gmax-mob','f-lmin-mob','f-lmax-mob','f-pmin-mob','f-pmax-mob',
+     'search-input','search-input-mob'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+
+    // 6. Clear chips & reset UI
+    const fc=document.getElementById('filter-chips');if(fc)fc.innerHTML='';
+    const ac=document.getElementById('active-chips');if(ac)ac.innerHTML='';
+    const rr=document.getElementById('rbar-reset');if(rr)rr.style.display='none';
+
+    // 7. Reset fl-count badges in sidebar
+    document.querySelectorAll('.fl-count').forEach(el=>{el.textContent='0';el.style.display='none';});
+
+    // 8. Reset dual range sliders
+    drsResetAll();
+
+    // 9. Reload products
+    currentPage=1;
+    filterProducts();
+  } catch(e){ console.error('resetFilters error:',e); filterProducts(); }
 }
 function toggleMobFilters(){
   const panel=document.getElementById('filters-panel');
@@ -1379,18 +1513,63 @@ function updateCartBadge(){
   else{badge.classList.remove('show');}
 }
 
+function toggleSelectAll(btn){
+  const currentList=document.getElementById('pgrid')?._lastList||[];
+  const allAdded=currentList.every(p=>cart.find(x=>x.id===+p.id));
+  if(allAdded){
+    // Remove all
+    currentList.forEach(p=>{
+      cart=cart.filter(x=>x.id!==+p.id);
+      const lb=document.getElementById('ladd-'+p.id);
+      if(lb){lb.classList.remove('added');lb.textContent=`+ ${lang==='en'?'Add':'Ajouter'}`;}
+      const cb=document.getElementById('cadd-'+p.id);
+      if(cb){cb.classList.remove('added');cb.innerHTML=`<span class="cart-icon">+</span><span class="cart-check">✓</span> ${lang==='en'?'Add':'Ajouter'}`;}
+    });
+    localStorage.setItem('prodi_cart',JSON.stringify(cart));
+    updateCartBadge();renderDrawer();
+    btn.textContent='+ Tout';
+    toast(lang==='en'?'🗑️ All removed':'🗑️ Tout retiré');
+  } else {
+    // Add all not yet in cart
+    currentList.forEach(p=>{
+      if(!cart.find(x=>x.id===+p.id)){
+        cart.push({id:p.id,name:p.name,ref:p.ref,type:p.type,grammage:p.grammage,largeur:p.largeur,format:p.format,poids_net:p.poids_net,price:p.price||null,img:p.image_url||null});
+        const lb=document.getElementById('ladd-'+p.id);
+        if(lb){lb.classList.add('added');lb.textContent=`✓ ${lang==='en'?'Added':'Ajouté'}`;}
+        const cb=document.getElementById('cadd-'+p.id);
+        if(cb){cb.classList.add('added');cb.innerHTML=`<span class="cart-check">✓</span> ${lang==='en'?'Added':'Ajouté'}`;}
+      }
+    });
+    localStorage.setItem('prodi_cart',JSON.stringify(cart));
+    updateCartBadge();renderDrawer();
+    btn.textContent='− Tout';
+    toast(lang==='en'?'✅ All added':'✅ Tout ajouté');
+  }
+}
+
 function addToCart(id){
   const p=all.find(x=>x.id===+id);if(!p)return;
-  if(cart.find(x=>x.id===+id)){toast(lang==='en'?'⚠️ Already in the container':'⚠️ Déjà dans le container');return;}
+  const alreadyIn=cart.find(x=>x.id===+id);
+  const mab=document.getElementById('modal-add-btn');
+  if(alreadyIn){
+    // Toggle OFF — remove from cart
+    removeFromCart(id);
+    const caddBtn=document.getElementById('cadd-'+id);
+    if(caddBtn){caddBtn.classList.remove('added');caddBtn.innerHTML=`<span class="cart-icon">+</span><span class="cart-check">✓</span> ${lang==='en'?'Add':'Ajouter'}`;}
+    const laddBtn=document.getElementById('ladd-'+id);
+    if(laddBtn){laddBtn.classList.remove('added');laddBtn.textContent=`+ ${lang==='en'?'Add':'Ajouter'}`;}
+    if(mab){mab.classList.remove('added');mab.innerHTML=LT[lang].t_add_modal_btn||'+ Ajouter au container';}
+    toast(lang==='en'?'🗑️ Removed from container':'🗑️ Retiré du container');
+    return;
+  }
   cart.push({id:p.id,name:p.name,ref:p.ref,type:p.type,grammage:p.grammage,largeur:p.largeur,format:p.format,poids_net:p.poids_net,price:p.price||null,img:p.image_url||null});
   localStorage.setItem('prodi_cart',JSON.stringify(cart));
   updateCartBadge();
-  // Update legacy cards
-  // Update card button — stays green permanently
   const caddBtn=document.getElementById('cadd-'+id);
   if(caddBtn){caddBtn.classList.add('added');caddBtn.innerHTML=`<span class="cart-check">✓</span> ${lang==='en'?'Added':'Ajouté'}`;}
   const laddBtn=document.getElementById('ladd-'+id);
   if(laddBtn){laddBtn.classList.add('added');laddBtn.textContent=`✓ ${lang==='en'?'Added':'Ajouté'}`;}
+  if(mab){mab.classList.add('added');mab.innerHTML=`✓ ${lang==='en'?'Added':'Ajouté'}`;}
   toast(lang==='en'?'✅ Added to container !':'✅ Ajouté au container !');
   renderDrawer();
 }
@@ -1401,6 +1580,161 @@ function removeFromCart(id){
   updateCartBadge();renderDrawer();
 }
 
+// ── SHARE CART ──
+function shareCart(){
+  if(!cart.length){toast(lang==='en'?'Container is empty':'Container vide !');return;}
+  const ids=cart.map(x=>x.id).join(',');
+  const url=window.location.origin+window.location.pathname+'?share='+ids;
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(url)
+      .then(()=>toast('🔗 Lien copié !'))
+      .catch(()=>{_copyFallback(url);});
+  } else {
+    _copyFallback(url);
+  }
+}
+function _copyFallback(url){
+  const ta=document.createElement('textarea');
+  ta.value=url;ta.style.cssText='position:fixed;opacity:0;top:0;left:0';
+  document.body.appendChild(ta);ta.focus();ta.select();
+  try{document.execCommand('copy');toast('🔗 Lien copié !');}
+  catch(_){prompt('Copie ce lien :',url);}
+  document.body.removeChild(ta);
+}
+function _showShareModal(url){
+  const existing=document.getElementById('share-modal-bg');
+  if(existing)existing.remove();
+  const d=document.createElement('div');
+  d.id='share-modal-bg';
+  d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;display:flex;align-items:center;justify-content:center;padding:16px;';
+  d.innerHTML=`<div style="background:#fff;border-radius:12px;padding:28px;max-width:480px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2);">
+    <div style="font-family:\'Bebas Neue\',sans-serif;font-size:18px;letter-spacing:1.5px;margin-bottom:8px;">PARTAGER LA SÉLECTION</div>
+    <div style="font-size:12px;color:#999;margin-bottom:14px;">Envoie ce lien à ton client — il verra exactement les ${cart.length} produits sélectionnés.</div>
+    <input id="share-url-input" value="${url}" style="width:100%;padding:10px 12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:12px;font-family:monospace;box-sizing:border-box;" readonly onclick="this.select()">
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <button onclick="document.getElementById(\'share-url-input\').select();document.execCommand(\'copy\');toast(\'🔗 Lien copié !\');document.getElementById(\'share-modal-bg\').remove();" style="flex:1;padding:10px;background:#FE0000;color:#fff;border:none;border-radius:8px;font-family:\'Bebas Neue\',sans-serif;font-size:14px;letter-spacing:1px;cursor:pointer;">COPIER</button>
+      <button onclick="document.getElementById(\'share-modal-bg\').remove();" style="padding:10px 16px;background:transparent;border:1.5px solid #e0e0e0;border-radius:8px;font-size:13px;cursor:pointer;">Fermer</button>
+    </div>
+  </div>`;
+  document.body.appendChild(d);
+  d.addEventListener('click',e=>{if(e.target===d)d.remove();});
+}
+
+// ── LOAD SHARED QUOTE ──
+// Detected synchronously at script load so _doFilter can check it
+const _shareParam=new URLSearchParams(window.location.search).get('share');
+let _sharedMode=!!_shareParam;
+
+async function loadSharedQuote(){
+  if(!_shareParam)return;
+  const idList=_shareParam.split(',').map(Number).filter(Boolean);
+  if(!idList.length)return;
+  const r=await sbQ('products?id=in.('+idList.join(',')+')'+'&select=*&limit=200&order=gsm.asc');
+  if(!r.data||!r.data.length)return;
+  const products=r.data;
+
+  // Override the product grid directly — no modal, no banner
+  all=products.map(rowToUi);
+  _totalCount=all.length;
+  _maxKnownPage=1;
+  currentPage=1;
+
+  const totalKg=all.reduce((s,p)=>s+(+p.weight||0),0);
+  const rbarRefs=document.getElementById('rbar-refs');
+  const rbarTons=document.getElementById('rbar-tons');
+  if(rbarRefs)rbarRefs.textContent=all.length.toLocaleString('fr-FR');
+  if(rbarTons)rbarTons.textContent=(totalKg/1000).toFixed(1);
+
+  // Show a subtle top label (not a big banner)
+  const sqb=document.getElementById('shared-quote-banner');
+  if(sqb){
+    sqb.innerHTML=`<div class="sq-inner sq-slim"><span class="sq-slim-label">⭐ Sélection exclusive client · ${all.length} produit${all.length>1?'s':''}</span><div style="display:flex;gap:8px;align-items:center"><button class="sq-btn-view" onclick="_exitSharedMode()" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;">Voir tous les stocks →</button><button class="sq-btn-devis" onclick="_loadSharedIntoCart()">Demander un devis</button></div></div>`;
+    sqb.style.display='block';
+  }
+
+  render(all);
+  _updatePager();
+  window._sharedProducts=products;
+}
+function _showSharedQuoteBanner(products){
+  const banner=document.getElementById('shared-quote-banner');
+  if(!banner)return;
+  const totalKg=products.reduce((s,p)=>s+(+p.weight||0),0);
+  const totalT=(totalKg/1000).toFixed(1);
+  banner.innerHTML=`<div class="sq-inner">
+    <div class="sq-left">
+      <span class="sq-ico">📋</span>
+      <div class="sq-text">
+        <strong>Sélection Prodiconseil</strong>
+        <span>${products.length} produits · ${totalT} t</span>
+      </div>
+    </div>
+    <div class="sq-actions">
+      <button class="sq-btn-view" onclick="_openSharedQuoteModal()">Voir la liste</button>
+      <button class="sq-btn-devis" onclick="_loadSharedIntoCart()">${lang==='en'?'Request quote':'Demander un devis'}</button>
+    </div>
+  </div>`;
+  banner.style.display='block';
+  window._sharedProducts=products;
+}
+function _exitSharedMode(){
+  _sharedMode=false;
+  const sqb=document.getElementById('shared-quote-banner');
+  if(sqb)sqb.style.display='none';
+  _doFilter();
+}
+function _loadSharedIntoCart(){
+  if(!window._sharedProducts)return;
+  cart=window._sharedProducts.map(p=>({...p,poids_net:p.weight}));
+  localStorage.setItem('prodi_cart',JSON.stringify(cart));
+  updateCartBadge();
+  openCartProforma();
+}
+function _openSharedQuoteModal(){
+  const products=window._sharedProducts;if(!products)return;
+  const existing=document.getElementById('sq-modal-bg');if(existing)existing.remove();
+  const totalKg=products.reduce((s,p)=>s+(+p.weight||0),0);
+  const rows=products.map(p=>`<tr style="border-bottom:1px solid #f0f0f0;">
+    <td style="padding:8px 4px;font-weight:600;font-size:12px;">${p.quality||p.type||'—'}</td>
+    <td style="padding:8px 4px;font-size:12px;color:#555;">${p.color||'—'}</td>
+    <td style="padding:8px 4px;font-size:12px;">${p.gsm?p.gsm+' g/m²':'—'}</td>
+    <td style="padding:8px 4px;font-size:12px;">${p.width?p.width+' mm':'—'}</td>
+    <td style="padding:8px 4px;font-size:12px;font-weight:600;">${p.weight?p.weight+' kg':'—'}</td>
+    <td style="padding:8px 4px;font-size:12px;color:#FE0000;font-weight:600;">${p.price?p.price.toLocaleString('fr-FR')+' €/T':'Sur dem.'}</td>
+  </tr>`).join('');
+  const d=document.createElement('div');
+  d.id='sq-modal-bg';
+  d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9000;display:flex;align-items:center;justify-content:center;padding:16px;';
+  d.innerHTML=`<div style="background:#fff;border-radius:12px;max-width:700px;width:100%;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.25);">
+    <div style="padding:20px 24px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <div>
+        <div style="font-family:\'Bebas Neue\',sans-serif;font-size:20px;letter-spacing:2px;">SÉLECTION PRODICONSEIL</div>
+        <div style="font-size:11px;color:#999;margin-top:2px;">${products.length} produits · ${(totalKg/1000).toFixed(1)} t</div>
+      </div>
+      <button onclick="document.getElementById(\'sq-modal-bg\').remove();" style="width:32px;height:32px;border:1.5px solid #e0e0e0;border-radius:50%;background:#fff;cursor:pointer;font-size:14px;">✕</button>
+    </div>
+    <div style="overflow-y:auto;flex:1;padding:16px 24px;">
+      <table style="width:100%;border-collapse:collapse;">
+        <thead><tr style="border-bottom:2px solid #222;">
+          <th style="text-align:left;padding:6px 4px;font-size:11px;font-weight:700;letter-spacing:.5px;">TYPE</th>
+          <th style="text-align:left;padding:6px 4px;font-size:11px;font-weight:700;">COULEUR</th>
+          <th style="text-align:left;padding:6px 4px;font-size:11px;font-weight:700;">GSM</th>
+          <th style="text-align:left;padding:6px 4px;font-size:11px;font-weight:700;">LAIZE</th>
+          <th style="text-align:left;padding:6px 4px;font-size:11px;font-weight:700;">POIDS</th>
+          <th style="text-align:left;padding:6px 4px;font-size:11px;font-weight:700;">PRIX</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <div style="padding:16px 24px;border-top:1px solid #f0f0f0;display:flex;gap:8px;flex-shrink:0;">
+      <button onclick="_loadSharedIntoCart();document.getElementById(\'sq-modal-bg\').remove();" style="flex:1;padding:12px;background:#FE0000;color:#fff;border:none;border-radius:8px;font-family:\'Bebas Neue\',sans-serif;font-size:14px;letter-spacing:1px;cursor:pointer;">📄 DEMANDER UN DEVIS</button>
+      <button onclick="document.getElementById(\'sq-modal-bg\').remove();" style="padding:12px 20px;background:transparent;border:1.5px solid #e0e0e0;border-radius:8px;font-size:13px;cursor:pointer;">Fermer</button>
+    </div>
+  </div>`;
+  document.body.appendChild(d);
+  d.addEventListener('click',e=>{if(e.target===d)d.remove();});
+}
+
 function confirmClearCart(){
   document.getElementById('confirm-bg').classList.add('show');
 }
@@ -1408,6 +1742,9 @@ function doClearCart(){
   cart=[];localStorage.removeItem('prodi_cart');
   document.getElementById('confirm-bg').classList.remove('show');
   updateCartBadge();renderDrawer();
+  // Reset all "Ajouté" buttons in current view
+  document.querySelectorAll('.btn-add-cart.added').forEach(b=>{b.classList.remove('added');});
+  document.querySelectorAll('.plist-add.added').forEach(b=>{b.classList.remove('added');b.textContent='+ Ajouter';});
   toast(lang==='en'?'🗑️ Container emptied':'🗑️ Container vidé');
 }
 
@@ -1538,6 +1875,23 @@ function syncSbFilter(targetId, val){
   filterProducts();
 }
 
+// Dual range slider config
+const NMR_IDS={
+  gsm:['f-gmin','f-gmax'],
+  lz:['f-lmin','f-lmax'],
+  long:['f-longmin','f-longmax'],
+  prix:['f-pmin','f-pmax'],
+};
+function nmReset(id){
+  (NMR_IDS[id]||[]).forEach(fid=>{const e=document.getElementById(fid);if(e)e.value='';});
+  filterProducts();
+}
+function drsResetAll(){Object.keys(NMR_IDS).forEach(id=>nmReset(id));}
+// Run after catalogue init (which itself runs on DOMContentLoaded)
+window.addEventListener('load',()=>{
+  if(new URLSearchParams(window.location.search).get('share'))loadSharedQuote();
+});
+
 function updateFilterVisibility(){
   const bobine=
     document.getElementById('fb-bobine')?.classList.contains('active')||
@@ -1646,7 +2000,7 @@ function countActiveFilters(){
   if(document.getElementById('f-lmax')?.value)n++;
   if(document.getElementById('f-pmin')?.value)n++;
   if(document.getElementById('f-pmax')?.value)n++;
-  ['msd-type','msd-mandrin','msd-couleur','msd-qualite'].forEach(id=>{
+  ['msd-type','msd-mandrin','msd-couleur'].forEach(id=>{
     if(msdState[id]&&msdState[id].size>0)n++;
   });
   return n;
@@ -1671,7 +2025,7 @@ const LT={
     t_f_phone:'Téléphone', t_f_qty:'Quantité souhaitée', t_f_msg:'Message',
     t_send:'ENVOYER',
     t_pf_btn:'📄 DEMANDER UN DEVIS', t_clear_cart:'Vider le container',
-    t_filtres:'FILTRES', t_effacer:'Effacer', t_trier:'Trier :', t_poids_total:'Poids total',
+    t_filtres:'FILTRES', t_effacer:'Réinitialiser', t_trier:'Trier :', t_poids_total:'Poids total',
     t_fmt:'Format', t_bobine:'Bobine', t_palette:'Palette',
     t_type_lbl:'Type', t_couleur_lbl:'Couleur', t_couleurs_lbl:'Couleurs', t_mandrin_lbl:'Mandrin', t_gsm_lbl:'Grammage', t_laize_lbl:'Laize', t_longueur_lbl:'Longueur', t_prix_lbl:'Prix',
     t_my_container:'MON CONTAINER', t_browse_cat:'← Voir le catalogue',
@@ -1729,7 +2083,7 @@ const LT={
     t_f_phone:'Phone', t_f_qty:'Desired quantity', t_f_msg:'Message',
     t_send:'SEND',
     t_pf_btn:'📄 REQUEST A QUOTE', t_clear_cart:'Clear container',
-    t_filtres:'FILTERS', t_effacer:'Clear', t_trier:'Sort:', t_poids_total:'Total weight',
+    t_filtres:'FILTERS', t_effacer:'Reset', t_trier:'Sort:', t_poids_total:'Total weight',
     t_fmt:'Format', t_bobine:'Reel', t_palette:'Sheet',
     t_type_lbl:'Type', t_couleur_lbl:'Colour', t_couleurs_lbl:'Colours', t_mandrin_lbl:'Core', t_gsm_lbl:'Grammage', t_laize_lbl:'Width', t_longueur_lbl:'Length', t_prix_lbl:'Price',
     t_my_container:'MY CONTAINER', t_browse_cat:'← Browse catalogue',

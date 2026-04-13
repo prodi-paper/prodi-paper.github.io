@@ -236,7 +236,8 @@ async function submitContact(e) {
   const nom = document.getElementById('f-nom').value.trim();
   const soc = document.getElementById('f-soc').value.trim();
   const email = document.getElementById('f-email').value.trim();
-  const tel = document.getElementById('f-tel').value.trim();
+  const _telCode=(document.getElementById('f-tel-code')?.value)||'+33';
+  const tel = _telCode+' '+document.getElementById('f-tel').value.trim();
   const msg = document.getElementById('f-msg').value.trim();
   try {
     const r = await fetch(SURL+'/rest/v1/proforma_requests', {
