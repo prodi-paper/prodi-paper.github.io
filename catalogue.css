@@ -203,7 +203,7 @@ header{background:rgba(255,255,255,.92);position:sticky;top:0;z-index:100;border
 .pcard:hover{border-color:rgba(254,0,0,.35);box-shadow:0 10px 36px rgba(0,0,0,.1);transform:translateY(-2px);}
 
 /* Image zone */
-.pcard-img{height:210px;background:var(--off2);overflow:hidden;position:relative;flex-shrink:0;}
+.pcard-img{height:250px;background:var(--off2);overflow:hidden;position:relative;flex-shrink:0;}
 .pcard-img img{width:100%;height:100%;object-fit:cover;}
 .pcard-nophoto{width:100%;height:100%;object-fit:contain!important;background:#fff;}
 
