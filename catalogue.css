@@ -239,12 +239,13 @@ header{background:rgba(255,255,255,.92);position:sticky;top:0;z-index:100;border
 .tag.tag-dim{text-transform:none;letter-spacing:.2px;}
 
 /* Add button */
-.btn-add-cart{width:100%;padding:10px;background:var(--ink);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;letter-spacing:.3px;cursor:pointer;margin-bottom:10px;transition:background .18s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.btn-add-cart{width:100%;padding:10px;background:var(--ink);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;letter-spacing:.3px;cursor:pointer;margin-bottom:10px;transition:background .18s;display:flex;align-items:center;justify-content:center;gap:6px;line-height:1;}
 .btn-add-cart:hover{background:var(--red);}
 .btn-add-cart.added{background:#059669;}
 .btn-add-cart .cart-check{display:none;}
 .btn-add-cart.added .cart-check{display:inline-block;animation:checkpop .3s cubic-bezier(.34,1.56,.64,1);}
 .btn-add-cart.added .cart-icon{display:none;}
+.btn-add-cart .cart-icon{font-size:16px;line-height:1;display:flex;align-items:center;}
 
 /* Footer: weight + price */
 .pcard-foot{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid var(--border);}
@@ -705,7 +706,7 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
 
 /* ── LIST VIEW TABLE ── */
 #pgrid.plist{display:block;}
-.plist-table{width:100%;border-collapse:collapse;font-family:'DM Sans',sans-serif;font-size:13px;}
+.plist-table{width:100%;min-width:700px;border-collapse:collapse;font-family:'DM Sans',sans-serif;font-size:13px;}
 .plist-table thead th{background:var(--off2);color:var(--ink);font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;padding:7px 10px;text-align:left;border-bottom:2px solid var(--border);white-space:nowrap;position:sticky;top:0;z-index:2;}
 .plist-th-add{width:36px;}
 .plist-table tbody tr{border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s;}
@@ -721,11 +722,11 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
 .plist-gsm{font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--ink);letter-spacing:.5px;}
 .plist-price{font-weight:700;color:var(--red);font-size:13px;}
 .plist-price-ask{font-size:11px;color:var(--gray);font-style:italic;}
-.plist-add{background:var(--ink);color:#fff;border:none;border-radius:6px;width:28px;height:28px;font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;padding:0;}
+.plist-add{background:var(--ink);color:#fff;border:none;border-radius:6px;width:26px;height:26px;font-size:17px;font-weight:400;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;padding:0;line-height:1;}
 .plist-add:hover{background:var(--red);}
 .plist-add.added{background:#1a9e5c;font-size:12px;}
 .plist-sel-all{background:none;border:1px solid var(--border);border-radius:5px;font-size:10px;font-weight:700;color:var(--gray);cursor:pointer;padding:3px 6px;white-space:nowrap;}
 .plist-sel-all:hover{border-color:var(--ink);color:var(--ink);}
 @media(max-width:700px){.plist-col-mandrin{display:none;}}
-.plist-sel-all{background:var(--ink);color:#fff;border:none;font-size:11px;font-weight:700;letter-spacing:.3px;padding:6px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;transition:background .15s;font-family:'DM Sans',sans-serif;}
+.plist-sel-all{background:var(--ink);color:#fff;border:none;font-size:20px;font-weight:700;width:36px;height:36px;border-radius:8px;cursor:pointer;transition:background .15s;font-family:'DM Sans',sans-serif;line-height:1;display:flex;align-items:center;justify-content:center;padding:0;}
 .plist-sel-all:hover{background:#000;}

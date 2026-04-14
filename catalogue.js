@@ -546,8 +546,10 @@ const msdLabels = {
   'msd-mandrin': 'Mandrins',
   'msd-couleur': 'Couleurs',
 };
-const QUALITE_CODES=['R1SC','R2SC','RADH','RAFF','RBOA','RBON','RBOU','RCAR','ROFF','Offset Couleur','Dossier Couleur','RCUI','RDIV','RFLEX','RKDO','RKRA','RKRABRUN','RKRG','RKRR','RLINER','RLUX','RLWC','RNEW','RPAC','RPLA','RSIL','RTHERM','RTIS','S1SC','S2SC','SADH','SAFF','SBOA','SBON','SBOU','SCAR','SCUT','SDIV','SENV','SKDO','SKRA','SLUX','SNEW','SOFF','SPAC','SPLA','SSBS','SSPE','SINK','UMAC','AUTRES'];
+const QUALITE_CODES=['R1SC','R2SC','RADH','RAFF','RBOA','RBON','RBOU','RCAR','ROFF','Offset Couleur','Dossier Couleur','RCUI','RDIV','RFLEX','RKDO','RKRA','RKRABRUN','RKRG','RKRR','RLINER','RLUX','RLWC','RNEW','RPAC','RPLA','RSIL','RTHERM','RTIS','S1SC','S2SC','SADH','SAFF','SBOA','SBON','SBOU','SCAR','SCOL','SCUT','SDIV','SENV','SKDO','SKRA','SLUX','SNEW','SOFF','SPAC','SPLA','SSBS','SSPE','SINK','UMAC','AUTRES'];
 const QUALITE_KNOWN=QUALITE_CODES.filter(c=>c!=='AUTRES');
+// Real DB quality codes (pseudo-codes expanded to actual values)
+const QUALITE_KNOWN_DB=[...new Set(QUALITE_KNOWN.flatMap(c=>(c==='Offset Couleur'||c==='Dossier Couleur')?['RCOL']:[c]))];
 const QUALITE_LABELS={
   'R1SC':'Couché 1 face',
   'R2SC':'Couché 2 faces',
@@ -560,6 +562,7 @@ const QUALITE_LABELS={
   'Offset Couleur':'Offset couleur',
   'Dossier Couleur':'Dossier couleur',
   'RCOL':'Offset couleur',
+  'SCOL':'Offset couleur format',
   'RCUI':'Papier cuisson',
   'RDIV':'Divers / Alu',
   'RFLEX':'Complexe / Polyéthylène',
@@ -725,7 +728,8 @@ function buildMsdOptions(msdId, values, defaultLabel, labelFn, stateId){
 
   values.forEach(v=>{
     const opt=makeOpt(v, labelFn ? labelFn(v) : v);
-    if(v==='Offset Couleur'||v==='Dossier Couleur') opt&&(opt.dataset.search='roff offset couleur');
+    if(v==='Offset Couleur'||v==='Dossier Couleur') opt&&(opt.dataset.search='roff rcol offset couleur dossier');
+    if(v==='SCOL') opt&&(opt.dataset.search='scol offset couleur format');
   });
 }
 
@@ -853,24 +857,27 @@ function parseSearchQuery(raw){
 
   // ── Pass 2: single tokens ──
   let nextIs=null;
+  let prevWasUnknownText=false; // true after an unrecognized word → next number = text too
   for(let i=0;i<tokens.length;i++){
     if(usedIdx.has(i))continue;
     const tok=tokens[i];
     if(STOP.has(tok))continue;
-    if(CTX_GSM.has(tok)){nextIs='gsm';continue;}
-    if(CTX_WIDTH.has(tok)){nextIs='width';continue;}
-    if(CTX_NOYAU.has(tok)){nextIs='noyau';continue;}
+    if(CTX_GSM.has(tok)){nextIs='gsm';prevWasUnknownText=false;continue;}
+    if(CTX_WIDTH.has(tok)){nextIs='width';prevWasUnknownText=false;continue;}
+    if(CTX_NOYAU.has(tok)){nextIs='noyau';prevWasUnknownText=false;continue;}
     const nm=tok.match(/^(\d+)(g\/m2|g\/m²|grm|grms|g\/m|gsm|gm2|gm|gramme|grammes|gms|gr|g)?$/);
     if(nm){const n=+nm[1];
       const hasGsmSuffix=!!nm[2];
-      if(nextIs==='gsm'||hasGsmSuffix){res.gsm=n;nextIs=null;continue;}
-      if(nextIs==='width'){res.width=n;nextIs=null;continue;}
-      if(nextIs==='noyau'){res.noyau=n;nextIs=null;continue;}
-      if(n>=20&&n<=800){res.gsm=n;continue;}
-      if(n>800&&n<=3500){res.width=n;continue;}
+      if(nextIs==='gsm'||hasGsmSuffix){res.gsm=n;nextIs=null;prevWasUnknownText=false;continue;}
+      if(nextIs==='width'){res.width=n;nextIs=null;prevWasUnknownText=false;continue;}
+      if(nextIs==='noyau'){res.noyau=n;nextIs=null;prevWasUnknownText=false;continue;}
+      // If preceded by an unrecognized word (e.g. "cie 140"), treat as text not GSM
+      if(prevWasUnknownText){res.text.push(tok);prevWasUnknownText=false;continue;}
+      if(n>=20&&n<=800){res.gsm=n;prevWasUnknownText=false;continue;}
+      if(n>800&&n<=3500){res.width=n;prevWasUnknownText=false;continue;}
     }
     const mm=tok.match(/^(\d+)mm$/);
-    if(mm){res.width=+mm[1];nextIs=null;continue;}
+    if(mm){res.width=+mm[1];nextIs=null;prevWasUnknownText=false;continue;}
     nextIs=null;
     const fz=fuzzyVocab(tok);
     if(fz){
@@ -878,9 +885,11 @@ function parseSearchQuery(raw){
       if(fz.match.kind==='type'){res.qualityCodes.push(...(fz.match.codes||[]));res.detectedTypes.push(fz.match.display);}
       else if(fz.match.kind==='format')res.formats.push(fz.match.display);
       else if(fz.match.kind==='color')res.colors.push(fz.match.display);
+      prevWasUnknownText=false;
       continue;
     }
-    if(tok.length>=2)res.text.push(tok);
+    // Unrecognized word → push to text and flag for next token
+    if(tok.length>=2){res.text.push(tok);prevWasUnknownText=true;}
   }
   _lastDetectedTypes=[...new Set(res.detectedTypes)];
   return res;
@@ -908,8 +917,8 @@ async function _fetchAndRender(token){
   // Build query
   const q=document.getElementById('search-input').value.trim();
   const types=getMsdValues('msd-type');
-  const gn=+document.getElementById('f-gmin').value||0;
-  const gx=+document.getElementById('f-gmax').value||0;
+  const gn=+document.getElementById('f-gmin').value||+document.getElementById('f-gmin-fb')?.value||0;
+  const gx=+document.getElementById('f-gmax').value||+document.getElementById('f-gmax-fb')?.value||0;
   const pn=+document.getElementById('f-pmin').value||0;
   const px=+document.getElementById('f-pmax').value||0;
   const lmin=+document.getElementById('f-lmin').value||0;
@@ -930,7 +939,7 @@ async function _fetchAndRender(token){
   // Merge sidebar type codes + search-detected type codes + qualite direct codes
   const _hasAutres=types.has('AUTRES');
   const _knownSelected=[...types].filter(c=>c!=='AUTRES');
-  const _sideCodes=types.size>0?_knownSelected.flatMap(c=>(c==='Offset Couleur'||c==='Dossier Couleur')?['RCOL','SCOL']:[c]):[];
+  const _sideCodes=types.size>0?_knownSelected.flatMap(c=>(c==='Offset Couleur'||c==='Dossier Couleur')?['RCOL']:[c]):[];
   const _pCodes=parsed.qualityCodes.length&&!types.size?parsed.qualityCodes:[];
   const typeCodes=[..._sideCodes,..._pCodes];
 
@@ -974,9 +983,9 @@ async function _fetchAndRender(token){
     p.append('or',`(quality.ilike.%${s}%,color.ilike.%${s}%,details.ilike.%${s}%,ref.ilike.%${s}%)`);
   });
   if(_hasAutres&&typeCodes.length>0){
-    p.append('or',`(quality.in.(${typeCodes.join(',')}),quality.not.in.(${QUALITE_KNOWN.join(',')}),quality.is.null)`);
+    p.append('or',`(quality.in.(${typeCodes.join(',')}),quality.not.in.(${QUALITE_KNOWN_DB.join(',')}),quality.is.null)`);
   } else if(_hasAutres){
-    p.append('quality',`not.in.(${QUALITE_KNOWN.join(',')})`);
+    p.append('quality',`not.in.(${QUALITE_KNOWN_DB.join(',')})`);
   } else if(typeCodes.length>0){
     p.append('quality',`in.(${typeCodes.join(',')})`);
   }
@@ -1336,7 +1345,7 @@ function renderList(list){
   }).join('');
   g.innerHTML=`<div style="overflow-x:auto"><table class="plist-table">
     <thead><tr>
-      <th class="plist-th-add"><button class="plist-sel-all" onclick="event.stopPropagation();toggleSelectAll(this)">+ Tout</button></th>
+      <th class="plist-th-add"><button class="plist-sel-all" onclick="event.stopPropagation();toggleSelectAll(this)">+</button></th>
       <th></th>
       <th>Désignation / Détails</th>
       <th>Couleur</th>
@@ -1401,7 +1410,7 @@ async function openDetail(id){
   // Image
   const mi=document.getElementById('det-main');
   const _detAlt=[p.name,p.grammage?p.grammage+'g/m²':'',p.couleur].filter(Boolean).join(' — ')||'Produit';
-  const _refOverlay=p.ref?`<div class="det-photo-ref" onclick="navigator.clipboard.writeText('${p.ref}').then(()=>{this.classList.add('copied');setTimeout(()=>this.classList.remove('copied'),1500)})" title="Copier la référence">${p.ref.toUpperCase().replace(/^PHOTO_/,'')} <span class="det-ref-copy">⎘</span><span class="det-ref-copied">✓</span></div>`:'';
+  const _refOverlay=p.ref?`<div class="det-photo-ref" onclick="navigator.clipboard.writeText('${p.ref.replace(/^Photo_/i,'')}').then(()=>{this.classList.add('copied');setTimeout(()=>this.classList.remove('copied'),1500)})" title="Copier la référence">${p.ref.toUpperCase().replace(/^PHOTO_/,'')} <span class="det-ref-copy">⎘</span><span class="det-ref-copied">✓</span></div>`:'';
   mi.innerHTML=(p.image_url
     ?`<img src="${p.image_url}" loading="lazy" alt="${_detAlt}" onerror="detImgErr(this)">`
     :_DET_NO_PHOTO)+_refOverlay;
@@ -1568,13 +1577,13 @@ function toggleSelectAll(btn){
     currentList.forEach(p=>{
       cart=cart.filter(x=>x.id!==+p.id);
       const lb=document.getElementById('ladd-'+p.id);
-      if(lb){lb.classList.remove('added');lb.textContent=`+ ${lang==='en'?'Add':'Ajouter'}`;}
+      if(lb){lb.classList.remove('added');lb.textContent='+';}
       const cb=document.getElementById('cadd-'+p.id);
       if(cb){cb.classList.remove('added');cb.innerHTML=`<span class="cart-icon">+</span><span class="cart-check">✓</span> ${lang==='en'?'Add':'Ajouter'}`;}
     });
     localStorage.setItem('prodi_cart',JSON.stringify(cart));
     updateCartBadge();renderDrawer();
-    btn.textContent='+ Tout';
+    btn.textContent='+';
     toast(lang==='en'?'🗑️ All removed':'🗑️ Tout retiré');
   } else {
     // Add all not yet in cart
@@ -1582,14 +1591,14 @@ function toggleSelectAll(btn){
       if(!cart.find(x=>x.id===+p.id)){
         cart.push({id:p.id,name:p.name,ref:p.ref,type:p.type,grammage:p.grammage,largeur:p.largeur,format:p.format,poids_net:p.poids_net,price:p.price||null,img:p.image_url||null});
         const lb=document.getElementById('ladd-'+p.id);
-        if(lb){lb.classList.add('added');lb.textContent=`✓ ${lang==='en'?'Added':'Ajouté'}`;}
+        if(lb){lb.classList.add('added');lb.textContent='✓';}
         const cb=document.getElementById('cadd-'+p.id);
-        if(cb){cb.classList.add('added');cb.innerHTML=`<span class="cart-check">✓</span> ${lang==='en'?'Added':'Ajouté'}`;}
+        if(cb){cb.classList.add('added');cb.innerHTML=`<span class="cart-check">✓</span>`;}
       }
     });
     localStorage.setItem('prodi_cart',JSON.stringify(cart));
     updateCartBadge();renderDrawer();
-    btn.textContent='− Tout';
+    btn.textContent='−';
     toast(lang==='en'?'✅ All added':'✅ Tout ajouté');
   }
 }
@@ -1604,7 +1613,7 @@ function addToCart(id){
     const caddBtn=document.getElementById('cadd-'+id);
     if(caddBtn){caddBtn.classList.remove('added');caddBtn.innerHTML=`<span class="cart-icon">+</span><span class="cart-check">✓</span> ${lang==='en'?'Add':'Ajouter'}`;}
     const laddBtn=document.getElementById('ladd-'+id);
-    if(laddBtn){laddBtn.classList.remove('added');laddBtn.textContent=`+ ${lang==='en'?'Add':'Ajouter'}`;}
+    if(laddBtn){laddBtn.classList.remove('added');laddBtn.textContent='+';}
     if(mab){mab.classList.remove('added');mab.innerHTML=LT[lang].t_add_modal_btn||'+ Ajouter au container';}
     toast(lang==='en'?'🗑️ Removed from container':'🗑️ Retiré du container');
     return;
@@ -1613,10 +1622,10 @@ function addToCart(id){
   localStorage.setItem('prodi_cart',JSON.stringify(cart));
   updateCartBadge();
   const caddBtn=document.getElementById('cadd-'+id);
-  if(caddBtn){caddBtn.classList.add('added');caddBtn.innerHTML=`<span class="cart-check">✓</span> ${lang==='en'?'Added':'Ajouté'}`;}
+  if(caddBtn){caddBtn.classList.add('added');caddBtn.innerHTML=`<span class="cart-check">✓</span>`;}
   const laddBtn=document.getElementById('ladd-'+id);
-  if(laddBtn){laddBtn.classList.add('added');laddBtn.textContent=`✓ ${lang==='en'?'Added':'Ajouté'}`;}
-  if(mab){mab.classList.add('added');mab.innerHTML=`✓ ${lang==='en'?'Added':'Ajouté'}`;}
+  if(laddBtn){laddBtn.classList.add('added');laddBtn.textContent='✓';}
+  if(mab){mab.classList.add('added');mab.innerHTML='✓';}
   toast(lang==='en'?'✅ Added to container !':'✅ Ajouté au container !');
   renderDrawer();
 }
@@ -1924,7 +1933,7 @@ function syncSbFilter(targetId, val){
 
 // Dual range slider config
 const NMR_IDS={
-  gsm:['f-gmin','f-gmax'],
+  gsm:['f-gmin','f-gmax','f-gmin-fb','f-gmax-fb'],
   lz:['f-lmin','f-lmax'],
   long:['f-longmin','f-longmax'],
   prix:['f-pmin','f-pmax'],
