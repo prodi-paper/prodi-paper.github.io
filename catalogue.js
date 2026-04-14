@@ -1447,7 +1447,6 @@ async function openDetail(id){
   // Specs grid
   const _typeLabel=p.qualite?(p.qualite+(QUALITE_LABELS[p.qualite]?' — '+QUALITE_LABELS[p.qualite]:'')):(p.qualite||null);
   const specDefs=[
-    {lbl: lang==='en'?'Quality':'Qualité',        val: _typeLabel},
     {lbl: LT[lang].t_spec_couleur||'Couleur',   val: p.couleur},
     {lbl: LT[lang].t_spec_gsm||'Grammage',      val: p.grammage?p.grammage+' g/m²':null},
     {lbl: LT[lang].t_spec_laize||'Laize',       val: p.largeur?p.largeur+' mm':null},
