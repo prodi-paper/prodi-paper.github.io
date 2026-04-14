@@ -46,7 +46,7 @@ header{background:rgba(255,255,255,.92);position:sticky;top:0;z-index:100;border
 .live-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;animation:blink 1.5s ease-in-out infinite;flex-shrink:0;box-shadow:0 0 0 0 rgba(34,197,94,.4);animation:livepulse 1.8s ease-in-out infinite;}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 @keyframes livepulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.5)}70%{box-shadow:0 0 0 5px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
-.btn-head{display:flex;align-items:center;gap:7px;padding:4px 24px;border-radius:var(--r);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--white);color:var(--ink2);transition:all .15s;white-space:nowrap;text-decoration:none;}
+.btn-head{display:flex;align-items:center;gap:7px;padding:9px 24px;border-radius:var(--r);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--white);color:var(--ink2);transition:all .15s;white-space:nowrap;text-decoration:none;}
 .btn-head:hover{border-color:var(--red);color:var(--red);}
 .btn-head.primary{background:var(--red);color:#fff;border-color:var(--red);}
 .btn-head.primary:hover{background:var(--red2);}
