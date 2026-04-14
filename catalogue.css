@@ -639,8 +639,9 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
   /* Logo left-aligned, flush with sidebar */
   .header-inner{padding-left:40px;margin-left:0;max-width:none;}
   .logo-link{width:auto;justify-content:flex-start;flex-shrink:0;}
-  /* Search bar centered + offset */
-  .header-search{margin:0 auto;transform:translateX(160px);}
+  /* Search group (live pill + search bar) centered */
+  .header-search-group{display:flex;align-items:center;gap:10px;margin:0 auto;flex-shrink:0;}
+  .header-search{margin:0;transform:none;}
   /* Live pill: hide original in hright, show the one before search */
   .live-pill-hright{display:none;}
   .live-pill-desktop{display:flex;flex-shrink:0;}
