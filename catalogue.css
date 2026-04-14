@@ -635,9 +635,9 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
 @media(min-width:769px){
   /* Hide horizontal filter bar */
   #filter-bar{display:none !important;}
-  /* Logo centered over sidebar (280px) */
-  .header-inner{padding-left:0;}
-  .logo-link{width:280px;justify-content:center;flex-shrink:0;}
+  /* Logo left-aligned, flush with sidebar */
+  .header-inner{padding-left:16px;}
+  .logo-link{width:auto;justify-content:flex-start;flex-shrink:0;}
   /* 2-col layout: sidebar + content */
   .body-wrap{
     display:grid;
