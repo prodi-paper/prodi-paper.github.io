@@ -94,7 +94,7 @@ header{background:rgba(255,255,255,.92);position:sticky;top:0;z-index:100;border
 @media(max-width:600px){#type-tiles-wrap{padding:10px 16px 0;}#type-tiles{gap:5px;}.type-tile{min-width:76px;padding:8px 10px;}.tile-ico{font-size:16px;}.tile-name{font-size:11px;}.tile-meta{font-size:9px;}}
 
 /* ── LAYOUT ── */
-.body-wrap{max-width:1320px;margin:0 auto;padding:16px 24px;}
+.body-wrap{max-width:1320px;margin:0 auto;padding:16px 24px 16px 0;}
 
 /* ── FILTERS ── */
 .filters-panel{position:sticky;top:76px;height:fit-content;}
@@ -641,7 +641,7 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
     grid-template-columns:280px 1fr;
     gap:0;
     max-width:1400px;
-    padding:0 24px 32px;
+    padding:0 24px 32px 0;
     align-items:start;
   }
   /* Sidebar — header is 82px (52 header-inner + 30 trust-bar) */
