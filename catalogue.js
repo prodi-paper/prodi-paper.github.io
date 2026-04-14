@@ -706,7 +706,8 @@ function buildMsdOptions(msdId, values, defaultLabel, labelFn, stateId){
     wrap.querySelector('.msd-search-inp').addEventListener('input', e=>{
       const q = e.target.value.toLowerCase();
       panel.querySelectorAll('.msd-option').forEach(opt=>{
-        opt.style.display = opt.textContent.toLowerCase().includes(q) ? '' : 'none';
+        const hay = (opt.textContent + ' ' + (opt.dataset.search||'')).toLowerCase();
+        opt.style.display = hay.includes(q) ? '' : 'none';
       });
     });
     wrap.addEventListener('click', e=>e.stopPropagation());
@@ -719,9 +720,13 @@ function buildMsdOptions(msdId, values, defaultLabel, labelFn, stateId){
     opt.innerHTML = `<div class="msd-check"><svg width="9" height="7" fill="none" stroke="#fff" stroke-width="2.5"><polyline points="1,4 3.5,6.5 8,1"/></svg></div>${text}`;
     opt.addEventListener('click', ()=>toggleMsdOption(opt, targetId));
     panel.appendChild(opt);
+    return opt;
   };
 
-  values.forEach(v=>makeOpt(v, labelFn ? labelFn(v) : v));
+  values.forEach(v=>{
+    const opt=makeOpt(v, labelFn ? labelFn(v) : v);
+    if(v==='Offset Couleur'||v==='Dossier Couleur') opt&&(opt.dataset.search='roff offset couleur');
+  });
 }
 
 // ===== AUTOCOMPLETE =====
@@ -1243,7 +1248,7 @@ function renderCards(list){
       :`<div class="pcard-price-ask">${LT[lang].t_sur_demande}</div>`;
     const typeOverlay=p.typeLabel?`<div class="pcard-type-overlay">${p.typeLabel}</div>`:'';
     const gsmOverlay=p.grammage?`<div class="pcard-gsm-overlay"><span class="pcard-gsm-num">${p.grammage}</span><span class="pcard-gsm-lbl">g/m²</span></div>`:'';
-    const photoRef=p.ref&&p.ref.startsWith('Photo_')?`<div class="pcard-photo-ref">${p.ref}</div>`:'';
+    const photoRef='';
     // Mini spec rows (label + value, only if value exists)
     const specRows=[
       p.couleur?['Couleur',p.couleur]:null,
