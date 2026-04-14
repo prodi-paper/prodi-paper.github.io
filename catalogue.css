@@ -639,7 +639,7 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
   .header-inner{padding-left:40px;margin-left:0;max-width:none;}
   .logo-link{width:auto;justify-content:flex-start;flex-shrink:0;}
   /* Search bar centered + 80px right */
-  .header-search{margin:0 auto;transform:translateX(80px);}
+  .header-search{margin:0 auto;transform:translateX(160px);}
   /* 2-col layout: sidebar + content */
   .body-wrap{
     display:grid;
