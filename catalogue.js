@@ -331,7 +331,7 @@ function rowToUi(r){
   const weight = r.weight ?? null;
   const price = r.price ?? null;
   const ref = r.ref || '';
-  const location = r.location || '';
+  const location = r.emplacement || r.location || '';
   const image_url = r.image_url || '';
 
   // UI expects: name,type,grammage,largeur,poids_net,couleur,qualite,product_photos
