@@ -1246,7 +1246,7 @@ function renderCards(list){
     const prixHtml=p.price
       ?`<div class="pcard-price">${p.price.toLocaleString('fr-FR')} €/T</div>`
       :`<div class="pcard-price-ask">${LT[lang].t_sur_demande}</div>`;
-    const typeOverlay=p.typeLabel?`<div class="pcard-type-overlay">${p.typeLabel}</div>`:'';
+    const typeOverlay='';
     const gsmOverlay=p.grammage?`<div class="pcard-gsm-overlay"><span class="pcard-gsm-num">${p.grammage}</span><span class="pcard-gsm-lbl">g/m²</span></div>`:'';
     const photoRef='';
     // Mini spec rows (label + value, only if value exists)
