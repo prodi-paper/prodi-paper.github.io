@@ -640,7 +640,7 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
   .header-inner{padding-left:40px;margin-left:0;max-width:none;}
   .logo-link{width:auto;justify-content:flex-start;flex-shrink:0;}
   /* Search group (live pill + search bar) centered */
-  .header-search-group{display:flex;align-items:center;gap:10px;margin:0 auto;flex-shrink:0;}
+  .header-search-group{display:flex;align-items:center;gap:10px;margin:0 auto;flex-shrink:0;transform:translateX(-60px);}
   .header-search{margin:0;transform:none;width:528px;flex-shrink:0;}
   /* Live pill: hide original in hright, show the one before search */
   .live-pill-hright{display:none;}
