@@ -650,7 +650,7 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
     display:block !important;
     position:sticky;
     top:82px;
-    height:calc(100vh - (82px + var(--resultsbar-h)));
+    height:calc(100vh - 82px);
     overflow-y:auto;
     border-right:1px solid var(--border);
     padding:20px 20px 40px;
