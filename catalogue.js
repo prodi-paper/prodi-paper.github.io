@@ -545,7 +545,7 @@ const msdLabels = {
   'msd-mandrin': 'Mandrins',
   'msd-couleur': 'Couleurs',
 };
-const QUALITE_CODES=['R1SC','R2SC','RADH','RAFF','RBOA','RBON','RBOU','RCAR','RCOL','RCUI','RDIV','RFLEX','RKDO','RKRA','RKRABRUN','RKRG','RKRR','RLINER','RLUX','RLWC','RNEW','ROFF','RPAC','RPLA','RSIL','RTHERM','RTIS','S1SC','S2SC','SADH','SAFF','SBOA','SBON','SBOU','SCAR','SCOL','SCUT','SDIV','SENV','SKDO','SKRA','SLUX','SNEW','SOFF','SPAC','SPLA','SSBS','SSPE','SINK','UMAC','AUTRES'];
+const QUALITE_CODES=['R1SC','R2SC','RADH','RAFF','RBOA','RBON','RBOU','RCAR','Offset Couleur','Dossier Couleur','RCUI','RDIV','RFLEX','RKDO','RKRA','RKRABRUN','RKRG','RKRR','RLINER','RLUX','RLWC','RNEW','ROFF','RPAC','RPLA','RSIL','RTHERM','RTIS','S1SC','S2SC','SADH','SAFF','SBOA','SBON','SBOU','SCAR','SCUT','SDIV','SENV','SKDO','SKRA','SLUX','SNEW','SOFF','SPAC','SPLA','SSBS','SSPE','SINK','UMAC','AUTRES'];
 const QUALITE_KNOWN=QUALITE_CODES.filter(c=>c!=='AUTRES');
 const QUALITE_LABELS={
   'R1SC':'Couché 1 face',
@@ -556,6 +556,8 @@ const QUALITE_LABELS={
   'RBON':'Carton non couché',
   'RBOU':'Bouffant',
   'RCAR':'Autocopiant',
+  'Offset Couleur':'Offset couleur ≤149g',
+  'Dossier Couleur':'Dossier couleur ≥150g',
   'RCOL':'Offset couleur',
   'RCUI':'Papier cuisson',
   'RDIV':'Divers / Alu',
@@ -922,7 +924,7 @@ async function _fetchAndRender(token){
   // Merge sidebar type codes + search-detected type codes + qualite direct codes
   const _hasAutres=types.has('AUTRES');
   const _knownSelected=[...types].filter(c=>c!=='AUTRES');
-  const _sideCodes=types.size>0?_knownSelected:[];
+  const _sideCodes=types.size>0?_knownSelected.flatMap(c=>(c==='Offset Couleur'||c==='Dossier Couleur')?['RCOL','SCOL']:[c]):[];
   const _pCodes=parsed.qualityCodes.length&&!types.size?parsed.qualityCodes:[];
   const typeCodes=[..._sideCodes,..._pCodes];
 
