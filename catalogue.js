@@ -26,6 +26,8 @@ const TYPE_MAP={
   'Adhésif':           ['RADH','SADH'],
   'Autocopiant':       ['RCAR','SCAR'],
   'Bouffant':          ['RBOU','SBOU'],
+  'Enveloppes':        ['RENV','SENV'],
+  'Machines':          ['UMAC'],
   'Carton couché':     ['RBOA','SBOA'],
   'Carton non couché': ['RBON','SBON'],
   'Complexe':          ['RFLEX'],
@@ -51,6 +53,7 @@ const TYPE_MAP={
   'Papier affiche':    ['RAFF','SAFF'],
   'Papier cadeau':     ['RKDO'],
   'Plastique':         ['RPLA','SPLA'],
+  'Encre':             ['SINK'],
   'Ramette':           ['SCUT'],
   'SBS':               ['SSBS'],
   'Silicone-Glassine': ['RSIL'],
@@ -256,7 +259,7 @@ const ALIAS_MAP=(()=>{
 const SEARCH_VOCAB=(()=>{
   const v=[];
   for(const[k,codes]of Object.entries(TYPE_MAP))v.push({display:k,norm:_norm(k),codes,kind:'type'});
-  for(const c of['Blanc','Brun','Noir','Gris','Ivoire','Vert','Rouge','Bleu','Jaune','Orange','Argent','Couleur','Autres'])v.push({display:c,norm:c.toLowerCase(),kind:'color'});
+  for(const c of['Blanc','Très blanc','Blanc nature','Brun','Crème','Ivoire','Gris','Noir','Transparent','Vert','Rouge','Bleu','Jaune','Orange','Argent','Rose','Or','Violet'])v.push({display:c,norm:_norm(c),kind:'color'});
   for(const f of['Bobine','Palette'])v.push({display:f,norm:f.toLowerCase(),kind:'format'});
   return v;
 })();
@@ -279,7 +282,7 @@ function fuzzyVocab(tok){
     }
   }
   // 4. Fuzzy match against alias keys
-  const maxDist=tok.length<=4?1:tok.length<=7?2:3;
+  const maxDist=tok.length<=4?1:tok.length<=6?1:tok.length<=9?2:3;
   let best=null,bestDist=Infinity,bestIsAlias=false;
   for(const[k,v]of ALIAS_MAP){const d=lev(tok,k);if(d<bestDist){bestDist=d;best=v;bestIsAlias=true;}}
   // 5. Fuzzy match against vocab norms
@@ -298,12 +301,24 @@ const sp=v=>document.getElementById('spinner').classList.toggle('show',v);
 
 // Map DB row (new schema) -> UI object (expected by existing template)
 // Nettoie les couleurs bilingues "BLANC / WHITE" → "Blanc"
+const _COLOR_NORM={
+  'BLANC / WHITE':'Blanc','BRUN / BROWN':'Brun','IVOIRE / IVORY':'Ivoire',
+  'BLANC NATURE / NATURAL WHITE':'Blanc nature',
+  'TRES BLANC / VERY WHITE':'Très blanc','TRÈS BLANC / VERY WHITE':'Très blanc',
+  'DIVERS / VARIOUS':'Autres','GRIS / GREY':'Gris','TRANSPARENT':'Transparent',
+  'JAUNE / YELLOW':'Jaune','ARGENT / SILVER':'Argent','BLEU / BLUE':'Bleu',
+  'ROUGE / RED':'Rouge','VERT / GREEN':'Vert','NOIR / BLACK':'Noir',
+  'ORANGE / ORANGE':'Orange','ROSE / PINK':'Rose','VIOLET / PURPLE':'Violet',
+  'GOLD/DORE':'Or','CREME / CREAMS':'Crème','SAUMON / SALMON':'Saumon',
+  'BRUN FONCE / DARK BROWN':'Brun foncé','TRANSPARENT PET':'Transparent','BULLE/BUBBLE':'Bulle',
+};
 function simplCouleur(raw){
-  if(!raw) return '';
-  // Prend uniquement la partie avant le "/"
-  const fr = raw.split('/')[0].trim();
-  // Capitalise proprement
-  return fr.charAt(0).toUpperCase() + fr.slice(1).toLowerCase();
+  if(!raw||raw==='-') return '';
+  const up=raw.trim().toUpperCase().replace(/\s+/g,' ');
+  if(_COLOR_NORM[up]) return _COLOR_NORM[up];
+  // Fallback: prend la partie avant "/"
+  const fr=raw.split('/')[0].trim();
+  return fr.charAt(0).toUpperCase()+fr.slice(1).toLowerCase();
 }
 
 function rowToUi(r){
@@ -467,9 +482,9 @@ async function init(){
   updateFilterVisibility();
   // Hardcoded filter options — Couleur replaced by Offset Couleur + Dossier Couleur
   const typeVals=Object.keys(TYPE_MAP).filter(k=>k!=='Couleur'&&k!=='Offset Couleur'&&k!=='Dossier Couleur').concat(['Offset Couleur','Dossier Couleur']).sort((a,b)=>a.localeCompare(b));
-  const couleurVals=['Blanc','Brun','Ivoire','Gris','Noir','Vert','Rouge','Bleu','Jaune','Orange','Argent','Couleur','Autres'];
+  const couleurVals=['Blanc','Très blanc','Blanc nature','Brun','Crème','Ivoire','Gris','Noir','Transparent','Vert','Rouge','Bleu','Jaune','Orange','Argent','Rose','Or','Violet','Autres'];
   buildMsdOptions('msd-type',QUALITE_CODES,'Tous',v=>`${v} — ${QUALITE_LABELS[v]||v}`);
-  buildMsdOptions('sb-msd-type',QUALITE_CODES,'Type',v=>`${v} — ${QUALITE_LABELS[v]||v}`,'msd-type');
+  buildMsdOptions('sb-msd-type',QUALITE_CODES,'Type de papier',v=>`${v} — ${QUALITE_LABELS[v]||v}`,'msd-type');
   buildMsdOptions('msd-couleur',couleurVals,'Couleurs');
   buildMsdOptions('sb-msd-couleur',couleurVals,'Couleurs',undefined,'msd-couleur');
 
@@ -526,11 +541,11 @@ const msdState = {
   'msd-couleur': new Set(),
 };
 const msdLabels = {
-  'msd-type': 'Type',
+  'msd-type': 'Type de papier',
   'msd-mandrin': 'Mandrins',
   'msd-couleur': 'Couleurs',
 };
-const QUALITE_CODES=['R1SC','R2SC','RADH','RAFF','RBOA','RBON','RBOU','RCAR','RCOL','RCUI','RDIV','RFLEX','RKDO','RKRA','RKRABRUN','RKRG','RKRR','RLINER','RLUX','RLWC','RNEW','RPAC','RPLA','RSIL','RTHERM','RTIS','S1SC','S2SC','SADH','SAFF','SBOA','SBON','SCAR','SCOL','SCUT','SDIV','SKDO','SKRA','SLUX','SNEW','SOFF','SPAC','SSBS','SSPE','AUTRES'];
+const QUALITE_CODES=['R1SC','R2SC','RADH','RAFF','RBOA','RBON','RBOU','RCAR','RCOL','RCUI','RDIV','RFLEX','RKDO','RKRA','RKRABRUN','RKRG','RKRR','RLINER','RLUX','RLWC','RNEW','ROFF','RPAC','RPLA','RSIL','RTHERM','RTIS','S1SC','S2SC','SADH','SAFF','SBOA','SBON','SBOU','SCAR','SCOL','SCUT','SDIV','SENV','SKDO','SKRA','SLUX','SNEW','SOFF','SPAC','SPLA','SSBS','SSPE','SINK','UMAC','AUTRES'];
 const QUALITE_KNOWN=QUALITE_CODES.filter(c=>c!=='AUTRES');
 const QUALITE_LABELS={
   'R1SC':'Couché 1 face',
@@ -554,6 +569,7 @@ const QUALITE_LABELS={
   'RLUX':'Papier luxe',
   'RLWC':'LWC',
   'RNEW':'Papier journal',
+  'ROFF':'Offset',
   'RPAC':'Emballage',
   'RPLA':'Plastique',
   'RSIL':'Silicone / Glassine',
@@ -565,18 +581,23 @@ const QUALITE_LABELS={
   'SAFF':'Papier affiche',
   'SBOA':'Carton couché',
   'SBON':'Carton non couché',
+  'SBOU':'Bouffant',
   'SCAR':'Autocopiant',
   'SCOL':'Offset couleur',
   'SCUT':'Ramette',
   'SDIV':'Divers',
+  'SENV':'Enveloppes',
   'SKDO':'Papier cadeau',
   'SKRA':'Kraft',
   'SLUX':'Papier luxe',
   'SNEW':'Papier journal',
   'SOFF':'Offset',
   'SPAC':'Emballage',
+  'SPLA':'Plastique',
   'SSBS':'SBS / Carton blanc',
   'SSPE':'Spécial',
+  'SINK':'Encre',
+  'UMAC':'Machines',
   'AUTRES':'Autres',
 };
 
@@ -667,11 +688,26 @@ function buildMsdOptions(msdId, values, defaultLabel, labelFn, stateId){
   if(!panel) return;
 
   // reset selection
-  panel.querySelectorAll('.msd-option').forEach(o=>o.remove());
+  panel.querySelectorAll('.msd-option,.msd-search-wrap').forEach(o=>o.remove());
   msd._selected = new Set();
   // reset button label
   const lbl = msd.querySelector('.msd-btn-label');
   if(lbl) lbl.textContent = defaultLabel;
+
+  // Add search bar if many options
+  if(values.length > 6){
+    const wrap = document.createElement('div');
+    wrap.className = 'msd-search-wrap';
+    wrap.innerHTML = `<input class="msd-search-inp" type="text" placeholder="Rechercher…" autocomplete="off">`;
+    panel.appendChild(wrap);
+    wrap.querySelector('.msd-search-inp').addEventListener('input', e=>{
+      const q = e.target.value.toLowerCase();
+      panel.querySelectorAll('.msd-option').forEach(opt=>{
+        opt.style.display = opt.textContent.toLowerCase().includes(q) ? '' : 'none';
+      });
+    });
+    wrap.addEventListener('click', e=>e.stopPropagation());
+  }
 
   const makeOpt = (val, text) => {
     const opt = document.createElement('div');
@@ -748,7 +784,6 @@ function showSuggestions(val,inp){
   box.innerHTML=scored.map(({v,score})=>`
     <div class="suggest-item" onclick="applySuggestion('${v.display.replace(/'/g,"\\'")}')">
       <span class="suggest-label">${v.display}</span>
-      <span class="suggest-kind" style="color:${kindColor[v.kind]||'var(--gray)'}">${kindLabel[v.kind]||v.kind}</span>
       ${score===0?'<span class="suggest-check">✓</span>':''}
     </div>`).join('');
   _sugIdx=-1;
@@ -1218,7 +1253,7 @@ function renderCards(list){
       <div class="pcard-img">${imgHtml}${typeOverlay}${gsmOverlay}${photoRef}</div>
       <div class="pcard-stripe"></div>
       <div class="pcard-body">
-        <div class="pcard-name">${p.name||p.type||'—'}</div>
+        <div class="pcard-name">${p.qualite?(p.qualite+(QUALITE_LABELS[p.qualite]?' — '+QUALITE_LABELS[p.qualite]:'')):(p.type||'—')}</div>
         ${specsHtml}
         <button class="btn-add-cart${cart.find(x=>x.id===+p.id)?' added':''}" id="cadd-${p.id}" onclick="event.stopPropagation();addToCart(${p.id})"><span class="cart-icon">+</span><span class="cart-check">✓</span> ${lang==='en'?'Add':'Ajouter'}</button>
         <div class="pcard-foot">
@@ -1262,45 +1297,47 @@ function renderList(list){
     const thumb=_isFabL
       ?`<img src="img/fabrication-sur-demande.png" alt="Fabrication sur demande" class="plist-thumb">`
       :p.image_url
-        ?`<img src="${p.image_url}" alt="" class="plist-thumb" loading="lazy" onerror="this.src='img/no-photo.png'">`
-        :`<img src="img/no-photo.png" class="plist-thumb">`;
+        ?`<img src="${p.image_url}" alt="" class="plist-thumb" loading="lazy" onerror="this.src='img/photos-sur-demande.png'">`
+        :`<img src="img/photos-sur-demande.png" class="plist-thumb">`;
     const price=p.price
       ?`<span class="plist-price">${p.price.toLocaleString('fr-FR')} €/T</span>`
-      :`<span class="plist-price-ask">Sur demande</span>`;
+      :`<span class="plist-price-ask">Sur dem.</span>`;
     const inCart=cart.find(x=>x.id===+p.id);
-    const addBtn=`<button class="plist-add${inCart?' added':''}" id="ladd-${p.id}" onclick="event.stopPropagation();addToCart(${p.id})">${inCart?'✓ Ajouté':'+ Ajouter'}</button>`;
+    const addBtn=`<button class="plist-add${inCart?' added':''}" id="ladd-${p.id}" onclick="event.stopPropagation();addToCart(${p.id})">${inCart?'✓':'+'}</button>`;
     const isPalette=p.format&&p.format.toLowerCase().includes('palette');
-    const fmt=p.format?`<span class="plist-fmt">${isPalette?'Palette':'Bobine'}</span>`:'';
-    const dims=isPalette
-      ?[p.largeur,p.longueur].filter(Boolean).join('×')||'—'
-      :p.largeur?`${p.largeur} mm`:'—';
-    return`<tr onclick="openDetail(${p.id})">
-      <td class="plist-td">${addBtn}</td>
-      <td class="plist-td"><span class="plist-code">${p.typeLabel||p.type||'—'}</span></td>
-      <td class="plist-td wrap">${p.name||'—'}</td>
-      <td class="plist-td">${p.couleur||'—'}</td>
-      <td class="plist-td"><span class="plist-gsm">${p.grammage||'—'}</span></td>
-      <td class="plist-td">${dims}</td>
-      <td class="plist-td">${p.noyau?`Ø${p.noyau} mm`:'—'}</td>
-      <td class="plist-td">${p.poids_net?p.poids_net.toLocaleString('fr-FR')+' kg':'—'}</td>
-      <td class="plist-td">${price}</td>
-      <td class="plist-td">${fmt}</td>
+    const title=p.qualite?(p.qualite+(QUALITE_LABELS[p.qualite]?' — '+QUALITE_LABELS[p.qualite]:'')):(p.name||'—');
+    // Dimensions: Bobine → Laize | Ø Diamètre | Mandrin / Palette → Laize | Longueur
+    const laize=p.largeur?`${p.largeur} mm`:'—';
+    const dim2=isPalette
+      ?(p.longueur?`${p.longueur} mm`:'—')
+      :(p.longueur?`Ø ${p.longueur} mm`:'—');
+    const mandrin=isPalette?null:(p.noyau?`${p.noyau} mm`:'—');
+    const detailsTxt=p.details?`<span class="plist-details" title="${p.details}">${p.details.substring(0,40)}${p.details.length>40?'…':''}</span>`:'';
+    return`<tr onclick="openDetail(${p.id})" class="${isPalette?'plist-palette':'plist-bobine'}">
+      <td class="plist-td plist-td-add">${addBtn}</td>
       <td class="plist-td plist-thumb-wrap">${thumb}</td>
+      <td class="plist-td plist-td-title"><strong class="plist-qtitle">${title}</strong>${detailsTxt}</td>
+      <td class="plist-td">${p.couleur||'—'}</td>
+      <td class="plist-td plist-td-num"><span class="plist-gsm">${p.grammage?p.grammage+' g/m²':'—'}</span></td>
+      <td class="plist-td plist-td-num">${laize}</td>
+      <td class="plist-td plist-td-num">${dim2}</td>
+      <td class="plist-td plist-td-num plist-col-mandrin">${isPalette?'—':(mandrin||'—')}</td>
+      <td class="plist-td plist-td-num">${p.poids_net?p.poids_net.toLocaleString('fr-FR')+' kg':'—'}</td>
+      <td class="plist-td">${price}</td>
     </tr>`;
   }).join('');
   g.innerHTML=`<div style="overflow-x:auto"><table class="plist-table">
     <thead><tr>
-      <th><button class="plist-sel-all" onclick="event.stopPropagation();toggleSelectAll(this)">+ Tout</button></th>
-      <th>Type</th>
-      <th>Désignation</th>
+      <th class="plist-th-add"><button class="plist-sel-all" onclick="event.stopPropagation();toggleSelectAll(this)">+ Tout</button></th>
+      <th></th>
+      <th>Désignation / Détails</th>
       <th>Couleur</th>
       <th>GSM</th>
       <th>Laize</th>
-      <th>Mandrin</th>
+      <th>Ø / Long.</th>
+      <th class="plist-col-mandrin">Mandrin</th>
       <th>Poids</th>
       <th>Prix</th>
-      <th>Format</th>
-      <th>Photo</th>
     </tr></thead>
     <tbody>${rows}</tbody>
   </table></div>`;
@@ -1328,6 +1365,8 @@ function render(list){
 }
 
 
+const _DET_NO_PHOTO=`<img src="img/photos-sur-demande.png" alt="Photos sur demande" style="width:100%;height:100%;object-fit:contain;background:#fff;">`;
+function detImgErr(img){img.onerror=null;img.parentNode.innerHTML=_DET_NO_PHOTO;}
 let _detIdx=-1;
 function _detKeyHandler(e){
   if(e.key==='ArrowLeft')navDetail(-1);
@@ -1354,18 +1393,17 @@ async function openDetail(id){
   // Image
   const mi=document.getElementById('det-main');
   const _detAlt=[p.name,p.grammage?p.grammage+'g/m²':'',p.couleur].filter(Boolean).join(' — ')||'Produit';
-  const _isFabDet=p.details&&p.details.toLowerCase().includes('fabrication sur demande');
-  mi.innerHTML=_isFabDet
-    ?`<img src="img/fabrication-sur-demande.png" alt="Fabrication sur demande" style="width:100%;height:100%;object-fit:cover">`
-    :p.image_url
-      ?`<img src="${p.image_url}" loading="lazy" alt="${_detAlt}">`
-      :`<div style="display:flex;flex-direction:column;align-items:center;gap:12px;opacity:.3">${placeholderSvg(p.type)}</div>`;
+  const _refOverlay=p.ref?`<div class="det-photo-ref" onclick="navigator.clipboard.writeText('${p.ref}').then(()=>{this.classList.add('copied');setTimeout(()=>this.classList.remove('copied'),1500)})" title="Copier la référence">${p.ref.toUpperCase().replace(/^PHOTO_/,'')} <span class="det-ref-copy">⎘</span><span class="det-ref-copied">✓</span></div>`:'';
+  mi.innerHTML=(p.image_url
+    ?`<img src="${p.image_url}" loading="lazy" alt="${_detAlt}" onerror="detImgErr(this)">`
+    :_DET_NO_PHOTO)+_refOverlay;
+
 
   // Badge qualité
 
   // Ref + nom
   document.getElementById('det-ref').textContent=(p.ref&&!String(p.ref).startsWith('Photo_'))?p.ref:'';
-  document.getElementById('det-name').textContent=p.name||p.qualite||'Produit';
+  document.getElementById('det-name').textContent=p.qualite?(p.qualite+(QUALITE_LABELS[p.qualite]?' — '+QUALITE_LABELS[p.qualite]:'')):(p.name||'Produit');
 
   // Specs grid
   const _typeLabel=Object.entries(TYPE_MAP).find(([,v])=>v.includes(p.qualite))?.[0]||p.qualite||null;
@@ -1383,9 +1421,10 @@ async function openDetail(id){
     `<div class="dspec-item"><div class="dspec-lbl">${s.lbl}</div><div class="dspec-val">${s.val}</div></div>`
   ).join('');
 
-  // Détails texte
+  // Détails texte (inclut p.name = dimensions ex: Ø1020MM)
   const dd=document.getElementById('det-details');
-  if(p.details&&p.details.trim()){dd.textContent=p.details;dd.style.display='block';}
+  const _detParts=[p.name&&p.name.trim()?p.name.trim():null,p.details&&p.details.trim()?p.details.trim():null].filter(Boolean);
+  if(_detParts.length){dd.textContent=_detParts.join(' — ');dd.style.display='block';}
   else{dd.style.display='none';}
 
   // Prix + Poids
@@ -1412,7 +1451,7 @@ function closeDetail(){
   document.removeEventListener('keydown',_detKeyHandler);
 }
 function swImg(el,url){document.getElementById('det-main').innerHTML=`<img src="${url}">`;document.querySelectorAll('.dthumb').forEach(t=>t.classList.remove('active'));el.classList.add('active');}
-function openProforma(){if(!cur)return;document.getElementById('pf-prod-name').textContent=cur.name+(cur.ref?' — '+cur.ref:'');document.getElementById('proforma-bg').classList.add('show');}
+function openProforma(){if(!cur)return;const _proTitle=cur.qualite?(cur.qualite+(QUALITE_LABELS[cur.qualite]?' — '+QUALITE_LABELS[cur.qualite]:'')):(cur.name||'Produit');document.getElementById('pf-prod-name').textContent=_proTitle+(cur.ref&&!String(cur.ref).startsWith('Photo_')?' — '+cur.ref:'');document.getElementById('proforma-bg').classList.add('show');}
 function closeProforma(){document.getElementById('proforma-bg').classList.remove('show');}
 const emailRx=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 function validateField(fgId,valid,errMsg){

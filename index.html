@@ -38,7 +38,7 @@
 <link rel="preconnect" href="https://bvcgpdoukhcatjibmvnb.supabase.co">
 <link rel="dns-prefetch" href="https://stock.prodi.net">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="catalogue.css?v=80">
+<link rel="stylesheet" href="catalogue.css?v=90">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
@@ -98,7 +98,7 @@
     <!-- Type -->
     <div class="fb-msd" id="msd-type" style="position:relative;flex-shrink:0;">
       <button class="fb-msd-btn" id="fb-type-btn" onclick="toggleFbMsd('msd-type')">
-        <span id="fb-type-label" data-i18n="t_type_lbl">Type</span>
+        <span id="fb-type-label" data-i18n="t_type_lbl">Type de papier</span>
         <span class="msd-count" id="fb-type-count" style="display:none"></span>
         <span class="fb-msd-arrow">▾</span>
       </button>
@@ -204,16 +204,14 @@
 
 
       <div class="fg">
-        <label class="fl"><span>Type</span><span class="fl-count" id="fl-count-type" style="display:none">0</span></label>
         <div class="msd" id="sb-msd-type">
           <button class="msd-btn" data-msd-id="msd-type" onclick="toggleMsd('sb-msd-type')">
-            <span class="msd-btn-label">Type</span><span class="msd-arrow">▾</span>
+            <span class="msd-btn-label">Type de papier</span><span class="msd-arrow">▾</span>
           </button>
           <div class="msd-panel"></div>
         </div>
       </div>
       <div class="fg">
-        <label class="fl"><span data-i18n="t_couleur_lbl">Couleur</span><span class="fl-count" id="fl-count-couleur" style="display:none">0</span></label>
         <div class="msd" id="sb-msd-couleur">
           <button class="msd-btn" data-msd-id="msd-couleur" onclick="toggleMsd('sb-msd-couleur')">
             <span class="msd-btn-label" data-i18n="t_couleurs_lbl">Couleurs</span><span class="msd-arrow">▾</span>
@@ -221,7 +219,7 @@
           <div class="msd-panel"></div>
         </div>
       </div>
-      <div class="fg" id="sb-sec-mandrin"><label class="fl"><span data-i18n="t_mandrin_lbl">Mandrin</span> <span style="font-weight:400;font-size:11px;color:var(--gray)">(mm)</span><span class="fl-count" id="fl-count-mandrin" style="display:none">0</span></label>
+      <div class="fg" id="sb-sec-mandrin">
         <div class="msd" id="msd-mandrin-sidebar">
           <button class="msd-btn" onclick="toggleMsd('msd-mandrin-sidebar')"><span class="msd-btn-label" data-i18n="t_mandrins_lbl">Mandrins</span><span class="msd-arrow">▾</span></button>
           <div class="msd-panel">
@@ -626,6 +624,6 @@
 </div>
 <div class="spin-bg" id="spinner"><div class="spin"></div></div>
 
-<script src="catalogue.js?v=93"></script>
+<script src="catalogue.js?v=111"></script>
 </body>
 </html>
