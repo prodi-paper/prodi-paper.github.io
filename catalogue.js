@@ -1332,7 +1332,7 @@ function renderList(list){
       ?(p.longueur?`${p.longueur} mm`:'—')
       :(p.longueur?`Ø ${p.longueur} mm`:'—');
     const mandrin=isPalette?null:(p.noyau?`${p.noyau} mm`:'—');
-    const detailsTxt=p.details?`<span class="plist-details" title="${p.details}">${p.details.substring(0,40)}${p.details.length>40?'…':''}</span>`:'';
+    const detailsTxt=p.details?`<span class="plist-details" title="${p.details}">${p.details.substring(0,22)}${p.details.length>22?'…':''}</span>`:'';
     return`<tr onclick="openDetail(${p.id})" class="${isPalette?'plist-palette':'plist-bobine'}">
       <td class="plist-td plist-td-add">${addBtn}</td>
       <td class="plist-td plist-thumb-wrap">${thumb}</td>
@@ -1421,20 +1421,31 @@ async function openDetail(id){
   // Image
   const mi=document.getElementById('det-main');
   const _detAlt=[p.name,p.grammage?p.grammage+'g/m²':'',p.couleur].filter(Boolean).join(' — ')||'Produit';
-  const _refOverlay=p.ref?`<div class="det-photo-ref" onclick="navigator.clipboard.writeText('${p.ref.replace(/^Photo_/i,'')}').then(()=>{this.classList.add('copied');setTimeout(()=>this.classList.remove('copied'),1500)})" title="Copier la référence">${p.ref.toUpperCase().replace(/^PHOTO_/,'')} <span class="det-ref-copy">⎘</span><span class="det-ref-copied">✓</span></div>`:'';
   mi.innerHTML=(p.image_url
     ?`<img src="${p.image_url}" loading="lazy" alt="${_detAlt}" onerror="detImgErr(this)">`
-    :_DET_NO_PHOTO)+_refOverlay;
+    :_DET_NO_PHOTO);
+  // Ref badge positionné dans dimg-col (hors dmain pour éviter les conflits)
+  const rb=document.getElementById('det-ref-badge');
+  if(rb){
+    const refTxt=p.ref?String(p.ref).replace(/^Photo_/i,''):'';
+    if(refTxt){
+      rb.textContent=refTxt+' ⎘';
+      rb.style.display='block';
+      rb.onclick=()=>{navigator.clipboard.writeText(refTxt).then(()=>{rb.textContent=refTxt+' ✓';setTimeout(()=>{rb.textContent=refTxt+' ⎘';},1500);});};
+    } else {
+      rb.style.display='none';
+    }
+  }
 
 
   // Badge qualité
 
   // Ref + nom
-  document.getElementById('det-ref').textContent=(p.ref&&!String(p.ref).startsWith('Photo_'))?p.ref:'';
+  const _detRefEl=document.getElementById('det-ref');if(_detRefEl)_detRefEl.textContent=p.ref?String(p.ref).replace(/^Photo_/i,''):'';
   document.getElementById('det-name').textContent=p.qualite?(p.qualite+(QUALITE_LABELS[p.qualite]?' — '+QUALITE_LABELS[p.qualite]:'')):(p.name||'Produit');
 
   // Specs grid
-  const _typeLabel=Object.entries(TYPE_MAP).find(([,v])=>v.includes(p.qualite))?.[0]||p.qualite||null;
+  const _typeLabel=p.qualite?(p.qualite+(QUALITE_LABELS[p.qualite]?' — '+QUALITE_LABELS[p.qualite]:'')):(p.qualite||null);
   const specDefs=[
     {lbl: lang==='en'?'Quality':'Qualité',        val: _typeLabel},
     {lbl: LT[lang].t_spec_couleur||'Couleur',   val: p.couleur},
@@ -1444,8 +1455,8 @@ async function openDetail(id){
     {lbl: LT[lang].t_spec_mandrin||'Mandrin',   val: p.noyau?p.noyau+' mm':null},
     {lbl: LT[lang].t_spec_format||'Format',     val: formatLabel(p)},
     {lbl: LT[lang].t_spec_depot||'Emplacement',  val: p.zone||p.emplacement},
-    {lbl: 'Usine',                                val: p.usine||null},
-  ].filter(s=>s.val);
+    {lbl: 'Usine',                                val: p.usine||'—', always:true},
+  ].filter(s=>s.val||s.always);
   document.getElementById('det-specs').innerHTML=specDefs.map(s=>
     `<div class="dspec-item"><div class="dspec-lbl">${s.lbl}</div><div class="dspec-val">${s.val}</div></div>`
   ).join('');
@@ -1650,10 +1661,17 @@ function removeFromCart(id){
 }
 
 // ── SHARE CART ──
-function shareCart(){
+async function shareCart(){
   if(!cart.length){toast(lang==='en'?'Container is empty':'Container vide !');return;}
   const ids=cart.map(x=>x.id).join(',');
-  const url=window.location.origin+window.location.pathname+'?share='+ids;
+  const longUrl=window.location.origin+window.location.pathname+'?share='+ids;
+  toast('⏳ Génération du lien...');
+  let url=longUrl;
+  try{
+    const r=await fetch('https://is.gd/create.php?format=json&url='+encodeURIComponent(longUrl));
+    const j=await r.json();
+    if(j.shorturl)url=j.shorturl;
+  }catch(e){}
   if(navigator.clipboard&&navigator.clipboard.writeText){
     navigator.clipboard.writeText(url)
       .then(()=>toast('🔗 Lien copié !'))
