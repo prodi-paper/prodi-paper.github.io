@@ -38,7 +38,7 @@
 <link rel="preconnect" href="https://bvcgpdoukhcatjibmvnb.supabase.co">
 <link rel="dns-prefetch" href="https://stock.prodi.net">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="catalogue.css?v=101">
+<link rel="stylesheet" href="catalogue.css?v=103">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
@@ -54,7 +54,7 @@
 </div>
 <header>
   <div class="header-inner">
-    <a class="logo-link" href="#" onclick="location.reload();return false;">
+    <a class="logo-link" href="#" onclick="resetFilters();return false;">
       <img src="img/logo.png" alt="Prodiconseil" class="logo-img logo-full">
       <img src="img/panda.png" alt="Prodiconseil" class="logo-img logo-mob">
     </a>
@@ -231,23 +231,23 @@
         </div>
       </div>
       <div class="fg">
-        <div class="nmr-row"><label class="fl"><span data-i18n="t_gsm_lbl">Grammage</span> <span class="nmr-unit">(g/m²)</span></label><button type="button" class="nmr-reset" onclick="nmReset('gsm')">Tous</button></div>
+        <div class="nmr-row"><label class="fl"><span data-i18n="t_gsm_lbl">Grammage</span> <span class="nmr-unit">(g/m²)</span></label></div>
         <div class="nmr-wrap"><input type="number" class="nmr-in" id="f-gmin" placeholder="Min" min="0" oninput="filterProducts()"><span class="nmr-sep">—</span><input type="number" class="nmr-in" id="f-gmax" placeholder="Max" min="0" oninput="filterProducts()"></div>
       </div>
       <div class="fg" id="sb-sec-laize">
-        <div class="nmr-row"><label class="fl" id="sb-laize-lbl"><span data-i18n="t_laize_lbl">Laize</span> <span class="nmr-unit">(mm)</span></label><button type="button" class="nmr-reset" onclick="nmReset('lz')">Tous</button></div>
+        <div class="nmr-row"><label class="fl" id="sb-laize-lbl"><span data-i18n="t_laize_lbl">Laize</span> <span class="nmr-unit">(mm)</span></label></div>
         <div class="nmr-wrap"><input type="number" class="nmr-in" id="f-lmin" placeholder="Min" min="0" oninput="filterProducts()"><span class="nmr-sep">—</span><input type="number" class="nmr-in" id="f-lmax" placeholder="Max" min="0" oninput="filterProducts()"></div>
       </div>
       <div class="fg" id="sb-sec-longueur">
-        <div class="nmr-row"><label class="fl"><span data-i18n="t_longueur_lbl">Longueur</span> <span class="nmr-unit">(mm)</span></label><button type="button" class="nmr-reset" onclick="nmReset('long')">Tous</button></div>
+        <div class="nmr-row"><label class="fl"><span data-i18n="t_longueur_lbl">Longueur</span> <span class="nmr-unit">(mm)</span></label></div>
         <div class="nmr-wrap"><input type="number" class="nmr-in" id="f-longmin" placeholder="Min" min="0" oninput="filterProducts()"><span class="nmr-sep">—</span><input type="number" class="nmr-in" id="f-longmax" placeholder="Max" min="0" oninput="filterProducts()"></div>
       </div>
       <div class="fg">
-        <div class="nmr-row"><label class="fl"><span data-i18n="t_prix_lbl">Prix</span> <span class="nmr-unit">(€/T)</span></label><button type="button" class="nmr-reset" onclick="nmReset('prix')">Tous</button></div>
+        <div class="nmr-row"><label class="fl"><span data-i18n="t_prix_lbl">Prix</span> <span class="nmr-unit">(€/T)</span></label></div>
         <div class="nmr-wrap"><input type="number" class="nmr-in" id="f-pmin" placeholder="Min" min="0" oninput="filterProducts()"><span class="nmr-sep">—</span><input type="number" class="nmr-in" id="f-pmax" placeholder="Max" min="0" oninput="filterProducts()"></div>
       </div>
       <div class="fg">
-        <div class="nmr-row"><label class="fl">Usine</label><button type="button" class="nmr-reset" onclick="nmReset('usine')">Tous</button></div>
+        <div class="nmr-row"><label class="fl">Usine</label></div>
         <div class="nmr-wrap nmr-wrap-single"><input type="number" class="nmr-in" id="f-usine" placeholder="N° usine" min="0" oninput="filterProducts()"></div>
       </div>
 
@@ -626,6 +626,6 @@
 </div>
 <div class="spin-bg" id="spinner"><div class="spin"></div></div>
 
-<script src="catalogue.js?v=132"></script>
+<script src="catalogue.js?v=134"></script>
 </body>
 </html>

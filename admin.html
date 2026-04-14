@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRODI — Admin (simple)</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:#f6f6f6;color:#111;}
+header{background:#111;color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;}
+h1{font-size:16px;margin:0;}
+main{max-width:1100px;margin:18px auto;padding:0 18px;}
+.card{background:#fff;border:1px solid #e5e5e5;border-radius:10px;padding:14px;margin-bottom:14px;}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+label{font-size:11px;color:#666;font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
+input,textarea{width:100%;padding:9px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;}
+textarea{min-height:60px;resize:vertical;}
+.btn{padding:10px 12px;border:none;border-radius:8px;background:#d42b2b;color:#fff;font-weight:700;cursor:pointer;}
+.btn2{padding:10px 12px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#111;font-weight:700;cursor:pointer;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th,td{padding:10px 8px;border-bottom:1px solid #eee;vertical-align:top;text-align:left;}
+th{font-size:11px;color:#666;text-transform:uppercase;letter-spacing:.4px;}
+.small{font-size:11px;color:#666;}
+.row-actions{display:flex;gap:8px;}
+.danger{background:#111;}
+</style>
+</head>
+<body>
+<header>
+  <h1>PRODI — Admin (simple)</h1>
+  <div class="small" id="status">—</div>
+</header>
+
+<main>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+      <div>
+        <div style="font-weight:800;">Ajouter un produit</div>
+        <div class="small">Table: <code>products</code> (quality, color, details, gsm, width, length, weight, price, ref, location, image_url)</div>
+      </div>
+      <button class="btn2" onclick="loadLatest()">Rafraîchir</button>
+    </div>
+
+    <div style="height:12px"></div>
+
+    <div class="grid">
+      <div><label>Quality</label><input id="f-quality" placeholder="R1SC, Kraft..."></div>
+      <div><label>Color</label><input id="f-color" placeholder="BLANC / WHITE"></div>
+      <div><label>GSM</label><input id="f-gsm" type="number" placeholder="80"></div>
+      <div><label>Width (mm)</label><input id="f-width" type="number" placeholder="1000"></div>
+
+      <div><label>Length (mm)</label><input id="f-length" type="number" placeholder="750"></div>
+      <div><label>Weight (kg)</label><input id="f-weight" type="number" placeholder="150"></div>
+      <div><label>Price</label><input id="f-price" type="number" step="0.01" placeholder="800"></div>
+      <div><label>Ref</label><input id="f-ref" placeholder="900Eur/T"></div>
+
+      <div style="grid-column:1/-1;"><label>Details</label><textarea id="f-details" placeholder="KRAFT / BRILLANT / ..."></textarea></div>
+      <div><label>Location</label><input id="f-location" placeholder="OUR WAREHOUSE"></div>
+      <div style="grid-column:2/-1;"><label>Image URL</label><input id="f-image" placeholder="https://... (optionnel)"></div>
+    </div>
+
+    <div style="height:12px"></div>
+    <button class="btn" onclick="addProduct()">Ajouter</button>
+    <span class="small" id="msg" style="margin-left:10px;"></span>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div style="font-weight:800;">Derniers produits</div>
+      <div class="small" id="count">—</div>
+    </div>
+    <div style="height:10px"></div>
+    <div style="overflow:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th><th>Quality</th><th>Color</th><th>GSM</th><th>Width</th><th>Weight</th><th>Ref</th><th>Location</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script>
+const SURL='https://bvcgpdoukhcatjibmvnb.supabase.co';
+const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2Y2dwZG91a2hjYXRqaWJtdm5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNzg5MjgsImV4cCI6MjA4Nzg1NDkyOH0.Ip3ykSUS9sajTH04yXBerOG1haBKMD1kAvMQNjnGL1Q';
+const sb=supabase.createClient(SURL,SKEY);
+
+function setStatus(t){document.getElementById('status').textContent=t;}
+function setMsg(t){document.getElementById('msg').textContent=t;}
+
+async function loadLatest(){
+  setStatus('Chargement…');
+  const { data, error } = await sb.from('products').select('*').order('id',{ascending:false}).limit(200);
+  if(error){console.error(error); setStatus('Erreur'); return;}
+  document.getElementById('count').textContent = (data?.length||0) + ' lignes';
+  const tb=document.getElementById('tbody');
+  tb.innerHTML = (data||[]).map(p=>`
+    <tr>
+      <td>${p.id}</td>
+      <td>${p.quality||''}</td>
+      <td>${p.color||''}</td>
+      <td>${p.gsm??''}</td>
+      <td>${p.width??''}</td>
+      <td>${p.weight??''}</td>
+      <td>${p.ref||''}</td>
+      <td>${p.location||''}</td>
+      <td>
+        <div class="row-actions">
+          <button class="btn2" onclick="copyJson(${p.id})">JSON</button>
+          <button class="btn danger" onclick="del(${p.id})">Suppr.</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+  setStatus('OK');
+}
+
+async function addProduct(){
+  setMsg('');
+  const payload = {
+    quality: document.getElementById('f-quality').value.trim() || null,
+    color: document.getElementById('f-color').value.trim() || null,
+    details: document.getElementById('f-details').value.trim() || null,
+    gsm: num('f-gsm'),
+    width: num('f-width'),
+    length: num('f-length'),
+    weight: num('f-weight'),
+    price: num('f-price'),
+    ref: document.getElementById('f-ref').value.trim() || null,
+    location: document.getElementById('f-location').value.trim() || null,
+    image_url: document.getElementById('f-image').value.trim() || null,
+  };
+  const { error } = await sb.from('products').insert(payload);
+  if(error){console.error(error); setMsg('❌ Erreur: '+error.message); return;}
+  setMsg('✅ Ajouté');
+  await loadLatest();
+}
+
+function num(id){
+  const v=document.getElementById(id).value;
+  if(v===null||v===undefined||String(v).trim()==='') return null;
+  const n=Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+async function del(id){
+  if(!confirm('Supprimer ID '+id+' ?')) return;
+  const { error } = await sb.from('products').delete().eq('id', id);
+  if(error){alert('Erreur: '+error.message); return;}
+  await loadLatest();
+}
+
+async function copyJson(id){
+  const { data, error } = await sb.from('products').select('*').eq('id',id).single();
+  if(error){alert('Erreur: '+error.message); return;}
+  await navigator.clipboard.writeText(JSON.stringify(data,null,2));
+  setMsg('📋 Copié dans le presse-papiers');
+}
+
+loadLatest();
+</script>
+</body>
+</html>

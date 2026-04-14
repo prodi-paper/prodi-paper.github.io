@@ -35,7 +35,7 @@ const TYPE_MAP={
   'Offset Couleur':    ['RCOL','SCOL'],
   'Dossier Couleur':   ['RCOL','SCOL'],
   'Cuisson':           ['RCUI'],
-  'Autres':            ['RDIV','SDIV'],
+  'Divers':            ['RDIV','SDIV'],
   'Emballage':         ['RPAC','SPAC'],
   'Encre':             ['SINK'],
   'Enveloppes':        ['SENV'],
@@ -590,7 +590,7 @@ const QUALITE_LABELS={
   'SBON':'Carton non couché',
   'SBOU':'Bouffant',
   'SCAR':'Autocopiant',
-  'SCOL':'Offset couleur format',
+  'SCOL':'Offset couleur',
   'SCUT':'Ramette',
   'SDIV':'Divers',
   'SENV':'Enveloppes',
@@ -1346,6 +1346,7 @@ function renderList(list){
       <td class="plist-td plist-td-depot">${p.zone||'—'}</td>
       <td class="plist-td plist-td-usine plist-col-usine">${p.usine||'—'}</td>
       <td class="plist-td">${price}</td>
+      <td class="plist-td plist-td-ref plist-col-ref">${p.ref?`<span class="plist-ref-badge">${p.ref.replace(/^Photo_/i,'').toUpperCase()}</span>`:'—'}</td>
     </tr>`;
   }).join('');
   g.innerHTML=`<div style="overflow-x:auto"><table class="plist-table">
@@ -1362,6 +1363,7 @@ function renderList(list){
       <th class="plist-col-depot">Dépôt</th>
       <th class="plist-col-usine">Usine</th>
       <th>Prix</th>
+      <th class="plist-col-ref">Réf</th>
     </tr></thead>
     <tbody>${rows}</tbody>
   </table></div>`;
