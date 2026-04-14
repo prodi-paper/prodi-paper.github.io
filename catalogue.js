@@ -483,15 +483,16 @@ async function init(){
   // Hardcoded filter options — Couleur replaced by Offset Couleur + Dossier Couleur
   const typeVals=Object.keys(TYPE_MAP).filter(k=>k!=='Couleur'&&k!=='Offset Couleur'&&k!=='Dossier Couleur').concat(['Offset Couleur','Dossier Couleur']).sort((a,b)=>a.localeCompare(b));
   const couleurVals=['Blanc','Très blanc','Blanc nature','Brun','Crème','Ivoire','Gris','Noir','Transparent','Vert','Rouge','Bleu','Jaune','Orange','Argent','Rose','Or','Violet','Autres'];
-  buildMsdOptions('msd-type',QUALITE_CODES,'Tous',v=>`${v} — ${QUALITE_LABELS[v]||v}`);
-  buildMsdOptions('sb-msd-type',QUALITE_CODES,'Type de papier',v=>`${v} — ${QUALITE_LABELS[v]||v}`,'msd-type');
+  const _typeLabel=v=>(v==='Offset Couleur'||v==='Dossier Couleur')?`RCOL — ${QUALITE_LABELS[v]}`:`${v} — ${QUALITE_LABELS[v]||v}`;
+  buildMsdOptions('msd-type',QUALITE_CODES,'Tous',_typeLabel);
+  buildMsdOptions('sb-msd-type',QUALITE_CODES,'Type de papier',_typeLabel,'msd-type');
   buildMsdOptions('msd-couleur',couleurVals,'Couleurs');
   buildMsdOptions('sb-msd-couleur',couleurVals,'Couleurs',undefined,'msd-couleur');
 
   buildMsdOptions('msd-mandrin',['70','76','150','152'],'Mandrins',v=>v+' mm');
 
   // Also build mobile msd panels (msd-type-mob, msd-mandrin-mob, msd-couleur-mob)
-  buildMsdOptions('msd-type-mob',QUALITE_CODES,'Tous',v=>`${v} — ${QUALITE_LABELS[v]||v}`,'msd-type');
+  buildMsdOptions('msd-type-mob',QUALITE_CODES,'Tous',_typeLabel,'msd-type');
   buildMsdOptions('msd-couleur-mob',
     ['Blanc','Brun','Ivoire','Gris','Noir','Vert','Rouge','Bleu','Jaune','Orange','Argent','Couleur','Autres'],
     'Couleurs',null,'msd-couleur');
@@ -556,8 +557,8 @@ const QUALITE_LABELS={
   'RBON':'Carton non couché',
   'RBOU':'Bouffant',
   'RCAR':'Autocopiant',
-  'Offset Couleur':'Offset couleur ≤149g',
-  'Dossier Couleur':'Dossier couleur ≥150g',
+  'Offset Couleur':'Offset couleur',
+  'Dossier Couleur':'Dossier couleur',
   'RCOL':'Offset couleur',
   'RCUI':'Papier cuisson',
   'RDIV':'Divers / Alu',
