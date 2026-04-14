@@ -38,7 +38,7 @@
 <link rel="preconnect" href="https://bvcgpdoukhcatjibmvnb.supabase.co">
 <link rel="dns-prefetch" href="https://stock.prodi.net">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="catalogue.css?v=120">
+<link rel="stylesheet" href="catalogue.css?v=121">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
@@ -58,6 +58,7 @@
       <img src="img/logo.png" alt="Prodiconseil" class="logo-img logo-full">
       <img src="img/panda.png" alt="Prodiconseil" class="logo-img logo-mob">
     </a>
+    <div class="live-pill live-pill-desktop"><div class="live-dot"></div> <span data-i18n="t_live">Stock en direct</span></div>
     <div class="header-search">
       <input type="text" id="search-input" placeholder="Kraft 80g, SBS blanc, Testliner..." autocomplete="off" oninput="onSearchInput(this)" onfocus="onSearchInput(this)" onkeydown="onSearchKeydown(event)">
       <button onclick="filterProducts()" aria-label="Rechercher">
@@ -68,7 +69,7 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><circle cx="8" cy="6" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="16" cy="12" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="8" cy="18" r="2" fill="currentColor" stroke="none"/></svg>
     </button>
     <div class="hright">
-      <div class="live-pill"><div class="live-dot"></div> <span data-i18n="t_live">Stock en direct</span></div>
+      <div class="live-pill live-pill-hright"><div class="live-dot"></div> <span data-i18n="t_live">Stock en direct</span></div>
       <div class="lang-sep"></div>
       <button onclick="setLang('fr')" id="lang-fr" class="lang-btn on">FR</button>
       <button onclick="setLang('en')" id="lang-en" class="lang-btn">EN</button>

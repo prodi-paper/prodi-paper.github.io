@@ -491,6 +491,7 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
 @media(max-width:1024px){
   .header-search{max-width:340px;}
   .live-pill{display:none;}
+  .live-pill-desktop{display:none;}
 }
 @media(max-width:768px){
   /* Header row 1: panda + search + filter-btn + cart */
@@ -638,8 +639,11 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
   /* Logo left-aligned, flush with sidebar */
   .header-inner{padding-left:40px;margin-left:0;max-width:none;}
   .logo-link{width:auto;justify-content:flex-start;flex-shrink:0;}
-  /* Search bar centered + 80px right */
+  /* Search bar centered + offset */
   .header-search{margin:0 auto;transform:translateX(160px);}
+  /* Live pill: hide original in hright, show the one before search */
+  .live-pill-hright{display:none;}
+  .live-pill-desktop{display:flex;flex-shrink:0;}
   /* 2-col layout: sidebar + content */
   .body-wrap{
     display:grid;
