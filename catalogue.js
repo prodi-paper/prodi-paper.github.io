@@ -332,6 +332,9 @@ function rowToUi(r){
   const price = r.price ?? null;
   const ref = r.ref || '';
   const location = r.emplacement || r.location || '';
+  // r.usine comes directly from DB (populated by import script from "REF QUALITÉ" column)
+  // Fallback: parse from location string in case of legacy data
+  const usine = r.usine || (location.match(/\bUSINE\s*(\d+)/i)||[])[1] || null;
   const image_url = r.image_url || '';
 
   // UI expects: name,type,grammage,largeur,poids_net,couleur,qualite,product_photos
@@ -367,6 +370,7 @@ function rowToUi(r){
     couleur: color,
     qualite: quality,
     zone: location,
+    usine,
     image_url
   };
 }
@@ -919,10 +923,10 @@ async function _fetchAndRender(token){
   const types=getMsdValues('msd-type');
   const gn=+document.getElementById('f-gmin').value||+document.getElementById('f-gmin-fb')?.value||0;
   const gx=+document.getElementById('f-gmax').value||+document.getElementById('f-gmax-fb')?.value||0;
-  const pn=+document.getElementById('f-pmin').value||0;
-  const px=+document.getElementById('f-pmax').value||0;
-  const lmin=+document.getElementById('f-lmin').value||0;
-  const lmax=+document.getElementById('f-lmax').value||0;
+  const pn=+document.getElementById('f-pmin').value||+document.getElementById('f-pmin-fb')?.value||0;
+  const px=+document.getElementById('f-pmax').value||+document.getElementById('f-pmax-fb')?.value||0;
+  const lmin=+document.getElementById('f-lmin').value||+document.getElementById('f-lmin-fb')?.value||0;
+  const lmax=+document.getElementById('f-lmax').value||+document.getElementById('f-lmax-fb')?.value||0;
   const longmin=+document.getElementById('f-longmin')?.value||0;
   const longmax=+document.getElementById('f-longmax')?.value||0;
   const longexact=0;
@@ -1008,6 +1012,8 @@ async function _fetchAndRender(token){
   if(refCode)p.append('quality',`ilike.${refCode}%`);
   if(pn)p.append('price',`gte.${pn}`);
   if(px)p.append('price',`lte.${px}`);
+  const usineVal=(document.getElementById('f-usine')?.value||'').trim();
+  if(usineVal)p.append('usine',`eq.${usineVal}`);
   if(s==='gsm_asc'||s==='grammage_asc')p.set('order','gsm.asc.nullslast');
   else if(s==='gsm_desc'||s==='grammage_desc')p.set('order','gsm.desc.nullslast');
   else if(s==='price_asc'||s==='prix_asc')p.set('order','price.asc.nullslast');
@@ -1159,12 +1165,14 @@ function updateFilterChips(){
   });
   if(gn||gx)chips.push({label:LT[lang].t_chip_gram+' : '+(gn||'—')+' → '+(gx||'—')+' g/m²',clear:()=>{document.getElementById('f-gmin').value='';document.getElementById('f-gmax').value='';filterProducts();}});
 
-  if(lmin2||lmax2)chips.push({label:LT[lang].t_chip_laize+' : '+(lmin2||'—')+' → '+(lmax2||'—')+' mm',clear:()=>{['f-lmin','f-lmax','f-lmin-mob','f-lmax-mob'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});filterProducts();}});
+  if(lmin2||lmax2)chips.push({label:LT[lang].t_chip_laize+' : '+(lmin2||'—')+' → '+(lmax2||'—')+' mm',clear:()=>{['f-lmin','f-lmax','f-lmin-fb','f-lmax-fb','f-lmin-mob','f-lmax-mob'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});filterProducts();}});
   const longmin2=document.getElementById('f-longmin')?.value||'';
   const longmax2=document.getElementById('f-longmax')?.value||'';
   if(longmin2||longmax2)chips.push({label:LT[lang].t_chip_longueur+' : '+(longmin2||longmax2)+'mm',clear:()=>{['f-longmin','f-longmax','f-longmin-mob','f-longmax-mob'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});filterProducts();}});
   const cpn=document.getElementById('f-pmin').value,cpx=document.getElementById('f-pmax').value;
-  if(cpn||cpx)chips.push({label:LT[lang].t_chip_prix+' : '+(cpn||'—')+' → '+(cpx||'—')+' €/T',clear:()=>{document.getElementById('f-pmin').value='';document.getElementById('f-pmax').value='';filterProducts();}});
+  if(cpn||cpx)chips.push({label:LT[lang].t_chip_prix+' : '+(cpn||'—')+' → '+(cpx||'—')+' €/T',clear:()=>{['f-pmin','f-pmax','f-pmin-fb','f-pmax-fb','f-pmin-mob','f-pmax-mob'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});filterProducts();}});
+  const usineChip=(document.getElementById('f-usine')?.value||'').trim();
+  if(usineChip)chips.push({label:'Usine : '+usineChip,clear:()=>{const e=document.getElementById('f-usine');if(e)e.value='';filterProducts();}});
   if(!chips.length){container.innerHTML='';const ac2=document.getElementById('active-chips');if(ac2)ac2.innerHTML='';return;}
   const chipsHtml=chips.map((chip,i)=>`<div class="fchip" id="chip-${i}">${chip.label}<button onclick="clearChip(${i})" title="Retirer ce filtre">✕</button></div>`).join('')
     +(chips.length>1?`<button class="chips-clear" onclick="resetFilters()">Tout effacer</button>`:'');
@@ -1340,6 +1348,8 @@ function renderList(list){
       <td class="plist-td plist-td-num">${dim2}</td>
       <td class="plist-td plist-td-num plist-col-mandrin">${isPalette?'—':(mandrin||'—')}</td>
       <td class="plist-td plist-td-num">${p.poids_net?p.poids_net.toLocaleString('fr-FR')+' kg':'—'}</td>
+      <td class="plist-td plist-td-depot">${p.zone||'—'}</td>
+      <td class="plist-td plist-td-usine plist-col-usine">${p.usine||'—'}</td>
       <td class="plist-td">${price}</td>
     </tr>`;
   }).join('');
@@ -1354,6 +1364,8 @@ function renderList(list){
       <th>Ø / Long.</th>
       <th class="plist-col-mandrin">Mandrin</th>
       <th>Poids</th>
+      <th class="plist-col-depot">Dépôt</th>
+      <th class="plist-col-usine">Usine</th>
       <th>Prix</th>
     </tr></thead>
     <tbody>${rows}</tbody>
@@ -1432,7 +1444,8 @@ async function openDetail(id){
     {lbl: LT[lang].t_spec_longueur||'Longueur', val: p.format==='Palette'&&p.longueur?p.longueur+' mm':null},
     {lbl: LT[lang].t_spec_mandrin||'Mandrin',   val: p.noyau?p.noyau+' mm':null},
     {lbl: LT[lang].t_spec_format||'Format',     val: formatLabel(p)},
-    {lbl: LT[lang].t_spec_depot||'Dépôt',       val: p.zone||p.emplacement},
+    {lbl: LT[lang].t_spec_depot||'Emplacement',  val: p.zone||p.emplacement},
+    {lbl: 'Usine',                                val: p.usine||null},
   ].filter(s=>s.val);
   document.getElementById('det-specs').innerHTML=specDefs.map(s=>
     `<div class="dspec-item"><div class="dspec-lbl">${s.lbl}</div><div class="dspec-val">${s.val}</div></div>`
@@ -1531,10 +1544,11 @@ function resetFilters(){
     ['fb-bobine','fb-palette','fb-recyc','fb-fab'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('active');});
 
     // 5. Clear all inputs
-    ['f-pmin','f-pmax','f-lmin','f-lmax','f-gmin','f-gmax',
+    ['f-pmin','f-pmax','f-pmin-fb','f-pmax-fb','f-lmin','f-lmax','f-lmin-fb','f-lmax-fb','f-gmin','f-gmax',
      'f-lmin-sb','f-lmax-sb','f-longmin-sb','f-longmax-sb','f-longmin','f-longmax',
      'f-gmin-sb','f-gmax-sb','f-pmin-sb','f-pmax-sb',
      'f-gmin-mob','f-gmax-mob','f-lmin-mob','f-lmax-mob','f-pmin-mob','f-pmax-mob',
+     'f-usine',
      'search-input','search-input-mob'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
 
     // 6. Clear chips & reset UI
@@ -1934,9 +1948,10 @@ function syncSbFilter(targetId, val){
 // Dual range slider config
 const NMR_IDS={
   gsm:['f-gmin','f-gmax','f-gmin-fb','f-gmax-fb'],
-  lz:['f-lmin','f-lmax'],
+  lz:['f-lmin','f-lmax','f-lmin-fb','f-lmax-fb'],
   long:['f-longmin','f-longmax'],
-  prix:['f-pmin','f-pmax'],
+  prix:['f-pmin','f-pmax','f-pmin-fb','f-pmax-fb'],
+  usine:['f-usine'],
 };
 function nmReset(id){
   (NMR_IDS[id]||[]).forEach(fid=>{const e=document.getElementById(fid);if(e)e.value='';});

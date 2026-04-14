@@ -38,7 +38,7 @@
 <link rel="preconnect" href="https://bvcgpdoukhcatjibmvnb.supabase.co">
 <link rel="dns-prefetch" href="https://stock.prodi.net">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="catalogue.css?v=98">
+<link rel="stylesheet" href="catalogue.css?v=101">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
@@ -116,9 +116,9 @@
     <!-- Laize -->
     <div class="fb-range" id="fb-sec-laize">
       <span class="fb-range-lbl" id="fb-laize-lbl" data-i18n="t_laize_lbl">Laize</span>
-      <input class="fb-inp fb-inp-wide" type="number" id="f-lmin" placeholder="mm" oninput="scheduleFilter()">
+      <input class="fb-inp fb-inp-wide" type="number" id="f-lmin-fb" placeholder="mm" oninput="scheduleFilter()">
       <span style="color:var(--gray);font-size:11px">–</span>
-      <input class="fb-inp fb-inp-wide" type="number" id="f-lmax" placeholder="mm" oninput="scheduleFilter()">
+      <input class="fb-inp fb-inp-wide" type="number" id="f-lmax-fb" placeholder="mm" oninput="scheduleFilter()">
     </div>
     <div class="fbar-sep" id="fb-sep-longueur"></div>
     <!-- Longueur -->
@@ -152,9 +152,9 @@
     <!-- Prix -->
     <div class="fb-range">
       <span class="fb-range-lbl" data-i18n="t_prix_lbl">Prix</span>
-      <input class="fb-inp" type="number" id="f-pmin" placeholder="min" oninput="scheduleFilter()">
+      <input class="fb-inp" type="number" id="f-pmin-fb" placeholder="min" oninput="scheduleFilter()">
       <span style="color:var(--gray);font-size:11px">–</span>
-      <input class="fb-inp" type="number" id="f-pmax" placeholder="max" oninput="scheduleFilter()">
+      <input class="fb-inp" type="number" id="f-pmax-fb" placeholder="max" oninput="scheduleFilter()">
     </div>
   </div>
   <!-- Active chips -->
@@ -245,6 +245,10 @@
       <div class="fg">
         <div class="nmr-row"><label class="fl"><span data-i18n="t_prix_lbl">Prix</span> <span class="nmr-unit">(€/T)</span></label><button type="button" class="nmr-reset" onclick="nmReset('prix')">Tous</button></div>
         <div class="nmr-wrap"><input type="number" class="nmr-in" id="f-pmin" placeholder="Min" min="0" oninput="filterProducts()"><span class="nmr-sep">—</span><input type="number" class="nmr-in" id="f-pmax" placeholder="Max" min="0" oninput="filterProducts()"></div>
+      </div>
+      <div class="fg">
+        <div class="nmr-row"><label class="fl">Usine</label><button type="button" class="nmr-reset" onclick="nmReset('usine')">Tous</button></div>
+        <div class="nmr-wrap nmr-wrap-single"><input type="number" class="nmr-in" id="f-usine" placeholder="N° usine" min="0" oninput="filterProducts()"></div>
       </div>
 
     </div>
@@ -622,6 +626,6 @@
 </div>
 <div class="spin-bg" id="spinner"><div class="spin"></div></div>
 
-<script src="catalogue.js?v=127"></script>
+<script src="catalogue.js?v=131"></script>
 </body>
 </html>

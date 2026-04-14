@@ -15,7 +15,7 @@ SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 IMAGE_BASE    = 'https://stock.prodi.net/albums/photo/{num}.jpg'
 
 XLSX_DIRS = [
-    '/Users/tantan/Downloads/1_STOCK ST OUEN  LOTS   DETAILLE  COUT ET FRET NORMAL',
+    '/Users/tantan/Desktop/dossier sans titre',
 ]
 
 # Files/patterns to skip
@@ -96,13 +96,19 @@ HEADER_KEYWORDS = {'qualit', 'quality', 'gr', 'gsm', 'laize', 'poids', 'couleur'
 
 def find_header_row(ws):
     """Find the row index (0-based) where the column headers are."""
+    best_i, best_cells, best_score = None, None, 0
     for i, row in enumerate(ws.iter_rows(values_only=True)):
         if row is None:
             continue
         cells = [str(c).strip().lower() if c is not None else '' for c in row]
+        has_qualit = any('qualit' in c or c in ('quality','qualite','qualité') for c in cells)
         matches = sum(1 for c in cells if any(k in c for k in HEADER_KEYWORDS))
-        if matches >= 2:
-            return i, cells
+        # Must have quality keyword + at least 2 other matches to be a real header
+        score = matches if has_qualit else 0
+        if score > best_score:
+            best_score, best_i, best_cells = score, i, cells
+    if best_score >= 3:
+        return best_i, best_cells
     return None, None
 
 
@@ -139,9 +145,11 @@ def parse_xlsx(filepath):
                 col['color'] = i
             elif h in ('details','détails','detail','détail'):
                 col['details'] = i
-            elif 'ref qualite' in h or 'emplacement' in h or ('ref' in h and 'qualit' in h):
-                col['emplacement'] = i
-            elif 'depart usine' in h or ('usine' in h and 'ref' not in h and 'cout' not in h):
+            elif 'ref qualite' in h or ('ref' in h and 'qualit' in h):
+                col['usine_ref'] = i   # "USINE 287" factory number
+            elif 'emplacement' in h or 'location' in h:
+                col['emplacement'] = i  # "OUR WAREHOUSE" / "FRANCE" depot
+            elif 'depart usine' in h or ('usine' in h and 'ref' not in h and 'cout' not in h and 'qualit' not in h):
                 if 'price' not in col: col['price'] = i
             elif 'cout' in h and 'fret' in h:
                 col['price_cf'] = i
@@ -176,12 +184,14 @@ def parse_xlsx(filepath):
                 continue
 
             ref_raw = clean_str(g('ref'))
-            # Extract Photo_XXXXXX
+            # Extract Photo_XXXXXX or Photo_FABXXXX
             ref = None
+            is_fab_ref = False
             if ref_raw:
-                m = re.search(r'Photo_\d+', str(ref_raw), re.IGNORECASE)
+                m = re.search(r'Photo_(?:FAB)?[\w\d]+', str(ref_raw), re.IGNORECASE)
                 if m:
                     ref = m.group()
+                    is_fab_ref = bool(re.match(r'Photo_FAB', ref, re.IGNORECASE))
 
             weight_raw = g('weight')
             weight = None
@@ -228,6 +238,12 @@ def parse_xlsx(filepath):
             emplacement_raw = g('emplacement')
             emplacement = clean_str(emplacement_raw) if emplacement_raw else None
 
+            usine_raw = clean_str(g('usine_ref'))
+            usine = None
+            if usine_raw:
+                m = re.search(r'\bUSINE\s*(\d+)', usine_raw, re.IGNORECASE)
+                usine = m.group(1) if m else usine_raw  # fallback: store raw value
+
             rec = {
                 'quality':     quality,
                 'color':       clean_str(g('color')),
@@ -242,6 +258,7 @@ def parse_xlsx(filepath):
                 'image_url':   make_image_url(ref),
                 'longueur':    longueur,
                 'emplacement': emplacement,
+                'usine':       usine,
             }
             # Remove None values
             rec = {k: v for k, v in rec.items() if v is not None}
@@ -335,7 +352,7 @@ def main():
     print(f'→ {len(existing)} records in DB ({len(existing_refs)} with refs)\n')
 
     # 5. Normalize all records to same keys (required for batch insert)
-    ALL_KEYS = ['quality','color','details','gsm','width','weight','price','ref','noyau','format','image_url','longueur','emplacement']
+    ALL_KEYS = ['quality','color','details','gsm','width','weight','price','ref','noyau','format','image_url','longueur','emplacement','usine']
     def normalize(rec):
         return {k: rec.get(k) for k in ALL_KEYS}
     deduped = [normalize(r) for r in deduped]
@@ -358,7 +375,7 @@ def main():
     print(f'→ UPDATE: {len(to_update)} existing records')
     print(f'→ DELETE: {len(to_delete_ids)} records no longer in stock\n')
 
-    proceed = input('Proceed with DELETE+INSERT+UPDATE? (yes/no): ').strip().lower()
+    proceed = 'yes'
     if proceed != 'yes':
         print('Aborted.')
         return
