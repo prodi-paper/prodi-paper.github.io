@@ -640,7 +640,8 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
     display:grid;
     grid-template-columns:280px 1fr;
     gap:0;
-    max-width:1400px;
+    max-width:none;
+    margin-left:0;
     padding:0 24px 32px 0;
     align-items:start;
   }
