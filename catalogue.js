@@ -1336,34 +1336,36 @@ function renderList(list){
     return`<tr onclick="openDetail(${p.id})" class="${isPalette?'plist-palette':'plist-bobine'}">
       <td class="plist-td plist-td-add">${addBtn}</td>
       <td class="plist-td plist-thumb-wrap">${thumb}</td>
-      <td class="plist-td plist-td-title"><strong class="plist-qtitle">${title}</strong>${detailsTxt}</td>
+      <td class="plist-td plist-td-ref plist-col-ref">${p.ref?`<span class="plist-ref-badge">${p.ref.replace(/^Photo_/i,'').toUpperCase()}</span>`:'—'}</td>
+      <td class="plist-td plist-td-title"><strong class="plist-qtitle">${title}</strong></td>
       <td class="plist-td">${p.couleur||'—'}</td>
+      <td class="plist-td plist-td-details">${detailsTxt||'—'}</td>
       <td class="plist-td plist-td-num"><span class="plist-gsm">${p.grammage?p.grammage+' g/m²':'—'}</span></td>
       <td class="plist-td plist-td-num">${laize}</td>
       <td class="plist-td plist-td-num">${dim2}</td>
       <td class="plist-td plist-td-num plist-col-mandrin">${isPalette?'—':(mandrin||'—')}</td>
       <td class="plist-td plist-td-num">${p.poids_net?p.poids_net.toLocaleString('fr-FR')+' kg':'—'}</td>
-      <td class="plist-td plist-td-depot">${p.zone||'—'}</td>
-      <td class="plist-td plist-td-usine plist-col-usine">${p.usine||'—'}</td>
       <td class="plist-td">${price}</td>
-      <td class="plist-td plist-td-ref plist-col-ref">${p.ref?`<span class="plist-ref-badge">${p.ref.replace(/^Photo_/i,'').toUpperCase()}</span>`:'—'}</td>
+      <td class="plist-td plist-td-usine plist-col-usine">${p.usine||'—'}</td>
+      <td class="plist-td plist-td-depot">${p.zone||'—'}</td>
     </tr>`;
   }).join('');
   g.innerHTML=`<div style="overflow-x:auto"><table class="plist-table">
     <thead><tr>
       <th class="plist-th-add"><button class="plist-sel-all" onclick="event.stopPropagation();toggleSelectAll(this)">+</button></th>
       <th></th>
-      <th>Désignation / Détails</th>
+      <th class="plist-col-ref">Référence</th>
+      <th>Qualité</th>
       <th>Couleur</th>
+      <th>Détails</th>
       <th>GSM</th>
       <th>Laize</th>
-      <th>Ø / Long.</th>
+      <th>Diamètre</th>
       <th class="plist-col-mandrin">Mandrin</th>
-      <th>Poids</th>
-      <th class="plist-col-depot">Dépôt</th>
-      <th class="plist-col-usine">Usine</th>
+      <th>Poids (kg)</th>
       <th>Prix</th>
-      <th class="plist-col-ref">Réf</th>
+      <th class="plist-col-usine">Usine</th>
+      <th class="plist-col-depot">Emplacement</th>
     </tr></thead>
     <tbody>${rows}</tbody>
   </table></div>`;
