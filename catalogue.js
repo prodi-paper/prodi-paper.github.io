@@ -26,8 +26,6 @@ const TYPE_MAP={
   'Adhésif':           ['RADH','SADH'],
   'Autocopiant':       ['RCAR','SCAR'],
   'Bouffant':          ['RBOU','SBOU'],
-  'Enveloppes':        ['RENV','SENV'],
-  'Machines':          ['UMAC'],
   'Carton couché':     ['RBOA','SBOA'],
   'Carton non couché': ['RBON','SBON'],
   'Complexe':          ['RFLEX'],
@@ -40,20 +38,20 @@ const TYPE_MAP={
   'Autres':            ['RDIV','SDIV'],
   'Emballage':         ['RPAC','SPAC'],
   'Encre':             ['SINK'],
-  'Enveloppes':        ['RENV','SENV'],
+  'Enveloppes':        ['SENV'],
   'Journal':           ['RNEW','SNEW'],
   'Kraft':             ['RKRA','RKRABRUN','SKRA'],
   'Kraft armé':        ['RKRR'],
   'Kraft gomme':       ['RKRG'],
   'Liner':             ['RLINER'],
   'Luxe':              ['RLUX','SLUX'],
-  'LWC':               ['RLWC','SLWC'],
+  'LWC':               ['RLWC'],
+  'Machines':          ['UMAC'],
   'Offset':            ['ROFF','SOFF'],
   'Ouate':             ['RTIS'],
   'Papier affiche':    ['RAFF','SAFF'],
-  'Papier cadeau':     ['RKDO'],
+  'Papier cadeau':     ['RKDO','SKDO'],
   'Plastique':         ['RPLA','SPLA'],
-  'Encre':             ['SINK'],
   'Ramette':           ['SCUT'],
   'SBS':               ['SSBS'],
   'Silicone-Glassine': ['RSIL'],
@@ -205,11 +203,11 @@ const ALIAS_MAP=(()=>{
   t('packaging','Emballage'); t('emballage','Emballage'); t('wrapping paper','Emballage');
   t('papier cadeau','Papier cadeau'); t('gift wrap','Papier cadeau'); t('cadeau','Papier cadeau');
   t('poster','Papier affiche'); t('affiche','Papier affiche'); t('display','Papier affiche');
-  // ── Recyclé ──
-  t('recycle','Recyclé'); t('recycled','Recyclé'); t('recyclee','Recyclé');
-  t('fluting','Recyclé'); t('medium','Recyclé'); t('cannelure','Recyclé');
-  t('ondule','Recyclé'); t('corrugated','Recyclé'); t('occ','Recyclé');
-  t('vieux papier','Recyclé'); t('demi chimique','Recyclé'); t('mi chimique','Recyclé');
+  // ── Liner (ondulé / corrugated) ──
+  t('fluting','Liner'); t('cannelure','Liner'); t('ondule','Liner');
+  t('corrugated','Liner'); t('medium','Liner'); t('occ','Liner');
+  t('vieux papier','Kraft'); t('demi chimique','Liner'); t('mi chimique','Liner');
+  t('recycle','Kraft'); t('recycled','Kraft'); t('recyclee','Kraft');
   // ── Autres / aluminium ──
   t('alu','Autres'); t('aluminium','Autres'); t('aluminum','Autres');
   t('foil','Autres'); t('menager','Autres'); t('aluminise','Autres');
@@ -566,7 +564,6 @@ const QUALITE_LABELS={
   'Offset Couleur':'Offset couleur',
   'Dossier Couleur':'Dossier couleur',
   'RCOL':'Offset couleur',
-  'SCOL':'Offset couleur format',
   'RCUI':'Papier cuisson',
   'RDIV':'Divers / Alu',
   'RFLEX':'Complexe / Polyéthylène',
@@ -593,7 +590,7 @@ const QUALITE_LABELS={
   'SBON':'Carton non couché',
   'SBOU':'Bouffant',
   'SCAR':'Autocopiant',
-  'SCOL':'Offset couleur',
+  'SCOL':'Offset couleur format',
   'SCUT':'Ramette',
   'SDIV':'Divers',
   'SENV':'Enveloppes',
@@ -929,7 +926,6 @@ async function _fetchAndRender(token){
   const lmax=+document.getElementById('f-lmax').value||+document.getElementById('f-lmax-fb')?.value||0;
   const longmin=+document.getElementById('f-longmin')?.value||0;
   const longmax=+document.getElementById('f-longmax')?.value||0;
-  const longexact=0;
   const refCode=(document.getElementById('f-ref-code')?.value||'').trim().toUpperCase();
   const mandrins=getMsdValues('msd-mandrin');
   const couleurs=getMsdValues('msd-couleur');
@@ -983,8 +979,8 @@ async function _fetchAndRender(token){
   p.set('select','*');
   parsed.text.forEach(term=>{
     const stem=_stem(_norm(term));
-    const s=stem.replace(/[%_]/g,'\\$&');
-    p.append('or',`(quality.ilike.%${s}%,color.ilike.%${s}%,details.ilike.%${s}%,ref.ilike.%${s}%)`);
+    const escaped=stem.replace(/[%_]/g,'\\$&');
+    p.append('or',`(quality.ilike.%${escaped}%,color.ilike.%${escaped}%,details.ilike.%${escaped}%,ref.ilike.%${escaped}%)`);
   });
   if(_hasAutres&&typeCodes.length>0){
     p.append('or',`(quality.in.(${typeCodes.join(',')}),quality.not.in.(${QUALITE_KNOWN_DB.join(',')}),quality.is.null)`);
@@ -1008,7 +1004,6 @@ async function _fetchAndRender(token){
   if(origines.size===1)p.append('quality',`like.${[...origines][0]}%`);
   if(longmin)p.append('longueur',`gte.${longmin}`);
   if(longmax)p.append('longueur',`lte.${longmax}`);
-  if(longexact&&!longmin&&!longmax)p.append('longueur',`eq.${longexact}`);
   if(refCode)p.append('quality',`ilike.${refCode}%`);
   if(pn)p.append('price',`gte.${pn}`);
   if(px)p.append('price',`lte.${px}`);
@@ -1214,14 +1209,14 @@ function decodeQuality(raw){
   if(!raw)return{cls:'qb-other',txt:'?'};
   const isR=raw.charAt(0)==='R';
   const suf=raw.slice(1).toUpperCase();
-  const labels={'KRA':'Kraft','KRABRUN':'Kraft Brun','KRG':'Kraft Gris','KRR':'Kraft Rec.',
-    'SBS':'SBS','LWC':'LWC','OFF':'Offset','1SC':'1C','2SC':'2C',
-    'BON':'Premium','LINER':'Liner','ADH':'Adhésif','THERM':'Therm.',
-    'ENV':'Env.','TIS':'Tissue','LUX':'Luxe','PAC':'Packaging',
-    'BOU':'Boucher.','DIV':'Divers','AFF':'Affiche','CAR':'Carton',
-    'COL':'Collé','CUI':'Couché','FLEX':'Flex','KDO':'Kraft Dbl',
-    'NEW':'Nouveauté','PLA':'Plastique','SIL':'Siliconé','BOA':'Bobine',
-    'SPE':'Spécial','INK':'Inkjet','CUT':'Coupé','SC':'SC'};
+  const labels={'KRA':'Kraft','KRABRUN':'Kraft Brun','KRG':'Kraft Gris','KRR':'Kraft Armé',
+    'SBS':'SBS','LWC':'LWC','OFF':'Offset','1SC':'1 face','2SC':'2 faces',
+    'BON':'Non cou.','LINER':'Liner','ADH':'Adhésif','THERM':'Therm.',
+    'ENV':'Env.','TIS':'Tissue','LUX':'Luxe','PAC':'Emball.',
+    'BOU':'Bouffant','DIV':'Divers','AFF':'Affiche','CAR':'Autocopiant',
+    'COL':'Couleur','CUI':'Cuisson','FLEX':'Complexe','KDO':'Cadeau',
+    'NEW':'Journal','PLA':'Plastique','SIL':'Silicone','BOA':'Carton',
+    'SPE':'Spécial','INK':'Encre','CUT':'Ramette','SC':'SC'};
   const txt=labels[suf]||(suf.length>0?suf:raw);
   let cls;
   if(suf.startsWith('KRA'))cls='qb-kraft';
@@ -1322,8 +1317,8 @@ function renderList(list){
     const thumb=_isFabL
       ?`<img src="img/fabrication-sur-demande.png" alt="Fabrication sur demande" class="plist-thumb">`
       :p.image_url
-        ?`<img src="${p.image_url}" alt="" class="plist-thumb" loading="lazy" onerror="this.src='img/photos-sur-demande.png'">`
-        :`<img src="img/photos-sur-demande.png" class="plist-thumb">`;
+        ?`<img src="${p.image_url}" alt="" class="plist-thumb" loading="lazy" onerror="this.src='img/no-photo.png'">`
+        :`<img src="img/no-photo.png" class="plist-thumb">`;
     const price=p.price
       ?`<span class="plist-price">${p.price.toLocaleString('fr-FR')} €/T</span>`
       :`<span class="plist-price-ask">Sur dem.</span>`;
