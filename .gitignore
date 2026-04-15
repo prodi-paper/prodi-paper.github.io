@@ -3,3 +3,5 @@
 .agents/
 .DS_Store
 __pycache__/
+*.pyc
+skills-lock.json
