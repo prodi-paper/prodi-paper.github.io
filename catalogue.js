@@ -1876,7 +1876,7 @@ function renderDrawer(){
     meta.textContent='0 '+(lang==='en'?'product':'produit');
     return;
   }
-  const ton=cart.reduce((s,p)=>s+(p.qty_kg??(p.poids_net||0)),0);
+  const ton=cart.reduce((s,p)=>s+(p.qty_kg??p.poids_net||0),0);
   meta.textContent=cart.length+' '+(lang==='en'?'product'+(cart.length>1?'s':''):'produit'+(cart.length>1?'s':''))+' · '+fmt(ton);
   document.getElementById('drawer-total').textContent=fmt(ton);
   const _dic=document.getElementById('drawer-items-count');if(_dic)_dic.textContent=cart.length+' '+(lang==='en'?'product'+(cart.length>1?'s':''):'produit'+(cart.length>1?'s':''));
