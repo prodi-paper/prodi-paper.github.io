@@ -1714,10 +1714,11 @@ const _shareParam=new URLSearchParams(window.location.search).get('share');
 const _shareCode=new URLSearchParams(window.location.search).get('s');
 let _sharedMode=!!_shareParam||!!_shareCode;
 
-async function loadSharedQuote(){
-  if(!_shareParam)return;
+async function loadSharedQuote(idsOverride){
+  const rawIds=idsOverride||_shareParam;
+  if(!rawIds)return;
   document.title='Prodiconseil — Sélection produit client';
-  const idList=_shareParam.split(',').map(Number).filter(Boolean);
+  const idList=rawIds.split(',').map(Number).filter(Boolean);
   if(!idList.length)return;
   const r=await sbQ('products?id=in.('+idList.join(',')+')'+'&select=*&limit=200&order=gsm.asc');
   if(!r.data||!r.data.length)return;
@@ -1972,17 +1973,17 @@ function drsResetAll(){Object.keys(NMR_IDS).forEach(id=>nmReset(id));}
 // Run after catalogue init (which itself runs on DOMContentLoaded)
 window.addEventListener('load',async()=>{
   if(_shareCode){
-    // Resolve short code → cart_ids then load as shared quote
+    // Resolve short code → cart_ids, then load inline (no page reload)
     try{
       const r=await sbQ('shared_carts?code=eq.'+encodeURIComponent(_shareCode)+'&select=cart_ids&limit=1');
       if(r.data&&r.data[0]){
-        // Patch URL silently so loadSharedQuote can use _shareParam equivalent
-        const ids=r.data[0].cart_ids;
-        history.replaceState(null,'',window.location.pathname+'?share='+ids);
-        // Reload with the expanded param — simpler than duplicating logic
-        window.location.replace(window.location.href);
+        loadSharedQuote(r.data[0].cart_ids);
+      } else {
+        // Code not found — fallback to normal catalogue
+        _sharedMode=false;
+        _doFilter();
       }
-    }catch(e){}
+    }catch(e){ _sharedMode=false; _doFilter(); }
   } else if(_shareParam){
     loadSharedQuote();
   }
