@@ -1346,7 +1346,7 @@ function renderList(list){
       <td class="plist-td plist-td-num plist-col-mandrin">${isPalette?'—':(mandrin||'—')}</td>
       <td class="plist-td plist-td-num">${p.poids_net?p.poids_net.toLocaleString('fr-FR')+' kg':'—'}</td>
       <td class="plist-td">${price}</td>
-      <td class="plist-td plist-td-usine plist-col-usine">${p.usine||'—'}</td>
+      <td class="plist-td plist-td-usine plist-col-usine">${p.usine?String(p.usine).replace(/^REF\s*/i,''):'—'}</td>
       <td class="plist-td plist-td-depot">${p.zone||'—'}</td>
     </tr>`;
   }).join('');
@@ -1454,7 +1454,7 @@ async function openDetail(id){
     {lbl: LT[lang].t_spec_mandrin||'Mandrin',   val: p.noyau?p.noyau+' mm':null},
     {lbl: LT[lang].t_spec_format||'Format',     val: formatLabel(p)},
     {lbl: LT[lang].t_spec_depot||'Emplacement',  val: p.zone||p.emplacement},
-    {lbl: 'Usine',                                val: p.usine||'—', always:true},
+    {lbl: 'Usine',                                val: p.usine?String(p.usine).replace(/^REF\s*/i,''):'—', always:true},
   ].filter(s=>s.val||s.always);
   document.getElementById('det-specs').innerHTML=specDefs.map(s=>
     `<div class="dspec-item"><div class="dspec-lbl">${s.lbl}</div><div class="dspec-val">${s.val}</div></div>`
