@@ -1865,7 +1865,7 @@ function renderDrawer(){
   const ton=cart.reduce((s,p)=>s+(p.poids_net||0),0);
   meta.textContent=cart.length+' '+(lang==='en'?'product'+(cart.length>1?'s':''):'produit'+(cart.length>1?'s':''))+' · '+fmt(ton);
   document.getElementById('drawer-total').textContent=fmt(ton);
-  document.getElementById('drawer-items-count').textContent=cart.length+' '+(lang==='en'?'product'+(cart.length>1?'s':''):'produit'+(cart.length>1?'s':''));
+  const _dic=document.getElementById('drawer-items-count');if(_dic)_dic.textContent=cart.length+' '+(lang==='en'?'product'+(cart.length>1?'s':''):'produit'+(cart.length>1?'s':''));
   // Prix total estimé
   const enriched=cart.map(p=>({...p,price:p.price??all.find(x=>x.id===+p.id)?.price??null}));
   const priceTotal=enriched.reduce((s,p)=>s+(p.price&&p.poids_net?p.price*p.poids_net/1000:0),0);
@@ -1874,7 +1874,7 @@ function renderDrawer(){
   if(priceTotal>0){
     prRow.style.display='flex';
     document.getElementById('drawer-price-val').textContent=Math.round(priceTotal).toLocaleString('fr-FR')+' €';
-    document.getElementById('drawer-price-sub').textContent=noPriceCount>0?`${LT[lang].t_depart_usine} (${noPriceCount} hors tarif)`:LT[lang].t_depart_usine;
+    const _dps=document.getElementById('drawer-price-sub');if(_dps)_dps.textContent=noPriceCount>0?`${LT[lang].t_depart_usine} (${noPriceCount} hors tarif)`:LT[lang].t_depart_usine;
   }else{
     prRow.style.display='none';
   }
