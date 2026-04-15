@@ -1665,23 +1665,12 @@ function removeFromCart(id){
 async function shareCart(){
   if(!cart.length){toast(lang==='en'?'Container is empty':'Container vide !');return;}
   const ids=cart.map(x=>x.id).join(',');
-  const longUrl=window.location.origin+window.location.pathname+'?share='+ids;
-  toast('⏳ Génération du lien...');
-  let url=longUrl;
+  const url=window.location.origin+window.location.pathname+'?share='+ids;
   try{
-    const r=await fetch('https://is.gd/create.php?format=json&url='+encodeURIComponent(longUrl));
-    const j=await r.json();
-    if(j.shorturl)url=j.shorturl;
-  }catch(e){}
-  const label='Prodiconseil \u2014 S\u00e9lection produit client';
-  const html=`<a href="${url}">${label}</a>`;
-  if(navigator.clipboard&&window.ClipboardItem){
-    navigator.clipboard.write([new ClipboardItem({
-      'text/html':new Blob([html],{type:'text/html'}),
-      'text/plain':new Blob([url],{type:'text/plain'})
-    })]).then(()=>toast('🔗 Lien copié !')).catch(()=>_copyFallback(url));
-  } else {
-    _copyFallback(url);
+    await navigator.clipboard.writeText(url);
+    toast('🔗 Lien copié !');
+  }catch(e){
+    prompt('Copie ce lien :',url);
   }
 }
 function _copyFallback(url){
