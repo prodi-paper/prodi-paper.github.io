@@ -1671,13 +1671,7 @@ async function shareCart(){
     const j=await r.json();
     if(j.shorturl)url=j.shorturl;
   }catch(e){}
-  if(navigator.clipboard&&navigator.clipboard.writeText){
-    navigator.clipboard.writeText(url)
-      .then(()=>toast('🔗 Lien copié !'))
-      .catch(()=>{_copyFallback(url);});
-  } else {
-    _copyFallback(url);
-  }
+  _showShareModal(url);
 }
 function _copyFallback(url){
   const ta=document.createElement('textarea');
@@ -1698,7 +1692,7 @@ function _showShareModal(url){
     <div style="font-size:12px;color:#999;margin-bottom:14px;">Envoie ce lien à ton client — il verra exactement les ${cart.length} produits sélectionnés.</div>
     <input id="share-url-input" value="${url}" style="width:100%;padding:10px 12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:12px;font-family:monospace;box-sizing:border-box;" readonly onclick="this.select()">
     <div style="display:flex;gap:8px;margin-top:12px;">
-      <button onclick="document.getElementById(\'share-url-input\').select();document.execCommand(\'copy\');toast(\'🔗 Lien copié !\');document.getElementById(\'share-modal-bg\').remove();" style="flex:1;padding:10px;background:#FE0000;color:#fff;border:none;border-radius:8px;font-family:\'Bebas Neue\',sans-serif;font-size:14px;letter-spacing:1px;cursor:pointer;">COPIER</button>
+      <button onclick="const inp=document.getElementById(\'share-url-input\');const u=inp.value;(navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(u):Promise.reject()).then(()=>{toast(\'🔗 Lien copié !\');document.getElementById(\'share-modal-bg\').remove();}).catch(()=>{inp.select();document.execCommand(\'copy\');toast(\'🔗 Lien copié !\');document.getElementById(\'share-modal-bg\').remove();});" style="flex:1;padding:10px;background:#FE0000;color:#fff;border:none;border-radius:8px;font-family:\'Bebas Neue\',sans-serif;font-size:14px;letter-spacing:1px;cursor:pointer;">COPIER</button>
       <button onclick="document.getElementById(\'share-modal-bg\').remove();" style="padding:10px 16px;background:transparent;border:1.5px solid #e0e0e0;border-radius:8px;font-size:13px;cursor:pointer;">Fermer</button>
     </div>
   </div>`;
