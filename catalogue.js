@@ -1671,10 +1671,16 @@ async function shareCart(){
     const j=await r.json();
     if(j.shorturl)url=j.shorturl;
   }catch(e){}
-  const doCopy=()=>navigator.clipboard&&navigator.clipboard.writeText
-    ?navigator.clipboard.writeText(url).then(()=>toast('🔗 Lien copié !')).catch(()=>_copyFallback(url))
-    :_copyFallback(url);
-  doCopy();
+  const label='Prodiconseil \u2014 S\u00e9lection produit client';
+  const html=`<a href="${url}">${label}</a>`;
+  if(navigator.clipboard&&window.ClipboardItem){
+    navigator.clipboard.write([new ClipboardItem({
+      'text/html':new Blob([html],{type:'text/html'}),
+      'text/plain':new Blob([url],{type:'text/plain'})
+    })]).then(()=>toast('🔗 Lien copié !')).catch(()=>_copyFallback(url));
+  } else {
+    _copyFallback(url);
+  }
 }
 function _copyFallback(url){
   const ta=document.createElement('textarea');
