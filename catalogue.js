@@ -1011,10 +1011,10 @@ async function _fetchAndRender(token){
   if(px)p.append('price',`lte.${px}`);
   const usineVal=(document.getElementById('f-usine')?.value||'').trim();
   if(usineVal)p.append('usine',`eq.${usineVal}`);
-  if(s==='gsm_asc'||s==='grammage_asc')p.set('order','gsm.asc.nullslast');
-  else if(s==='gsm_desc'||s==='grammage_desc')p.set('order','gsm.desc.nullslast');
-  else if(s==='price_asc'||s==='prix_asc')p.set('order','price.asc.nullslast');
-  else if(s==='price_desc'||s==='prix_desc')p.set('order','price.desc.nullslast');
+  if(s==='gsm_asc'||s==='grammage_asc')p.set('order','gsm.asc.nullslast,id.asc');
+  else if(s==='gsm_desc'||s==='grammage_desc')p.set('order','gsm.desc.nullslast,id.asc');
+  else if(s==='price_asc'||s==='prix_asc')p.set('order','price.asc.nullslast,id.asc');
+  else if(s==='price_desc'||s==='prix_desc')p.set('order','price.desc.nullslast,id.asc');
   else p.set('order','id.desc');
   const offset=(currentPage-1)*PAGE;
 
