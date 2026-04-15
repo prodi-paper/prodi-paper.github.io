@@ -239,8 +239,8 @@ header{background:rgba(255,255,255,.92);position:sticky;top:0;z-index:100;border
 .tag.tag-dim{text-transform:none;letter-spacing:.2px;}
 
 /* Add button */
-.btn-add-cart{width:100%;padding:10px;background:var(--ink);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;letter-spacing:.3px;cursor:pointer;margin-bottom:10px;transition:background .18s;display:flex;align-items:center;justify-content:center;gap:6px;line-height:1;}
-.btn-add-cart:hover{background:var(--red);}
+.btn-add-cart{width:100%;padding:10px;background:#fff;color:var(--ink);border:2px solid var(--ink);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;letter-spacing:.3px;cursor:pointer;margin-bottom:10px;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:6px;line-height:1;}
+.btn-add-cart:hover{background:var(--ink);color:#fff;}
 .btn-add-cart.added{background:#059669;}
 .btn-add-cart .cart-check{display:none;}
 .btn-add-cart.added .cart-check{display:inline-block;animation:checkpop .3s cubic-bezier(.34,1.56,.64,1);}
