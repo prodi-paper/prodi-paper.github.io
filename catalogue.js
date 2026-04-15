@@ -1667,20 +1667,22 @@ function _shortCode(){
 }
 async function shareCart(){
   if(!cart.length){toast(lang==='en'?'Container is empty':'Container vide !');return;}
-  toast('⏳ Génération du lien...');
   const ids=cart.map(x=>x.id).join(',');
-  let url=window.location.origin+window.location.pathname+'?share='+ids;
-  try{
-    const code=_shortCode();
-    const r=await sbQ('shared_carts',{method:'POST',body:{code,cart_ids:ids},headers:{'Prefer':'return=minimal'}});
-    if(!r.error)url=window.location.origin+window.location.pathname+'?s='+code;
-  }catch(e){}
+  const code=_shortCode();
+  const url=window.location.origin+window.location.pathname+'?s='+code;
+  // Copy immediately while still in user gesture context (before any await)
   try{
     await navigator.clipboard.writeText(url);
     toast('🔗 Lien copié !');
   }catch(e){
-    prompt('Copie ce lien :',url);
+    const ta=document.createElement('textarea');
+    ta.value=url;ta.style.cssText='position:fixed;opacity:0;top:0;left:0';
+    document.body.appendChild(ta);ta.focus();ta.select();
+    try{document.execCommand('copy');toast('🔗 Lien copié !');}catch(_){toast('❌ Copie échouée');}
+    document.body.removeChild(ta);
   }
+  // Save to Supabase in background
+  sbQ('shared_carts',{method:'POST',body:{code,cart_ids:ids},headers:{'Prefer':'return=minimal'}}).catch(()=>{});
 }
 function _copyFallback(url){
   const ta=document.createElement('textarea');
