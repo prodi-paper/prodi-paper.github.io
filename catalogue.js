@@ -1671,7 +1671,10 @@ async function shareCart(){
     const j=await r.json();
     if(j.shorturl)url=j.shorturl;
   }catch(e){}
-  _showShareModal(url);
+  const doCopy=()=>navigator.clipboard&&navigator.clipboard.writeText
+    ?navigator.clipboard.writeText(url).then(()=>toast('🔗 Lien copié !')).catch(()=>_copyFallback(url))
+    :_copyFallback(url);
+  doCopy();
 }
 function _copyFallback(url){
   const ta=document.createElement('textarea');
