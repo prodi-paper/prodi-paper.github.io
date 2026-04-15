@@ -346,10 +346,10 @@ body.drawer-open{margin-right:420px;overflow-x:hidden;}
 .cart-item-rm{background:none;border:none;color:var(--gray2);cursor:pointer;font-size:15px;padding:4px;transition:color .15s;flex-shrink:0;}
 .cart-item-rm:hover{color:var(--red);}
 .drawer-footer{padding:16px 20px;border-top:1px solid var(--border);flex-shrink:0;background:var(--white);}
-.drawer-total-card{background:var(--black);border-radius:var(--rl);padding:16px 18px;margin-bottom:12px;overflow:hidden;}
+.drawer-total-card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--rl);padding:16px 18px;margin-bottom:12px;overflow:hidden;}
 .drawer-total-row{display:flex;justify-content:space-between;align-items:center;gap:8px;}
-.drawer-total-label{font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:2px;color:rgba(255,255,255,.5);margin-bottom:2px;}
-.drawer-total-sub{font-size:11px;color:rgba(255,255,255,.35);}
+.drawer-total-label{font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:2px;color:var(--gray);margin-bottom:2px;}
+.drawer-total-sub{font-size:11px;color:var(--gray2);}
 .drawer-total-val{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--red);letter-spacing:.5px;line-height:1;white-space:nowrap;}
 .no-price-note{background:var(--red-light);border-left:3px solid var(--red);border-radius:var(--r);padding:8px 11px;font-size:11px;color:#990000;margin-bottom:12px;}
 .btn-pf-drawer{width:100%;padding:13px;background:var(--red);color:#fff;border:none;border-radius:var(--r);font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1.5px;cursor:pointer;transition:background .18s;margin-bottom:8px;}
