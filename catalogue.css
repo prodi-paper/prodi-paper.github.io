@@ -352,7 +352,7 @@ body.drawer-open{margin-right:420px;overflow-x:hidden;}
 .drawer-total-sub{font-size:11px;color:var(--ink2);}
 .drawer-total-val{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--red);letter-spacing:.5px;line-height:1;white-space:nowrap;}
 .no-price-note{background:var(--red-light);border-left:3px solid var(--red);border-radius:var(--r);padding:8px 11px;font-size:11px;color:#990000;margin-bottom:12px;}
-.btn-pf-drawer{width:100%;padding:13px;background:var(--red);color:#fff;border:none;border-radius:var(--r);font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1.5px;cursor:pointer;transition:background .18s;margin-bottom:8px;}
+.btn-pf-drawer{width:100%;padding:13px;background:var(--red);color:#fff;border:none;border-radius:var(--r);font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1.5px;cursor:pointer;transition:background .18s;margin-bottom:8px;margin-top:10px;}
 .btn-pf-drawer:hover{background:var(--red2);}
 .btn-clear-drawer{width:100%;padding:9px;background:transparent;color:var(--gray);border:1px solid var(--border);border-radius:var(--r);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .15s;}
 .btn-clear-drawer:hover{border-color:var(--red);color:var(--red);}
