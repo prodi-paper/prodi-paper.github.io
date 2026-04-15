@@ -152,8 +152,8 @@
       <div class="msd-panel"></div>
     </div>
     <div class="fbar-sep"></div>
-    <!-- Prix -->
-    <div class="fb-range">
+    <!-- PRIX_MASQUÉ: filtre prix barre haute masqué -->
+    <div class="fb-range" style="display:none">
       <span class="fb-range-lbl" data-i18n="t_prix_lbl">Prix</span>
       <input class="fb-inp" type="number" id="f-pmin-fb" placeholder="min" oninput="scheduleFilter()">
       <span style="color:var(--gray);font-size:11px">–</span>
@@ -244,7 +244,8 @@
         <div class="nmr-row"><label class="fl"><span data-i18n="t_longueur_lbl">Longueur</span> <span class="nmr-unit">(mm)</span></label></div>
         <div class="nmr-wrap"><input type="number" class="nmr-in" id="f-longmin" placeholder="Min" min="0" oninput="filterProducts()"><span class="nmr-sep">—</span><input type="number" class="nmr-in" id="f-longmax" placeholder="Max" min="0" oninput="filterProducts()"></div>
       </div>
-      <div class="fg">
+      <!-- PRIX_MASQUÉ: filtre prix sidebar masqué -->
+      <div class="fg" style="display:none">
         <div class="nmr-row"><label class="fl"><span data-i18n="t_prix_lbl">Prix</span> <span class="nmr-unit">(€/T)</span></label></div>
         <div class="nmr-wrap"><input type="number" class="nmr-in" id="f-pmin" placeholder="Min" min="0" oninput="filterProducts()"><span class="nmr-sep">—</span><input type="number" class="nmr-in" id="f-pmax" placeholder="Max" min="0" oninput="filterProducts()"></div>
       </div>
@@ -278,8 +279,7 @@
             <option value="date_desc" data-i18n-opt="t_sort_new">Plus récents</option>
             <option value="gsm_asc" selected data-i18n-opt="t_sort_gsm_asc">Grammage ↑</option>
             <option value="gsm_desc" data-i18n-opt="t_sort_gsm_desc">Grammage ↓</option>
-            <option value="price_asc" data-i18n-opt="t_sort_price_asc">Prix ↑</option>
-            <option value="price_desc" data-i18n-opt="t_sort_price_desc">Prix ↓</option>
+            <!-- PRIX_MASQUÉ: <option value="price_asc">Prix ↑</option><option value="price_desc">Prix ↓</option> -->
           </select>
         </div>
         <button class="rbar-reset" id="rbar-reset" onclick="resetFilters()" style="display:none">Réinitialiser</button>
@@ -293,8 +293,7 @@
           <option value="date">Plus récents</option>
           <option value="grammage_asc" selected>Grammage ↑</option>
           <option value="grammage_desc">Grammage ↓</option>
-          <option value="prix_asc" data-i18n-opt="t_sort_price_asc">Prix ↑</option>
-          <option value="prix_desc" data-i18n-opt="t_sort_price_desc">Prix ↓</option>
+          <!-- PRIX_MASQUÉ: <option value="prix_asc">Prix ↑</option><option value="prix_desc">Prix ↓</option> -->
         </select>
         <button class="vt-toggle-btn" id="vt-toggle" onclick="toggleView()">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="14" height="2.5" rx="1"/><rect x="0" y="5.5" width="14" height="2.5" rx="1"/><rect x="0" y="11" width="14" height="2.5" rx="1"/></svg>
@@ -323,7 +322,8 @@
       <div class="d-name" id="det-name"></div>
       <div class="dspecs" id="det-specs"></div>
       <div class="ddetails-txt" id="det-details" style="display:none"></div>
-      <div class="dprice-row" id="det-price-row">
+      <!-- PRIX_MASQUÉ: dprice-row masqué -->
+      <div class="dprice-row" id="det-price-row" style="display:none">
         <div>
           <div class="dprice-lbl" data-i18n="t_prix_depart" style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--gray);margin-bottom:2px;">Prix départ usine</div>
           <div class="dprice-val" id="det-price-val">—</div>
@@ -570,8 +570,8 @@
         </div>
       </div>
     </div>
-    <!-- Prix -->
-    <div class="fd-section open">
+    <!-- PRIX_MASQUÉ: filtre prix mobile masqué -->
+    <div class="fd-section open" style="display:none">
       <div class="fd-section-head" onclick="toggleFdSection(this)">
         <span class="fd-section-title">Prix (€/T)</span><span class="fd-section-arrow">▾</span>
       </div>

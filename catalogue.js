@@ -422,7 +422,7 @@ function openCmpModal(){
     {lbl:'Mandrin',key:'noyau',unit:'mm'},
     {lbl:'Format',key:'_format'},
     {lbl:'Poids',key:'poids_net',unit:'kg'},
-    {lbl:'Prix',key:'price',unit:'€/T'},
+    // PRIX_MASQUÉ: {lbl:'Prix',key:'price',unit:'€/T'},
   ];
   // header
   let html=`<thead><tr><th>Spec</th>${products.map(p=>`<th><div style="font-size:13px;font-weight:700;color:var(--ink)">${p.name}</div><div style="font-size:11px;color:var(--gray);margin-top:2px">${p.ref&&!p.ref.startsWith('Photo_')?p.ref:''}</div></th>`).join('')}</tr></thead><tbody>`;
@@ -1166,8 +1166,9 @@ function updateFilterChips(){
   const longmin2=document.getElementById('f-longmin')?.value||'';
   const longmax2=document.getElementById('f-longmax')?.value||'';
   if(longmin2||longmax2)chips.push({label:LT[lang].t_chip_longueur+' : '+(longmin2||longmax2)+'mm',clear:()=>{['f-longmin','f-longmax','f-longmin-mob','f-longmax-mob'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});filterProducts();}});
-  const cpn=document.getElementById('f-pmin').value,cpx=document.getElementById('f-pmax').value;
-  if(cpn||cpx)chips.push({label:LT[lang].t_chip_prix+' : '+(cpn||'—')+' → '+(cpx||'—')+' €/T',clear:()=>{['f-pmin','f-pmax','f-pmin-fb','f-pmax-fb','f-pmin-mob','f-pmax-mob'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});filterProducts();}});
+  // PRIX_MASQUÉ: filtre prix désactivé
+  // const cpn=document.getElementById('f-pmin').value,cpx=document.getElementById('f-pmax').value;
+  // if(cpn||cpx)chips.push({label:LT[lang].t_chip_prix+...});
   const usineChip=(document.getElementById('f-usine')?.value||'').trim();
   if(usineChip)chips.push({label:'Usine : '+usineChip,clear:()=>{const e=document.getElementById('f-usine');if(e)e.value='';filterProducts();}});
   if(!chips.length){container.innerHTML='';const ac2=document.getElementById('active-chips');if(ac2)ac2.innerHTML='';return;}
@@ -1257,9 +1258,8 @@ function renderCards(list){
     const fmtLabel=p.format?(isPalette?'Format':'Bobine'):null;
     const paletteDims=isPalette&&(p.largeur||p.longueur)?[p.largeur,p.longueur].filter(Boolean).join('×'):null;
     const poids=p.poids_net?`${p.poids_net.toLocaleString('fr-FR')}`:'—';
-    const prixHtml=p.price
-      ?`<div class="pcard-price">${p.price.toLocaleString('fr-FR')} €/T</div>`
-      :`<div class="pcard-price-ask">${LT[lang].t_sur_demande}</div>`;
+    // PRIX_MASQUÉ: const prixHtml=p.price?`<div class="pcard-price">${p.price.toLocaleString('fr-FR')} €/T</div>`:`<div class="pcard-price-ask">${LT[lang].t_sur_demande}</div>`;
+    const prixHtml='';
     const typeOverlay='';
     const gsmOverlay=p.grammage?`<div class="pcard-gsm-overlay"><span class="pcard-gsm-num">${p.grammage}</span><span class="pcard-gsm-lbl">g/m²</span></div>`:'';
     const photoRef='';
@@ -1321,9 +1321,8 @@ function renderList(list){
       :p.image_url
         ?`<img src="${p.image_url}" alt="" class="plist-thumb" loading="lazy" onerror="this.src='img/no-photo.png'">`
         :`<img src="img/no-photo.png" class="plist-thumb">`;
-    const price=p.price
-      ?`<span class="plist-price">${p.price.toLocaleString('fr-FR')} €/T</span>`
-      :`<span class="plist-price-ask">Sur dem.</span>`;
+    // PRIX_MASQUÉ: const price=p.price?`<span class="plist-price">${p.price.toLocaleString('fr-FR')} €/T</span>`:`<span class="plist-price-ask">Sur dem.</span>`;
+    const price='';
     const inCart=cart.find(x=>x.id===+p.id);
     const addBtn=`<button class="plist-add${inCart?' added':''}" id="ladd-${p.id}" onclick="event.stopPropagation();addToCart(${p.id})">${inCart?'✓':'+'}</button>`;
     const isPalette=p.format&&p.format.toLowerCase().includes('palette');
@@ -1365,7 +1364,7 @@ function renderList(list){
       <th>Diamètre</th>
       <th class="plist-col-mandrin">Mandrin</th>
       <th>Poids (kg)</th>
-      <th>Prix</th>
+      <!-- PRIX_MASQUÉ: <th>Prix</th> -->
       <th class="plist-col-usine">Usine</th>
       <th class="plist-col-depot">Emplacement</th>
     </tr></thead>
@@ -1468,10 +1467,8 @@ async function openDetail(id){
   if(_detParts.length){dd.textContent=_detParts.join(' — ');dd.style.display='block';}
   else{dd.style.display='none';}
 
-  // Prix + Poids
-  document.getElementById('det-price-val').innerHTML=p.price
-    ?`<span style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--red)">${p.price} €/T</span>`
-    :`<span style="font-size:12px;color:#aaa;font-style:italic;">${LT[lang].t_sur_demande}</span>`;
+  // PRIX_MASQUÉ: document.getElementById('det-price-val').innerHTML=...
+  const _dpRow=document.getElementById('det-price-row');if(_dpRow)_dpRow.style.display='none';
   document.getElementById('det-poids-val').textContent=p.poids_net?fmt(p.poids_net):'—';
 
   // Reset modal add button state
@@ -1793,7 +1790,7 @@ function _openSharedQuoteModal(){
     <td style="padding:8px 4px;font-size:12px;">${p.gsm?p.gsm+' g/m²':'—'}</td>
     <td style="padding:8px 4px;font-size:12px;">${p.width?p.width+' mm':'—'}</td>
     <td style="padding:8px 4px;font-size:12px;font-weight:600;">${p.weight?p.weight+' kg':'—'}</td>
-    <td style="padding:8px 4px;font-size:12px;color:#FE0000;font-weight:600;">${p.price?p.price.toLocaleString('fr-FR')+' €/T':'Sur dem.'}</td>
+    <!-- PRIX_MASQUÉ: <td>${p.price?p.price.toLocaleString('fr-FR')+' €/T':'Sur dem.'}</td> -->
   </tr>`).join('');
   const d=document.createElement('div');
   d.id='sq-modal-bg';
@@ -1814,7 +1811,7 @@ function _openSharedQuoteModal(){
           <th style="text-align:left;padding:6px 4px;font-size:11px;font-weight:700;">GSM</th>
           <th style="text-align:left;padding:6px 4px;font-size:11px;font-weight:700;">LAIZE</th>
           <th style="text-align:left;padding:6px 4px;font-size:11px;font-weight:700;">POIDS</th>
-          <th style="text-align:left;padding:6px 4px;font-size:11px;font-weight:700;">PRIX</th>
+          <!-- PRIX_MASQUÉ: <th>PRIX</th> -->
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>
@@ -1867,18 +1864,9 @@ function renderDrawer(){
   meta.textContent=cart.length+' '+(lang==='en'?'product'+(cart.length>1?'s':''):'produit'+(cart.length>1?'s':''))+' · '+fmt(ton);
   document.getElementById('drawer-total').textContent=fmt(ton);
   const _dic=document.getElementById('drawer-items-count');if(_dic)_dic.textContent=cart.length+' '+(lang==='en'?'product'+(cart.length>1?'s':''):'produit'+(cart.length>1?'s':''));
-  // Prix total estimé
-  const enriched=cart.map(p=>({...p,price:p.price??all.find(x=>x.id===+p.id)?.price??null}));
-  const priceTotal=enriched.reduce((s,p)=>s+(p.price&&p.poids_net?p.price*p.poids_net/1000:0),0);
-  const noPriceCount=enriched.filter(p=>!p.price).length;
+  // PRIX_MASQUÉ: bloc total estimé masqué
   const prRow=document.getElementById('drawer-price-row');
-  if(priceTotal>0){
-    prRow.style.display='flex';
-    document.getElementById('drawer-price-val').textContent=Math.round(priceTotal).toLocaleString('fr-FR')+' €';
-    const _dps=document.getElementById('drawer-price-sub');if(_dps)_dps.textContent=noPriceCount>0?`${LT[lang].t_depart_usine} (${noPriceCount} hors tarif)`:LT[lang].t_depart_usine;
-  }else{
-    prRow.style.display='none';
-  }
+  if(prRow)prRow.style.display='none';
   footer.style.display='block';
   items.innerHTML=cart.map(p=>`
     <div class="cart-item">
