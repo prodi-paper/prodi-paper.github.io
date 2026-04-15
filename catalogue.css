@@ -356,7 +356,7 @@ body.drawer-open{margin-right:420px;overflow-x:hidden;}
 .btn-pf-drawer:hover{background:var(--red2);}
 .btn-clear-drawer{width:100%;padding:9px;background:transparent;color:var(--gray);border:1px solid var(--border);border-radius:var(--r);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .15s;}
 .btn-clear-drawer:hover{border-color:var(--red);color:var(--red);}
-.btn-share-drawer{width:100%;margin-top:8px;padding:10px;background:transparent;color:var(--ink2);border:1.5px dashed var(--border);border-radius:var(--r);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.btn-share-drawer{width:100%;margin-top:8px;padding:10px;background:transparent;color:var(--gray);border:1.5px dashed var(--border);border-radius:var(--r);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:6px;}
 .btn-share-drawer:hover{border-color:var(--ink);color:var(--ink);}
 
 /* ── SHARED QUOTE BANNER ── */
