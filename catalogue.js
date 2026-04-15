@@ -911,8 +911,10 @@ async function _doFilter(){
 async function _fetchAndRender(token){
   const g=document.getElementById('pgrid');
   if(g){
-    g.className='pgrid';
-    g.innerHTML=Array(8).fill(0).map(()=>`<div class="skeleton"><div class="skel-img"></div><div class="skel-body"><div class="skel-line short"></div><div class="skel-line med"></div><div class="skel-line"></div></div></div>`).join('');
+    g.className=_viewMode==='list'?'pgrid plist':'pgrid';
+    g.innerHTML=_viewMode==='list'
+      ?`<div style="padding:20px;text-align:center;color:var(--gray);font-size:13px;">Chargement…</div>`
+      :Array(8).fill(0).map(()=>`<div class="skeleton"><div class="skel-img"></div><div class="skel-body"><div class="skel-line short"></div><div class="skel-line med"></div><div class="skel-line"></div></div></div>`).join('');
   }
 
   // Build query
