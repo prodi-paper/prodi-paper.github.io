@@ -1661,6 +1661,20 @@ function removeFromCart(id){
   updateCartBadge();renderDrawer();
 }
 
+function cartQty(id,delta){
+  const p=cart.find(x=>x.id===+id);if(!p)return;
+  const cur=p.qty_kg??p.poids_net??100;
+  p.qty_kg=Math.max(1,Math.round(cur+delta));
+  localStorage.setItem('prodi_cart',JSON.stringify(cart));
+  renderDrawer();updateCartBadge();
+}
+function cartQtySet(id,val){
+  const p=cart.find(x=>x.id===+id);if(!p)return;
+  p.qty_kg=Math.max(1,parseFloat(val)||1);
+  localStorage.setItem('prodi_cart',JSON.stringify(cart));
+  renderDrawer();updateCartBadge();
+}
+
 // ── SHARE CART ──
 async function shareCart(){
   if(!cart.length){toast(lang==='en'?'Container is empty':'Container vide !');return;}
@@ -1862,13 +1876,16 @@ function renderDrawer(){
     meta.textContent='0 '+(lang==='en'?'product':'produit');
     return;
   }
-  const ton=cart.reduce((s,p)=>s+(p.poids_net||0),0);
+  const ton=cart.reduce((s,p)=>s+(p.qty_kg??p.poids_net||0),0);
   meta.textContent=cart.length+' '+(lang==='en'?'product'+(cart.length>1?'s':''):'produit'+(cart.length>1?'s':''))+' · '+fmt(ton);
   document.getElementById('drawer-total').textContent=fmt(ton);
   const _dic=document.getElementById('drawer-items-count');if(_dic)_dic.textContent=cart.length+' '+(lang==='en'?'product'+(cart.length>1?'s':''):'produit'+(cart.length>1?'s':''));
+  // Barre minimum commande 500 KGS
+  const MIN_ORDER=500;
+  const minBarHtml=ton<MIN_ORDER?`<div class="min-order-bar"><div class="min-order-msg">Minimum de commande : 500 KGS (${Math.round(ton)} / 500)</div><div class="min-order-track"><div class="min-order-fill" style="width:${Math.min(100,ton/MIN_ORDER*100).toFixed(1)}%"></div></div></div>`:'';
   // Prix total estimé
-  const enriched=cart.map(p=>({...p,price:p.price??all.find(x=>x.id===+p.id)?.price??null}));
-  const priceTotal=enriched.reduce((s,p)=>s+(p.price&&p.poids_net?p.price*p.poids_net/1000:0),0);
+  const enriched=cart.map(p=>({...p,qty_kg:p.qty_kg??p.poids_net,price:p.price??all.find(x=>x.id===+p.id)?.price??null}));
+  const priceTotal=enriched.reduce((s,p)=>s+(p.price&&p.qty_kg?p.price*p.qty_kg/1000:0),0);
   const noPriceCount=enriched.filter(p=>!p.price).length;
   const prRow=document.getElementById('drawer-price-row');
   if(priceTotal>0){
@@ -1879,18 +1896,25 @@ function renderDrawer(){
     prRow.style.display='none';
   }
   footer.style.display='block';
-  items.innerHTML=cart.map(p=>`
-    <div class="cart-item">
+  items.innerHTML=minBarHtml+cart.map(p=>{
+    const qkg=p.qty_kg??p.poids_net??0;
+    const step=Math.max(1,p.poids_net||100);
+    return`<div class="cart-item">
       <div class="cart-item-img">${(p.img||(all.find(x=>x.id===+p.id)?.image_url))?`<img src="${p.img||all.find(x=>x.id===+p.id)?.image_url}">`:`${ico(p.type)}`}</div>
       <div class="cart-item-info">
         <div class="cart-item-ref">${p.ref&&!p.ref.startsWith('Photo_')?p.ref:''}</div>
         <div class="cart-item-name">${p.name}</div>
         <div class="tags" style="margin-bottom:0">${p.grammage?`<span class="tag">${p.grammage}g/m²</span>`:''}${p.largeur?`<span class="tag">${p.largeur}mm</span>`:''}</div>
-        <div class="cart-item-sub">${fmt(p.poids_net)}</div>
+        <div class="cart-qty-row">
+          <button class="cart-qty-btn" onclick="cartQty(${p.id},-${step})">−</button>
+          <input class="cart-qty-input" type="number" value="${Math.round(qkg)}" min="1" step="${step}" onchange="cartQtySet(${p.id},this.value)">
+          <button class="cart-qty-btn" onclick="cartQty(${p.id},${step})">+</button>
+          <span class="cart-qty-unit">kg</span>
+        </div>
       </div>
       <button class="cart-item-rm" onclick="removeFromCart(${p.id})" title="${lang==='en'?'Remove':'Retirer'}">✕</button>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
 function openCartProforma(){
