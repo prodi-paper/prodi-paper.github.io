@@ -216,16 +216,16 @@ header{background:rgba(255,255,255,.92);position:sticky;top:0;z-index:100;border
 /* Body */
 .pcard-body{padding:12px 14px 14px;flex:1;display:flex;flex-direction:column;gap:0;}
 .pcard-ref{font-size:9px;color:var(--gray2);font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;}
-.pcard-name{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.4px;color:var(--black);line-height:1.2;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.pcard-name{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.4px;color:var(--black);line-height:1.2;margin-bottom:10px;padding-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .pcard-name-format{color:var(--red);font-size:15px;}
 
 /* GSM badge — overlaid bottom-right of photo */
 .pcard-gsm-overlay{position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,.55);color:#fff;border-radius:8px;padding:5px 10px;display:flex;align-items:baseline;gap:3px;backdrop-filter:blur(6px);}
-.pcard-gsm-num{font-family:'Bebas Neue',sans-serif;font-size:26px;line-height:1;letter-spacing:.5px;color:#fff;}
-.pcard-gsm-lbl{font-size:10px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:rgba(255,255,255,.75);}
+.pcard-gsm-num{font-family:'Bebas Neue',sans-serif;font-size:32px;line-height:1;letter-spacing:.5px;color:#fff;}
+.pcard-gsm-lbl{font-size:13px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:rgba(255,255,255,.75);}
 
 /* Mini spec grid on card */
-.pcard-specs{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:12px;margin-top:auto;}
+.pcard-specs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;margin-top:auto;}
 .pcard-spec{display:flex;flex-direction:column;gap:2px;padding:6px 8px;background:var(--off);border:1px solid var(--border);border-radius:6px;}
 .pspec-lbl{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--gray2);line-height:1;}
 .pspec-val{font-size:14px;font-weight:700;color:var(--black);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
