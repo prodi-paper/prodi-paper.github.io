@@ -1,1 +1,5 @@
 .claude/
+.netlify/
+.agents/
+.DS_Store
+__pycache__/
