@@ -689,7 +689,8 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
 
 /* ── DESIGN UPGRADES ── */
 /* ── FLOATING CONTACT BUTTON ── */
-.fab-contact{position:fixed;bottom:24px;right:24px;width:52px;height:52px;border-radius:50%;background:#25D366;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(37,211,102,.4);z-index:var(--z-modal);transition:background .18s,transform .18s,box-shadow .18s;}
+.fab-contact{position:fixed;bottom:24px;right:24px;width:52px;height:52px;border-radius:50%;background:#25D366;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(37,211,102,.4);z-index:var(--z-modal);transition:background .18s,transform .18s,box-shadow .18s,right .28s cubic-bezier(.4,0,.2,1);}
+body.drawer-open .fab-contact{right:444px;}
 .fab-contact:hover{background:#1ebe5d;transform:scale(1.08);box-shadow:0 6px 22px rgba(37,211,102,.55);}
 
 /* pcard (image card) — red top stripe always visible on hover */
