@@ -1662,10 +1662,19 @@ function removeFromCart(id){
 }
 
 // ── SHARE CART ──
+function _shortCode(){
+  return Array.from(crypto.getRandomValues(new Uint8Array(6)),b=>'0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'[b%62]).join('');
+}
 async function shareCart(){
   if(!cart.length){toast(lang==='en'?'Container is empty':'Container vide !');return;}
+  toast('⏳ Génération du lien...');
   const ids=cart.map(x=>x.id).join(',');
-  const url=window.location.origin+window.location.pathname+'?share='+ids;
+  let url=window.location.origin+window.location.pathname+'?share='+ids;
+  try{
+    const code=_shortCode();
+    const r=await sbQ('shared_carts',{method:'POST',body:{code,cart_ids:ids},headers:{'Prefer':'return=minimal'}});
+    if(!r.error)url=window.location.origin+window.location.pathname+'?s='+code;
+  }catch(e){}
   try{
     await navigator.clipboard.writeText(url);
     toast('🔗 Lien copié !');
@@ -1703,7 +1712,8 @@ function _showShareModal(url){
 // ── LOAD SHARED QUOTE ──
 // Detected synchronously at script load so _doFilter can check it
 const _shareParam=new URLSearchParams(window.location.search).get('share');
-let _sharedMode=!!_shareParam;
+const _shareCode=new URLSearchParams(window.location.search).get('s');
+let _sharedMode=!!_shareParam||!!_shareCode;
 
 async function loadSharedQuote(){
   if(!_shareParam)return;
@@ -1970,8 +1980,22 @@ function nmReset(id){
 }
 function drsResetAll(){Object.keys(NMR_IDS).forEach(id=>nmReset(id));}
 // Run after catalogue init (which itself runs on DOMContentLoaded)
-window.addEventListener('load',()=>{
-  if(new URLSearchParams(window.location.search).get('share'))loadSharedQuote();
+window.addEventListener('load',async()=>{
+  if(_shareCode){
+    // Resolve short code → cart_ids then load as shared quote
+    try{
+      const r=await sbQ('shared_carts?code=eq.'+encodeURIComponent(_shareCode)+'&select=cart_ids&limit=1');
+      if(r.data&&r.data[0]){
+        // Patch URL silently so loadSharedQuote can use _shareParam equivalent
+        const ids=r.data[0].cart_ids;
+        history.replaceState(null,'',window.location.pathname+'?share='+ids);
+        // Reload with the expanded param — simpler than duplicating logic
+        window.location.replace(window.location.href);
+      }
+    }catch(e){}
+  } else if(_shareParam){
+    loadSharedQuote();
+  }
 });
 
 function updateFilterVisibility(){
