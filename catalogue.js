@@ -1710,6 +1710,7 @@ let _sharedMode=!!_shareParam;
 
 async function loadSharedQuote(){
   if(!_shareParam)return;
+  document.title='Prodiconseil — Sélection produit client';
   const idList=_shareParam.split(',').map(Number).filter(Boolean);
   if(!idList.length)return;
   const r=await sbQ('products?id=in.('+idList.join(',')+')'+'&select=*&limit=200&order=gsm.asc');
