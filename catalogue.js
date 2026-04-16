@@ -1282,15 +1282,21 @@ function renderCards(list){
     // Mini spec rows (label + value, only if value exists)
     const specRows=[
       p.couleur?['Couleur',p.couleur]:null,
+      p.grammage?['Grammage',`${p.grammage} g/m²`]:null,
       dimTag?['Laize',dimTag]:paletteDims?['Format',paletteDims]:null,
       p.noyau?['Mandrin',`Ø${p.noyau} mm`]:null,
       fmtLabel?['Cond.',fmtLabel]:null,
-    ].filter(Boolean).slice(0,4);
+      p.usine?['Usine',String(p.usine).replace(/^REF\s*/i,'')]:null,
+      (p.emplacement||p.zone)?['Dépôt',p.emplacement||p.zone]:null,
+    ].filter(Boolean);
     const specsHtml=`<div class="pcard-specs">${specRows.map(([l,v])=>`<div class="pcard-spec"><span class="pspec-lbl">${l}</span><span class="pspec-val">${v}</span></div>`).join('')}</div>`;
+    const _sub=p.details?p.details.replace(/[-–—\s]+/g,' ').trim():'';
+    const subtitleHtml=_sub.length>3?`<div class="pcard-subtitle">${_sub}</div>`:'';
     return`<div class="pcard" onclick="openDetail(${p.id})">
       <div class="pcard-img">${imgHtml}${typeOverlay}${gsmOverlay}${photoRef}</div>
       <div class="pcard-body">
         <div class="pcard-name">${p.qualite?(p.qualite+(QUALITE_LABELS[p.qualite]?' — '+QUALITE_LABELS[p.qualite]:'')):(p.type||'—')}</div>
+        ${subtitleHtml}
         ${specsHtml}
         <button class="btn-add-cart${cart.find(x=>x.id===+p.id)?' added':''}" id="cadd-${p.id}" aria-label="${lang==='en'?'Add to selection':'Ajouter à la sélection'}" onclick="event.stopPropagation();addToCart(${p.id})"><span class="cart-icon">+</span><span class="cart-check">✓</span></button>
         <div class="pcard-foot">
