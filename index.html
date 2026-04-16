@@ -73,9 +73,9 @@
     <div class="hright">
       <div class="live-pill live-pill-hright"><div class="live-dot"></div> <span data-i18n="t_live">Stock en direct</span></div>
       <div class="cart-wrap">
-        <button class="btn-head btn-head-panier" onclick="openCartDrawer()" id="cart-btn" title="Ma Commande">
-          <img src="img/truck2.png" alt="truck" style="height:30px;width:auto;vertical-align:-6px;"> <span class="btn-panier-txt">Ma Commande</span>
-          <span class="cart-badge" id="cart-badge" aria-live="polite" aria-label="Produits dans le container" data-i18n-aria="t_cart_aria">0</span>
+        <button class="btn-head btn-head-panier" onclick="openCartDrawer()" id="cart-btn" title="Ma Sélection">
+          <img src="img/truck2.png" alt="truck" style="height:30px;width:auto;vertical-align:-6px;"> <span class="btn-panier-txt">Ma Sélection</span>
+          <span class="cart-badge" id="cart-badge" aria-live="polite" aria-label="Produits dans la sélection" data-i18n-aria="t_cart_aria">0</span>
         </button>
       </div>
       <div class="lang-sep"></div>
@@ -276,8 +276,8 @@
         <div class="rbar-sort">
           <span class="rbar-sort-lbl" data-i18n="t_trier">Trier :</span>
           <select class="rbar-sel" id="sort-sel" onchange="_doFilter()">
-            <option value="date_desc" data-i18n-opt="t_sort_new">Plus récents</option>
-            <option value="gsm_asc" selected data-i18n-opt="t_sort_gsm_asc">Grammage ↑</option>
+            <option value="date_desc" selected data-i18n-opt="t_sort_new">Plus récents</option>
+            <option value="gsm_asc" data-i18n-opt="t_sort_gsm_asc">Grammage ↑</option>
             <option value="gsm_desc" data-i18n-opt="t_sort_gsm_desc">Grammage ↓</option>
             <!-- PRIX_MASQUÉ: <option value="price_asc">Prix ↑</option><option value="price_desc">Prix ↓</option> -->
           </select>
@@ -290,8 +290,8 @@
       <div class="sort-wrap">
         <span class="sort-lbl" data-i18n="t_trier">Trier :</span>
         <select class="sort-sel" id="sort-select" onchange="filterProducts()">
-          <option value="date">Plus récents</option>
-          <option value="grammage_asc" selected>Grammage ↑</option>
+          <option value="date" selected>Plus récents</option>
+          <option value="grammage_asc">Grammage ↑</option>
           <option value="grammage_desc">Grammage ↓</option>
           <!-- PRIX_MASQUÉ: <option value="prix_asc">Prix ↑</option><option value="prix_desc">Prix ↓</option> -->
         </select>
@@ -334,7 +334,7 @@
         </div>
       </div>
       <div class="d-actions">
-        <button class="btn-cart-det" id="modal-add-btn" data-i18n="t_add_modal_btn" onclick="addToCart(cur?.id)">+ Ajouter au container</button>
+        <button class="btn-cart-det" id="modal-add-btn" data-i18n="t_add_modal_btn" onclick="addToCart(cur?.id)">+ Ajouter à la sélection</button>
       </div>
     </div>
   </div>
@@ -346,11 +346,11 @@
 <div class="cart-drawer" id="cart-drawer">
   <div class="drawer-head">
     <div>
-      <div class="drawer-title" data-i18n="t_my_container">MA COMMANDE</div>
+      <div class="drawer-title" data-i18n="t_my_container">MA SÉLECTION</div>
       <div class="drawer-meta" id="drawer-meta">—</div>
     </div>
     <div class="drawer-head-actions">
-      <button class="btn-clear-drawer-top" onclick="doClearCart()" data-i18n="t_clear_cart">Vider</button>
+      <button class="btn-clear-drawer-top" onclick="doClearCart()" data-i18n="t_clear_cart">Vider la sélection</button>
       <button class="drawer-close" onclick="closeCartDrawer()">✕</button>
     </div>
   </div>
@@ -428,7 +428,7 @@
 <div class="confirm-bg" id="confirm-bg">
   <div class="confirm-box">
     <div class="confirm-ico">🗑️</div>
-    <div class="confirm-t" data-i18n="t_clear_confirm">Vider le container ?</div>
+    <div class="confirm-t" data-i18n="t_clear_confirm">Vider la sélection ?</div>
     <div class="confirm-s" data-i18n="t_clear_confirm_msg">Cette action est irréversible. Tous les produits sélectionnés seront retirés.</div>
     <div class="confirm-acts">
       <button class="btn-confirm-cancel" data-i18n="t_cancel" onclick="document.getElementById('confirm-bg').classList.remove('show')">Annuler</button>

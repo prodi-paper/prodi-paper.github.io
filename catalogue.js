@@ -45,7 +45,7 @@ const TYPE_MAP={
   'Kraft gomme':       ['RKRG'],
   'Liner':             ['RLINER'],
   'Luxe':              ['RLUX','SLUX'],
-  'LWC':               ['RLWC'],
+  'LWC':               ['RLWC','SLWC'],
   'Machines':          ['UMAC'],
   'Offset':            ['ROFF','SOFF'],
   'Ouate':             ['RTIS'],
@@ -299,6 +299,28 @@ const sp=v=>document.getElementById('spinner').classList.toggle('show',v);
 
 // Map DB row (new schema) -> UI object (expected by existing template)
 // Nettoie les couleurs bilingues "BLANC / WHITE" → "Blanc"
+// Reverse: display label → liste exacte des valeurs DB
+const _COLOR_DB={
+  'Blanc':       ['BLANC / WHITE','BLANC'],
+  'Très blanc':  ['TRES BLANC / VERY WHITE','TRÈS BLANC / VERY WHITE','TRES BLANC'],
+  'Blanc nature':['BLANC NATURE / NATURAL WHITE'],
+  'Brun':        ['BRUN / BROWN','BRUN','BRUN FONCE / DARK BROWN'],
+  'Crème':       ['CREME / CREAMS'],
+  'Ivoire':      ['IVOIRE / IVORY'],
+  'Gris':        ['GRIS / GREY'],
+  'Noir':        ['NOIR / BLACK'],
+  'Transparent': ['TRANSPARENT','TRANSPARENT PET'],
+  'Vert':        ['VERT / GREEN','VERT','VERT FONCÉ / DARK GREEN'],
+  'Rouge':       ['ROUGE / RED','ROUGE'],
+  'Bleu':        ['BLEU / BLUE','BLEU','BLEU FONCÉ / DARK BLUE'],
+  'Jaune':       ['JAUNE / YELLOW','JAUNE'],
+  'Orange':      ['ORANGE / ORANGE'],
+  'Argent':      ['ARGENT / SILVER'],
+  'Rose':        ['ROSE / PINK','ROSE','SAUMON / SALMON','SAUMON'],
+  'Or':          ['GOLD/DORE'],
+  'Violet':      ['VIOLET / PURPLE'],
+  'Autres':      ['DIVERS / VARIOUS','CHAMOIS','BULLE/BUBBLE'],
+};
 const _COLOR_NORM={
   'BLANC / WHITE':'Blanc','BRUN / BROWN':'Brun','IVOIRE / IVORY':'Ivoire',
   'BLANC NATURE / NATURAL WHITE':'Blanc nature',
@@ -359,6 +381,7 @@ function rowToUi(r){
     format: r.type_produit || r.format || '',
     noyau: r.noyau || '',
     name,
+    details,
     type,
     typeLabel: _typeLabel,
     grammage: gsm,
@@ -382,7 +405,7 @@ function toggleCompare(id){
     cmpSet.delete(id);
     if(btn){btn.textContent='⊕';btn.classList.remove('cmp-active');}
   } else {
-    if(cmpSet.size>=3){toast(lang==='en'?'Maximum 3 products to compare':'Maximum 3 produits à comparer');return;}
+    if(cmpSet.size>=3){toast(LT[lang].t_cmp_max3);return;}
     cmpSet.add(id);
     if(btn){btn.textContent='✓';btn.classList.add('cmp-active');}
   }
@@ -410,7 +433,7 @@ function clearCompare(){
 }
 function openCmpModal(){
   const products=[...cmpSet].map(id=>all.find(x=>x.id===+id)).filter(Boolean);
-  if(products.length<2){toast(lang==='en'?'Select at least 2 products':'Sélectionnez au moins 2 produits');return;}
+  if(products.length<2){toast(LT[lang].t_cmp_min2);return;}
   const specs=[
     {lbl:'Image',key:'img'},
     {lbl:'Référence',key:'ref'},
@@ -495,9 +518,7 @@ async function init(){
 
   // Also build mobile msd panels (msd-type-mob, msd-mandrin-mob, msd-couleur-mob)
   buildMsdOptions('msd-type-mob',QUALITE_CODES,'Tous',_typeLabel,'msd-type');
-  buildMsdOptions('msd-couleur-mob',
-    ['Blanc','Brun','Ivoire','Gris','Noir','Vert','Rouge','Bleu','Jaune','Orange','Argent','Couleur','Autres'],
-    'Couleurs',null,'msd-couleur');
+  buildMsdOptions('msd-couleur-mob',couleurVals,'Couleurs',null,'msd-couleur');
   buildMsdOptions('msd-mandrin-mob',['70','76','150','152'],'Mandrins',v=>v+' mm','msd-mandrin');
 
   // Pre-fill from URL params (coming from vitrine)
@@ -548,7 +569,7 @@ const msdLabels = {
   'msd-mandrin': 'Mandrins',
   'msd-couleur': 'Couleurs',
 };
-const QUALITE_CODES=['R1SC','R2SC','RADH','RAFF','RBOA','RBON','RBOU','RCAR','ROFF','Offset Couleur','Dossier Couleur','RCUI','RDIV','RFLEX','RKDO','RKRA','RKRABRUN','RKRG','RKRR','RLINER','RLUX','RLWC','RNEW','RPAC','RPLA','RSIL','RTHERM','RTIS','S1SC','S2SC','SADH','SAFF','SBOA','SBON','SBOU','SCAR','SCOL','SCUT','SDIV','SENV','SKDO','SKRA','SLUX','SNEW','SOFF','SPAC','SPLA','SSBS','SSPE','SINK','UMAC','AUTRES'];
+const QUALITE_CODES=['R1SC','R2SC','RADH','RAFF','RBOA','RBON','RBOU','RCAR','ROFF','Offset Couleur','Dossier Couleur','RCUI','RDIV','RFLEX','RKDO','RKRA','RKRABRUN','RKRG','RKRR','RLINER','RLUX','RLWC','RNEW','RPAC','RPLA','RSIL','RTHERM','RTIS','S1SC','S2SC','SADH','SAFF','SBOA','SBON','SBOU','SCAR','SCOL','SCUT','SDIV','SENV','SKDO','SKRA','SLUX','SLWC','SNEW','SOFF','SPAC','SPLA','SSBS','SSPE','SINK','UMAC','AUTRES'];
 const QUALITE_KNOWN=QUALITE_CODES.filter(c=>c!=='AUTRES');
 // Real DB quality codes (pseudo-codes expanded to actual values)
 const QUALITE_KNOWN_DB=[...new Set(QUALITE_KNOWN.flatMap(c=>(c==='Offset Couleur'||c==='Dossier Couleur')?['RCOL']:[c]))];
@@ -575,6 +596,7 @@ const QUALITE_LABELS={
   'RLINER':'Liner / Testliner',
   'RLUX':'Papier luxe',
   'RLWC':'LWC',
+  'SLWC':'LWC',
   'RNEW':'Papier journal',
   'ROFF':'Offset',
   'RPAC':'Emballage',
@@ -922,8 +944,6 @@ async function _fetchAndRender(token){
   const types=getMsdValues('msd-type');
   const gn=+document.getElementById('f-gmin').value||+document.getElementById('f-gmin-fb')?.value||0;
   const gx=+document.getElementById('f-gmax').value||+document.getElementById('f-gmax-fb')?.value||0;
-  const pn=+document.getElementById('f-pmin').value||+document.getElementById('f-pmin-fb')?.value||0;
-  const px=+document.getElementById('f-pmax').value||+document.getElementById('f-pmax-fb')?.value||0;
   const lmin=+document.getElementById('f-lmin').value||+document.getElementById('f-lmin-fb')?.value||0;
   const lmax=+document.getElementById('f-lmax').value||+document.getElementById('f-lmax-fb')?.value||0;
   const longmin=+document.getElementById('f-longmin')?.value||0;
@@ -969,19 +989,17 @@ async function _fetchAndRender(token){
   if(mandrins.size>0)rpcParams.noyau_in=[...mandrins];
   else if(_pNoyau)rpcParams.noyau_in=[_pNoyau];
   const _allColors=[...couleurs,..._pcolors];
-  if(_allColors.length)rpcParams.color_in=_allColors;
+  if(_allColors.length)rpcParams.color_in=[...new Set(_allColors.flatMap(c=>_COLOR_DB[c]||[c]))];
   const _allFormats=[...formats,..._pformats];
   if(_allFormats.length)rpcParams.format_in=_allFormats;
   if(origines.size===1)rpcParams.origine_prefix=[...origines][0];
-  if(pn)rpcParams.price_min=pn;
-  if(px)rpcParams.price_max=px;
 
   // Build URL params (replaces SDK query builder)
   const p=new URLSearchParams();
   p.set('select','*');
   parsed.text.forEach(term=>{
     const stem=_stem(_norm(term));
-    const escaped=stem.replace(/[%_]/g,'\\$&');
+    const escaped=stem.replace(/[%_(),]/g,'\\$&');
     p.append('or',`(quality.ilike.%${escaped}%,color.ilike.%${escaped}%,details.ilike.%${escaped}%,ref.ilike.%${escaped}%)`);
   });
   if(_hasAutres&&typeCodes.length>0){
@@ -1001,14 +1019,12 @@ async function _fetchAndRender(token){
   if(_width)p.append('width',`eq.${_width}`);
   if(mandrins.size>0)p.append('noyau',`in.(${[...mandrins].join(',')})`);
   else if(_pNoyau)p.append('noyau',`eq.${_pNoyau}`);
-  if(_allColors.length)p.append('or',`(${_allColors.map(c=>`color.ilike.%${c}%`).join(',')})`);
+  if(_allColors.length){const _dbC=[...new Set(_allColors.flatMap(c=>_COLOR_DB[c]||[c]))];p.append('color',`in.(${_dbC.map(v=>`"${v}"`).join(',')})`);}
   if(_allFormats.length)p.append('format',`in.(${_allFormats.join(',')})`);
   if(origines.size===1)p.append('quality',`like.${[...origines][0]}%`);
   if(longmin)p.append('longueur',`gte.${longmin}`);
   if(longmax)p.append('longueur',`lte.${longmax}`);
   if(refCode)p.append('quality',`ilike.${refCode}%`);
-  if(pn)p.append('price',`gte.${pn}`);
-  if(px)p.append('price',`lte.${px}`);
   const usineVal=(document.getElementById('f-usine')?.value||'').trim();
   if(usineVal)p.append('usine',`eq.${usineVal}`);
   if(s==='gsm_asc'||s==='grammage_asc')p.set('order','gsm.asc.nullslast,id.asc');
@@ -1246,7 +1262,7 @@ function renderCards(list){
   g.innerHTML=list.map(p=>{
     const initials=(p.type||'?').substring(0,2).toUpperCase();
     const _altTxt=[p.name,p.grammage?p.grammage+'g/m²':'',p.couleur].filter(Boolean).join(' — ')||'Produit';
-    const _isFab=p.details&&p.details.toLowerCase().includes('fabrication sur demande');
+    const _isFab=!p.image_url&&(p.zone==='FABRICATION SUR COMMANDE'||p.emplacement==='FABRICATION SUR COMMANDE'||(p.ref&&String(p.ref).startsWith('FAB')));
     const imgHtml=_isFab
       ?`<img src="img/fabrication-sur-demande.png" alt="Fabrication sur demande" class="pcard-nophoto">`
       :p.image_url
@@ -1273,11 +1289,10 @@ function renderCards(list){
     const specsHtml=`<div class="pcard-specs">${specRows.map(([l,v])=>`<div class="pcard-spec"><span class="pspec-lbl">${l}</span><span class="pspec-val">${v}</span></div>`).join('')}</div>`;
     return`<div class="pcard" onclick="openDetail(${p.id})">
       <div class="pcard-img">${imgHtml}${typeOverlay}${gsmOverlay}${photoRef}</div>
-      <div class="pcard-stripe"></div>
       <div class="pcard-body">
         <div class="pcard-name">${p.qualite?(p.qualite+(QUALITE_LABELS[p.qualite]?' — '+QUALITE_LABELS[p.qualite]:'')):(p.type||'—')}</div>
         ${specsHtml}
-        <button class="btn-add-cart${cart.find(x=>x.id===+p.id)?' added':''}" id="cadd-${p.id}" onclick="event.stopPropagation();addToCart(${p.id})"><span class="cart-icon">+</span><span class="cart-check">✓</span> ${lang==='en'?'Add':'Ajouter'}</button>
+        <button class="btn-add-cart${cart.find(x=>x.id===+p.id)?' added':''}" id="cadd-${p.id}" aria-label="${lang==='en'?'Add to selection':'Ajouter à la sélection'}" onclick="event.stopPropagation();addToCart(${p.id})"><span class="cart-icon">+</span><span class="cart-check">✓</span></button>
         <div class="pcard-foot">
           <div class="pton">${poids}<span class="pton-s"> KGS</span></div>
           ${prixHtml}
@@ -1315,16 +1330,16 @@ function renderList(list){
   if(!g)return;
   g.className='pgrid plist';
   const rows=list.map(p=>{
-    const _isFabL=p.details&&p.details.toLowerCase().includes('fabrication sur demande');
+    const _isFabL=!p.image_url&&(p.zone==='FABRICATION SUR COMMANDE'||p.emplacement==='FABRICATION SUR COMMANDE'||(p.ref&&String(p.ref).startsWith('FAB')));
     const thumb=_isFabL
       ?`<img src="img/fabrication-sur-demande.png" alt="Fabrication sur demande" class="plist-thumb">`
       :p.image_url
-        ?`<img src="${p.image_url}" alt="" class="plist-thumb" loading="lazy" onerror="this.src='img/no-photo.png'">`
-        :`<img src="img/no-photo.png" class="plist-thumb">`;
+        ?`<img src="${p.image_url}" alt="${title}" class="plist-thumb" loading="lazy" onerror="this.src='img/no-photo.png'">`
+        :`<img src="img/no-photo.png" alt="" class="plist-thumb">`;
     // PRIX_MASQUÉ: const price=p.price?`<span class="plist-price">${p.price.toLocaleString('fr-FR')} €/T</span>`:`<span class="plist-price-ask">Sur dem.</span>`;
     const price='';
     const inCart=cart.find(x=>x.id===+p.id);
-    const addBtn=`<button class="plist-add${inCart?' added':''}" id="ladd-${p.id}" onclick="event.stopPropagation();addToCart(${p.id})">${inCart?'✓':'+'}</button>`;
+    const addBtn=`<button class="plist-add${inCart?' added':''}" id="ladd-${p.id}" aria-label="${lang==='en'?'Add to selection':'Ajouter à la sélection'}" onclick="event.stopPropagation();addToCart(${p.id})">${inCart?'✓':'+'}</button>`;
     const isPalette=p.format&&p.format.toLowerCase().includes('palette');
     const title=p.qualite?(p.qualite+(QUALITE_LABELS[p.qualite]?' — '+QUALITE_LABELS[p.qualite]:'')):(p.name||'—');
     // Dimensions: Bobine → Laize | Ø Diamètre | Mandrin / Palette → Laize | Longueur
@@ -1333,14 +1348,14 @@ function renderList(list){
       ?(p.longueur?`${p.longueur} mm`:'—')
       :(p.longueur?`Ø ${p.longueur} mm`:'—');
     const mandrin=isPalette?null:(p.noyau?`${p.noyau} mm`:'—');
-    const detailsTxt=p.details?`<span class="plist-details" title="${p.details}">${p.details.substring(0,22)}${p.details.length>22?'…':''}</span>`:'';
+    const _detClean=p.details?p.details.replace(/[-–—\s]+/g,' ').trim():'';
+    const detailsTxt=_detClean&&_detClean.length>3?`<span class="plist-details" title="${p.details}">${_detClean.substring(0,30)}${_detClean.length>30?'…':''}</span>`:'';
     return`<tr onclick="openDetail(${p.id})" class="${isPalette?'plist-palette':'plist-bobine'}">
       <td class="plist-td plist-td-add">${addBtn}</td>
       <td class="plist-td plist-thumb-wrap">${thumb}</td>
       <td class="plist-td plist-td-ref plist-col-ref">${p.ref?`<span class="plist-ref-badge">${p.ref.replace(/^Photo_/i,'').toUpperCase()}</span>`:'—'}</td>
-      <td class="plist-td plist-td-title"><strong class="plist-qtitle">${title}</strong></td>
+      <td class="plist-td plist-td-title"><strong class="plist-qtitle">${title}</strong>${detailsTxt?`<br><span class="plist-details-sub">${detailsTxt}</span>`:''}</td>
       <td class="plist-td">${p.couleur||'—'}</td>
-      <td class="plist-td plist-td-details">${detailsTxt||'—'}</td>
       <td class="plist-td plist-td-num"><span class="plist-gsm">${p.grammage?p.grammage+' g/m²':'—'}</span></td>
       <td class="plist-td plist-td-num">${laize}</td>
       <td class="plist-td plist-td-num">${dim2}</td>
@@ -1358,7 +1373,6 @@ function renderList(list){
       <th class="plist-col-ref">Référence</th>
       <th>Qualité</th>
       <th>Couleur</th>
-      <th>Détails</th>
       <th>GSM</th>
       <th>Laize</th>
       <th>Diamètre</th>
@@ -1395,6 +1409,7 @@ function render(list){
 
 
 const _DET_NO_PHOTO=`<img src="img/photos-sur-demande.png" alt="Photos sur demande" style="width:100%;height:100%;object-fit:contain;background:#fff;">`;
+const _DET_FAB_PHOTO=`<img src="img/fabrication-sur-demande.png" alt="Fabrication sur demande" style="width:100%;height:100%;object-fit:contain;">`;
 function detImgErr(img){img.onerror=null;img.parentNode.innerHTML=_DET_NO_PHOTO;}
 let _detIdx=-1;
 function _detKeyHandler(e){
@@ -1403,6 +1418,7 @@ function _detKeyHandler(e){
   else if(e.key==='Escape')closeDetail();
 }
 function navDetail(dir){
+  if(!all||!all.length)return;
   const next=_detIdx+dir;
   if(next<0||next>=all.length)return;
   openDetail(all[next].id);
@@ -1422,9 +1438,10 @@ async function openDetail(id){
   // Image
   const mi=document.getElementById('det-main');
   const _detAlt=[p.name,p.grammage?p.grammage+'g/m²':'',p.couleur].filter(Boolean).join(' — ')||'Produit';
+  const _isFab=!p.image_url&&(p.zone==='FABRICATION SUR COMMANDE'||p.emplacement==='FABRICATION SUR COMMANDE'||(p.ref&&String(p.ref).startsWith('FAB')));
   mi.innerHTML=(p.image_url
     ?`<img src="${p.image_url}" loading="lazy" alt="${_detAlt}" onerror="detImgErr(this)">`
-    :_DET_NO_PHOTO);
+    :_isFab?_DET_FAB_PHOTO:_DET_NO_PHOTO);
   // Ref badge positionné dans dimg-col (hors dmain pour éviter les conflits)
   const rb=document.getElementById('det-ref-badge');
   if(rb){
@@ -1463,8 +1480,9 @@ async function openDetail(id){
 
   // Détails texte (inclut p.name = dimensions ex: Ø1020MM)
   const dd=document.getElementById('det-details');
-  const _detParts=[p.name&&p.name.trim()?p.name.trim():null,p.details&&p.details.trim()?p.details.trim():null].filter(Boolean);
-  if(_detParts.length){dd.textContent=_detParts.join(' — ');dd.style.display='block';}
+  const _cleanDet=s=>s?s.replace(/[-–—\s]+/g,' ').trim():'';
+  const _detParts=[p.details].map(_cleanDet).filter(s=>s&&s.length>3);
+  if(_detParts.length){dd.textContent=_detParts[0];dd.style.display='block';}
   else{dd.style.display='none';}
 
   // PRIX_MASQUÉ: document.getElementById('det-price-val').innerHTML=...
@@ -1476,7 +1494,7 @@ async function openDetail(id){
   if(mab){
     const alreadyIn=cart.find(x=>x.id===+p.id);
     mab.classList.toggle('added',!!alreadyIn);
-    mab.innerHTML=alreadyIn?'✓ '+(lang==='en'?'Added':'Ajouté'):(LT[lang].t_add_modal_btn||'+ Ajouter au container');
+    mab.innerHTML=alreadyIn?'✓ '+(lang==='en'?'Added':'Ajouté'):(LT[lang].t_add_modal_btn||'+ Ajouter à la sélection');
   }
   _updateDetNav();
   document.getElementById('detail-bg').classList.add('show');
@@ -1606,12 +1624,12 @@ function toggleSelectAll(btn){
     localStorage.setItem('prodi_cart',JSON.stringify(cart));
     updateCartBadge();renderDrawer();
     btn.textContent='+';
-    toast(lang==='en'?'🗑️ All removed':'🗑️ Tout retiré');
+    toast(LT[lang].t_removed_all);
   } else {
     // Add all not yet in cart
     currentList.forEach(p=>{
       if(!cart.find(x=>x.id===+p.id)){
-        cart.push({id:p.id,name:p.name,ref:p.ref,type:p.type,grammage:p.grammage,largeur:p.largeur,format:p.format,poids_net:p.poids_net,price:p.price||null,img:p.image_url||null});
+        cart.push({id:p.id,name:p.name,ref:p.ref,type:p.type,qualite:p.qualite||null,details:p.details||null,grammage:p.grammage,largeur:p.largeur,format:p.format,poids_net:p.poids_net,price:p.price||null,img:p.image_url||null});
         const lb=document.getElementById('ladd-'+p.id);
         if(lb){lb.classList.add('added');lb.textContent='✓';}
         const cb=document.getElementById('cadd-'+p.id);
@@ -1621,7 +1639,7 @@ function toggleSelectAll(btn){
     localStorage.setItem('prodi_cart',JSON.stringify(cart));
     updateCartBadge();renderDrawer();
     btn.textContent='−';
-    toast(lang==='en'?'✅ All added':'✅ Tout ajouté');
+    toast(LT[lang].t_added_all);
   }
 }
 
@@ -1636,11 +1654,11 @@ function addToCart(id){
     if(caddBtn){caddBtn.classList.remove('added');caddBtn.innerHTML=`<span class="cart-icon">+</span><span class="cart-check">✓</span> ${lang==='en'?'Add':'Ajouter'}`;}
     const laddBtn=document.getElementById('ladd-'+id);
     if(laddBtn){laddBtn.classList.remove('added');laddBtn.textContent='+';}
-    if(mab){mab.classList.remove('added');mab.innerHTML=LT[lang].t_add_modal_btn||'+ Ajouter au container';}
-    toast(lang==='en'?'🗑️ Removed from container':'🗑️ Retiré du container');
+    if(mab){mab.classList.remove('added');mab.innerHTML=LT[lang].t_add_modal_btn||'+ Ajouter à la sélection';}
+    toast(LT[lang].t_removed_sel);
     return;
   }
-  cart.push({id:p.id,name:p.name,ref:p.ref,type:p.type,grammage:p.grammage,largeur:p.largeur,format:p.format,poids_net:p.poids_net,price:p.price||null,img:p.image_url||null});
+  cart.push({id:p.id,name:p.name,ref:p.ref,type:p.type,qualite:p.qualite||null,details:p.details||null,grammage:p.grammage,largeur:p.largeur,format:p.format,poids_net:p.poids_net,price:p.price||null,img:p.image_url||null});
   localStorage.setItem('prodi_cart',JSON.stringify(cart));
   updateCartBadge();
   const caddBtn=document.getElementById('cadd-'+id);
@@ -1648,7 +1666,7 @@ function addToCart(id){
   const laddBtn=document.getElementById('ladd-'+id);
   if(laddBtn){laddBtn.classList.add('added');laddBtn.textContent='✓';}
   if(mab){mab.classList.add('added');mab.innerHTML='✓';}
-  toast(lang==='en'?'✅ Added to container !':'✅ Ajouté au container !');
+  toast(LT[lang].t_added_sel);
   renderDrawer();
 }
 
@@ -1656,6 +1674,11 @@ function removeFromCart(id){
   cart=cart.filter(x=>x.id!==+id);
   localStorage.setItem('prodi_cart',JSON.stringify(cart));
   updateCartBadge();renderDrawer();
+  // Désélectionner le bouton dans la grille
+  const cb=document.getElementById('cadd-'+id);
+  if(cb){cb.classList.remove('added');cb.innerHTML=`<span class="cart-icon">+</span><span class="cart-check">✓</span> ${lang==='en'?'Add':'Ajouter'}`;}
+  const lb=document.getElementById('ladd-'+id);
+  if(lb){lb.classList.remove('added');lb.textContent='+';}
 }
 
 // ── SHARE CART ──
@@ -1663,7 +1686,7 @@ function _shortCode(){
   return Array.from(crypto.getRandomValues(new Uint8Array(6)),b=>'0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'[b%62]).join('');
 }
 async function shareCart(){
-  if(!cart.length){toast(lang==='en'?'Container is empty':'Container vide !');return;}
+  if(!cart.length){toast(lang==='en'?'Sélection vide':'Sélection vide !');return;}
   const ids=cart.map(x=>x.id).join(',');
   const code=_shortCode();
   const url=window.location.origin+window.location.pathname+'?s='+code;
@@ -1835,8 +1858,8 @@ function doClearCart(){
   updateCartBadge();renderDrawer();
   // Reset all "Ajouté" buttons in current view
   document.querySelectorAll('.btn-add-cart.added').forEach(b=>{b.classList.remove('added');});
-  document.querySelectorAll('.plist-add.added').forEach(b=>{b.classList.remove('added');b.textContent='+ Ajouter';});
-  toast(lang==='en'?'🗑️ Container emptied':'🗑️ Container vidé');
+  document.querySelectorAll('.plist-add.added').forEach(b=>{b.classList.remove('added');b.textContent='+';})
+  toast(lang==='en'?'🗑️ Selection cleared':'🗑️ Sélection vidée');
 }
 
 function openCartDrawer(){
@@ -1861,26 +1884,69 @@ function renderDrawer(){
     meta.textContent='0 '+(lang==='en'?'product':'produit');
     return;
   }
-  const ton=cart.reduce((s,p)=>s+(p.poids_net||0),0);
-  meta.textContent=cart.length+' '+(lang==='en'?'product'+(cart.length>1?'s':''):'produit'+(cart.length>1?'s':''))+' · '+fmt(ton);
+  const ton=cart.reduce((s,p)=>s+(p.qty_kg??(p.poids_net||0)),0);
+  meta.textContent=cart.length+' '+(lang==='en'?'product'+(cart.length>1?'s':''):'produit'+(cart.length>1?'s':''));
   document.getElementById('drawer-total').textContent=fmt(ton);
   const _dic=document.getElementById('drawer-items-count');if(_dic)_dic.textContent=cart.length+' '+(lang==='en'?'product'+(cart.length>1?'s':''):'produit'+(cart.length>1?'s':''));
   // PRIX_MASQUÉ: bloc total estimé masqué
   const prRow=document.getElementById('drawer-price-row');
   if(prRow)prRow.style.display='none';
   footer.style.display='block';
-  items.innerHTML=cart.map(p=>`
-    <div class="cart-item">
-      <div class="cart-item-img">${(p.img||(all.find(x=>x.id===+p.id)?.image_url))?`<img src="${p.img||all.find(x=>x.id===+p.id)?.image_url}">`:`${ico(p.type)}`}</div>
-      <div class="cart-item-info">
-        <div class="cart-item-ref">${p.ref&&!p.ref.startsWith('Photo_')?p.ref:''}</div>
-        <div class="cart-item-name">${p.name}</div>
-        <div class="tags" style="margin-bottom:0">${p.grammage?`<span class="tag">${p.grammage}g/m²</span>`:''}${p.largeur?`<span class="tag">${p.largeur}mm</span>`:''}</div>
-        <div class="cart-item-sub">${fmt(p.poids_net)}</div>
+  items.innerHTML=cart.map(p=>{
+    const qkg=p.qty_kg??(p.poids_net||0);
+    const step=Math.max(1,Math.round(p.poids_net||100));
+    const _pFull=all.find(x=>x.id===+p.id)||p;
+    const _qualite=p.qualite||_pFull.qualite||null;
+    const _details=p.details||_pFull.details||null;
+    const ciTitle=_qualite?(_qualite+(QUALITE_LABELS[_qualite]?' — '+QUALITE_LABELS[_qualite]:'')):(p.name||'—');
+    const ciDetails=(_details||'').replace(/[-–—\s]{2,}/g,' ').replace(/^\s*[-–—]+\s*|\s*[-–—]+\s*$/g,'').trim();
+    const lot=p.ref?String(p.ref).replace(/^Photo_/i,'').trim()||null:null;
+    const specsArr=[ciDetails||null].filter(Boolean);
+    const imgSrc=p.img||(all.find(x=>x.id===+p.id)?.image_url)||null;
+    const imgHtml=imgSrc?`<img src="${imgSrc}" onerror="this.src='img/fabrication-sur-demande.png'">`:`<img src="img/fabrication-sur-demande.png" alt="">`;
+    return`<div class="ci" id="ci-${p.id}">
+      <div class="ci-img">${imgHtml}</div>
+      <div class="ci-body">
+        <div class="ci-row1">
+          <span class="ci-laize">${ciTitle}</span>
+          ${p.grammage?`<span class="ci-gsm">${p.grammage} g/m²</span>`:''}
+        </div>
+        ${ciDetails?`<div class="ci-name">${ciDetails}</div>`:''}
+        <div class="ci-foot">
+          <button class="ci-rm" onclick="removeFromCart(${p.id})" aria-label="${lang==='en'?'Remove':'Retirer'}">${_trashSvg}</button>
+          ${lot?`<span class="ci-lot" onclick="navigator.clipboard.writeText('${lot}').then(()=>toast('📋 Réf. copiée'))">${lot}<svg width="11" height="11" viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.6"/><path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>`:'<span></span>'}
+          <span class="ci-kgs">${fmt(Math.round(qkg))}</span>
+        </div>
       </div>
-      <button class="cart-item-rm" onclick="removeFromCart(${p.id})" title="${lang==='en'?'Remove':'Retirer'}">✕</button>
-    </div>
-  `).join('');
+      <div class="ci-confirm" id="ci-confirm-${p.id}">
+        <span>${lang==='en'?'Remove this item?':'Retirer cet article\u00a0?'}</span>
+        <button class="ci-confirm-no" onclick="ciCancelRemove(${p.id})">${lang==='en'?'Cancel':'Annuler'}</button>
+        <button class="ci-confirm-yes" onclick="removeFromCart(${p.id})">${lang==='en'?'Remove':'Retirer'}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+const _trashSvg=`<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 4h12M5.333 4V2.667A1.333 1.333 0 016.667 1.333h2.666A1.333 1.333 0 0110.667 2.667V4m2 0-.667 9.333A1.333 1.333 0 0110.667 14.667H5.333A1.333 1.333 0 014 13.333L3.333 4h9.334z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+function ciQty(id,delta){
+  const p=cart.find(x=>x.id===+id);if(!p)return;
+  const cur=p.qty_kg??(p.poids_net||100);
+  p.qty_kg=Math.max(1,Math.round(cur+delta));
+  localStorage.setItem('prodi_cart',JSON.stringify(cart));
+  renderDrawer();updateCartBadge();
+}
+function ciQtySet(id,val){
+  const p=cart.find(x=>x.id===+id);if(!p)return;
+  const v=Math.max(1,parseFloat(val)||1);
+  if((p.qty_kg??p.poids_net)===Math.round(v))return;
+  p.qty_kg=Math.round(v);
+  localStorage.setItem('prodi_cart',JSON.stringify(cart));
+  renderDrawer();updateCartBadge();
+}
+function ciConfirmRemove(id){
+  const el=document.getElementById('ci-confirm-'+id);if(el)el.classList.add('show');
+}
+function ciCancelRemove(id){
+  const el=document.getElementById('ci-confirm-'+id);if(el)el.classList.remove('show');
 }
 
 function openCartProforma(){
@@ -2114,18 +2180,18 @@ const LT={
     t_quality:'Recyclé & Fabrication',
     t_refs:'produits',
     t_sort_new:'Plus récents', t_sort_gsm_asc:'Grammage ↑', t_sort_gsm_desc:'Grammage ↓',
-    t_container_empty:'CONTAINER VIDE', t_add_from_cat:'Ajoutez des produits depuis le catalogue',
+    t_container_empty:'SÉLECTION VIDE', t_add_from_cat:'Ajoutez des produits depuis le catalogue',
     t_pf_title:'DEMANDE DE DEVIS', t_cart_pf_title:'DEVIS PANIER',
     t_f_name:'Nom *', t_f_name_err:'Nom requis',
     t_f_company:'Société *', t_f_company_err:'Société requise',
     t_f_email:'Email *', t_f_email_err:'Email invalide',
     t_f_phone:'Téléphone', t_f_qty:'Quantité souhaitée', t_f_msg:'Message',
     t_send:'ENVOYER',
-    t_pf_btn:'📄 DEMANDER UN DEVIS', t_clear_cart:'Vider le container',
+    t_pf_btn:'📄 DEMANDER UN DEVIS', t_clear_cart:'Vider la sélection',
     t_filtres:'FILTRES', t_effacer:'Réinitialiser', t_trier:'Trier :', t_poids_total:'Poids total',
     t_fmt:'Format', t_bobine:'Bobine', t_palette:'Palette',
     t_type_lbl:'Type', t_couleur_lbl:'Couleur', t_couleurs_lbl:'Couleurs', t_mandrin_lbl:'Mandrin', t_gsm_lbl:'Grammage', t_laize_lbl:'Laize', t_longueur_lbl:'Longueur', t_prix_lbl:'Prix',
-    t_my_container:'MA COMMANDE', t_browse_cat:'← Voir le catalogue',
+    t_my_container:'MA SÉLECTION', t_browse_cat:'← Voir le catalogue',
     t_tonnage_total:'TONNAGE TOTAL', t_total_estime:'TOTAL ESTIMÉ', t_depart_usine:'Départ usine HT',
     t_pf_microcopy:'Réponse sous 24h ouvrées · Origine UE · Documents disponibles',
     t_prix_depart:'Prix départ usine', t_poids_lbl:'Poids',
@@ -2135,7 +2201,7 @@ const LT={
     t_reset:'↺ Réinitialiser', t_retry:'↺ Réessayer',
     t_err_net:'ERREUR RÉSEAU', t_err_timeout:'Délai dépassé — vérifiez votre connexion.', t_err_server:'Impossible de joindre le serveur.',
     t_err_load:'Impossible de charger les produits.', t_err_title:'ERREUR',
-    t_clear_confirm:'Vider le container ?', t_clear_confirm_msg:'Cette action est irréversible. Tous les produits sélectionnés seront retirés.',
+    t_clear_confirm:'Vider la sélection ?', t_clear_confirm_msg:'Cette action est irréversible. Tous les produits sélectionnés seront retirés.',
     t_sur_demande:'Sur demande', t_search_ph:'Kraft 80g, SBS blanc, Testliner...', t_mob_search_ph:'Rechercher un produit...',
     t_produits:'produit(s)', t_sent_ok:'DEMANDE ENVOYÉE', t_sent_sub:'Nous vous répondrons sous 48h',
     t_wa:'WhatsApp', t_mandrins_lbl:'Mandrins',
@@ -2143,17 +2209,20 @@ const LT={
     t_spec_couleur:'Couleur', t_spec_gsm:'Grammage', t_spec_laize:'Laize', t_spec_longueur:'Longueur', t_spec_mandrin:'Mandrin', t_spec_format:'Format', t_spec_depot:'Dépôt',
     t_chip_gram:'Gram.', t_chip_laize:'Laize', t_chip_longueur:'Longueur', t_chip_prix:'Prix', t_chip_recherche:'Recherche',
     t_rechercher:'Rechercher',
-    t_add_modal_btn:'+ Ajouter au container', t_added_modal_btn:'✓ Ajouté',
+    t_add_modal_btn:'+ Ajouter à la sélection', t_added_modal_btn:'✓ Ajouté',
     t_cancel:'Annuler', t_vider:'VIDER',
     t_slow_title:'⏳ Chargement en cours…',
     t_slow_msg:'Le stock met plus de temps à charger que prévu. Vérifiez votre connexion ou contactez-nous directement.',
     t_slow_refresh:'↺ Rafraîchir',
-    t_cart_aria:'Produits dans le container',
+    t_cart_aria:'Produits dans la sélection',
     t_loading_lbl:'Chargement',
     t_pf_qty_ph:'ex: 10 tonnes, 5 bobines…',
     t_pf_msg_ph:'Précisez vos besoins…',
     t_pfc_msg_ph:'Délai, conditionnement…',
     t_cmp_pre:'Comparer', t_cmp_suf:'produits →',
+    t_cmp_max3:'Maximum 3 produits à comparer', t_cmp_min2:'Sélectionnez au moins 2 produits',
+    t_added_sel:'✅ Ajouté à la sélection !', t_removed_sel:'🗑️ Retiré de la sélection',
+    t_added_all:'✅ Tout ajouté', t_removed_all:'🗑️ Tout retiré',
     t_vider_title:'Vider',
     t_browse_type:'Parcourir par type',
     t_ft_tagline:'Négoce papier & carton B2B',
@@ -2172,18 +2241,18 @@ const LT={
     t_quality:'Virgin & Recycled',
     t_refs:'products',
     t_sort_new:'Most recent', t_sort_gsm_asc:'Grammage ↑', t_sort_gsm_desc:'Grammage ↓',
-    t_container_empty:'EMPTY CONTAINER', t_add_from_cat:'Add products from the catalogue',
+    t_container_empty:'EMPTY SELECTION', t_add_from_cat:'Add products from the catalogue',
     t_pf_title:'REQUEST A QUOTE', t_cart_pf_title:'CART QUOTE',
     t_f_name:'Name *', t_f_name_err:'Name required',
     t_f_company:'Company *', t_f_company_err:'Company required',
     t_f_email:'Email *', t_f_email_err:'Invalid email',
     t_f_phone:'Phone', t_f_qty:'Desired quantity', t_f_msg:'Message',
     t_send:'SEND',
-    t_pf_btn:'📄 REQUEST A QUOTE', t_clear_cart:'Clear container',
+    t_pf_btn:'📄 REQUEST A QUOTE', t_clear_cart:'Clear selection',
     t_filtres:'FILTERS', t_effacer:'Reset', t_trier:'Sort:', t_poids_total:'Total weight',
     t_fmt:'Format', t_bobine:'Reel', t_palette:'Sheet',
     t_type_lbl:'Type', t_couleur_lbl:'Colour', t_couleurs_lbl:'Colours', t_mandrin_lbl:'Core', t_gsm_lbl:'Grammage', t_laize_lbl:'Width', t_longueur_lbl:'Length', t_prix_lbl:'Price',
-    t_my_container:'MA COMMANDE', t_browse_cat:'← Browse catalogue',
+    t_my_container:'MA SÉLECTION', t_browse_cat:'← Browse catalogue',
     t_tonnage_total:'TOTAL TONNAGE', t_total_estime:'ESTIMATED TOTAL', t_depart_usine:'Ex-works excl. VAT',
     t_pf_microcopy:'Reply within 24h · EU origin · Documents available',
     t_prix_depart:'Ex-works price', t_poids_lbl:'Weight',
@@ -2193,7 +2262,7 @@ const LT={
     t_reset:'↺ Reset', t_retry:'↺ Retry',
     t_err_net:'NETWORK ERROR', t_err_timeout:'Timeout — check your connection.', t_err_server:'Unable to reach the server.',
     t_err_load:'Unable to load products.', t_err_title:'ERROR',
-    t_clear_confirm:'Clear container?', t_clear_confirm_msg:'This action cannot be undone. All selected products will be removed.',
+    t_clear_confirm:'Clear selection?', t_clear_confirm_msg:'This action cannot be undone. All selected products will be removed.',
     t_sur_demande:'On request', t_search_ph:'Kraft 80gsm, White SBS, Testliner...', t_mob_search_ph:'Search a product...',
     t_produits:'product(s)', t_sent_ok:'REQUEST SENT', t_sent_sub:'We will reply within 48h',
     t_wa:'WhatsApp', t_mandrins_lbl:'Cores',
@@ -2201,17 +2270,20 @@ const LT={
     t_spec_couleur:'Colour', t_spec_gsm:'Grammage', t_spec_laize:'Width', t_spec_longueur:'Length', t_spec_mandrin:'Core', t_spec_format:'Format', t_spec_depot:'Depot',
     t_chip_gram:'GSM', t_chip_laize:'Width', t_chip_longueur:'Length', t_chip_prix:'Price', t_chip_recherche:'Search',
     t_rechercher:'Search',
-    t_add_modal_btn:'+ Add to container', t_added_modal_btn:'✓ Added to container',
+    t_add_modal_btn:'+ Add to selection', t_added_modal_btn:'✓ Added to selection',
     t_cancel:'Cancel', t_vider:'CLEAR',
     t_slow_title:'⏳ Loading catalogue…',
     t_slow_msg:'The catalogue is taking longer than expected. Check your connection or contact us directly.',
     t_slow_refresh:'↺ Refresh',
-    t_cart_aria:'Products in container',
+    t_cart_aria:'Products in selection',
     t_loading_lbl:'Lead time',
     t_pf_qty_ph:'e.g. 10 tonnes, 5 reels…',
     t_pf_msg_ph:'Describe your needs…',
     t_pfc_msg_ph:'Lead time, packaging…',
     t_cmp_pre:'Compare', t_cmp_suf:'products →',
+    t_cmp_max3:'Maximum 3 products to compare', t_cmp_min2:'Select at least 2 products',
+    t_added_sel:'✅ Added to selection!', t_removed_sel:'🗑️ Removed from selection',
+    t_added_all:'✅ All added', t_removed_all:'🗑️ All removed',
     t_vider_title:'Clear',
     t_ft_tagline:'Paper & board trading B2B',
     t_ft_stock:'European stock — Recycled & Mill',
