@@ -215,7 +215,7 @@ header{background:rgba(255,255,255,.92);position:sticky;top:0;z-index:100;border
 /* Body */
 .pcard-body{padding:12px 14px 14px;flex:1;display:flex;flex-direction:column;gap:0;}
 .pcard-ref{font-size:9px;color:var(--gray2);font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;}
-.pcard-name{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.4px;color:var(--black);line-height:1.2;margin-bottom:10px;padding-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.pcard-name{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:.4px;color:var(--black);line-height:1.2;margin-bottom:10px;padding-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .pcard-name-format{color:var(--red);font-size:15px;}
 
 /* GSM badge — overlaid bottom-right of photo */
@@ -228,7 +228,7 @@ header{background:rgba(255,255,255,.92);position:sticky;top:0;z-index:100;border
 .pcard-spec{display:flex;flex-direction:column;gap:2px;padding:6px 8px;background:var(--off);border:1px solid var(--border);border-radius:6px;}
 .pspec-lbl{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--gray2);line-height:1;}
 .pspec-val{font-size:14px;font-weight:700;color:var(--black);line-height:1.3;word-break:break-word;}
-.pcard-subtitle{font-size:13px;font-weight:500;color:var(--ink2);margin-bottom:8px;line-height:1.4;}
+.pcard-subtitle{font-size:16px;font-weight:500;color:var(--ink2);margin-bottom:8px;line-height:1.4;}
 
 /* Tags */
 .tags{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:12px;margin-top:auto;}
