@@ -1268,6 +1268,12 @@ function _productSummary(p){
   }
   return parts.join(' • ');
 }
+function getProductDetailText(p){
+  // Priority: Excel detail field → auto-generated summary
+  const raw=(p.details||'').replace(/[\s\-–—]+$/,'').replace(/(\s*-\s*){2,}/g,' ').trim();
+  if(raw.length>3)return raw;
+  return _productSummary(p);
+}
 
 function renderCards(list){
   const g=document.getElementById('pgrid');
@@ -1303,7 +1309,7 @@ function renderCards(list){
       (p.emplacement||p.zone)?['Dépôt',p.emplacement||p.zone]:null,
     ].filter(Boolean).slice(0,6);
     const specsHtml=`<div class="pcard-specs">${specRows.map(([l,v])=>`<div class="pcard-spec"><span class="pspec-lbl">${l}</span><span class="pspec-val">${v}</span></div>`).join('')}</div>`;
-    const _sub=_productSummary(p);
+    const _sub=getProductDetailText(p);
     const subtitleHtml=_sub?`<div class="pcard-subtitle">${_sub}</div>`:'';
     return`<div class="pcard" onclick="openDetail(${p.id})">
       <div class="pcard-img">${imgHtml}${typeOverlay}${gsmOverlay}${photoRef}</div>
@@ -1481,7 +1487,7 @@ async function openDetail(id){
   const _detRefEl=document.getElementById('det-ref');if(_detRefEl)_detRefEl.textContent=p.ref?String(p.ref).replace(/^Photo_/i,''):'';
   document.getElementById('det-name').textContent=p.qualite?(p.qualite+(QUALITE_LABELS[p.qualite]?' — '+QUALITE_LABELS[p.qualite]:'')):(p.name||'Produit');
   const _sumEl=document.getElementById('det-summary');
-  if(_sumEl){const _s=_productSummary(p);_sumEl.textContent=_s;_sumEl.style.display=_s?'block':'none';}
+  if(_sumEl){const _s=getProductDetailText(p);_sumEl.textContent=_s;_sumEl.style.display=_s?'block':'none';}
 
   // Specs grid
   const _typeLabel=p.qualite?(p.qualite+(QUALITE_LABELS[p.qualite]?' — '+QUALITE_LABELS[p.qualite]:'')):(p.qualite||null);
@@ -1920,7 +1926,7 @@ function renderDrawer(){
     const _qualite=p.qualite||_pFull.qualite||null;
     const _details=p.details||_pFull.details||null;
     const ciTitle=_qualite?(_qualite+(QUALITE_LABELS[_qualite]?' — '+QUALITE_LABELS[_qualite]:'')):(p.name||'—');
-    const _ciSum=_productSummary(_pFull);
+    const _ciSum=getProductDetailText(_pFull);
     const lot=p.ref?String(p.ref).replace(/^Photo_/i,'').trim()||null:null;
     const imgSrc=p.img||(all.find(x=>x.id===+p.id)?.image_url)||null;
     const imgHtml=imgSrc?`<img src="${imgSrc}" onerror="this.src='img/fabrication-sur-demande.png'">`:`<img src="img/fabrication-sur-demande.png" alt="">`;
