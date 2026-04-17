@@ -213,9 +213,9 @@ header{background:rgba(255,255,255,.92);position:sticky;top:0;z-index:100;border
 
 
 /* Body */
-.pcard-body{padding:12px 14px 14px;flex:1;display:flex;flex-direction:column;gap:0;}
+.pcard-body{padding:10px 14px 10px;flex:1;display:flex;flex-direction:column;gap:0;}
 .pcard-ref{font-size:9px;color:var(--gray2);font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;}
-.pcard-name{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:.4px;color:var(--black);line-height:1.2;margin-bottom:10px;padding-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.pcard-name{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:.4px;color:var(--black);line-height:1.15;margin-bottom:4px;padding-top:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .pcard-name-format{color:var(--red);font-size:15px;}
 
 /* GSM badge — overlaid bottom-right of photo */
@@ -224,11 +224,11 @@ header{background:rgba(255,255,255,.92);position:sticky;top:0;z-index:100;border
 .pcard-gsm-lbl{font-size:13px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:rgba(255,255,255,.75);}
 
 /* Mini spec grid on card */
-.pcard-specs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;margin-top:auto;}
-.pcard-spec{display:flex;flex-direction:column;gap:2px;padding:6px 8px;background:var(--off);border:1px solid var(--border);border-radius:6px;}
+.pcard-specs{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:8px;margin-top:auto;}
+.pcard-spec{display:flex;flex-direction:column;gap:1px;padding:5px 8px;background:var(--off);border:1px solid var(--border);border-radius:6px;}
 .pspec-lbl{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--gray2);line-height:1;}
 .pspec-val{font-size:14px;font-weight:700;color:var(--black);line-height:1.3;word-break:break-word;}
-.pcard-subtitle{font-size:16px;font-weight:500;color:var(--ink2);margin-bottom:8px;line-height:1.4;}
+.pcard-subtitle{font-size:16px;font-weight:500;color:var(--ink2);margin-bottom:6px;line-height:1.3;}
 
 /* Tags */
 .tags{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:12px;margin-top:auto;}
@@ -239,7 +239,7 @@ header{background:rgba(255,255,255,.92);position:sticky;top:0;z-index:100;border
 .tag.tag-dim{text-transform:none;letter-spacing:.2px;}
 
 /* Add button */
-.btn-add-cart{width:100%;padding:10px;background:#fff;color:var(--ink);border:2px solid var(--ink);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;letter-spacing:.3px;cursor:pointer;margin-bottom:10px;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:6px;line-height:1;}
+.btn-add-cart{width:100%;padding:8px;background:#fff;color:var(--ink);border:2px solid var(--ink);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;letter-spacing:.3px;cursor:pointer;margin-bottom:6px;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:6px;line-height:1;}
 .btn-add-cart:hover{background:var(--ink);color:#fff;}
 .btn-add-cart.added{background:#059669;}
 .btn-add-cart .cart-check{display:none;}
@@ -248,7 +248,7 @@ header{background:rgba(255,255,255,.92);position:sticky;top:0;z-index:100;border
 .btn-add-cart .cart-icon{font-size:16px;line-height:1;display:flex;align-items:center;}
 
 /* Footer: weight + price */
-.pcard-foot{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid var(--border);}
+.pcard-foot{display:flex;justify-content:space-between;align-items:center;padding-top:6px;border-top:1px solid var(--border);}
 .pton{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--ink);font-weight:900;letter-spacing:.3px;}
 .pton-s{font-size:13px;color:var(--gray);font-weight:700;letter-spacing:.3px;}
 .badge-stock{background:#dcfce7;color:#059669;padding:3px 8px;border-radius:20px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;border:1px solid rgba(5,150,105,.25);}
