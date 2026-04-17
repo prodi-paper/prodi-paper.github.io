@@ -1270,8 +1270,12 @@ function _productSummary(p){
 }
 function getProductDetailText(p){
   // Priority: Excel detail field → auto-generated summary
-  const raw=(p.details||'').replace(/[\s\-–—]+$/,'').replace(/(\s*-\s*){2,}/g,' ').trim();
-  if(raw.length>3)return raw;
+  // Strip isolated dashes used as empty-cell placeholders (" - ", " - - ", leading/trailing "-")
+  const raw=(p.details||'')
+    .replace(/(?<=^|\s)-(?=\s|$)/g,'')
+    .replace(/\s{2,}/g,' ')
+    .trim();
+  if(raw.length>2)return raw;
   return _productSummary(p);
 }
 
