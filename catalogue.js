@@ -1255,6 +1255,20 @@ function formatLabel(p){
   return p.format;
 }
 
+function _productSummary(p){
+  const parts=[];
+  if(p.couleur)parts.push(p.couleur);
+  if(p.grammage)parts.push(p.grammage+' g/m²');
+  const isPalette=p.format&&p.format.toLowerCase().includes('palette');
+  if(isPalette&&(p.largeur||p.longueur)){
+    parts.push([p.largeur,p.longueur].filter(Boolean).join(' × ')+' mm');
+  }else if(p.largeur){
+    const dim='Laize '+p.largeur+' mm'+(p.longueur?' • Long. '+p.longueur+' mm':'');
+    parts.push(dim);
+  }
+  return parts.join(' • ');
+}
+
 function renderCards(list){
   const g=document.getElementById('pgrid');
   if(!g)return;
@@ -1285,13 +1299,12 @@ function renderCards(list){
       p.grammage?['Grammage',`${p.grammage} g/m²`]:null,
       dimTag?['Laize',dimTag]:paletteDims?['Format',paletteDims]:null,
       p.noyau?['Mandrin',`Ø${p.noyau} mm`]:null,
-      fmtLabel?['Cond.',fmtLabel]:null,
       p.usine?['Usine',String(p.usine).replace(/^REF\s*/i,'')]:null,
       (p.emplacement||p.zone)?['Dépôt',p.emplacement||p.zone]:null,
-    ].filter(Boolean);
+    ].filter(Boolean).slice(0,6);
     const specsHtml=`<div class="pcard-specs">${specRows.map(([l,v])=>`<div class="pcard-spec"><span class="pspec-lbl">${l}</span><span class="pspec-val">${v}</span></div>`).join('')}</div>`;
-    const _sub=p.details?p.details.replace(/[-–—\s]+/g,' ').trim():'';
-    const subtitleHtml=_sub.length>3?`<div class="pcard-subtitle">${_sub}</div>`:'';
+    const _sub=_productSummary(p);
+    const subtitleHtml=_sub?`<div class="pcard-subtitle">${_sub}</div>`:'';
     return`<div class="pcard" onclick="openDetail(${p.id})">
       <div class="pcard-img">${imgHtml}${typeOverlay}${gsmOverlay}${photoRef}</div>
       <div class="pcard-body">
@@ -1467,6 +1480,8 @@ async function openDetail(id){
   // Ref + nom
   const _detRefEl=document.getElementById('det-ref');if(_detRefEl)_detRefEl.textContent=p.ref?String(p.ref).replace(/^Photo_/i,''):'';
   document.getElementById('det-name').textContent=p.qualite?(p.qualite+(QUALITE_LABELS[p.qualite]?' — '+QUALITE_LABELS[p.qualite]:'')):(p.name||'Produit');
+  const _sumEl=document.getElementById('det-summary');
+  if(_sumEl){const _s=_productSummary(p);_sumEl.textContent=_s;_sumEl.style.display=_s?'block':'none';}
 
   // Specs grid
   const _typeLabel=p.qualite?(p.qualite+(QUALITE_LABELS[p.qualite]?' — '+QUALITE_LABELS[p.qualite]:'')):(p.qualite||null);
@@ -1905,9 +1920,8 @@ function renderDrawer(){
     const _qualite=p.qualite||_pFull.qualite||null;
     const _details=p.details||_pFull.details||null;
     const ciTitle=_qualite?(_qualite+(QUALITE_LABELS[_qualite]?' — '+QUALITE_LABELS[_qualite]:'')):(p.name||'—');
-    const ciDetails=(_details||'').replace(/[-–—\s]{2,}/g,' ').replace(/^\s*[-–—]+\s*|\s*[-–—]+\s*$/g,'').trim();
+    const _ciSum=_productSummary(_pFull);
     const lot=p.ref?String(p.ref).replace(/^Photo_/i,'').trim()||null:null;
-    const specsArr=[ciDetails||null].filter(Boolean);
     const imgSrc=p.img||(all.find(x=>x.id===+p.id)?.image_url)||null;
     const imgHtml=imgSrc?`<img src="${imgSrc}" onerror="this.src='img/fabrication-sur-demande.png'">`:`<img src="img/fabrication-sur-demande.png" alt="">`;
     return`<div class="ci" id="ci-${p.id}">
@@ -1917,7 +1931,7 @@ function renderDrawer(){
           <span class="ci-laize">${ciTitle}</span>
           ${p.grammage?`<span class="ci-gsm">${p.grammage} g/m²</span>`:''}
         </div>
-        ${ciDetails?`<div class="ci-name">${ciDetails}</div>`:''}
+        ${_ciSum?`<div class="ci-name">${_ciSum}</div>`:''}
         <div class="ci-foot">
           <button class="ci-rm" onclick="removeFromCart(${p.id})" aria-label="${lang==='en'?'Remove':'Retirer'}">${_trashSvg}</button>
           ${lot?`<span class="ci-lot" onclick="navigator.clipboard.writeText('${lot}').then(()=>toast('📋 Réf. copiée'))">${lot}<svg width="11" height="11" viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.6"/><path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>`:'<span></span>'}
