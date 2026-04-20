@@ -18,6 +18,16 @@ async function sbQ(path,opts={}){
 const WA='33649754915';
 let all=[],cur=null;
 const PAGE=52; let currentPage=1,_totalCount=0,_reqToken=0,_lastCorrections=[],_isFirstLoad=true,_featuredMode=false;
+let _priceMode=false;
+function togglePriceMode(on){
+  _priceMode=on;
+  ['lang-fr','lang-fr-m'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.toggle('on',!on);});
+  ['lang-en','lang-en-m'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.toggle('on',on);});
+  const g=document.getElementById('pgrid');
+  if(g&&g._lastList)render(g._lastList);
+  // Re-render detail modal if open
+  if(_detIdx>=0&&all[_detIdx])openDetail(all[_detIdx].id);
+}
 const ico=t=>({Kraft:'📦',FBB:'🗂️',SBS:'📋',Testliner:'🧱',Fluting:'〰️',Offset:'🧻',Thermique:'🏷️',Duplex:'📄',Triplex:'📑'}[t]||'📦');
 const icoType=n=>({'Kraft':'📦','Kraft armé':'🔩','Kraft gomme':'🔖','SBS':'📋','FBB':'🗂️','Liner':'📜','Testliner':'🧱','Fluting':'〰️','Offset':'🧻','Thermique':'🏷️','LWC':'📰','Couché 1 face':'🖨️','Couché 2 faces':'🖨️','Luxe':'✨','Ouate':'🤍','Journal':'📰','Duplex':'📄','Triplex':'📑','Couleur':'🎨','Adhésif':'🔖','Silicone-Glassine':'🫧','Complexe':'🧩','Emballage':'📦','Plastique':'🔲','Carton couché':'🗃️','Carton non couché':'🗃️','Bouffant':'📄','Autocopiant':'📄','Ramette':'📄','Spécial':'⭐','Papier affiche':'🖼️','Papier cadeau':'🎁','Cuisson':'🔥','Encre':'🖊️','Enveloppes':'✉️','Autres':'📦'}[n]||'📦');
 const fmt=kg=>!kg?'—':kg>=1000?(kg/1000).toFixed(1)+' t':kg+' KGS';
@@ -1630,8 +1640,7 @@ function renderCards(list){
     const fmtLabel=p.format?(isPalette?'Format':'Bobine'):null;
     const paletteDims=isPalette&&(p.largeur||p.longueur)?[p.largeur,p.longueur].filter(Boolean).join('×'):null;
     const poids=p.poids_net?`${p.poids_net.toLocaleString('fr-FR')}`:'—';
-    // PRIX_MASQUÉ: const prixHtml=p.price?`<div class="pcard-price">${p.price.toLocaleString('fr-FR')} €/T</div>`:`<div class="pcard-price-ask">${LT[lang].t_sur_demande}</div>`;
-    const prixHtml='';
+    const prixHtml=_priceMode&&p.price?`<div class="pcard-price">${p.price.toLocaleString('fr-FR')} €/T</div>`:'';
     const typeOverlay='';
     const gsmOverlay=p.grammage?`<div class="pcard-gsm-overlay"><span class="pcard-gsm-num">${p.grammage}</span><span class="pcard-gsm-lbl">g/m²</span></div>`:'';
     const _refClean=(p.ref||'').replace(/^Photo_/i,'').trim();
@@ -1722,7 +1731,7 @@ function renderList(list){
       <td class="plist-td plist-td-num">${dim2}</td>
       <td class="plist-td plist-td-num plist-col-mandrin">${isPalette?'—':(mandrin||'—')}</td>
       <td class="plist-td plist-td-num">${p.poids_net?p.poids_net.toLocaleString('fr-FR')+' kg':'—'}</td>
-      <td class="plist-td">${price}</td>
+      ${_priceMode?`<td class="plist-td plist-td-num plist-price">${p.price?p.price.toLocaleString('fr-FR')+' €/T':'—'}</td>`:''}
       <td class="plist-td plist-td-usine plist-col-usine">${p.usine?String(p.usine).replace(/^REF\s*/i,''):'—'}</td>
       <td class="plist-td plist-td-depot">${p.zone||'—'}</td>
     </tr>`;
@@ -1740,7 +1749,7 @@ function renderList(list){
       <th>Diamètre</th>
       <th class="plist-col-mandrin">Mandrin</th>
       <th>Poids (kg)</th>
-      <!-- PRIX_MASQUÉ: <th>Prix</th> -->
+      ${_priceMode?'<th>Prix</th>':''}
       <th class="plist-col-usine">Usine</th>
       <th class="plist-col-depot">Emplacement</th>
     </tr></thead>
@@ -1854,8 +1863,12 @@ async function openDetail(id){
   const dd=document.getElementById('det-details');
   if(dd)dd.style.display='none';
 
-  // PRIX_MASQUÉ: document.getElementById('det-price-val').innerHTML=...
-  const _dpRow=document.getElementById('det-price-row');if(_dpRow)_dpRow.style.display='none';
+  const _dpRow=document.getElementById('det-price-row');
+  const _dpVal=document.getElementById('det-price-val');
+  if(_dpRow&&_dpVal){
+    if(_priceMode&&p.price){_dpVal.innerHTML=`<span style="font-size:22px;font-weight:800;color:var(--red)">${p.price.toLocaleString('fr-FR')} €/T</span>`;_dpRow.style.display='';}
+    else{_dpRow.style.display='none';}
+  }
   document.getElementById('det-poids-val').textContent=p.poids_net?fmt(p.poids_net):'—';
 
   // Reset modal add button state
@@ -2060,7 +2073,7 @@ async function shareCart(){
   if(!cart.length){toast(lang==='en'?'Sélection vide':'Sélection vide !');return;}
   const ids=cart.map(x=>x.id).join(',');
   const code=_shortCode();
-  const url=window.location.origin+window.location.pathname+'?s='+code;
+  const url=window.location.origin+window.location.pathname+'?s='+code+(_priceMode?'&p=1':'');
   // Copy immediately while still in user gesture context (before any await)
   try{
     await navigator.clipboard.writeText(url);
@@ -2107,6 +2120,7 @@ function _showShareModal(url){
 const _shareParam=new URLSearchParams(window.location.search).get('share');
 const _shareCode=new URLSearchParams(window.location.search).get('s');
 let _sharedMode=!!_shareParam||!!_shareCode;
+if(new URLSearchParams(window.location.search).get('p')==='1')togglePriceMode(true);
 
 async function loadSharedQuote(idsOverride){
   const rawIds=idsOverride||_shareParam;
@@ -2133,13 +2147,19 @@ async function loadSharedQuote(idsOverride){
   // Show a subtle top label (not a big banner)
   const sqb=document.getElementById('shared-quote-banner');
   if(sqb){
-    sqb.innerHTML=`<div class="sq-inner sq-slim"><span class="sq-slim-label">⭐ Sélection exclusive client · ${all.length} produit${all.length>1?'s':''}</span><div style="display:flex;gap:8px;align-items:center"><button class="sq-btn-view" onclick="_exitSharedMode()" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;">Voir tous les stocks →</button><button class="sq-btn-devis" onclick="_loadSharedIntoCart()">Demander un devis</button></div></div>`;
+    const _sqTon=(totalKg/1000).toFixed(1);
+    const _sqPrix=_priceMode?all.reduce((s,p)=>s+((p.poids_net||0)/1000)*(p.price||0),0):0;
+    sqb.innerHTML=`<div class="sq-inner sq-slim"><span class="sq-slim-label">⭐ Sélection exclusive client · ${all.length} produit${all.length>1?'s':''} · ${_sqTon} T${_priceMode&&_sqPrix?' · <strong style="color:var(--red)">'+_sqPrix.toLocaleString('fr-FR',{maximumFractionDigits:0})+' €</strong>':''}</span><div style="display:flex;gap:8px;align-items:center"><button class="sq-btn-view" onclick="_exitSharedMode()" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;">Voir tous les stocks →</button><button class="sq-btn-devis" onclick="_loadSharedIntoCart()">Demander un devis</button></div></div>`;
     sqb.style.display='block';
   }
 
   render(all);
   _updatePager();
   window._sharedProducts=products;
+  // Auto-load shared products into cart
+  cart=products.map(p=>({...rowToUi(p),poids_net:p.weight}));
+  updateCartBadge();
+  renderDrawer();
 }
 function _showSharedQuoteBanner(products){
   const banner=document.getElementById('shared-quote-banner');
@@ -2259,9 +2279,15 @@ function renderDrawer(){
   meta.textContent=cart.length+' '+(lang==='en'?'product'+(cart.length>1?'s':''):'produit'+(cart.length>1?'s':''));
   document.getElementById('drawer-total').textContent=fmt(ton);
   const _dic=document.getElementById('drawer-items-count');if(_dic)_dic.textContent=cart.length+' '+(lang==='en'?'product'+(cart.length>1?'s':''):'produit'+(cart.length>1?'s':''));
-  // PRIX_MASQUÉ: bloc total estimé masqué
   const prRow=document.getElementById('drawer-price-row');
-  if(prRow)prRow.style.display='none';
+  if(prRow){
+    if(_priceMode){
+      const _totalEst=cart.reduce((s,p)=>{const _f=all.find(x=>x.id===+p.id)||p;return s+((p.qty_kg??(p.poids_net||0))/1000)*(_f.price||0);},0);
+      prRow.style.display=_totalEst?'':'none';
+      const prVal=document.getElementById('drawer-price-val');
+      if(prVal)prVal.textContent=_totalEst.toLocaleString('fr-FR',{maximumFractionDigits:0})+' €';
+    } else { prRow.style.display='none'; }
+  }
   footer.style.display='block';
   items.innerHTML=cart.map(p=>{
     const qkg=p.qty_kg??(p.poids_net||0);
@@ -2285,6 +2311,7 @@ function renderDrawer(){
         <div class="ci-foot">
           <button class="ci-rm" onclick="removeFromCart(${p.id})" aria-label="${lang==='en'?'Remove':'Retirer'}">${_trashSvg}</button>
           ${lot?`<span class="ci-lot" onclick="navigator.clipboard.writeText('${lot}').then(()=>toast('📋 Réf. copiée'))">${lot}<svg width="11" height="11" viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.6"/><path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>`:'<span></span>'}
+          ${_priceMode&&_pFull.price?`<span class="ci-price" style="color:var(--red);font-weight:700;font-size:13px">${_pFull.price.toLocaleString('fr-FR')} €/T</span>`:''}
           <span class="ci-kgs">${fmt(Math.round(qkg))}</span>
         </div>
       </div>

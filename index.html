@@ -79,14 +79,14 @@
         </button>
       </div>
       <div class="lang-sep"></div>
-      <button onclick="setLang('fr')" id="lang-fr" class="lang-btn on">FR</button>
-      <button onclick="setLang('en')" id="lang-en" class="lang-btn">EN</button>
+      <button onclick="togglePriceMode(false)" id="lang-fr" class="lang-btn on">FR</button>
+      <button onclick="togglePriceMode(true)" id="lang-en" class="lang-btn">EN</button>
     </div>
   </div>
   <!-- mobile lang bar -->
   <div class="mob-hbar">
-    <button onclick="setLang('fr')" id="lang-fr-m" class="lang-btn on">FR</button>
-    <button onclick="setLang('en')" id="lang-en-m" class="lang-btn">EN</button>
+    <button onclick="togglePriceMode(false)" id="lang-fr-m" class="lang-btn on">FR</button>
+    <button onclick="togglePriceMode(true)" id="lang-en-m" class="lang-btn">EN</button>
   </div>
 </header>
 
@@ -199,8 +199,8 @@
       </div>
       <div class="fg" style="border-bottom:2px solid var(--border);margin-bottom:14px;padding-bottom:14px;">
         <div class="format-pills" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 48px;">
-          <button class="fpill fpill-stock" data-stock="stocklot" onclick="toggleStockPill(this)" style="justify-content:center;">Stocklot</button>
-          <button class="fpill fpill-stock" data-stock="fab" onclick="toggleStockPill(this)" style="justify-content:center;">Fabrication</button>
+          <button class="fpill fpill-stock fpill-dark" data-stock="stocklot" onclick="toggleStockPill(this)" style="justify-content:center;">Stocklot</button>
+          <button class="fpill fpill-stock fpill-yellow" data-stock="fab" onclick="toggleStockPill(this)" style="justify-content:center;">Fabrication</button>
           <div style="grid-column:1/-1;border-top:1.5px dashed var(--border);margin:4px 0;"></div>
           <button class="fpill fpill-dark" data-format="Bobine" data-i18n="t_bobine" onclick="toggleFormatPill(this)" style="justify-content:center;">Bobine</button>
           <button class="fpill fpill-dark" data-format="Palette" onclick="toggleFormatPill(this)" style="justify-content:center;">Format</button>
@@ -253,7 +253,7 @@
         <div class="nmr-wrap"><input type="number" class="nmr-in" id="f-pmin" placeholder="Min" min="0" oninput="filterProducts()"><span class="nmr-sep">—</span><input type="number" class="nmr-in" id="f-pmax" placeholder="Max" min="0" oninput="filterProducts()"></div>
       </div>
       <div class="fg">
-        <div class="nmr-row"><label class="fl">Usine</label></div>
+        <div class="nmr-row"><label class="fl">Référence usine</label></div>
         <div class="nmr-wrap nmr-wrap-single"><input type="number" class="nmr-in" id="f-usine" placeholder="N° usine" min="0" oninput="filterProducts()"></div>
       </div>
 
@@ -261,7 +261,7 @@
         <div class="nmr-row"><label class="fl">Dépôt</label></div>
         <div class="format-pills" style="display:flex;gap:6px;margin-top:6px;">
           <button class="fpill fpill-dark fpill-depot" data-depot="our" onclick="toggleDepotPill(this)" style="flex:1;justify-content:center;font-size:11px;">Notre dépôt</button>
-          <button class="fpill fpill-dark fpill-depot" data-depot="ext" onclick="toggleDepotPill(this)" style="flex:1;justify-content:center;font-size:11px;">Hors dépôt</button>
+          <button class="fpill fpill-yellow fpill-depot" data-depot="ext" onclick="toggleDepotPill(this)" style="flex:1;justify-content:center;font-size:11px;">Hors dépôt</button>
         </div>
       </div>
 
@@ -273,8 +273,8 @@
     <div id="results-bar">
       <div class="rbar-inner">
         <div class="rbar-lang">
-          <button onclick="setLang('fr')" id="lang-fr-m" class="lang-btn on">FR</button>
-          <button onclick="setLang('en')" id="lang-en-m" class="lang-btn">EN</button>
+          <button onclick="togglePriceMode(false)" id="lang-fr-m" class="lang-btn on">FR</button>
+          <button onclick="togglePriceMode(true)" id="lang-en-m" class="lang-btn">EN</button>
         </div>
         <button class="vt-toggle-btn" id="vt-toggle" onclick="toggleView()">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="14" height="2.5" rx="1"/><rect x="0" y="5.5" width="14" height="2.5" rx="1"/><rect x="0" y="11" width="14" height="2.5" rx="1"/></svg>
@@ -631,6 +631,6 @@
 </div>
 <div class="spin-bg" id="spinner"><div class="spin"></div></div>
 
-<script src="catalogue.js?v=191"></script>
+<script src="catalogue.js?v=195"></script>
 </body>
 </html>
