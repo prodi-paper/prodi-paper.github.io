@@ -54,7 +54,7 @@
 </div>
 <header>
   <div class="header-inner">
-    <a class="logo-link" href="#" onclick="resetFilters();return false;">
+    <a class="logo-link" href="#" onclick="location.reload();return false;">
       <img src="img/logo.png" alt="Prodiconseil" class="logo-img logo-full">
       <img src="img/panda.png" alt="Prodiconseil" class="logo-img logo-mob">
     </a>
@@ -119,17 +119,17 @@
     <!-- Laize -->
     <div class="fb-range" id="fb-sec-laize">
       <span class="fb-range-lbl" id="fb-laize-lbl" data-i18n="t_laize_lbl">Laize</span>
-      <input class="fb-inp fb-inp-wide" type="number" id="f-lmin-fb" placeholder="mm" oninput="scheduleFilter()">
+      <input class="fb-inp fb-inp-wide" type="number" id="f-lmin-fb" placeholder="cm" oninput="scheduleFilter()">
       <span style="color:var(--gray);font-size:11px">–</span>
-      <input class="fb-inp fb-inp-wide" type="number" id="f-lmax-fb" placeholder="mm" oninput="scheduleFilter()">
+      <input class="fb-inp fb-inp-wide" type="number" id="f-lmax-fb" placeholder="cm" oninput="scheduleFilter()">
     </div>
     <div class="fbar-sep" id="fb-sep-longueur"></div>
     <!-- Longueur -->
     <div class="fb-range" id="fb-sec-longueur">
       <span class="fb-range-lbl" data-i18n="t_longueur_lbl">Longueur</span>
-      <input class="fb-inp fb-inp-wide" type="number" id="f-longmin" placeholder="mm" oninput="scheduleFilter()">
+      <input class="fb-inp fb-inp-wide" type="number" id="f-longmin" placeholder="cm" oninput="scheduleFilter()">
       <span style="color:var(--gray);font-size:11px">–</span>
-      <input class="fb-inp fb-inp-wide" type="number" id="f-longmax" placeholder="mm" oninput="scheduleFilter()">
+      <input class="fb-inp fb-inp-wide" type="number" id="f-longmax" placeholder="cm" oninput="scheduleFilter()">
     </div>
     <div class="fbar-sep" id="fb-sep-mandrin"></div>
     <!-- Mandrin -->
@@ -198,9 +198,12 @@
         <button class="fp-reset" onclick="resetFilters()" style="background:none;border:none;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;color:var(--ink);cursor:pointer;text-transform:uppercase;letter-spacing:.5px;">Réinitialiser</button>
       </div>
       <div class="fg" style="border-bottom:2px solid var(--border);margin-bottom:14px;padding-bottom:14px;">
-        <div class="format-pills">
-          <button class="fpill" data-format="Bobine" data-i18n="t_bobine" onclick="toggleFormatPill(this)">Bobine</button>
-          <button class="fpill" data-format="Palette" onclick="toggleFormatPill(this)">Format</button>
+        <div class="format-pills" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 48px;">
+          <button class="fpill fpill-stock" data-stock="stocklot" onclick="toggleStockPill(this)" style="justify-content:center;">Stocklot</button>
+          <button class="fpill fpill-stock" data-stock="fab" onclick="toggleStockPill(this)" style="justify-content:center;">Fabrication</button>
+          <div style="grid-column:1/-1;border-top:1.5px dashed var(--border);margin:4px 0;"></div>
+          <button class="fpill fpill-dark" data-format="Bobine" data-i18n="t_bobine" onclick="toggleFormatPill(this)" style="justify-content:center;">Bobine</button>
+          <button class="fpill fpill-dark" data-format="Palette" onclick="toggleFormatPill(this)" style="justify-content:center;">Format</button>
         </div>
       </div>
 
@@ -237,7 +240,7 @@
         <div class="nmr-wrap"><input type="number" class="nmr-in" id="f-gmin" placeholder="Min" min="0" oninput="filterProducts()"><span class="nmr-sep">—</span><input type="number" class="nmr-in" id="f-gmax" placeholder="Max" min="0" oninput="filterProducts()"></div>
       </div>
       <div class="fg" id="sb-sec-laize">
-        <div class="nmr-row"><label class="fl" id="sb-laize-lbl"><span data-i18n="t_laize_lbl">Laize</span> <span class="nmr-unit">(mm)</span></label></div>
+        <div class="nmr-row"><label class="fl" id="sb-laize-lbl"><span data-i18n="t_laize_lbl">Laize</span> <span class="nmr-unit">(cm)</span></label></div>
         <div class="nmr-wrap"><input type="number" class="nmr-in" id="f-lmin" placeholder="Min" min="0" oninput="filterProducts()"><span class="nmr-sep">—</span><input type="number" class="nmr-in" id="f-lmax" placeholder="Max" min="0" oninput="filterProducts()"></div>
       </div>
       <div class="fg" id="sb-sec-longueur">
@@ -254,6 +257,14 @@
         <div class="nmr-wrap nmr-wrap-single"><input type="number" class="nmr-in" id="f-usine" placeholder="N° usine" min="0" oninput="filterProducts()"></div>
       </div>
 
+      <div class="fg" style="margin-top:12px;">
+        <div class="nmr-row"><label class="fl">Dépôt</label></div>
+        <div class="format-pills" style="display:flex;gap:6px;margin-top:6px;">
+          <button class="fpill fpill-dark fpill-depot" data-depot="our" onclick="toggleDepotPill(this)" style="flex:1;justify-content:center;font-size:11px;">Notre dépôt</button>
+          <button class="fpill fpill-dark fpill-depot" data-depot="ext" onclick="toggleDepotPill(this)" style="flex:1;justify-content:center;font-size:11px;">Hors dépôt</button>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -267,7 +278,7 @@
         </div>
         <button class="vt-toggle-btn" id="vt-toggle" onclick="toggleView()">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="14" height="2.5" rx="1"/><rect x="0" y="5.5" width="14" height="2.5" rx="1"/><rect x="0" y="11" width="14" height="2.5" rx="1"/></svg>
-          <span>Vue liste</span>
+          <span>Vue liste détaillée</span>
         </button>
         <div class="rbar-count" id="rbar-count" role="status" aria-live="polite">
           <span id="rbar-refs">—</span> <span id="rbar-refs-lbl" data-i18n="t_refs">produits</span> • <span id="rbar-tons">—</span> t
@@ -276,8 +287,8 @@
         <div class="rbar-sort">
           <span class="rbar-sort-lbl" data-i18n="t_trier">Trier :</span>
           <select class="rbar-sel" id="sort-sel" onchange="_doFilter()">
-            <option value="date_desc" selected data-i18n-opt="t_sort_new">Plus récents</option>
-            <option value="gsm_asc" data-i18n-opt="t_sort_gsm_asc">Grammage ↑</option>
+            <option value="date_desc" data-i18n-opt="t_sort_new">Plus récents</option>
+            <option value="gsm_asc" selected data-i18n-opt="t_sort_gsm_asc">Grammage ↑</option>
             <option value="gsm_desc" data-i18n-opt="t_sort_gsm_desc">Grammage ↓</option>
             <!-- PRIX_MASQUÉ: <option value="price_asc">Prix ↑</option><option value="price_desc">Prix ↓</option> -->
           </select>
@@ -290,14 +301,14 @@
       <div class="sort-wrap">
         <span class="sort-lbl" data-i18n="t_trier">Trier :</span>
         <select class="sort-sel" id="sort-select" onchange="filterProducts()">
-          <option value="date" selected>Plus récents</option>
-          <option value="grammage_asc">Grammage ↑</option>
+          <option value="date">Plus récents</option>
+          <option value="grammage_asc" selected>Grammage ↑</option>
           <option value="grammage_desc">Grammage ↓</option>
           <!-- PRIX_MASQUÉ: <option value="prix_asc">Prix ↑</option><option value="prix_desc">Prix ↓</option> -->
         </select>
         <button class="vt-toggle-btn" id="vt-toggle" onclick="toggleView()">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="14" height="2.5" rx="1"/><rect x="0" y="5.5" width="14" height="2.5" rx="1"/><rect x="0" y="11" width="14" height="2.5" rx="1"/></svg>
-          <span>Vue liste</span>
+          <span>Vue liste détaillée</span>
         </button>
       </div>
     </div>
@@ -319,7 +330,10 @@
     </div>
     <!-- Col droite : infos -->
     <div class="dbody">
-      <div class="d-name" id="det-name"></div>
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;">
+        <div class="d-name" id="det-name"></div>
+        <div id="det-weight" style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--ink);white-space:nowrap;"></div>
+      </div>
       <div class="d-summary" id="det-summary"></div>
       <div class="dspecs" id="det-specs"></div>
       <div class="ddetails-txt" id="det-details" style="display:none"></div>
@@ -520,12 +534,12 @@
     <!-- Laize -->
     <div class="fd-section open" id="mob-sec-laize">
       <div class="fd-section-head" onclick="toggleFdSection(this)">
-        <span class="fd-section-title" id="mob-laize-title">Laize (mm)</span><span class="fd-section-arrow">▾</span>
+        <span class="fd-section-title" id="mob-laize-title">Laize (cm)</span><span class="fd-section-arrow">▾</span>
       </div>
       <div class="fd-section-body" style="padding-top:6px;">
         <div class="frow">
-          <input class="fi" type="number" id="f-lmin-mob" placeholder="min mm" oninput="syncMobFilter('f-lmin','f-lmin-mob')">
-          <input class="fi" type="number" id="f-lmax-mob" placeholder="max mm" oninput="syncMobFilter('f-lmax','f-lmax-mob')">
+          <input class="fi" type="number" id="f-lmin-mob" placeholder="min cm" oninput="syncMobFilter('f-lmin','f-lmin-mob')">
+          <input class="fi" type="number" id="f-lmax-mob" placeholder="max cm" oninput="syncMobFilter('f-lmax','f-lmax-mob')">
         </div>
       </div>
     </div>
@@ -536,8 +550,8 @@
       </div>
       <div class="fd-section-body" style="padding-top:6px;">
         <div class="frow">
-          <input class="fi" type="number" id="f-longmin-mob" placeholder="min mm" oninput="syncMobFilter('f-longmin','f-longmin-mob')">
-          <input class="fi" type="number" id="f-longmax-mob" placeholder="max mm" oninput="syncMobFilter('f-longmax','f-longmax-mob')">
+          <input class="fi" type="number" id="f-longmin-mob" placeholder="min cm" oninput="syncMobFilter('f-longmin','f-longmin-mob')">
+          <input class="fi" type="number" id="f-longmax-mob" placeholder="max cm" oninput="syncMobFilter('f-longmax','f-longmax-mob')">
         </div>
       </div>
     </div>
@@ -617,6 +631,6 @@
 </div>
 <div class="spin-bg" id="spinner"><div class="spin"></div></div>
 
-<script src="catalogue.js?v=156"></script>
+<script src="catalogue.js?v=191"></script>
 </body>
 </html>
