@@ -1749,7 +1749,7 @@ function renderList(list){
       <th class="plist-col-mandrin">Mandrin</th>
       <th>Poids (kg)</th>
       ${_priceMode?'<th>Prix</th>':''}
-      <th class="plist-col-usine">Usine</th>
+      <th class="plist-col-usine">Réf. usine</th>
       <th class="plist-col-depot">Emplacement</th>
     </tr></thead>
     <tbody>${rows}</tbody>
@@ -2127,12 +2127,12 @@ tr:nth-child(even){background:#f9f9f9;}
 .prix{color:#FE0000;font-weight:700;}
 .footer{margin-top:16px;padding-top:10px;border-top:2px solid #222;display:flex;justify-content:space-between;font-size:13px;font-weight:700;}
 .footer .total-prix{color:#FE0000;font-size:15px;}
-@media print{body{padding:10px 15px;} @page{margin:12mm;size:A4 landscape;}}
+@media print{body{padding:15mm 12mm;} @page{margin:0;size:A4 landscape;}}
 </style></head><body>
 <div class="header"><h1>PRODICONSEIL</h1><div class="date">${date}</div></div>
 <div class="meta"><span>${items.length} produits</span><span>${fmt(totalKg)}</span>${_priceMode&&totalPrix?`<span class="prix">${totalPrix.toLocaleString('fr-FR',{maximumFractionDigits:0})} € estimé</span>`:''}</div>
-<table><thead><tr><th>Réf.</th><th>Qualité</th><th>Détails</th><th>Couleur</th><th>GSM</th><th>Laize</th><th class="num">Poids</th>${_priceMode?'<th class="num">Prix</th>':''}<th>Usine</th><th>Dépôt</th></tr></thead><tbody>
-${items.map(p=>`<tr><td class="ref">${p.ref}</td><td>${p.label}</td><td>${p.details||'—'}</td><td>${p.couleur}</td><td>${p.gsm}</td><td>${p.laize}</td><td class="num">${p.poids}</td>${_priceMode?`<td class="num prix">${p.prix}</td>`:''}<td>${p.usine}</td><td>${p.depot}</td></tr>`).join('')}
+<table><thead><tr><th>Réf.</th><th>Qualité</th><th>Détails</th><th>Couleur</th><th>GSM</th><th>Laize</th><th class="num">Poids</th>${_priceMode?'<th class="num">Prix</th>':''}<th>Réf. usine</th><th>Dépôt</th></tr></thead><tbody>
+${items.map(p=>`<tr><td class="ref">${p.ref}</td><td>${p.label}</td><td>${p.details||'—'}</td><td>${p.couleur}</td><td>${p.gsm}</td><td>${p.laize}</td><td class="num">${p.poids}</td>${_priceMode?`<td class="num prix">${p.prix}</td>`:''}<td style="text-align:center">${p.usine}</td><td>${p.depot}</td></tr>`).join('')}
 </tbody></table>
 <div class="footer"><div>Total : ${fmt(totalKg)}</div>${_priceMode&&totalPrix?`<div class="total-prix">Estimé : ${totalPrix.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>`:''}</div>
 </body></html>`);
