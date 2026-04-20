@@ -65,13 +65,13 @@
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       </button>
     </div>
-    <div class="live-pill live-pill-desktop"><div class="live-dot"></div> <span data-i18n="t_live">Stock en direct</span></div>
+    <div class="live-pill live-pill-desktop"><div class="live-dot"></div> <span data-i18n="t_live">Stock en direct</span> · <span style="font-weight:600;">Origine UE</span></div>
     </div>
     <button class="mob-filter-head" onclick="openFilterDrawer()" aria-label="Filtres">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><circle cx="8" cy="6" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="16" cy="12" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="8" cy="18" r="2" fill="currentColor" stroke="none"/></svg>
     </button>
     <div class="hright">
-      <div class="live-pill live-pill-hright"><div class="live-dot"></div> <span data-i18n="t_live">Stock en direct</span></div>
+      <div class="live-pill live-pill-hright"><div class="live-dot"></div> <span data-i18n="t_live">Stock en direct</span> · <span style="font-weight:600;">Origine UE</span></div>
       <div class="cart-wrap">
         <button class="btn-head btn-head-panier" onclick="openCartDrawer()" id="cart-btn" title="Ma Sélection">
           <img src="img/truck2.png" alt="truck" style="height:30px;width:auto;vertical-align:-6px;"> <span class="btn-panier-txt">Ma Sélection</span>
@@ -79,14 +79,12 @@
         </button>
       </div>
       <div class="lang-sep"></div>
-      <button onclick="togglePriceMode(false)" id="lang-fr" class="lang-btn on">FR</button>
-      <button onclick="togglePriceMode(true)" id="lang-en" class="lang-btn">EN</button>
+      <button onclick="togglePriceMode(!_priceMode)" id="lang-fr" class="lang-btn on">FR</button>
     </div>
   </div>
   <!-- mobile lang bar -->
   <div class="mob-hbar">
-    <button onclick="togglePriceMode(false)" id="lang-fr-m" class="lang-btn on">FR</button>
-    <button onclick="togglePriceMode(true)" id="lang-en-m" class="lang-btn">EN</button>
+    <button onclick="togglePriceMode(!_priceMode)" id="lang-fr-m" class="lang-btn on">FR</button>
   </div>
 </header>
 
@@ -379,6 +377,7 @@
   </div>
   <div class="drawer-footer" id="drawer-footer" style="display:none">
     <button class="btn-share-drawer" id="btn-share-cart" onclick="shareCart()">🔗 Partager cette sélection</button>
+    <button class="btn-share-drawer" onclick="printSelection()" style="background:#fff;color:var(--ink);border:1.5px solid var(--border);">🖨 Imprimer la sélection</button>
     <button class="btn-pf-drawer" onclick="openCartProforma()" data-i18n="t_pf_btn">📄 DEMANDER UN DEVIS</button>
     <div class="drawer-total-card">
       <div class="drawer-total-row">
@@ -400,15 +399,10 @@
     <div class="pf-title" data-i18n="t_pf_title">DEMANDE DE DEVIS</div>
     <div class="pf-sub" id="pf-prod-name">—</div>
     <div class="grid2">
-      <div class="form-fg" id="fg-pf-nom"><label class="form-fl" data-i18n="t_f_name">Nom *</label><input class="form-fi" id="pf-nom" placeholder="Jean Dupont"><span class="form-err" data-i18n="t_f_name_err">Nom requis</span></div>
-      <div class="form-fg" id="fg-pf-societe"><label class="form-fl" data-i18n="t_f_company">Société *</label><input class="form-fi" id="pf-societe" placeholder="Dupont SA"><span class="form-err" data-i18n="t_f_company_err">Société requise</span></div>
+      <div class="form-fg" id="fg-pf-nom"><label class="form-fl">Nom / Société *</label><input class="form-fi" id="pf-nom" placeholder="Jean Dupont — Dupont SA"><span class="form-err">Champ requis</span></div>
+      <div class="form-fg"><label class="form-fl">Téléphone *</label><input class="form-fi" type="tel" id="pf-tel" placeholder="+33 6..."><span class="form-err" id="fg-pf-tel-err" style="display:none">Téléphone requis</span></div>
     </div>
-    <div class="grid2">
-      <div class="form-fg" id="fg-pf-email"><label class="form-fl" data-i18n="t_f_email">Email *</label><input class="form-fi" type="email" id="pf-email" placeholder="jean@dupont.fr"><span class="form-err" data-i18n="t_f_email_err">Email invalide</span></div>
-      <div class="form-fg"><label class="form-fl" data-i18n="t_f_phone">Téléphone</label><input class="form-fi" type="tel" id="pf-tel" placeholder="+33 6..."></div>
-    </div>
-    <div class="form-fg"><label class="form-fl" data-i18n="t_f_qty">Quantité souhaitée</label><input class="form-fi" id="pf-qty" placeholder="ex: 10 tonnes, 5 bobines..." data-i18n-placeholder="t_pf_qty_ph"></div>
-    <div class="form-fg"><label class="form-fl" data-i18n="t_f_msg">Message</label><textarea class="form-fi" id="pf-msg" placeholder="Précisez vos besoins..." data-i18n-placeholder="t_pf_msg_ph"></textarea></div>
+    <div class="form-fg"><label class="form-fl">Message</label><textarea class="form-fi" id="pf-msg" rows="2" placeholder="Délai, conditionnement..."></textarea></div>
     <div class="form-actions">
       <button class="btn-cancel" data-i18n="t_cancel" onclick="closeProforma()">Annuler</button>
       <button class="btn-send" id="pf-btn" onclick="sendProforma()" data-i18n="t_send">ENVOYER</button>
@@ -424,14 +418,10 @@
     <div class="pf-sub" id="pf-cart-sub">Demande groupée — <span id="pf-cart-count">—</span> produit(s)</div>
     <div class="pf-items-list" id="pf-cart-items"></div>
     <div class="grid2">
-      <div class="form-fg" id="fg-pfc-nom"><label class="form-fl" data-i18n="t_f_name">Nom *</label><input class="form-fi" id="pfc-nom" placeholder="Jean Dupont"><span class="form-err" data-i18n="t_f_name_err">Nom requis</span></div>
-      <div class="form-fg" id="fg-pfc-societe"><label class="form-fl" data-i18n="t_f_company">Société *</label><input class="form-fi" id="pfc-societe" placeholder="Dupont SA"><span class="form-err" data-i18n="t_f_company_err">Société requise</span></div>
+      <div class="form-fg" id="fg-pfc-nom"><label class="form-fl">Nom / Société *</label><input class="form-fi" id="pfc-nom" placeholder="Jean Dupont — Dupont SA"><span class="form-err">Champ requis</span></div>
+      <div class="form-fg"><label class="form-fl">Téléphone *</label><input class="form-fi" type="tel" id="pfc-tel" placeholder="+33 6..."><span class="form-err" id="fg-pfc-tel-err" style="display:none">Téléphone requis</span></div>
     </div>
-    <div class="grid2">
-      <div class="form-fg" id="fg-pfc-email"><label class="form-fl" data-i18n="t_f_email">Email *</label><input class="form-fi" type="email" id="pfc-email" placeholder="jean@dupont.fr"><span class="form-err" data-i18n="t_f_email_err">Email invalide</span></div>
-      <div class="form-fg"><label class="form-fl" data-i18n="t_f_phone">Téléphone</label><input class="form-fi" type="tel" id="pfc-tel" placeholder="+33 6..."></div>
-    </div>
-    <div class="form-fg"><label class="form-fl" data-i18n="t_f_msg">Message</label><textarea class="form-fi" id="pfc-msg" placeholder="Délai, conditionnement..." data-i18n-placeholder="t_pfc_msg_ph"></textarea></div>
+    <div class="form-fg"><label class="form-fl">Message</label><textarea class="form-fi" id="pfc-msg" rows="2" placeholder="Délai, conditionnement..."></textarea></div>
     <div class="form-actions">
       <button class="btn-cancel" data-i18n="t_cancel" onclick="closeCartProforma()">Annuler</button>
       <button class="btn-send" id="pfc-btn" onclick="sendCartProforma()" data-i18n="t_send">ENVOYER</button>
@@ -631,6 +621,6 @@
 </div>
 <div class="spin-bg" id="spinner"><div class="spin"></div></div>
 
-<script src="catalogue.js?v=195"></script>
+<script src="catalogue.js?v=198"></script>
 </body>
 </html>

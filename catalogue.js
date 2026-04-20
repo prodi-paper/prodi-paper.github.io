@@ -21,8 +21,7 @@ const PAGE=52; let currentPage=1,_totalCount=0,_reqToken=0,_lastCorrections=[],_
 let _priceMode=false;
 function togglePriceMode(on){
   _priceMode=on;
-  ['lang-fr','lang-fr-m'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.toggle('on',!on);});
-  ['lang-en','lang-en-m'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.toggle('on',on);});
+  ['lang-fr','lang-fr-m'].forEach(id=>{const e=document.getElementById(id);if(e){e.classList.toggle('on',true);e.style.background=on?'var(--red)':'';e.style.borderColor=on?'var(--red)':'';e.style.color=on?'#fff':'';}});
   const g=document.getElementById('pgrid');
   if(g&&g._lastList)render(g._lastList);
   // Re-render detail modal if open
@@ -1901,25 +1900,23 @@ function validateField(fgId,valid,errMsg){
 }
 async function sendProforma(){
   const nom=document.getElementById('pf-nom').value.trim();
-  const soc=document.getElementById('pf-societe').value.trim();
-  const email=document.getElementById('pf-email').value.trim();
+  const tel=document.getElementById('pf-tel').value.trim();
   let ok=true;
-  validateField('fg-pf-nom',!!nom,'Nom requis'); if(!nom)ok=false;
-  validateField('fg-pf-societe',!!soc,'Société requise'); if(!soc)ok=false;
-  validateField('fg-pf-email',emailRx.test(email),'Email invalide'); if(!emailRx.test(email))ok=false;
+  validateField('fg-pf-nom',!!nom,'Champ requis'); if(!nom)ok=false;
+  if(!tel){const e=document.getElementById('fg-pf-tel-err');if(e)e.style.display='block';ok=false;}else{const e=document.getElementById('fg-pf-tel-err');if(e)e.style.display='none';}
   if(!ok)return;
-  const btn=document.getElementById('pf-btn');btn.disabled=true;btn.textContent=lang==='en'?'SENDING...':'ENVOI...';
+  const msg=document.getElementById('pf-msg').value.trim();
+  const btn=document.getElementById('pf-btn');btn.disabled=true;btn.textContent='ENVOI...';
   try{
-    await sbQ('proforma_requests',{method:'POST',body:{product_id:cur?.id,nom,societe:soc,email,telephone:document.getElementById('pf-tel').value,quantite_souhaitee:document.getElementById('pf-qty').value,message:document.getElementById('pf-msg').value,statut:'nouveau'},headers:{'Prefer':'return=minimal'}}).catch(()=>{});
-    // Show success screen inside the pf-box
+    await sbQ('proforma_requests',{method:'POST',body:{product_id:cur?.id,nom,telephone:tel,message:msg,statut:'nouveau'},headers:{'Prefer':'return=minimal'}}).catch(()=>{});
     const box=document.querySelector('#proforma-bg .pf-box');
-    if(box)box.innerHTML=`<div class="pf-success"><div class="pf-success-ico">✅</div><div class="pf-success-t">${LT[lang].t_sent_ok}</div><div class="pf-success-s">${lang==='en'?'We will reply within 48h at':'Nous vous répondrons sous 48h à'} <strong>${email}</strong></div><button class="btn-pf-close" onclick="closeProforma();document.querySelector('#proforma-bg .pf-box').innerHTML=''">${lang==='en'?'Close':'Fermer'}</button></div>`;
-    toast(lang==='en'?'✅ Request sent — reply within 48h':'✅ Demande envoyée — réponse sous 48h');
-    try{ emailjs.send(EJS_SVC, EJS_TPL, { from_name:nom, company:soc, reply_to:email, message:`Proforma produit\nProduit: ${cur?.name||''}${cur?.ref?' ('+cur.ref+')':''}\nQté: ${document.getElementById('pf-qty').value}\nTél: ${document.getElementById('pf-tel').value}\nMsg: ${document.getElementById('pf-msg').value}` }); }catch(_){}
-    ['pf-nom','pf-societe','pf-email','pf-tel','pf-qty','pf-msg'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    if(box)box.innerHTML=`<div class="pf-success"><div class="pf-success-ico">✅</div><div class="pf-success-t">Demande envoyée</div><div class="pf-success-s">Nous vous recontacterons rapidement.</div><button class="btn-pf-close" onclick="closeProforma();document.querySelector('#proforma-bg .pf-box').innerHTML=''">Fermer</button></div>`;
+    toast('✅ Demande envoyée');
+    try{ emailjs.send(EJS_SVC, EJS_TPL, { from_name:nom, message:`Proforma produit\nProduit: ${cur?.name||''}${cur?.ref?' ('+cur.ref+')':''}\nTél: ${tel}\nMsg: ${msg}` }); }catch(_){}
+    ['pf-nom','pf-tel','pf-msg'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   }catch(err){
-    btn.disabled=false;btn.textContent=LT[lang].t_send||'ENVOYER';
-    toast(lang==='en'?'❌ Send error — please retry':'❌ Erreur envoi — réessayez dans un instant');
+    btn.disabled=false;btn.textContent='ENVOYER';
+    toast('❌ Erreur envoi — réessayez');
     console.error('sendProforma error:',err);
   }
 }
@@ -2094,6 +2091,53 @@ function _copyFallback(url){
   document.body.appendChild(ta);ta.focus();ta.select();
   try{document.execCommand('copy');toast('🔗 Lien copié !');}
   catch(_){prompt('Copie ce lien :',url);}
+}
+
+function printSelection(){
+  if(!cart.length){toast('Sélection vide !');return;}
+  const items=cart.map(p=>{
+    const _f=all.find(x=>x.id===+p.id)||p;
+    const qualite=p.qualite||_f.qualite||'';
+    const label=qualite+(QUALITE_LABELS[qualite]?' — '+QUALITE_LABELS[qualite]:'');
+    const details=(p.details||_f.details||'').replace(/[-–—\s]+/g,' ').trim();
+    const ref=p.ref?String(p.ref).replace(/^Photo_/i,''):'';
+    return{ref,label,details,couleur:p.couleur||'—',gsm:p.grammage?p.grammage+' g/m²':'—',
+      laize:p.largeur?mmToCm(p.largeur)+' cm':'—',poids:p.poids_net?p.poids_net.toLocaleString('fr-FR')+' kg':'—',
+      prix:_f.price?_f.price.toLocaleString('fr-FR')+' €/T':'—',usine:p.usine||_f.usine||'—',depot:p.zone||_f.zone||'—'};
+  });
+  const totalKg=cart.reduce((s,p)=>s+(p.poids_net||0),0);
+  const totalPrix=_priceMode?cart.reduce((s,p)=>{const _f=all.find(x=>x.id===+p.id)||p;return s+((p.poids_net||0)/1000)*(_f.price||0);},0):0;
+  const date=new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><title>Sélection Prodiconseil — ${date}</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;color:#222;padding:20px 30px;}
+.header{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #222;padding-bottom:12px;margin-bottom:16px;}
+.header h1{font-size:18px;font-weight:800;letter-spacing:1px;}
+.header .date{font-size:12px;color:#666;}
+.meta{display:flex;gap:24px;margin-bottom:12px;font-size:12px;font-weight:600;}
+.meta span{color:#FE0000;}
+table{width:100%;border-collapse:collapse;font-size:10.5px;}
+th{background:#222;color:#fff;text-align:left;padding:6px 5px;font-size:9px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;}
+td{padding:5px;border-bottom:1px solid #ddd;vertical-align:middle;}
+tr:nth-child(even){background:#f9f9f9;}
+.ref{font-weight:700;font-variant-numeric:tabular-nums;font-size:10px;}
+.num{text-align:right;font-variant-numeric:tabular-nums;}
+.prix{color:#FE0000;font-weight:700;}
+.footer{margin-top:16px;padding-top:10px;border-top:2px solid #222;display:flex;justify-content:space-between;font-size:13px;font-weight:700;}
+.footer .total-prix{color:#FE0000;font-size:15px;}
+@media print{body{padding:10px 15px;} @page{margin:12mm;size:A4 landscape;}}
+</style></head><body>
+<div class="header"><h1>PRODICONSEIL</h1><div class="date">${date}</div></div>
+<div class="meta"><span>${items.length} produits</span><span>${fmt(totalKg)}</span>${_priceMode&&totalPrix?`<span class="prix">${totalPrix.toLocaleString('fr-FR',{maximumFractionDigits:0})} € estimé</span>`:''}</div>
+<table><thead><tr><th>Réf.</th><th>Qualité</th><th>Détails</th><th>Couleur</th><th>GSM</th><th>Laize</th><th class="num">Poids</th>${_priceMode?'<th class="num">Prix</th>':''}<th>Usine</th><th>Dépôt</th></tr></thead><tbody>
+${items.map(p=>`<tr><td class="ref">${p.ref}</td><td>${p.label}</td><td>${p.details||'—'}</td><td>${p.couleur}</td><td>${p.gsm}</td><td>${p.laize}</td><td class="num">${p.poids}</td>${_priceMode?`<td class="num prix">${p.prix}</td>`:''}<td>${p.usine}</td><td>${p.depot}</td></tr>`).join('')}
+</tbody></table>
+<div class="footer"><div>Total : ${fmt(totalKg)}</div>${_priceMode&&totalPrix?`<div class="total-prix">Estimé : ${totalPrix.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>`:''}</div>
+</body></html>`);
+  w.document.close();
+  setTimeout(()=>w.print(),300);
   document.body.removeChild(ta);
 }
 function _showShareModal(url){
@@ -2357,28 +2401,27 @@ function closeCartProforma(){document.getElementById('proforma-cart-bg').classLi
 
 async function sendCartProforma(){
   const nom=document.getElementById('pfc-nom').value.trim();
-  const soc=document.getElementById('pfc-societe').value.trim();
-  const email=document.getElementById('pfc-email').value.trim();
+  const tel=document.getElementById('pfc-tel').value.trim();
   let ok=true;
-  validateField('fg-pfc-nom',!!nom,'Nom requis'); if(!nom)ok=false;
-  validateField('fg-pfc-societe',!!soc,'Société requise'); if(!soc)ok=false;
-  validateField('fg-pfc-email',emailRx.test(email),'Email invalide'); if(!emailRx.test(email))ok=false;
+  validateField('fg-pfc-nom',!!nom,'Champ requis'); if(!nom)ok=false;
+  if(!tel){const e=document.getElementById('fg-pfc-tel-err');if(e)e.style.display='block';ok=false;}else{const e=document.getElementById('fg-pfc-tel-err');if(e)e.style.display='none';}
   if(!ok)return;
-  const btn=document.getElementById('pfc-btn');btn.disabled=true;btn.textContent=lang==='en'?'SENDING...':'ENVOI...';
+  const userMsg=document.getElementById('pfc-msg').value.trim();
+  const btn=document.getElementById('pfc-btn');btn.disabled=true;btn.textContent='ENVOI...';
   try{
-    const msg='Panier : '+cart.map(p=>`${p.name}${p.ref?' ('+p.ref+')':''} — ${fmt(p.poids_net)}`).join(' | ')+(document.getElementById('pfc-msg').value?' | '+document.getElementById('pfc-msg').value:'');
+    const msg='Panier : '+cart.map(p=>`${p.name}${p.ref?' ('+p.ref+')':''} — ${fmt(p.poids_net)}`).join(' | ')+(userMsg?' | '+userMsg:'');
     const savedCart=[...cart];
     for(const p of savedCart){
-      await sbQ('proforma_requests',{method:'POST',body:{product_id:p.id,nom,societe:soc,email,telephone:document.getElementById('pfc-tel').value,quantite_souhaitee:'Demande groupée panier',message:msg,statut:'nouveau'},headers:{'Prefer':'return=minimal'}}).catch(()=>{});
+      await sbQ('proforma_requests',{method:'POST',body:{product_id:p.id,nom,telephone:tel,message:msg,statut:'nouveau'},headers:{'Prefer':'return=minimal'}}).catch(()=>{});
     }
-    btn.disabled=false;btn.textContent=LT[lang].t_send||'ENVOYER';
+    btn.disabled=false;btn.textContent='ENVOYER';
     closeCartProforma();doClearCart();closeCartDrawer();
-    try{ emailjs.send(EJS_SVC, EJS_TPL, { from_name:nom, company:soc, reply_to:email, message:msg }); }catch(_){}
-    toast(lang==='en'?'✅ Request sent for '+savedCart.length+' product(s)!':'✅ Demande envoyée pour '+savedCart.length+' produit(s) !',4000);
-    ['pfc-nom','pfc-societe','pfc-email','pfc-tel','pfc-msg'].forEach(id=>document.getElementById(id).value='');
+    try{ emailjs.send(EJS_SVC, EJS_TPL, { from_name:nom, message:`Tél: ${tel}\n${msg}` }); }catch(_){}
+    toast('✅ Demande envoyée pour '+savedCart.length+' produit(s) !',4000);
+    ['pfc-nom','pfc-tel','pfc-msg'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   }catch(err){
-    btn.disabled=false;btn.textContent=LT[lang].t_send||'ENVOYER';
-    toast(lang==='en'?'❌ Send error — please retry':'❌ Erreur envoi — réessayez dans un instant');
+    btn.disabled=false;btn.textContent='ENVOYER';
+    toast('❌ Erreur envoi — réessayez');
     console.error('sendCartProforma error:',err);
   }
 }
