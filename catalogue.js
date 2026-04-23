@@ -17,7 +17,7 @@ async function sbQ(path,opts={}){
 }
 const WA='33649754915';
 let all=[],cur=null;
-const PAGE=52; let currentPage=1,_totalCount=0,_reqToken=0,_lastCorrections=[],_isFirstLoad=true,_featuredMode=false;
+const PAGE=40; let currentPage=1,_totalCount=0,_reqToken=0,_lastCorrections=[],_isFirstLoad=true,_featuredMode=false;
 let _priceMode=false;
 function togglePriceMode(on){
   _priceMode=on;
