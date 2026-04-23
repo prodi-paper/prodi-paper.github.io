@@ -1508,7 +1508,17 @@ function _updatePager(){
 function _goToPage(p){
   if(p<1||p===currentPage)return;
   currentPage=p;
-  _fetchAndRender(++_reqToken);
+  if(_sharedMode&&typeof _sharedAll!=='undefined'){
+    const start=(currentPage-1)*PAGE;
+    const pageItems=_sharedAll.slice(start,start+PAGE);
+    all=_sharedAll;
+    _totalCount=_sharedAll.length;
+    _maxKnownPage=Math.max(1,Math.ceil(_sharedAll.length/PAGE));
+    render(pageItems);
+    _updatePager();
+  } else {
+    _fetchAndRender(++_reqToken);
+  }
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -2010,8 +2020,7 @@ function toggleMobFilters(){
 }
 
 // ── PANIER (DRAWER) ──
-localStorage.removeItem('prodi_cart');
-let cart=[];
+let cart=(()=>{try{return JSON.parse(localStorage.getItem('prodi_cart'))||[];}catch(_){return[];}})();
 
 function updateCartBadge(){
   const badge=document.getElementById('cart-badge');
@@ -2270,6 +2279,7 @@ function _showShareModal(url){
 const _shareParam=new URLSearchParams(window.location.search).get('share');
 const _shareCode=new URLSearchParams(window.location.search).get('s');
 let _sharedMode=!!_shareParam||!!_shareCode;
+let _sharedAll=[];
 if(new URLSearchParams(window.location.search).get('p')==='1')togglePriceMode(true);
 
 async function loadSharedQuote(idsOverride){
@@ -2284,8 +2294,9 @@ async function loadSharedQuote(idsOverride){
 
   // Override the product grid directly — no modal, no banner
   all=products.map(rowToUi);
+  _sharedAll=all.slice(); // keep full list for local pagination
   _totalCount=all.length;
-  _maxKnownPage=1;
+  _maxKnownPage=Math.max(1,Math.ceil(all.length/PAGE));
   currentPage=1;
 
   const totalKg=all.reduce((s,p)=>s+(+p.weight||0),0);
@@ -2303,7 +2314,7 @@ async function loadSharedQuote(idsOverride){
     sqb.style.display='block';
   }
 
-  render(all);
+  render(all.slice(0,PAGE));
   _updatePager();
   window._sharedProducts=products;
   // Auto-load shared products into cart
