@@ -245,6 +245,10 @@
         <div class="nmr-row"><label class="fl"><span data-i18n="t_longueur_lbl">Longueur</span> <span class="nmr-unit">(mm)</span></label></div>
         <div class="nmr-wrap"><input type="number" class="nmr-in" id="f-longmin" placeholder="Min" min="0" oninput="filterProducts()"><span class="nmr-sep">—</span><input type="number" class="nmr-in" id="f-longmax" placeholder="Max" min="0" oninput="filterProducts()"></div>
       </div>
+      <div class="fg">
+        <div class="nmr-row"><label class="fl"><span data-i18n="t_poids_lbl">Poids</span> <span class="nmr-unit">(KG)</span></label></div>
+        <div class="nmr-wrap"><input type="number" class="nmr-in" id="f-wmin" placeholder="Min" min="0" oninput="filterProducts()"><span class="nmr-sep">—</span><input type="number" class="nmr-in" id="f-wmax" placeholder="Max" min="0" oninput="filterProducts()"></div>
+      </div>
       <!-- PRIX_MASQUÉ: filtre prix sidebar masqué -->
       <div class="fg" style="display:none">
         <div class="nmr-row"><label class="fl"><span data-i18n="t_prix_lbl">Prix</span> <span class="nmr-unit">(€/T)</span></label></div>
@@ -363,6 +367,7 @@
       <div class="drawer-meta" id="drawer-meta">—</div>
     </div>
     <div class="drawer-head-actions">
+      <button class="btn-clear-drawer-top" onclick="openImportRefs()" style="font-size:11px;border-color:var(--ink);color:var(--ink);">📋 Importer refs</button>
       <button class="btn-clear-drawer-top" onclick="doClearCart()" data-i18n="t_clear_cart">Vider la sélection</button>
       <button class="drawer-close" onclick="closeCartDrawer()">✕</button>
     </div>
@@ -446,14 +451,16 @@
   <div class="footer-inner" style="flex-direction:column;align-items:stretch;gap:0;">
     <div class="footer-grid">
       <div class="footer-col">
-        <div class="footer-col-title">PRODICONSEIL</div>
+        <a href="vitrine.html" class="footer-col-title" style="text-decoration:none;color:inherit;">PRODICONSEIL</a>
         <span data-i18n="t_ft_tagline">Négoce papier &amp; carton B2B</span>
-        <span data-i18n="t_ft_stock">Stock Europe — Recyclé &amp; Fabrication</span>
-        <span data-i18n="t_ft_update">Mise à jour quotidienne du stock</span>
+        <span data-i18n="t_ft_stock">Stock Europe</span>
+        <span>Stocklots, Side runs</span>
+        <span>Fabrication</span>
+        <span data-i18n="t_ft_update">Bobines &amp; formats</span>
       </div>
       <div class="footer-col">
         <div class="footer-col-title">Contact</div>
-        <a href="mailto:contact@prodiconseil.com">contact@prodiconseil.com</a>
+        <a href="mailto:contact@prodi.com">contact@prodi.com</a>
         <a href="https://wa.me/33649754915" target="_blank">+33 6 49 75 49 15</a>
         <span data-i18n="t_ft_hours">Lun – Ven · 9h – 18h</span>
       </div>
@@ -465,7 +472,7 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <span style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:#fff;">PRODICONSEIL</span>
+      <a href="vitrine.html" style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:#fff;text-decoration:none;">PRODICONSEIL</a>
       <div class="f-sub" data-i18n="t_ft_copy">© 2026 Prodiconseil · Stock papier &amp; carton B2B</div>
     </div>
   </div>
@@ -545,6 +552,18 @@
         </div>
       </div>
     </div>
+    <!-- Poids -->
+    <div class="fd-section open" id="mob-sec-poids">
+      <div class="fd-section-head" onclick="toggleFdSection(this)">
+        <span class="fd-section-title">Poids (KG)</span><span class="fd-section-arrow">▾</span>
+      </div>
+      <div class="fd-section-body" style="padding-top:6px;">
+        <div class="frow">
+          <input class="fi" type="number" id="f-wmin-mob" placeholder="min kg" oninput="syncMobFilter('f-wmin','f-wmin-mob')">
+          <input class="fi" type="number" id="f-wmax-mob" placeholder="max kg" oninput="syncMobFilter('f-wmax','f-wmax-mob')">
+        </div>
+      </div>
+    </div>
     <!-- Mandrin -->
     <div class="fd-section open" id="mob-sec-mandrin">
       <div class="fd-section-head" onclick="toggleFdSection(this)">
@@ -621,6 +640,6 @@
 </div>
 <div class="spin-bg" id="spinner"><div class="spin"></div></div>
 
-<script src="catalogue.js?v=199"></script>
+<script src="catalogue.js?v=204"></script>
 </body>
 </html>

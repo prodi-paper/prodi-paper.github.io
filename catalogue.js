@@ -238,6 +238,8 @@ function _clientFilterMatch(p,f){
   if(f.width_max&&(p.width||0)>f.width_max)return false;
   if(f.longmin&&(p.longueur||0)<f.longmin)return false;
   if(f.longmax&&(p.longueur||0)>f.longmax)return false;
+  if(f.wmin&&(p.weight||0)<f.wmin)return false;
+  if(f.wmax&&(p.weight||0)>f.wmax)return false;
   if(f.quality_in&&f.quality_in.length&&!f.quality_in.includes(p.quality))return false;
   if(f.color_in&&f.color_in.length&&!f.color_in.includes(p.color))return false;
   if(f.format_in&&f.format_in.length&&!f.format_in.includes(p.format))return false;
@@ -560,6 +562,8 @@ function rowToUi(r){
     poids_net: weight,
     couleur: color,
     qualite: quality,
+    emplacement: location,
+    allee: r.zone || '',
     zone: location,
     usine,
     image_url
@@ -817,7 +821,14 @@ function toggleMsd(id) {
   // Close all
   document.querySelectorAll('.msd-panel.show').forEach(p => p.classList.remove('show'));
   document.querySelectorAll('.msd-btn.open').forEach(b => b.classList.remove('open'));
-  if (!isOpen) { panel.classList.add('show'); btn.classList.add('open'); }
+  if (!isOpen) {
+    panel.classList.add('show'); btn.classList.add('open');
+    // Add scroll hint if panel is scrollable
+    let hint=panel.querySelector('.msd-scroll-hint');
+    if(!hint){hint=document.createElement('div');hint.className='msd-scroll-hint';panel.appendChild(hint);}
+    hint.classList.toggle('hidden',panel.scrollHeight<=panel.clientHeight+10);
+    panel.onscroll=()=>{if(hint)hint.classList.toggle('hidden',panel.scrollTop+panel.clientHeight>=panel.scrollHeight-10);};
+  }
 }
 
 function toggleMsdOption(el, id) {
@@ -1238,6 +1249,8 @@ async function _fetchAndRender(token){
   const lmax=_lmaxCm?_lmaxCm*10:0;
   const longmin=+document.getElementById('f-longmin')?.value||0;
   const longmax=+document.getElementById('f-longmax')?.value||0;
+  const wmin=+document.getElementById('f-wmin')?.value||0;
+  const wmax=+document.getElementById('f-wmax')?.value||0;
   const refCode=(document.getElementById('f-ref-code')?.value||'').trim().toUpperCase();
   const mandrins=getMsdValues('msd-mandrin');
   const couleurs=getMsdValues('msd-couleur');
@@ -1322,6 +1335,8 @@ async function _fetchAndRender(token){
   if(origines.size===1)p.append('quality',`like.${[...origines][0]}%`);
   if(longmin)p.append('longueur',`gte.${longmin}`);
   if(longmax)p.append('longueur',`lte.${longmax}`);
+  if(wmin)p.append('weight',`gte.${wmin}`);
+  if(wmax)p.append('weight',`lte.${wmax}`);
   if(refCode)p.append('quality',`ilike.${refCode}%`);
   const usineVal=(document.getElementById('f-usine')?.value||'').trim();
   if(usineVal)p.append('usine',`eq.${usineVal}`);
@@ -1357,7 +1372,7 @@ async function _fetchAndRender(token){
     // the 0-result query and would report 0T.
     if(!error&&(!data||data.length===0)&&q.length>0&&currentPage===1){
       const fuzzy=await _fuzzyFallback(q,{
-        longmin,longmax,
+        longmin,longmax,wmin,wmax,
         quality_in:rpcParams.quality_in,color_in:rpcParams.color_in,
         format_in:rpcParams.format_in,noyau_in:rpcParams.noyau_in,
         refCode,usineVal,
@@ -1523,6 +1538,9 @@ function updateFilterChips(){
   const longmin2=document.getElementById('f-longmin')?.value||'';
   const longmax2=document.getElementById('f-longmax')?.value||'';
   if(longmin2||longmax2)chips.push({label:LT[lang].t_chip_longueur+' : '+(longmin2||longmax2)+'mm',clear:()=>{['f-longmin','f-longmax','f-longmin-mob','f-longmax-mob'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});filterProducts();}});
+  const wmin2=document.getElementById('f-wmin')?.value||'';
+  const wmax2=document.getElementById('f-wmax')?.value||'';
+  if(wmin2||wmax2)chips.push({label:'Poids : '+(wmin2||'—')+' → '+(wmax2||'—')+' kg',clear:()=>{['f-wmin','f-wmax','f-wmin-mob','f-wmax-mob'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});filterProducts();}});
   // PRIX_MASQUÉ: filtre prix désactivé
   // const cpn=document.getElementById('f-pmin').value,cpx=document.getElementById('f-pmax').value;
   // if(cpn||cpx)chips.push({label:LT[lang].t_chip_prix+...});
@@ -1627,7 +1645,7 @@ function renderCards(list){
   g.innerHTML=list.map(p=>{
     const initials=(p.type||'?').substring(0,2).toUpperCase();
     const _altTxt=[p.name,p.grammage?p.grammage+'g/m²':'',p.couleur].filter(Boolean).join(' — ')||'Produit';
-    const _isFab=!p.image_url&&(p.zone==='FABRICATION SUR COMMANDE'||p.emplacement==='FABRICATION SUR COMMANDE'||(p.ref&&/FAB/i.test(String(p.ref))));
+    const _isFab=(p.zone==='FABRICATION SUR COMMANDE'||p.emplacement==='FABRICATION SUR COMMANDE'||(p.ref&&/FAB/i.test(String(p.ref))));
     const imgHtml=_isFab
       ?`<img src="img/fabrication-sur-demande.png" alt="Fabrication sur demande" class="pcard-nophoto">`
       :p.image_url
@@ -1653,6 +1671,7 @@ function renderCards(list){
       p.noyau?['Mandrin',`Ø${p.noyau} mm`]:null,
       p.usine?['Usine',String(p.usine).replace(/^REF\s*/i,'')]:null,
       (p.emplacement||p.zone)?['Dépôt',p.emplacement||p.zone]:null,
+      p.allee?['Zone',p.allee]:null,
     ].filter(Boolean).slice(0,6);
     const specsHtml=`<div class="pcard-specs">${specRows.map(([l,v])=>`<div class="pcard-spec"><span class="pspec-lbl">${l}</span><span class="pspec-val">${v}</span></div>`).join('')}</div>`;
     const _sub=getProductDetailText(p);
@@ -1698,7 +1717,7 @@ function renderList(list){
   if(!g)return;
   g.className='pgrid plist';
   const rows=list.map(p=>{
-    const _isFabL=!p.image_url&&(p.zone==='FABRICATION SUR COMMANDE'||p.emplacement==='FABRICATION SUR COMMANDE'||(p.ref&&/FAB/i.test(String(p.ref))));
+    const _isFabL=(p.zone==='FABRICATION SUR COMMANDE'||p.emplacement==='FABRICATION SUR COMMANDE'||(p.ref&&/FAB/i.test(String(p.ref))));
     const title=p.qualite?(p.qualite+(QUALITE_LABELS[p.qualite]?' — '+QUALITE_LABELS[p.qualite]:'')):(p.name||'—');
     const thumb=_isFabL
       ?`<img src="img/fabrication-sur-demande.png" alt="Fabrication sur demande" class="plist-thumb">`
@@ -1733,6 +1752,7 @@ function renderList(list){
       ${_priceMode?`<td class="plist-td plist-td-num plist-price">${p.price?p.price.toLocaleString('fr-FR')+' €/T':'—'}</td>`:''}
       <td class="plist-td plist-td-usine plist-col-usine">${p.usine?String(p.usine).replace(/^REF\s*/i,''):'—'}</td>
       <td class="plist-td plist-td-depot">${p.zone||'—'}</td>
+      <td class="plist-td plist-td-zone">${p.allee||'—'}</td>
     </tr>`;
   }).join('');
   g.innerHTML=`<div style="overflow-x:auto"><table class="plist-table">
@@ -1751,6 +1771,7 @@ function renderList(list){
       ${_priceMode?'<th>Prix</th>':''}
       <th class="plist-col-usine">Réf. usine</th>
       <th class="plist-col-depot">Emplacement</th>
+      <th>Zone</th>
     </tr></thead>
     <tbody>${rows}</tbody>
   </table></div>`;
@@ -1815,7 +1836,7 @@ async function openDetail(id){
   // Image
   const mi=document.getElementById('det-main');
   const _detAlt=[p.name,p.grammage?p.grammage+'g/m²':'',p.couleur].filter(Boolean).join(' — ')||'Produit';
-  const _isFab=!p.image_url&&(p.zone==='FABRICATION SUR COMMANDE'||p.emplacement==='FABRICATION SUR COMMANDE'||(p.ref&&/FAB/i.test(String(p.ref))));
+  const _isFab=(p.zone==='FABRICATION SUR COMMANDE'||p.emplacement==='FABRICATION SUR COMMANDE'||(p.ref&&/FAB/i.test(String(p.ref))));
   mi.innerHTML=(p.image_url
     ?`<img src="${p.image_url}" loading="lazy" alt="${_detAlt}" onerror="detImgErr(this)">`
     :_isFab?_DET_FAB_PHOTO:_DET_NO_PHOTO);
@@ -1852,6 +1873,7 @@ async function openDetail(id){
     {lbl: LT[lang].t_spec_mandrin||'Mandrin',   val: p.noyau?p.noyau+' mm':null},
     {lbl: LT[lang].t_spec_format||'Dimensions',  val: formatLabel(p)},
     {lbl: LT[lang].t_spec_depot||'Emplacement',  val: p.zone||p.emplacement},
+    {lbl: 'Zone',                                  val: p.allee||null},
     {lbl: 'Usine',                                val: p.usine?String(p.usine).replace(/^REF\s*/i,''):'—', always:true},
   ].filter(s=>s.val||s.always);
   document.getElementById('det-specs').innerHTML=specDefs.map(s=>
@@ -1952,6 +1974,7 @@ function resetFilters(){
     // 5. Clear all inputs
     ['f-pmin','f-pmax','f-pmin-fb','f-pmax-fb','f-lmin','f-lmax','f-lmin-fb','f-lmax-fb','f-gmin','f-gmax',
      'f-lmin-sb','f-lmax-sb','f-longmin-sb','f-longmax-sb','f-longmin','f-longmax',
+     'f-wmin','f-wmax','f-wmin-mob','f-wmax-mob',
      'f-gmin-sb','f-gmax-sb','f-pmin-sb','f-pmax-sb',
      'f-gmin-mob','f-gmax-mob','f-lmin-mob','f-lmax-mob','f-pmin-mob','f-pmax-mob',
      'f-usine',
@@ -2091,6 +2114,83 @@ function _copyFallback(url){
   document.body.appendChild(ta);ta.focus();ta.select();
   try{document.execCommand('copy');toast('🔗 Lien copié !');}
   catch(_){prompt('Copie ce lien :',url);}
+}
+
+function openImportRefs(){
+  const existing=document.getElementById('import-refs-bg');
+  if(existing)existing.remove();
+  const d=document.createElement('div');
+  d.id='import-refs-bg';
+  d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;display:flex;align-items:center;justify-content:center;padding:16px;';
+  d.innerHTML=`<div style="background:#fff;border-radius:12px;padding:28px;max-width:500px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2);">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1.5px;margin-bottom:4px;">IMPORTER DES RÉFÉRENCES</div>
+    <div style="font-size:13px;color:#999;margin-bottom:14px;">Colle tes numéros de ref (un par ligne, ou séparés par des virgules/espaces)</div>
+    <textarea id="import-refs-input" style="width:100%;min-height:120px;padding:12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;resize:vertical;box-sizing:border-box;" placeholder="917643&#10;985042&#10;DU5517&#10;774533"></textarea>
+    <div id="import-refs-result" style="font-size:13px;margin-top:8px;min-height:20px;"></div>
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <button onclick="_doImportRefs()" style="flex:2;padding:12px;background:#FE0000;color:#fff;border:none;border-radius:8px;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;cursor:pointer;" id="import-refs-btn">AJOUTER À LA SÉLECTION</button>
+      <button onclick="document.getElementById('import-refs-bg').remove();" style="padding:12px 16px;background:transparent;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;cursor:pointer;">Fermer</button>
+    </div>
+  </div>`;
+  d.addEventListener('click',e=>{if(e.target===d)d.remove();});
+  document.body.appendChild(d);
+  document.getElementById('import-refs-input').focus();
+}
+
+async function _doImportRefs(){
+  const input=document.getElementById('import-refs-input').value.trim();
+  if(!input){toast('Colle des références !');return;}
+  // Parse refs: split by comma, newline, space, semicolon
+  const rawRefs=input.split(/[\s,;\n\r]+/).map(s=>s.trim().toUpperCase()).filter(s=>s.length>0);
+  const uniqueRefs=[...new Set(rawRefs)];
+  if(!uniqueRefs.length){toast('Aucune référence détectée');return;}
+
+  const btn=document.getElementById('import-refs-btn');
+  const result=document.getElementById('import-refs-result');
+  btn.disabled=true;btn.textContent='RECHERCHE...';
+  result.innerHTML='<span style="color:#999">Recherche de '+uniqueRefs.length+' référence(s)…</span>';
+
+  try{
+    // Search by ref containing each value (Photo_XXXXX format in DB)
+    const found=[];
+    const notFound=[];
+    // Batch: fetch all products matching any of the refs
+    const p=new URLSearchParams({select:'*'});
+    p.append('or','('+uniqueRefs.map(r=>'ref.ilike.%'+r+'%').join(',')+')');
+    const {data}=await sbQ('products?'+p,{headers:{'Range':'0-999'}});
+
+    // Match each input ref to a product
+    for(const ref of uniqueRefs){
+      const match=data.find(p=>p.ref&&p.ref.toUpperCase().includes(ref));
+      if(match){
+        found.push(match);
+      } else {
+        notFound.push(ref);
+      }
+    }
+
+    // Add found products to cart (skip duplicates)
+    let added=0;
+    for(const p of found){
+      if(!cart.find(c=>c.id===p.id)){
+        const ui=rowToUi(p);
+        cart.push(ui);
+        added++;
+      }
+    }
+    updateCartBadge();
+    renderDrawer();
+
+    // Show result
+    let msg=`<span style="color:#1a9e5c;font-weight:600">✓ ${found.length} trouvé(s), ${added} ajouté(s)</span>`;
+    if(notFound.length)msg+=`<br><span style="color:#e53e3e">✗ ${notFound.length} introuvable(s) : ${notFound.join(', ')}</span>`;
+    result.innerHTML=msg;
+    btn.disabled=false;btn.textContent='AJOUTER À LA SÉLECTION';
+  }catch(e){
+    console.error('Import refs error:',e);
+    result.innerHTML='<span style="color:#e53e3e">Erreur lors de la recherche</span>';
+    btn.disabled=false;btn.textContent='AJOUTER À LA SÉLECTION';
+  }
 }
 
 function printSelection(){
@@ -2342,8 +2442,10 @@ function renderDrawer(){
     const ciTitle=_qualite?(_qualite+(QUALITE_LABELS[_qualite]?' — '+QUALITE_LABELS[_qualite]:'')):(p.name||'—');
     const _ciSum=getProductDetailText(_pFull);
     const lot=p.ref?String(p.ref).replace(/^Photo_/i,'').trim()||null:null;
-    const imgSrc=p.img||(all.find(x=>x.id===+p.id)?.image_url)||null;
-    const imgHtml=imgSrc?`<img src="${imgSrc}" onerror="this.src='img/fabrication-sur-demande.png'">`:`<img src="img/fabrication-sur-demande.png" alt="">`;
+    const imgSrc=p.img||p.image_url||(all.find(x=>x.id===+p.id)?.image_url)||null;
+    const _isFabD=p.ref&&/FAB/i.test(String(p.ref));
+    const _fallback=_isFabD?'img/fabrication-sur-demande.png':'img/no-photo.png';
+    const imgHtml=imgSrc?`<img src="${imgSrc}" onerror="this.src='${_fallback}'">`:`<img src="${_fallback}" alt="">`;
     return`<div class="ci" id="ci-${p.id}">
       <div class="ci-img">${imgHtml}</div>
       <div class="ci-body">
@@ -2570,6 +2672,10 @@ function toggleFbMsd(wrapperId){
     panel.style.top=(rect.bottom+4)+'px';
     panel.style.left=rect.left+'px';
     panel.classList.add('show');
+    let hint=panel.querySelector('.msd-scroll-hint');
+    if(!hint){hint=document.createElement('div');hint.className='msd-scroll-hint';panel.appendChild(hint);}
+    hint.classList.toggle('hidden',panel.scrollHeight<=panel.clientHeight+10);
+    panel.onscroll=()=>{if(hint)hint.classList.toggle('hidden',panel.scrollTop+panel.clientHeight>=panel.scrollHeight-10);};
   }
 }
 
