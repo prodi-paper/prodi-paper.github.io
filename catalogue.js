@@ -2923,6 +2923,7 @@ function setLang(l){
 }
 
 updateCartBadge();
+if(cart.length)renderDrawer();
 init();
 
 
