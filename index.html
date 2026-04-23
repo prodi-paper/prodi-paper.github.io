@@ -259,7 +259,11 @@
         <div class="nmr-wrap nmr-wrap-single"><input type="number" class="nmr-in" id="f-usine" placeholder="N° usine" min="0" oninput="filterProducts()"></div>
       </div>
 
-      <div class="fg" style="margin-top:12px;">
+      <div class="fg">
+        <div class="nmr-row"><label class="fl">Zone / Allée</label></div>
+        <div class="nmr-wrap nmr-wrap-single"><input type="text" class="nmr-in" id="f-zone" placeholder="Ex: 7MG, 3CF…" oninput="filterProducts()" style="text-transform:uppercase;"></div>
+      </div>
+      <div class="fg" style="margin-top:6px;">
         <div class="nmr-row"><label class="fl">Dépôt</label></div>
         <div class="format-pills" style="display:flex;gap:6px;margin-top:6px;">
           <button class="fpill fpill-dark fpill-depot" data-depot="our" onclick="toggleDepotPill(this)" style="flex:1;justify-content:center;font-size:11px;">Notre dépôt</button>
@@ -561,6 +565,17 @@
         <div class="frow">
           <input class="fi" type="number" id="f-wmin-mob" placeholder="min kg" oninput="syncMobFilter('f-wmin','f-wmin-mob')">
           <input class="fi" type="number" id="f-wmax-mob" placeholder="max kg" oninput="syncMobFilter('f-wmax','f-wmax-mob')">
+        </div>
+      </div>
+    </div>
+    <!-- Zone -->
+    <div class="fd-section open" id="mob-sec-zone">
+      <div class="fd-section-head" onclick="toggleFdSection(this)">
+        <span class="fd-section-title">Zone / Allée</span><span class="fd-section-arrow">▾</span>
+      </div>
+      <div class="fd-section-body" style="padding-top:6px;">
+        <div class="frow">
+          <input class="fi" type="text" id="f-zone-mob" placeholder="Ex: 7MG" oninput="syncMobFilter('f-zone','f-zone-mob')" style="text-transform:uppercase;">
         </div>
       </div>
     </div>

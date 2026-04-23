@@ -246,6 +246,7 @@ function _clientFilterMatch(p,f){
   if(f.noyau_in&&f.noyau_in.length&&!f.noyau_in.includes(String(p.noyau||'')))return false;
   if(f.refCode&&!String(p.quality||'').toUpperCase().startsWith(f.refCode))return false;
   if(f.usineVal&&String(p.usine||'')!==f.usineVal)return false;
+  if(f.zoneVal&&!(p.zone||'').toUpperCase().includes(f.zoneVal))return false;
   return true;
 }
 async function _fuzzyFallback(query,filters){
@@ -1340,6 +1341,8 @@ async function _fetchAndRender(token){
   if(refCode)p.append('quality',`ilike.${refCode}%`);
   const usineVal=(document.getElementById('f-usine')?.value||'').trim();
   if(usineVal)p.append('usine',`eq.${usineVal}`);
+  const zoneVal=(document.getElementById('f-zone')?.value||'').trim().toUpperCase();
+  if(zoneVal)p.append('zone',`ilike.%${zoneVal}%`);
   // Dépôt filter
   if(_depotFilter==='our')p.append('emplacement',`eq.OUR WAREHOUSE`);
   else if(_depotFilter==='ext')p.append('emplacement',`neq.OUR WAREHOUSE`);
@@ -1546,6 +1549,8 @@ function updateFilterChips(){
   // if(cpn||cpx)chips.push({label:LT[lang].t_chip_prix+...});
   const usineChip=(document.getElementById('f-usine')?.value||'').trim();
   if(usineChip)chips.push({label:'Usine : '+usineChip,clear:()=>{const e=document.getElementById('f-usine');if(e)e.value='';filterProducts();}});
+  const zoneChip=(document.getElementById('f-zone')?.value||'').trim();
+  if(zoneChip)chips.push({label:'Zone : '+zoneChip,clear:()=>{['f-zone','f-zone-mob'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});filterProducts();}});
   if(!chips.length){container.innerHTML='';const ac2=document.getElementById('active-chips');if(ac2)ac2.innerHTML='';return;}
   const chipsHtml=chips.map((chip,i)=>`<div class="fchip" id="chip-${i}">${chip.label}<button onclick="clearChip(${i})" title="Retirer ce filtre">✕</button></div>`).join('')
     +(chips.length>1?`<button class="chips-clear" onclick="resetFilters()">Tout effacer</button>`:'');
@@ -1975,6 +1980,7 @@ function resetFilters(){
     ['f-pmin','f-pmax','f-pmin-fb','f-pmax-fb','f-lmin','f-lmax','f-lmin-fb','f-lmax-fb','f-gmin','f-gmax',
      'f-lmin-sb','f-lmax-sb','f-longmin-sb','f-longmax-sb','f-longmin','f-longmax',
      'f-wmin','f-wmax','f-wmin-mob','f-wmax-mob',
+     'f-zone','f-zone-mob',
      'f-gmin-sb','f-gmax-sb','f-pmin-sb','f-pmax-sb',
      'f-gmin-mob','f-gmax-mob','f-lmin-mob','f-lmax-mob','f-pmin-mob','f-pmax-mob',
      'f-usine',
