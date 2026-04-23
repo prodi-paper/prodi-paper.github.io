@@ -260,8 +260,8 @@
       </div>
 
       <div class="fg">
-        <div class="nmr-row"><label class="fl">Zone / Allée</label></div>
-        <div class="nmr-wrap nmr-wrap-single"><input type="text" class="nmr-in" id="f-zone" placeholder="Ex: 7MG, 3CF…" oninput="filterProducts()" style="text-transform:uppercase;"></div>
+        <div class="nmr-row"><label class="fl">Zone &amp; Allée</label></div>
+        <div class="nmr-wrap"><input type="number" class="nmr-in" id="f-zone-num" placeholder="Zone (n°)" min="0" oninput="filterProducts()"><span class="nmr-sep">—</span><input type="text" class="nmr-in" id="f-zone-let" placeholder="Allée (A,B,C…)" oninput="filterProducts()" style="text-transform:uppercase;"></div>
       </div>
       <div class="fg" style="margin-top:6px;">
         <div class="nmr-row"><label class="fl">Dépôt</label></div>
@@ -568,14 +568,15 @@
         </div>
       </div>
     </div>
-    <!-- Zone -->
+    <!-- Zone & Allée -->
     <div class="fd-section open" id="mob-sec-zone">
       <div class="fd-section-head" onclick="toggleFdSection(this)">
-        <span class="fd-section-title">Zone / Allée</span><span class="fd-section-arrow">▾</span>
+        <span class="fd-section-title">Zone & Allée</span><span class="fd-section-arrow">▾</span>
       </div>
       <div class="fd-section-body" style="padding-top:6px;">
         <div class="frow">
-          <input class="fi" type="text" id="f-zone-mob" placeholder="Ex: 7MG" oninput="syncMobFilter('f-zone','f-zone-mob')" style="text-transform:uppercase;">
+          <input class="fi" type="number" id="f-zone-num-mob" placeholder="Zone (n°)" oninput="syncMobFilter('f-zone-num','f-zone-num-mob')">
+          <input class="fi" type="text" id="f-zone-let-mob" placeholder="A,B,C…" oninput="syncMobFilter('f-zone-let','f-zone-let-mob')" style="text-transform:uppercase;">
         </div>
       </div>
     </div>
