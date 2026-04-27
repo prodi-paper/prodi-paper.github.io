@@ -15,15 +15,15 @@ import imaplib, email, os, sys, json, re, tempfile, subprocess
 from datetime import datetime
 from collections import defaultdict
 
-# ── CONFIG (from environment variables) ──
+# ── CONFIG ──
 IMAP_HOST = "imap.gmail.com"
-IMAP_USER = os.environ["IMAP_USER"]
-IMAP_PASS = os.environ["IMAP_PASS"]
+IMAP_USER = "eelbilia@gmail.com"
+IMAP_PASS = "wbhy hljt xflf zibm"
 SENDER = "info@prodi.com"
 
-SUPABASE_URL = os.environ["SUPABASE_URL"]
-ANON_KEY = os.environ["SUPABASE_ANON_KEY"]
-MGMT_TOKEN = os.environ["SUPABASE_MGMT_TOKEN"]
+SUPABASE_URL = "https://bvcgpdoukhcatjibmvnb.supabase.co"
+ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2Y2dwZG91a2hjYXRqaWJtdm5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNzg5MjgsImV4cCI6MjA4Nzg1NDkyOH0.Ip3ykSUS9sajTH04yXBerOG1haBKMD1kAvMQNjnGL1Q"
+MGMT_TOKEN = "sbp_8bbc7fb2723ae1f9fd33b8b3eed4fff4e7656a28"
 
 ALL_KEYS = ['quality','color','details','gsm','width','longueur','noyau','weight','price','ref','usine','emplacement','format','image_url']
 
@@ -266,7 +266,7 @@ def update_supabase(products):
     log(f"Insertion: {success} OK, {errors} erreurs")
 
     # Re-apply zones from correction_zone.xlsx if it exists
-    zone_file = os.path.join(os.path.dirname(__file__), "correction_zone.xlsx")
+    zone_file = "/Users/tantan/Desktop/dossier sans titre 2/correction_zone.xlsx"
     if os.path.exists(zone_file):
         log("Application des zones/allées...")
         import openpyxl

@@ -5,3 +5,4 @@
 __pycache__/
 *.pyc
 skills-lock.json
+scripts/*.log

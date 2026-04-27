@@ -345,24 +345,79 @@ async function submitQuickDevis(e){
 })();
 
 
-/* ── SHOWCASE CAROUSEL ── */
-(function(){
-  const track = document.querySelector('.sc-track');
-  const dots  = document.querySelectorAll('.sc-dot');
-  const total = document.querySelectorAll('.sc-slide').length;
-  let cur = 0, timer;
+/* ── SHOWCASE CAROUSEL (dynamic from Supabase) ── */
+(async function(){
+  const SURL='https://bvcgpdoukhcatjibmvnb.supabase.co';
+  const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2Y2dwZG91a2hjYXRqaWJtdm5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNzg5MjgsImV4cCI6MjA4Nzg1NDkyOH0.Ip3ykSUS9sajTH04yXBerOG1haBKMD1kAvMQNjnGL1Q';
+  const track=document.getElementById('sc-track');
+  const dotsWrap=document.getElementById('sc-dots');
+  if(!track)return;
 
-  function go(n){
-    cur = (n + total) % total;
-    track.style.transform = 'translateX(-' + (cur * 100) + '%)';
-    dots.forEach((d,i) => d.classList.toggle('active', i === cur));
-  }
+  // Fetch products with image_url
+  try{
+    const r=await fetch(SURL+'/rest/v1/products?select=*&image_url=not.is.null&order=id.desc',{
+      headers:{'apikey':SKEY,'Authorization':'Bearer '+SKEY,'Range':'0-499'}
+    });
+    const data=await r.json();
+    if(!data||!data.length)return;
 
-  function startAuto(){ timer = setInterval(() => go(cur + 1), 5000); }
-  function resetAuto(){ clearInterval(timer); startAuto(); }
+    // Filter products with real image_url
+    const candidates=data.filter(p=>p.image_url&&p.image_url.trim().length>10);
+    candidates.sort(()=>Math.random()-.5);
 
-  dots.forEach(d => d.addEventListener('click', () => { go(+d.dataset.sc); resetAuto(); }));
-  startAuto();
+    // Verify images load (check 80 candidates)
+    const toCheck=candidates.slice(0,80);
+    const verified=[];
+    await Promise.all(toCheck.map(p=>new Promise(resolve=>{
+      const img=new Image();
+      img.onload=()=>{verified.push(p);resolve();};
+      img.onerror=()=>resolve();
+      img.src=p.image_url;
+      setTimeout(resolve,3000);
+    })));
+    if(!verified.length)return;
+
+    // Group by quality, pick 2 per group, shuffle
+    const groups=new Map();
+    for(const p of verified){const q=p.quality||'_';if(!groups.has(q))groups.set(q,[]);groups.get(q).push(p);}
+    const picked=[];
+    for(const [,items] of groups){picked.push(...items.slice(0,2));}
+    picked.sort(()=>Math.random()-.5);
+
+    // Split into slides of 10
+    const PER_SLIDE=10;
+    const slides=[];
+    for(let i=0;i<picked.length;i+=PER_SLIDE)slides.push(picked.slice(i,i+PER_SLIDE));
+    if(!slides.length)return;
+
+    // Quality labels
+    const QL={'R1SC':'Couché 1 face','R2SC':'Couché 2 faces','RADH':'Adhésif','RAFF':'Papier affiche','RBOA':'Carton couché','RBON':'Carton non couché','RBOU':'Bouffant','RCAR':'Autocopiant','RCOL':'Offset couleur','RCUI':'Papier cuisson','RDIV':'Divers / Alu','RFLEX':'Complexe','RKDO':'Papier cadeau','RKRA':'Kraft','RKRABRUN':'Kraft brun','RKRG':'Kraft gomme','RKRR':'Kraft armé','RLINER':'Liner / Testliner','RLUX':'Papier luxe','RLWC':'LWC','RNEW':'Papier journal','ROFF':'Offset','RPAC':'Emballage','RPLA':'Plastique','RSIL':'Silicone / Glassine','RTHERM':'Thermique','RTIS':'Ouate / Tissue','S1SC':'Couché 1 face','S2SC':'Couché 2 faces','SADH':'Adhésif','SAFF':'Papier affiche','SBOA':'Carton couché','SBON':'Carton non couché','SBOU':'Bouffant','SCAR':'Autocopiant','SCOL':'Offset couleur','SCUT':'Ramette','SDIV':'Divers','SENV':'Enveloppes','SKRA':'Kraft','SLUX':'Papier luxe','SNEW':'Papier journal','SOFF':'Offset','SPAC':'Emballage','SPLA':'Plastique','SSBS':'SBS / Carton blanc','SINK':'Encre','UMAC':'Machines','SLWC':'LWC'};
+
+    // Render cards
+    function cardHtml(p){
+      const q=p.quality||'';
+      const title=QL[q]||q||'Produit';
+      const det=(p.details||'').replace(/[-–—\s]+/g,' ').trim();
+      const fmt=p.format||(p.noyau?'Bobine':'Palette');
+      const weight=p.weight?Math.round(p.weight).toLocaleString('fr-FR')+' kg':'—';
+      return`<a class="sp-card" href="./index.html"><div class="sp-photo"><img src="${p.image_url}" alt="${title}" loading="lazy" onerror="this.parentElement.innerHTML='<div style=\\'display:flex;align-items:center;justify-content:center;height:100%;color:#ccc\\'>Photo sur demande</div>'"></div><div class="sp-body"><div class="sp-name">${title}</div>${det?`<div class="sp-type">${det.substring(0,35)}${det.length>35?'…':''}</div>`:''}<div class="sp-specs"><span class="sp-spec">${p.gsm?p.gsm+' g/m²':'—'}</span><span class="sp-spec">${fmt}</span></div><div class="sp-footer"><span class="sp-weight">${weight}</span></div></div></a>`;
+    }
+
+    track.innerHTML=slides.map(slide=>`<div class="sc-slide">${slide.map(cardHtml).join('')}</div>`).join('');
+
+    // Dots
+    dotsWrap.innerHTML=slides.map((_,i)=>`<button class="sc-dot${i===0?' active':''}" data-sc="${i}"></button>`).join('');
+
+    // Carousel logic
+    const dots=dotsWrap.querySelectorAll('.sc-dot');
+    const total=slides.length;
+    let cur=0,timer;
+    function go(n){cur=(n+total)%total;track.style.transform='translateX(-'+(cur*100)+'%)';dots.forEach((d,i)=>d.classList.toggle('active',i===cur));}
+    function startAuto(){timer=setInterval(()=>go(cur+1),5000);}
+    function resetAuto(){clearInterval(timer);startAuto();}
+    dots.forEach(d=>d.addEventListener('click',()=>{go(+d.dataset.sc);resetAuto();}));
+    startAuto();
+  }catch(e){console.error('Showcase carousel error:',e);}
 })();
 
 function goSearch(e) {

@@ -54,7 +54,7 @@
 </div>
 <header>
   <div class="header-inner">
-    <a class="logo-link" href="#" onclick="location.reload();return false;">
+    <a class="logo-link" href="#" onclick="if(typeof _sharedMode!=='undefined'&&_sharedMode){window.location.href=window.location.href;}else{location.reload();}return false;">
       <img src="img/logo.png" alt="Prodiconseil" class="logo-img logo-full">
       <img src="img/panda.png" alt="Prodiconseil" class="logo-img logo-mob">
     </a>
@@ -196,9 +196,10 @@
         <button class="fp-reset" onclick="resetFilters()" style="background:none;border:none;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;color:var(--ink);cursor:pointer;text-transform:uppercase;letter-spacing:.5px;">Réinitialiser</button>
       </div>
       <div class="fg" style="border-bottom:2px solid var(--border);margin-bottom:14px;padding-bottom:14px;">
-        <div class="format-pills" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 48px;">
-          <button class="fpill fpill-stock fpill-dark" data-stock="stocklot" onclick="toggleStockPill(this)" style="justify-content:center;">Stocklot</button>
-          <button class="fpill fpill-stock fpill-yellow" data-stock="fab" onclick="toggleStockPill(this)" style="justify-content:center;">Fabrication</button>
+        <div class="format-pills" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <button class="fpill fpill-stock fpill-dark" data-stock="stocklot" onclick="toggleStockPill(this)" style="justify-content:center;grid-column:1/-1;">Stocklots</button>
+          <button class="fpill fpill-stock fpill-yellow" data-stock="fab" onclick="toggleStockPill(this)" style="justify-content:center;width:100%;box-sizing:border-box;">Fabrication</button>
+          <button class="fpill fpill-stock fpill-blue" data-stock="siderun" onclick="toggleStockPill(this)" style="justify-content:center;width:100%;box-sizing:border-box;">Siderun</button>
           <div style="grid-column:1/-1;border-top:1.5px dashed var(--border);margin:4px 0;"></div>
           <button class="fpill fpill-dark" data-format="Bobine" data-i18n="t_bobine" onclick="toggleFormatPill(this)" style="justify-content:center;">Bobine</button>
           <button class="fpill fpill-dark" data-format="Palette" onclick="toggleFormatPill(this)" style="justify-content:center;">Format</button>
@@ -287,9 +288,10 @@
           <span>Vue liste détaillée</span>
         </button>
         <div class="rbar-count" id="rbar-count" role="status" aria-live="polite">
-          <span id="rbar-refs">—</span> <span id="rbar-refs-lbl" data-i18n="t_refs">produits</span> • <span id="rbar-tons">—</span> t
+          <span id="rbar-refs">—</span>&nbsp;<span id="rbar-refs-lbl" data-i18n="t_refs">produits</span> • <span style="white-space:nowrap"><span id="rbar-tons">—</span>&nbsp;t</span>
           <span id="correction-note"></span>
         </div>
+        <div class="pager pager-top" id="pager-top"></div>
         <div class="rbar-sort">
           <span class="rbar-sort-lbl" data-i18n="t_trier">Trier :</span>
           <select class="rbar-sel" id="sort-sel" onchange="_doFilter()">
@@ -656,6 +658,6 @@
 </div>
 <div class="spin-bg" id="spinner"><div class="spin"></div></div>
 
-<script src="catalogue.js?v=204"></script>
+<script src="catalogue.js?v=206"></script>
 </body>
 </html>

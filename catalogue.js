@@ -808,6 +808,31 @@ const QUALITE_LABELS={
   'AUTRES':'Autres',
 };
 
+// HS4 customs codes per internal code (source: codes_douaniers_papier_prodiconseil.xlsx, "HS4 probable")
+// SSBS, SLWC, RENV, UMAN added by extension (not in source file).
+const HS_CODES={
+  'R1SC':'4810','R2SC':'4810','RADH':'4811','RAFF':'4802','RBOA':'4810','RBON':'4805',
+  'RBOU':'4802','RCAM':'4809','RCAR':'4809','RCOL':'4802','RCUI':'4806','RDIV':'4823',
+  'RFLEX':'4807','RKDO':'4802','RKRA':'4804','RKRABRUN':'4804','RKRG':'4811','RKRR':'4807',
+  'RLINER':'4804','RLUX':'4810','RLWC':'4810','RMIN':'4802','RNEW':'4801','ROFF':'4802',
+  'RPAC':'4804','RPLA':'4811','RSIL':'4806','RTHERM':'4811','RTIS':'4803','RENV':'4817',
+  'S1SC':'4810','S2SC':'4810','SADH':'4811','SAFF':'4802','SBOA':'4810','SBON':'4805',
+  'SBOU':'4802','SCAM':'4809','SCAR':'4809','SCOL':'4802','SCUT':'4802','SDIV':'4823',
+  'SENV':'4817','SFLEX':'4807','SINK':'3215','SKRA':'4804','SKRM':'4804','SKRR':'4807',
+  'SLUX':'4810','SNEW':'4801','SOFB':'4802','SOFF':'4802','SPAC':'4804','SPLA':'4811',
+  'SSIL':'4806','SSPE':'4823','STIS':'4803','SSBS':'4810','SLWC':'4810',
+  'UMAC':'84','UMAN':'84',
+};
+
+// Build product title: "BOBINE — PAPIER LUXE" / "PALETTE — KRAFT" / "MACHINE — …"
+function formatProductTitle(qualite, fallback){
+  if(!qualite)return (fallback||'—').toString().toUpperCase();
+  const c=qualite[0];
+  const prefix=c==='R'?'BOBINE':c==='S'?'PALETTE':c==='U'?'MACHINE':qualite;
+  const label=QUALITE_LABELS[qualite]||qualite;
+  return `${prefix} — ${label.toUpperCase()}`;
+}
+
 function toggleMsd(id) {
   const panel = document.querySelector(`#${id} .msd-panel`);
   const btn = document.querySelector(`#${id} .msd-btn`);
@@ -869,7 +894,7 @@ function toggleOriginePill(btn){
   btn.classList.toggle('active');
   filterProducts();
 }
-let _stockFilter=''; // '' | 'stocklot' | 'fab'
+let _stockFilter=''; // '' | 'stocklot' | 'fab' | 'siderun'
 function toggleStockPill(btn){
   const val=btn.dataset.stock;
   const wasActive=btn.classList.contains('active');
@@ -1154,12 +1179,69 @@ function filterProducts(){
   _filterTimer=setTimeout(_doFilter,200);
 }
 async function _doFilter(){
-  if(_sharedMode)return; // shared link — don't overwrite with full catalogue
+  if(_sharedMode&&typeof _sharedAll!=='undefined'){
+    // Filter locally within the shared selection
+    _filterSharedLocal();
+    return;
+  }
   currentPage=1;
   _isFirstLoad=false;
   _maxKnownPage=1;
   if(_featuredMode){await _fetchAndRenderFeatured(++_reqToken);return;}
   await _fetchAndRender(++_reqToken);
+}
+function _filterSharedLocal(){
+  const q=(document.getElementById('search-input')?.value||'').trim().toLowerCase();
+  const gn=+document.getElementById('f-gmin')?.value||0;
+  const gx=+document.getElementById('f-gmax')?.value||0;
+  const _lminCm=+document.getElementById('f-lmin')?.value||0;
+  const _lmaxCm=+document.getElementById('f-lmax')?.value||0;
+  const lmin=_lminCm?_lminCm*10:0;
+  const lmax=_lmaxCm?_lmaxCm*10:0;
+  const longmin=+document.getElementById('f-longmin')?.value||0;
+  const longmax=+document.getElementById('f-longmax')?.value||0;
+  const wmin=+document.getElementById('f-wmin')?.value||0;
+  const wmax=+document.getElementById('f-wmax')?.value||0;
+  const types=getMsdValues('msd-type');
+  const couleurs=getMsdValues('msd-couleur');
+  const mandrins=getMsdValues('msd-mandrin');
+  const formats=new Set([...document.querySelectorAll('.fpill.active:not(.fpill-orig):not(.fpill-stock):not(.fpill-depot)')].map(b=>b.dataset.format));
+  const typeCodes=types.size>0?[...types].flatMap(c=>TYPE_MAP[c]||[c]):[];
+
+  let filtered=_sharedAll.filter(p=>{
+    if(q){const s=[p.name,p.quality,p.couleur,p.details,p.ref].join(' ').toLowerCase();if(!s.includes(q))return false;}
+    if(gn&&(p.grammage||0)<gn)return false;
+    if(gx&&(p.grammage||0)>gx)return false;
+    if(lmin&&(p.largeur||0)<lmin)return false;
+    if(lmax&&(p.largeur||0)>lmax)return false;
+    if(longmin&&(p.longueur||0)<longmin)return false;
+    if(longmax&&(p.longueur||0)>longmax)return false;
+    if(wmin&&(p.poids_net||0)<wmin)return false;
+    if(wmax&&(p.poids_net||0)>wmax)return false;
+    if(typeCodes.length&&!typeCodes.includes(p.qualite))return false;
+    if(couleurs.size&&!couleurs.has(p.couleur))return false;
+    if(mandrins.size&&!mandrins.has(String(p.noyau||'')))return false;
+    if(formats.size&&!formats.has(p.format))return false;
+    if(_depotFilter==='our'&&p.emplacement!=='OUR WAREHOUSE')return false;
+    if(_depotFilter==='ext'&&p.emplacement==='OUR WAREHOUSE')return false;
+    if(_stockFilter==='fab'&&!(p.emplacement!=='OUR WAREHOUSE'&&((p.ref&&/FAB/i.test(String(p.ref)))||(p.emplacement&&/FABRICATION/i.test(p.emplacement))||(p.details&&/fabrication/i.test(p.details)))))return false;
+    if(_stockFilter==='stocklot'&&((p.ref&&/FAB/i.test(String(p.ref)))||(p.emplacement&&/FABRICATION/i.test(p.emplacement))||(p.details&&/fabrication/i.test(p.details))))return false;
+    if(_stockFilter==='siderun'&&!(p.emplacement==='OUR WAREHOUSE'&&((p.ref&&/FAB/i.test(String(p.ref)))||(p.details&&/fabrication/i.test(p.details)))))return false;
+    return true;
+  });
+
+  all=filtered;
+  _totalCount=filtered.length;
+  _maxKnownPage=Math.max(1,Math.ceil(filtered.length/PAGE));
+  currentPage=1;
+  const totalKg=filtered.reduce((s,p)=>s+(+p.weight||0),0);
+  const rbarRefs=document.getElementById('rbar-refs');
+  const rbarTons=document.getElementById('rbar-tons');
+  if(rbarRefs)rbarRefs.textContent=filtered.length.toLocaleString('fr-FR');
+  if(rbarTons)rbarTons.textContent=(totalKg/1000).toFixed(1);
+  updateFilterChips();
+  render(filtered.slice(0,PAGE));
+  _updatePager();
 }
 async function _fetchAndRenderFeatured(token){
   const g=document.getElementById('pgrid');
@@ -1351,9 +1433,13 @@ async function _fetchAndRender(token){
   else if(_depotFilter==='ext')p.append('emplacement',`neq.OUR WAREHOUSE`);
   // Stocklot/Fabrication server-side filter
   if(_stockFilter==='fab'){
+    p.append('emplacement','neq.OUR WAREHOUSE');
     p.append('or','(ref.ilike.%FAB%,emplacement.ilike.%FABRICATION%,details.ilike.%fabrication%)');
   } else if(_stockFilter==='stocklot'){
     p.append('and','(or(ref.not.ilike.%FAB%,ref.is.null),or(details.not.ilike.%fabrication%,details.is.null),or(emplacement.not.ilike.%FABRICATION%,emplacement.is.null))');
+  } else if(_stockFilter==='siderun'){
+    p.append('emplacement','eq.OUR WAREHOUSE');
+    p.append('or','(ref.ilike.%FAB%,details.ilike.%fabrication%)');
   }
   if(s==='gsm_asc'||s==='grammage_asc')p.set('order','gsm.asc.nullslast,id.asc');
   else if(s==='gsm_desc'||s==='grammage_desc')p.set('order','gsm.desc.nullslast,id.asc');
@@ -1482,6 +1568,7 @@ let _maxKnownPage=1;
 function _updatePager(){
   try{
     const pager=document.getElementById('pager');
+    const pagerTop=document.getElementById('pager-top');
     if(!pager)return;
     const isLast=all.length<PAGE;
     if(isLast&&currentPage===1){
@@ -1493,7 +1580,9 @@ function _updatePager(){
       // On a later last page — shrink to reality
       _maxKnownPage=currentPage;
     }
-    if(all.length===0||(isLast&&currentPage===1)){pager.innerHTML='';return;}
+    if(all.length===0){pager.innerHTML='';if(pagerTop)pagerTop.innerHTML='';return;}
+    if(isLast&&currentPage===1){pager.innerHTML='';/* keep pager-top visible with page 1 */
+      if(pagerTop)pagerTop.innerHTML=`<button class="parrow" disabled>‹</button><button class="pnum active" onclick="_goToPage(1)">1</button><button class="parrow" disabled>›</button>`;return;}
     const last=_maxKnownPage;
     const pageSet=new Set([1]);
     for(let i=Math.max(1,currentPage-2);i<=Math.min(last,currentPage+2);i++)pageSet.add(i);
@@ -1505,7 +1594,9 @@ function _updatePager(){
       pagesHtml+=`<button class="pnum${p===currentPage?' active':''}" onclick="_goToPage(${p})">${p}</button>`;
       prev=p;
     }
-    pager.innerHTML=`<button class="parrow" ${currentPage<=1?'disabled':''} onclick="_goToPage(${currentPage-1})">‹</button>${pagesHtml}<button class="parrow" ${isLast?'disabled':''} onclick="_goToPage(${currentPage+1})">›</button>`;
+    const pagerHtml=`<button class="parrow" ${currentPage<=1?'disabled':''} onclick="_goToPage(${currentPage-1})">‹</button>${pagesHtml}<button class="parrow" ${isLast?'disabled':''} onclick="_goToPage(${currentPage+1})">›</button>`;
+    pager.innerHTML=pagerHtml;
+    if(pagerTop)pagerTop.innerHTML=pagerHtml;
   }catch(e){console.error('_updatePager:',e);}
 }
 function _goToPage(p){
@@ -1538,7 +1629,7 @@ function updateFilterChips(){
   const _activeFmts=Array.from(document.querySelectorAll('.fpill.active:not(.fpill-orig):not(.fpill-stock):not(.fpill-depot)')).map(b=>b.dataset.format);
   const _activeOrigs=Array.from(document.querySelectorAll('.fpill-orig.active')).map(b=>b.dataset.origine==='R'?LT[lang].t_origine_recycl:LT[lang].t_origine_fab);
   if(_activeOrigs.length>0)chips.push({label:(lang==='en'?'Origin':'Origine')+' : '+_activeOrigs.join(', '),clear:()=>{document.querySelectorAll('.fpill-orig.active').forEach(b=>b.classList.remove('active'));filterProducts();}});
-  if(_stockFilter)chips.push({label:_stockFilter==='fab'?'Fabrication':'Stocklot',clear:()=>{document.querySelectorAll('.fpill-stock').forEach(b=>b.classList.remove('active'));_stockFilter='';filterProducts();}});
+  if(_stockFilter)chips.push({label:_stockFilter==='fab'?'Fabrication':_stockFilter==='siderun'?'Siderun':'Stocklots',clear:()=>{document.querySelectorAll('.fpill-stock').forEach(b=>b.classList.remove('active'));_stockFilter='';filterProducts();}});
   if(_depotFilter)chips.push({label:_depotFilter==='our'?'Notre dépôt':'Hors dépôt',clear:()=>{document.querySelectorAll('.fpill-depot').forEach(b=>b.classList.remove('active'));_depotFilter='';filterProducts();}});
   if(_activeFmts.length>0)chips.push({label:LT[lang].t_fmt+' : '+_activeFmts.map(f=>f==='Bobine'?LT[lang].t_bobine:f==='Palette'?LT[lang].t_palette:f).join(', '),clear:()=>{document.querySelectorAll('.fpill.active').forEach(b=>b.classList.remove('active'));filterProducts();}});
   ['msd-type','msd-mandrin','msd-couleur'].forEach(id=>{
@@ -1628,7 +1719,7 @@ function decodeQuality(raw){
 function formatLabel(p){
   if(!p||!p.format)return null;
   if(p.format.toLowerCase().includes('palette')&&(p.largeur||p.longueur)){
-    const dims=[p.largeur,p.longueur].filter(Boolean).join('×');
+    const dims=[p.largeur,p.longueur].filter(Boolean).map(v=>mmToCm(v)).join('×');
     return `Palette ${dims}`;
   }
   return p.format;
@@ -1665,17 +1756,17 @@ function renderCards(list){
   g.innerHTML=list.map(p=>{
     const initials=(p.type||'?').substring(0,2).toUpperCase();
     const _altTxt=[p.name,p.grammage?p.grammage+'g/m²':'',p.couleur].filter(Boolean).join(' — ')||'Produit';
-    const _isFab=(p.zone==='FABRICATION SUR COMMANDE'||p.emplacement==='FABRICATION SUR COMMANDE'||(p.ref&&/FAB/i.test(String(p.ref))));
-    const imgHtml=_isFab
-      ?`<img src="img/fabrication-sur-demande.png" alt="Fabrication sur demande" class="pcard-nophoto">`
-      :p.image_url
-        ?`<img src="${p.image_url}" alt="${_altTxt}" loading="lazy" onerror="this.src='img/no-photo.png';this.className='pcard-nophoto'">`
-        :`<img src="img/no-photo.png" alt="Photo sur demande" class="pcard-nophoto">`;
+    const _isFab=(p.zone==='FABRICATION SUR COMMANDE'||p.emplacement==='FABRICATION SUR COMMANDE'||(p.ref&&/^Photo_FAB/i.test(String(p.ref)))||(p.details&&/^\s*fabrication\b/i.test(p.details))||(p.emplacement&&/FAB|DIRECT USINE/i.test(p.emplacement)));
+    const _isSiderun=(p.emplacement==='OUR WAREHOUSE'&&((p.ref&&/FAB/i.test(String(p.ref)))||(p.details&&/fabrication/i.test(p.details))));
+    const _fallbackImg=_isSiderun?'img/siderun-sur-demande.png':_isFab?'img/fabrication-sur-demande.png':'img/no-photo.png';
+    const imgHtml=p.image_url
+        ?`<img src="${p.image_url}" alt="${_altTxt}" loading="lazy" onerror="this.src='${_fallbackImg}';this.className='pcard-nophoto'">`
+        :`<img src="${_fallbackImg}" alt="Photo sur demande" class="pcard-nophoto">`;
     const {cls:badgeCls,txt:badgeTxt}=decodeQuality(p.type);
     const isPalette=p.format&&p.format.toLowerCase().includes('palette');
     const dimTag=!isPalette&&p.largeur?`${mmToCm(p.largeur)} cm`:'';
     const fmtLabel=p.format?(isPalette?'Format':'Bobine'):null;
-    const paletteDims=isPalette&&(p.largeur||p.longueur)?[p.largeur,p.longueur].filter(Boolean).join('×'):null;
+    const paletteDims=isPalette&&(p.largeur||p.longueur)?[p.largeur,p.longueur].filter(Boolean).map(v=>mmToCm(v)).join('×'):null;
     const poids=p.poids_net?`${p.poids_net.toLocaleString('fr-FR')}`:'—';
     const prixHtml=_priceMode&&p.price?`<div class="pcard-price">${p.price.toLocaleString('fr-FR')} €/T</div>`:'';
     const typeOverlay='';
@@ -1685,13 +1776,16 @@ function renderCards(list){
     const photoRef='';
     // Mini spec rows (label + value, only if value exists)
     // Grammage intentionally omitted here (shown on image overlay + detail modal)
+    const _hsCode=p.qualite&&HS_CODES[p.qualite]?HS_CODES[p.qualite]:null;
     const specRows=[
       p.couleur?['Couleur',p.couleur]:null,
-      dimTag?['Laize',dimTag]:paletteDims?['Condit.',paletteDims]:null,
+      dimTag?['Laize',dimTag]:paletteDims?['Dimensions',paletteDims+' cm']:null,
       p.noyau?['Mandrin',`Ø${p.noyau} mm`]:null,
       p.usine?['Usine',String(p.usine).replace(/^REF\s*/i,'')]:null,
       (p.emplacement||p.zone)?['Dépôt',p.emplacement||p.zone]:null,
       p.allee?['Zone',p.allee]:null,
+      p.qualite?['Code',p.qualite]:null,
+      _hsCode?['Douane',_hsCode]:null,
     ].filter(Boolean).slice(0,6);
     const specsHtml=`<div class="pcard-specs">${specRows.map(([l,v])=>`<div class="pcard-spec"><span class="pspec-lbl">${l}</span><span class="pspec-val">${v}</span></div>`).join('')}</div>`;
     const _sub=getProductDetailText(p);
@@ -1699,7 +1793,7 @@ function renderCards(list){
     return`<div class="pcard" onclick="openDetail(${p.id})">
       <div class="pcard-img">${imgHtml}${typeOverlay}${refOverlay}${gsmOverlay}${photoRef}</div>
       <div class="pcard-body">
-        <div class="pcard-name">${p.qualite?(p.qualite+(QUALITE_LABELS[p.qualite]?' — '+QUALITE_LABELS[p.qualite]:'')):(p.type||'—')}</div>
+        <div class="pcard-name">${formatProductTitle(p.qualite,p.type)}</div>
         ${subtitleHtml}
         ${specsHtml}
         <button class="btn-add-cart${cart.find(x=>x.id===+p.id)?' added':''}" id="cadd-${p.id}" aria-label="${lang==='en'?'Add to selection':'Ajouter à la sélection'}" onclick="event.stopPropagation();addToCart(${p.id})"><span class="cart-icon">+</span><span class="cart-check">✓</span></button>
@@ -1737,23 +1831,24 @@ function renderList(list){
   if(!g)return;
   g.className='pgrid plist';
   const rows=list.map(p=>{
-    const _isFabL=(p.zone==='FABRICATION SUR COMMANDE'||p.emplacement==='FABRICATION SUR COMMANDE'||(p.ref&&/FAB/i.test(String(p.ref))));
-    const title=p.qualite?(p.qualite+(QUALITE_LABELS[p.qualite]?' — '+QUALITE_LABELS[p.qualite]:'')):(p.name||'—');
-    const thumb=_isFabL
-      ?`<img src="img/fabrication-sur-demande.png" alt="Fabrication sur demande" class="plist-thumb">`
-      :p.image_url
-        ?`<img src="${p.image_url}" alt="${title}" class="plist-thumb" loading="lazy" onerror="this.src='img/no-photo.png'">`
-        :`<img src="img/no-photo.png" alt="" class="plist-thumb">`;
+    const _isFabL=(p.zone==='FABRICATION SUR COMMANDE'||p.emplacement==='FABRICATION SUR COMMANDE'||(p.ref&&/^Photo_FAB/i.test(String(p.ref)))||(p.details&&/^\s*fabrication\b/i.test(p.details))||(p.emplacement&&/FAB|DIRECT USINE/i.test(p.emplacement)));
+    const title=formatProductTitle(p.qualite,p.name);
+    const _isSiderunL=(p.emplacement==='OUR WAREHOUSE'&&((p.ref&&/FAB/i.test(String(p.ref)))||(p.details&&/fabrication/i.test(p.details))));
+    const _listFallback=_isSiderunL?'img/siderun-sur-demande.png':_isFabL?'img/fabrication-sur-demande.png':'img/no-photo.png';
+    const thumb=p.image_url
+        ?`<img src="${p.image_url}" alt="${title}" class="plist-thumb" loading="lazy" onerror="this.src='${_listFallback}'">`
+        :`<img src="${_listFallback}" alt="" class="plist-thumb">`;
     // PRIX_MASQUÉ: const price=p.price?`<span class="plist-price">${p.price.toLocaleString('fr-FR')} €/T</span>`:`<span class="plist-price-ask">Sur dem.</span>`;
     const price='';
     const inCart=cart.find(x=>x.id===+p.id);
     const addBtn=`<button class="plist-add${inCart?' added':''}" id="ladd-${p.id}" aria-label="${lang==='en'?'Add to selection':'Ajouter à la sélection'}" onclick="event.stopPropagation();addToCart(${p.id})">${inCart?'✓':'+'}</button>`;
     const isPalette=p.format&&p.format.toLowerCase().includes('palette');
-    // Dimensions: Bobine → Laize | Ø Diamètre | Mandrin / Palette → Laize | Longueur
+    // Dimensions: Bobine → Laize | Ø Diamètre | Mandrin / Palette → Dimensions (laize×long)
     const laize=p.largeur?`${mmToCm(p.largeur)} cm`:'—';
     const dim2=isPalette
-      ?(p.longueur?`${p.longueur} mm`:'—')
-      :(p.longueur?`Ø ${p.longueur} mm`:'—');
+      ?(p.longueur?`${mmToCm(p.longueur)} cm`:'—')
+      :(p.longueur?`Ø ${mmToCm(p.longueur)} cm`:'—');
+    const paletteDims2=isPalette&&(p.largeur||p.longueur)?[p.largeur,p.longueur].filter(Boolean).map(v=>mmToCm(v)).join(' × ')+' cm':null;
     const mandrin=isPalette?null:(p.noyau?`${p.noyau} mm`:'—');
     const _detClean=p.details?p.details.replace(/[-–—\s]+/g,' ').trim():'';
     const detailsTxt=_detClean&&_detClean.length>3?`<span class="plist-details" title="${p.details}">${_detClean.substring(0,30)}${_detClean.length>30?'…':''}</span>`:'';
@@ -1765,9 +1860,9 @@ function renderList(list){
       <td class="plist-td plist-td-details">${detailsTxt||'—'}</td>
       <td class="plist-td">${p.couleur||'—'}</td>
       <td class="plist-td plist-td-num"><span class="plist-gsm">${p.grammage?p.grammage+' g/m²':'—'}</span></td>
-      <td class="plist-td plist-td-num">${laize}</td>
-      <td class="plist-td plist-td-num">${dim2}</td>
-      <td class="plist-td plist-td-num plist-col-mandrin">${isPalette?'—':(mandrin||'—')}</td>
+      ${isPalette&&paletteDims2
+        ?`<td class="plist-td plist-td-num" colspan="3">${paletteDims2}</td>`
+        :`<td class="plist-td plist-td-num">${laize}</td><td class="plist-td plist-td-num">${dim2}</td><td class="plist-td plist-td-num plist-col-mandrin">${mandrin||'—'}</td>`}
       <td class="plist-td plist-td-num">${p.poids_net?p.poids_net.toLocaleString('fr-FR')+' kg':'—'}</td>
       ${_priceMode?`<td class="plist-td plist-td-num plist-price">${p.price?p.price.toLocaleString('fr-FR')+' €/T':'—'}</td>`:''}
       <td class="plist-td plist-td-usine plist-col-usine">${p.usine?String(p.usine).replace(/^REF\s*/i,''):'—'}</td>
@@ -1775,6 +1870,7 @@ function renderList(list){
       <td class="plist-td plist-td-zone">${p.allee||'—'}</td>
     </tr>`;
   }).join('');
+  const _allPalette=list.length>0&&list.every(p=>p.format&&p.format.toLowerCase().includes('palette'));
   g.innerHTML=`<div style="overflow-x:auto"><table class="plist-table">
     <thead><tr>
       <th class="plist-th-add"><button class="plist-sel-all" onclick="event.stopPropagation();toggleSelectAll(this)">+</button></th>
@@ -1784,9 +1880,9 @@ function renderList(list){
       <th>Détails</th>
       <th>Couleur</th>
       <th>GSM</th>
-      <th>Laize</th>
+      ${_allPalette?'<th colspan="3">Dimensions</th>':`<th>Laize</th>
       <th>Diamètre</th>
-      <th class="plist-col-mandrin">Mandrin</th>
+      <th class="plist-col-mandrin">Mandrin</th>`}
       <th>Poids (kg)</th>
       ${_priceMode?'<th>Prix</th>':''}
       <th class="plist-col-usine">Réf. usine</th>
@@ -1856,10 +1952,14 @@ async function openDetail(id){
   // Image
   const mi=document.getElementById('det-main');
   const _detAlt=[p.name,p.grammage?p.grammage+'g/m²':'',p.couleur].filter(Boolean).join(' — ')||'Produit';
-  const _isFab=(p.zone==='FABRICATION SUR COMMANDE'||p.emplacement==='FABRICATION SUR COMMANDE'||(p.ref&&/FAB/i.test(String(p.ref))));
-  mi.innerHTML=(p.image_url
-    ?`<img src="${p.image_url}" loading="lazy" alt="${_detAlt}" onerror="detImgErr(this)">`
-    :_isFab?_DET_FAB_PHOTO:_DET_NO_PHOTO);
+  const _isFab=(p.zone==='FABRICATION SUR COMMANDE'||p.emplacement==='FABRICATION SUR COMMANDE'||(p.ref&&/^Photo_FAB/i.test(String(p.ref)))||(p.details&&/^\s*fabrication\b/i.test(p.details))||(p.emplacement&&/FAB|DIRECT USINE/i.test(p.emplacement)));
+  const _isSiderunD=(p.emplacement==='OUR WAREHOUSE'&&((p.ref&&/FAB/i.test(String(p.ref)))||(p.details&&/fabrication/i.test(p.details))));
+  const _DET_SIDERUN_PHOTO=`<img src="img/siderun-sur-demande.png" alt="Siderun" style="width:100%;height:100%;object-fit:contain;">`;
+  const _detFallback=_isSiderunD?_DET_SIDERUN_PHOTO:_isFab?_DET_FAB_PHOTO:_DET_NO_PHOTO;
+  mi.innerHTML=p.image_url?`<img src="${p.image_url}" loading="lazy" alt="${_detAlt}" onerror="this.onerror=null;this.parentNode.innerHTML=document.getElementById('det-fallback').innerHTML;">`
+    :_detFallback;
+  // Store fallback for onerror
+  let _dfEl=document.getElementById('det-fallback');if(!_dfEl){_dfEl=document.createElement('div');_dfEl.id='det-fallback';_dfEl.style.display='none';document.body.appendChild(_dfEl);}_dfEl.innerHTML=_detFallback;
   // Ref badge positionné dans dimg-col (hors dmain pour éviter les conflits)
   const rb=document.getElementById('det-ref-badge');
   if(rb){
@@ -1878,20 +1978,22 @@ async function openDetail(id){
 
   // Ref + nom
   const _detRefEl=document.getElementById('det-ref');if(_detRefEl)_detRefEl.textContent=p.ref?String(p.ref).replace(/^Photo_/i,''):'';
-  document.getElementById('det-name').textContent=p.qualite?(p.qualite+(QUALITE_LABELS[p.qualite]?' — '+QUALITE_LABELS[p.qualite]:'')):(p.name||'Produit');
+  document.getElementById('det-name').textContent=formatProductTitle(p.qualite,p.name||'Produit');
   const _dwEl=document.getElementById('det-weight');if(_dwEl)_dwEl.textContent=p.poids_net?fmt(p.poids_net):'';
   const _sumEl=document.getElementById('det-summary');
   if(_sumEl){const _s=getProductDetailText(p);_sumEl.textContent=_s;_sumEl.style.display=_s?'block':'none';}
 
   // Specs grid
-  const _typeLabel=p.qualite?(p.qualite+(QUALITE_LABELS[p.qualite]?' — '+QUALITE_LABELS[p.qualite]:'')):(p.qualite||null);
+  const _typeLabel=p.qualite?formatProductTitle(p.qualite,p.qualite):null;
   const specDefs=[
+    {lbl: '',                                     val: p.format&&p.qualite!=='UMAC'&&p.qualite!=='UMAN'?(p.format.toLowerCase().includes('palette')?'Format':'Bobine'):null},
     {lbl: LT[lang].t_spec_couleur||'Couleur',   val: p.couleur},
     {lbl: LT[lang].t_spec_gsm||'Grammage',      val: p.grammage?p.grammage+' g/m²':null},
-    {lbl: LT[lang].t_spec_laize||'Laize',       val: p.largeur?mmToCm(p.largeur)+' cm':null},
-    {lbl: LT[lang].t_spec_longueur||'Longueur', val: p.format==='Palette'&&p.longueur?p.longueur+' mm':null},
+    {lbl: (p.format&&p.format.toLowerCase().includes('palette')&&p.largeur&&p.longueur)?'Dimensions':(LT[lang].t_spec_laize||'Laize'),
+     val: (p.format&&p.format.toLowerCase().includes('palette')&&p.largeur&&p.longueur)?mmToCm(p.largeur)+' × '+mmToCm(p.longueur)+' cm':(p.largeur?mmToCm(p.largeur)+' cm':null)},
+    {lbl: LT[lang].t_spec_longueur||'Longueur', val: p.format&&p.format.toLowerCase().includes('palette')&&p.largeur&&p.longueur?null:(p.format==='Palette'&&p.longueur?mmToCm(p.longueur)+' cm':null)},
     {lbl: LT[lang].t_spec_mandrin||'Mandrin',   val: p.noyau?p.noyau+' mm':null},
-    {lbl: LT[lang].t_spec_format||'Dimensions',  val: formatLabel(p)},
+    {lbl: LT[lang].t_spec_format||'Dimensions',  val: p.qualite!=='UMAC'&&p.qualite!=='UMAN'&&!(p.format&&p.format.toLowerCase().includes('palette'))?formatLabel(p):null},
     {lbl: LT[lang].t_spec_depot||'Emplacement',  val: p.zone||p.emplacement},
     {lbl: 'Zone',                                  val: p.allee||null},
     {lbl: 'Usine',                                val: p.usine?String(p.usine).replace(/^REF\s*/i,''):'—', always:true},
@@ -1930,7 +2032,7 @@ function closeDetail(){
   document.removeEventListener('keydown',_detKeyHandler);
 }
 function swImg(el,url){document.getElementById('det-main').innerHTML=`<img src="${url}">`;document.querySelectorAll('.dthumb').forEach(t=>t.classList.remove('active'));el.classList.add('active');}
-function openProforma(){if(!cur)return;const _proTitle=cur.qualite?(cur.qualite+(QUALITE_LABELS[cur.qualite]?' — '+QUALITE_LABELS[cur.qualite]:'')):(cur.name||'Produit');document.getElementById('pf-prod-name').textContent=_proTitle+(cur.ref&&!String(cur.ref).startsWith('Photo_')?' — '+cur.ref:'');document.getElementById('proforma-bg').classList.add('show');}
+function openProforma(){if(!cur)return;const _proTitle=formatProductTitle(cur.qualite,cur.name||'Produit');document.getElementById('pf-prod-name').textContent=_proTitle+(cur.ref&&!String(cur.ref).startsWith('Photo_')?' — '+cur.ref:'');document.getElementById('proforma-bg').classList.add('show');}
 function closeProforma(){document.getElementById('proforma-bg').classList.remove('show');}
 const emailRx=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 function validateField(fgId,valid,errMsg){
@@ -2053,7 +2155,7 @@ function toggleSelectAll(btn){
     // Add all not yet in cart
     currentList.forEach(p=>{
       if(!cart.find(x=>x.id===+p.id)){
-        cart.push({id:p.id,name:p.name,ref:p.ref,type:p.type,qualite:p.qualite||null,details:p.details||null,grammage:p.grammage,largeur:p.largeur,format:p.format,poids_net:p.poids_net,price:p.price||null,img:p.image_url||null});
+        cart.push({id:p.id,name:p.name,ref:p.ref,type:p.type,qualite:p.qualite||null,details:p.details||null,grammage:p.grammage,largeur:p.largeur,format:p.format,poids_net:p.poids_net,price:p.price||null,img:p.image_url||null,couleur:p.couleur||null,usine:p.usine||null,zone:p.zone||null,emplacement:p.emplacement||null,allee:p.allee||null});
         const lb=document.getElementById('ladd-'+p.id);
         if(lb){lb.classList.add('added');lb.textContent='✓';}
         const cb=document.getElementById('cadd-'+p.id);
@@ -2082,7 +2184,7 @@ function addToCart(id){
     toast(LT[lang].t_removed_sel);
     return;
   }
-  cart.push({id:p.id,name:p.name,ref:p.ref,type:p.type,qualite:p.qualite||null,details:p.details||null,grammage:p.grammage,largeur:p.largeur,format:p.format,poids_net:p.poids_net,price:p.price||null,img:p.image_url||null});
+  cart.push({id:p.id,name:p.name,ref:p.ref,type:p.type,qualite:p.qualite||null,details:p.details||null,grammage:p.grammage,largeur:p.largeur,format:p.format,poids_net:p.poids_net,price:p.price||null,img:p.image_url||null,couleur:p.couleur||null,usine:p.usine||null,zone:p.zone||null,emplacement:p.emplacement||null,allee:p.allee||null});
   localStorage.setItem('prodi_cart',JSON.stringify(cart));
   updateCartBadge();
   const caddBtn=document.getElementById('cadd-'+id);
@@ -2213,52 +2315,305 @@ async function _doImportRefs(){
   }
 }
 
+function _proformaNumero(){
+  const d=new Date();
+  const yy=String(d.getFullYear()).slice(2);
+  const mm=String(d.getMonth()+1).padStart(2,'0');
+  const seq=Math.floor(1000+Math.random()*9000);
+  return `DE${yy}${mm}${seq}`;
+}
+
+function _proformaDesignation(it){
+  const lines=[];
+  if(it.usine)lines.push(`USINE ${it.usine}${it.emplacement&&/FAB|DIRECT/i.test(it.emplacement)?' - FABRICATION':''}`);
+  lines.push('');
+  const titre=formatProductTitle(it.qualite,it.qualite);
+  const couleur=it.couleur?` ${it.couleur.toUpperCase()}`:'';
+  lines.push(`${titre}${couleur}`);
+  if(it.details){
+    const d=String(it.details).replace(/\s*[·]\s*|\s+-\s+-\s+/g,' · ').trim();
+    if(d&&d.length>2)lines.push(d.toUpperCase());
+  }
+  if(it.gsm)lines.push(`GRAMMAGE : ${it.gsm} g/m²`);
+  if(it.largeurCm)lines.push(`LAIZE${it.format&&/palette/i.test(it.format)?'':'S SOUHAITÉES SELON LAIZE MÈRE'} ${it.format&&/palette/i.test(it.format)?'':'DE '}${it.largeurCm} cm`);
+  return lines.filter((l,i,a)=>!(l===''&&(i===0||a[i-1]===''))).join('\n');
+}
+
 function printSelection(){
   if(!cart.length){toast('Sélection vide !');return;}
   const items=cart.map(p=>{
     const _f=all.find(x=>x.id===+p.id)||p;
     const qualite=p.qualite||_f.qualite||'';
-    const label=qualite+(QUALITE_LABELS[qualite]?' — '+QUALITE_LABELS[qualite]:'');
-    const details=(p.details||_f.details||'').replace(/[-–—\s]+/g,' ').trim();
-    const ref=p.ref?String(p.ref).replace(/^Photo_/i,''):'';
-    return{ref,label,details,couleur:p.couleur||'—',gsm:p.grammage?p.grammage+' g/m²':'—',
-      laize:p.largeur?mmToCm(p.largeur)+' cm':'—',poids:p.poids_net?p.poids_net.toLocaleString('fr-FR')+' kg':'—',
-      prix:_f.price?_f.price.toLocaleString('fr-FR')+' €/T':'—',usine:p.usine||_f.usine||'—',depot:p.zone||_f.zone||'—'};
+    const couleur=p.couleur||_f.couleur||'';
+    const usine=String(p.usine||_f.usine||'').replace(/^REF\s*/i,'');
+    const gsm=p.grammage||_f.grammage||'';
+    const largeurCm=p.largeur?mmToCm(p.largeur):'';
+    const poidsKg=Number(p.poids_net||0);
+    const priceT=Number(_f.price||0);
+    const priceKg=priceT/1000;
+    const montant=poidsKg*priceKg;
+    const it={qualite,couleur,usine,gsm,largeurCm,details:p.details||_f.details||'',format:p.format||_f.format||'',emplacement:p.emplacement||_f.emplacement||''};
+    return{ref:qualite||'—',qualite,designation:_proformaDesignation(it),poidsKg,priceKg,priceT,montant};
   });
-  const totalKg=cart.reduce((s,p)=>s+(p.poids_net||0),0);
-  const totalPrix=_priceMode?cart.reduce((s,p)=>{const _f=all.find(x=>x.id===+p.id)||p;return s+((p.poids_net||0)/1000)*(_f.price||0);},0):0;
-  const date=new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const totalPoids=items.reduce((s,i)=>s+i.poidsKg,0);
+  const totalMontant=items.reduce((s,i)=>s+i.montant,0);
+  // Grouped view (résumé) — by qualite code
+  const groupsMap=new Map();
+  items.forEach(it=>{
+    const k=it.qualite||'—';
+    const g=groupsMap.get(k)||{qualite:k,count:0,poidsKg:0,montant:0};
+    g.count+=1;g.poidsKg+=it.poidsKg;g.montant+=it.montant;
+    groupsMap.set(k,g);
+  });
+  const groups=[...groupsMap.values()].sort((a,b)=>b.poidsKg-a.poidsKg);
+  const eur=v=>(v||0).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const num=v=>(v||0).toLocaleString('fr-FR',{maximumFractionDigits:0});
+  const dec=(v,d=2)=>(v||0).toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d});
+  const today=new Date();
+  const dateFR=`${String(today.getDate()).padStart(2,'0')}/${String(today.getMonth()+1).padStart(2,'0')}/${String(today.getFullYear()).slice(2)}`;
+  const numero=_proformaNumero();
+  const baseUrl=location.origin+location.pathname.replace(/[^/]*$/,'');
   const w=window.open('','_blank');
-  w.document.write(`<!DOCTYPE html><html><head><title>Sélection Prodiconseil — ${date}</title>
+  w.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><base href="${baseUrl}"><title>Facture Proforma — ${numero}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=Pinyon+Script&family=Playfair+Display:ital,wght@1,400;1,700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;color:#222;padding:20px 30px;}
-.header{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #222;padding-bottom:12px;margin-bottom:16px;}
-.header h1{font-size:18px;font-weight:800;letter-spacing:1px;}
-.header .date{font-size:12px;color:#666;}
-.meta{display:flex;gap:24px;margin-bottom:12px;font-size:12px;font-weight:600;}
-.meta span{color:#FE0000;}
-table{width:100%;border-collapse:collapse;font-size:10.5px;}
-th{background:#222;color:#fff;text-align:left;padding:6px 5px;font-size:9px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;}
-td{padding:5px;border-bottom:1px solid #ddd;vertical-align:middle;}
-tr:nth-child(even){background:#f9f9f9;}
-.ref{font-weight:700;font-variant-numeric:tabular-nums;font-size:10px;}
-.num{text-align:right;font-variant-numeric:tabular-nums;}
-.prix{color:#FE0000;font-weight:700;}
-.footer{margin-top:16px;padding-top:10px;border-top:2px solid #222;display:flex;justify-content:space-between;font-size:13px;font-weight:700;}
-.footer .total-prix{color:#FE0000;font-size:15px;}
-@media print{body{padding:15mm 12mm;} @page{margin:0;size:A4 landscape;}}
+:root{--ink:#1a1a1a;--gray:#6b6b6b;--line:#1a1a1a;--soft:#e5e5e0;--red:#d22;--bg:#fdfcfa;}
+html,body{background:#eeeae3;}
+body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;color:var(--ink);line-height:1.35;padding:24px;display:flex;justify-content:center;}
+.page{background:var(--bg);width:210mm;min-height:297mm;padding:14mm 14mm 12mm;box-shadow:0 4px 24px rgba(0,0,0,.08);position:relative;}
+.page-num{position:absolute;top:10mm;right:14mm;font-weight:600;font-size:11px;}
+.head{display:grid;grid-template-columns:1.05fr .95fr;gap:18px;margin-bottom:14px;}
+.brand{display:flex;align-items:flex-start;gap:10px;}
+.brand-logo{width:64px;height:64px;object-fit:contain;flex-shrink:0;}
+.brand-text .brand-name{font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--red);letter-spacing:.5px;line-height:1;margin-bottom:5px;font-weight:400;}
+.brand-text .brand-line{font-size:9px;line-height:1.5;color:var(--ink);}
+.brand-text b{font-weight:700;}
+.brand-text .red{color:var(--red);font-weight:700;}
+.client{padding-top:6px;}
+.client-name{font-family:'DM Sans',sans-serif;font-weight:700;font-size:16px;letter-spacing:.5px;margin-bottom:10px;text-transform:uppercase;}
+.client-block{font-size:11px;line-height:1.7;}
+.client-block .country{font-weight:700;font-size:13px;letter-spacing:.5px;}
+.client-fields{margin-top:10px;font-size:10.5px;line-height:1.7;}
+.client-fields .lbl{display:inline-block;min-width:115px;color:#222;}
+.editable{border-bottom:1px dashed #bbb;padding:0 4px;display:inline-block;min-width:80px;outline:none;}
+.editable:focus{background:#fffbe6;border-bottom-style:solid;}
+.title-row{margin:18px 0 10px;display:flex;justify-content:space-between;align-items:flex-end;}
+.proforma-title{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-weight:700;font-size:38px;letter-spacing:.3px;color:var(--ink);line-height:1;}
+.commercial{font-size:10.5px;}
+.commercial .lbl{color:var(--gray);}
+.commercial b{font-weight:700;}
+.info-row{display:grid;grid-template-columns:1.15fr 1fr;gap:12px;margin-bottom:10px;}
+.info-table{width:100%;border-collapse:collapse;border:1.5px solid var(--line);font-size:10px;}
+.info-table th,.info-table td{border:1px solid var(--line);padding:5px 8px;text-align:center;}
+.info-table th{font-weight:700;text-transform:uppercase;letter-spacing:.5px;font-size:9px;background:#f7f4ee;}
+.info-table td{font-weight:700;font-size:11px;height:24px;}
+.cond-box{border:1.5px solid var(--line);padding:0;display:flex;flex-direction:column;}
+.cond-head{background:#f7f4ee;padding:5px 10px;font-weight:700;border-bottom:1px solid var(--line);font-size:10px;}
+.cond-body{padding:5px 10px;font-size:10px;line-height:1.6;flex:1;}
+.cond-body .row{display:flex;gap:6px;}
+.cond-body .lbl{color:var(--ink);font-weight:500;flex:0 0 auto;}
+.cond-body .red{color:var(--red);font-weight:700;}
+.items{width:100%;border-collapse:collapse;border:1.5px solid var(--line);font-size:10px;margin-bottom:0;}
+.items th{background:var(--ink);color:#fff;padding:7px 8px;text-align:left;font-weight:700;font-size:9.5px;text-transform:uppercase;letter-spacing:.4px;border:1px solid var(--ink);}
+.items td{padding:7px 8px;border:1px solid #c8c4bd;vertical-align:top;}
+.items td.ref{font-weight:700;font-size:10.5px;letter-spacing:.3px;}
+.items td.designation{white-space:pre-line;line-height:1.5;}
+.items td.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;}
+.items col.c-ref{width:13%;}
+.items col.c-des{width:auto;}
+.items col.c-pn{width:11%;}
+.items col.c-pu{width:11%;}
+.items col.c-mt{width:14%;}
+.totals-block{padding:10px 14px;border:1.5px solid var(--line);border-top:none;background:#fafaf6;font-size:10.5px;line-height:1.8;font-weight:600;}
+.totals-block .row{display:flex;justify-content:space-between;}
+.totals-block .row b{color:var(--ink);}
+.totals-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1.1fr;border:1.5px solid var(--line);border-top:none;}
+.totals-grid > div{padding:7px 10px;border-right:1px solid var(--line);text-align:center;}
+.totals-grid > div:last-child{border-right:none;background:#fbf6e8;}
+.totals-grid .lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px;}
+.totals-grid .val{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;}
+.totals-grid .net .lbl{text-decoration:underline;}
+.totals-grid .net .val{font-size:18px;color:var(--ink);}
+.foot-row{margin-top:14px;display:grid;grid-template-columns:1fr 1.4fr;gap:14px;}
+.stamp{display:flex;align-items:flex-end;justify-content:flex-start;min-height:90px;}
+.stamp-img{max-width:170px;opacity:.85;}
+.payment-cond{font-size:10.5px;line-height:1.5;}
+.payment-cond .row{display:flex;gap:8px;align-items:baseline;margin-bottom:6px;}
+.payment-cond b{font-weight:700;text-transform:uppercase;letter-spacing:.4px;font-size:10.5px;}
+.payment-cond .amt{font-weight:700;font-variant-numeric:tabular-nums;}
+.bank-row{margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start;}
+.bank-table{width:100%;border-collapse:collapse;font-size:8.5px;}
+.bank-table th,.bank-table td{border:1px solid var(--line);padding:3px 5px;}
+.bank-table th{background:#f7f4ee;font-weight:700;text-transform:uppercase;letter-spacing:.3px;}
+.bank-table td{vertical-align:middle;}
+.bank-table td.bk-name{font-weight:600;}
+.confirm{font-size:10.5px;line-height:1.55;text-align:right;font-style:italic;color:#333;}
+.confirm .strong{font-weight:700;font-style:normal;display:block;margin-top:8px;letter-spacing:.4px;}
+.toolbar{position:fixed;top:14px;right:14px;display:flex;gap:8px;z-index:100;align-items:center;background:rgba(255,255,255,.95);padding:6px;border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,.12);}
+.toolbar button{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:9px 16px;border:none;border-radius:4px;cursor:pointer;letter-spacing:.4px;}
+.toolbar .modes{display:flex;gap:0;background:#f3f1ec;border-radius:4px;padding:3px;margin-right:4px;}
+.toolbar .modes button{background:transparent;color:var(--ink);padding:6px 12px;font-size:11px;border-radius:3px;letter-spacing:.3px;}
+.toolbar .modes button.active{background:var(--ink);color:#fff;}
+.toolbar .btn-print{background:var(--red);color:#fff;}
+.toolbar .btn-close{background:#fff;color:var(--ink);border:1.5px solid var(--ink);}
+.synthesis-block{border:1.5px solid var(--line);padding:30px 24px;text-align:center;background:#fafaf6;}
+.synthesis-block .sb-label{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1.5px;color:var(--gray);margin-bottom:8px;}
+.synthesis-block .sb-main{font-family:'Bebas Neue',sans-serif;font-size:46px;letter-spacing:1.5px;color:var(--ink);line-height:1.1;}
+.synthesis-block .sb-main .sep{color:var(--red);margin:0 14px;}
+.synthesis-block .sb-sub{margin-top:14px;font-size:11px;color:var(--gray);font-style:italic;}
+@media print{
+  html,body{background:#fff;}
+  body{padding:0;display:block;}
+  .page{box-shadow:none;width:auto;min-height:auto;padding:10mm 12mm;}
+  .toolbar{display:none;}
+  .editable{border-bottom-color:transparent;}
+  @page{size:A4 portrait;margin:0;}
+}
 </style></head><body>
-<div class="header"><h1>PRODICONSEIL</h1><div class="date">${date}</div></div>
-<div class="meta"><span>${items.length} produits</span><span>${fmt(totalKg)}</span>${_priceMode&&totalPrix?`<span class="prix">${totalPrix.toLocaleString('fr-FR',{maximumFractionDigits:0})} € estimé</span>`:''}</div>
-<table><thead><tr><th>Réf.</th><th>Qualité</th><th>Détails</th><th>Couleur</th><th>GSM</th><th>Laize</th><th class="num">Poids</th>${_priceMode?'<th class="num">Prix</th>':''}<th>Réf. usine</th><th>Dépôt</th></tr></thead><tbody>
-${items.map(p=>`<tr><td class="ref">${p.ref}</td><td>${p.label}</td><td>${p.details||'—'}</td><td>${p.couleur}</td><td>${p.gsm}</td><td>${p.laize}</td><td class="num">${p.poids}</td>${_priceMode?`<td class="num prix">${p.prix}</td>`:''}<td style="text-align:center">${p.usine}</td><td>${p.depot}</td></tr>`).join('')}
-</tbody></table>
-<div class="footer"><div>Total : ${fmt(totalKg)}</div>${_priceMode&&totalPrix?`<div class="total-prix">Estimé : ${totalPrix.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</div>`:''}</div>
+<div class="toolbar">
+  <div class="modes">
+    <button data-mode="detail" class="active" onclick="setMode('detail')">Détail</button>
+    <button data-mode="resume" onclick="setMode('resume')">Résumé</button>
+    <button data-mode="synth" onclick="setMode('synth')">Synthèse</button>
+  </div>
+  <button class="btn-print" onclick="window.print()">Imprimer</button>
+  <button class="btn-close" onclick="window.close()">Fermer</button>
+</div>
+<div class="page">
+  <div class="page-num">1</div>
+  <div class="head">
+    <div class="brand">
+      <img class="brand-logo" src="img/logo.png" alt="Prodiconseil" onerror="this.style.display='none'">
+      <div class="brand-text">
+        <div class="brand-name">Prodiconseil</div>
+        <div class="brand-line">9 Promenée Jeanne Hachette 94200 Ivry sur Seine - FRANCE</div>
+        <div class="brand-line"><b>Contact e-mail :</b> clients@prodi.com</div>
+        <div class="brand-line">Tel : 331 4672 0369 - Fax : 331 4959 8731</div>
+        <div class="brand-line">SARL au Capital de 516 000 EUR - Siret : 382445922</div>
+        <div class="brand-line">NAF 4676Z - TVA FR50 382 445922 RCS CRETEIL</div>
+        <div class="brand-line red" style="margin-top:5px;">Marchandise d'origine Union Européenne.</div>
+        <div class="brand-line red">En cas de vente à l'exportation, exonération de TVA</div>
+        <div class="brand-line red">art 262 TER-I CGI-Conditions Générales applicables.</div>
+        <div class="brand-line red">Valable 10 jours sauf vente entre temps</div>
+        <div class="brand-line red">La confirmation de commande suivra</div>
+      </div>
+    </div>
+    <div class="client">
+      <div class="client-name" contenteditable="true">NOM DU CLIENT</div>
+      <div class="client-block">
+        <div contenteditable="true">Adresse ligne 1</div>
+        <div contenteditable="true">Code postal — Ville</div>
+        <div class="country" contenteditable="true">PAYS</div>
+      </div>
+      <div class="client-fields">
+        <div><span class="lbl">Ref. Interne :</span><span class="editable" contenteditable="true">—</span></div>
+        <div><span class="lbl">NIF :</span><span class="editable" contenteditable="true">—</span></div>
+        <div><span class="lbl">N° intra./RC :</span><span class="editable" contenteditable="true"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="title-row">
+    <div class="proforma-title">Facture Proforma (Euros)</div>
+  </div>
+  <div class="commercial" style="margin-bottom:10px;"><span class="lbl">Votre commercial :</span> <b contenteditable="true">—</b></div>
+
+  <div class="info-row">
+    <table class="info-table">
+      <thead><tr><th>Numéro</th><th>Date</th><th>Référence</th></tr></thead>
+      <tbody><tr><td>${numero}</td><td>${dateFR}</td><td contenteditable="true">—</td></tr></tbody>
+    </table>
+    <div class="cond-box">
+      <div class="cond-head">Conditions de livraison</div>
+      <div class="cond-body">
+        <div contenteditable="true">CFR</div>
+        <div contenteditable="true">PORT</div>
+        <div class="row" style="margin-top:4px;"><span class="lbl">Pays d'origine :</span><span class="red" contenteditable="true">—</span></div>
+        <div class="row"><span class="lbl">Pays de provenance :</span><span class="red" contenteditable="true">FRANCE</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="items-host">
+    <table class="items view-detail">
+      <colgroup><col class="c-ref"><col class="c-des"><col class="c-pn"><col class="c-pu"><col class="c-mt"></colgroup>
+      <thead><tr><th>Référence</th><th>Désignation</th><th style="text-align:right;">PN (kg)</th><th style="text-align:right;">P.U (€)</th><th style="text-align:right;">Montant HT (€)</th></tr></thead>
+      <tbody>
+        ${items.map(it=>`<tr><td class="ref">${it.ref}</td><td class="designation">${it.designation.replace(/</g,'&lt;')}</td><td class="num">${num(it.poidsKg)}</td><td class="num">${dec(it.priceKg,2)}</td><td class="num">${eur(it.montant)}</td></tr>`).join('')}
+      </tbody>
+    </table>
+    <table class="items view-resume" style="display:none;">
+      <colgroup><col style="width:18%"><col><col style="width:13%"><col style="width:14%"><col style="width:18%"></colgroup>
+      <thead><tr><th>Code</th><th>Désignation</th><th style="text-align:right;">Réfs</th><th style="text-align:right;">PN (kg)</th><th style="text-align:right;">Montant HT (€)</th></tr></thead>
+      <tbody>
+        ${groups.map(g=>`<tr><td class="ref">${g.qualite}</td><td>${(formatProductTitle(g.qualite,g.qualite)).replace(/</g,'&lt;')}</td><td class="num">${num(g.count)}</td><td class="num">${num(g.poidsKg)}</td><td class="num">${eur(g.montant)}</td></tr>`).join('')}
+      </tbody>
+    </table>
+    <div class="synthesis-block view-synth" style="display:none;">
+      <div class="sb-label">Demande de prix</div>
+      <div class="sb-main">${num(items.length)} PRODUITS<span class="sep">·</span>${dec(totalPoids/1000,1)} T</div>
+      <div class="sb-sub">Liste détaillée disponible sur demande — référence proforma : ${numero}</div>
+    </div>
+  </div>
+
+  <div class="totals-block">
+    <div class="row"><b>MONTANT FOB :</b><span contenteditable="true">${eur(totalMontant)} €</span></div>
+    <div class="row"><b>MONTANT DU FRET :</b><span contenteditable="true">0,00 €</span></div>
+    <div class="row"><b>MONTANT COÛT ET FRET :</b><span contenteditable="true">${eur(totalMontant)} €</span></div>
+  </div>
+
+  <div class="totals-grid">
+    <div><div class="lbl">Total HT</div><div class="val">${eur(totalMontant)} €</div></div>
+    <div><div class="lbl">Total TTC</div><div class="val">${eur(totalMontant)} €</div></div>
+    <div><div class="lbl">Poids Total (kg)</div><div class="val">${num(totalPoids)}</div></div>
+    <div class="net"><div class="lbl">Net à payer</div><div class="val">${eur(totalMontant)} €</div></div>
+  </div>
+
+  <div class="foot-row">
+    <div class="stamp"></div>
+    <div>
+      <div class="payment-cond">
+        <div class="row"><b>Conditions de paiement :</b><span class="amt" contenteditable="true">${eur(totalMontant)}</span><span contenteditable="true">REMISE DOCUMENTAIRE PAYABLE À VUE</span></div>
+        <div class="row"><b>Banque du client :</b><span contenteditable="true">—</span></div>
+        <div contenteditable="true" style="padding-left:115px;">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bank-row" style="margin-top:14px;">
+    <table class="bank-table">
+      <thead><tr><th colspan="4">Banque Prodiconseil</th><th>Code</th><th>Guichet</th><th>Compte</th><th>RIB</th></tr></thead>
+      <tbody>
+        <tr><td class="bk-name" colspan="4">BNP PARIBAS - ILE DE FRANCE EST ENTREPRISES (02511)<br>IBAN : FR 76 3000 4008 3400 0100 1743 986 - SWIFT:BNPAFRPPIFE</td><td>30004</td><td>00834</td><td>00010017439</td><td>86</td></tr>
+        <tr><td class="bk-name" colspan="4">BANQUE POPULAIRE - BP RIVES CA TOLBIAC (00118)<br>IBAN : FR 76 1020 7000 1304 0130 5290 161-SWIFT:CCBPFRPPMTG</td><td>10207</td><td>00013</td><td>04013052901</td><td>61</td></tr>
+        <tr><td class="bk-name" colspan="4">SOCIETE GENERALE - SG IVRY SUR SEINE (04240)<br>IBAN : FR 76 3000 3042 4000 0209 3161 041 - SWIFT:SOGEFRPP</td><td>30003</td><td>04240</td><td>00020931610</td><td>41</td></tr>
+      </tbody>
+    </table>
+    <div class="confirm">
+      Je confirme mon accord sur cette proforma<br>
+      et les conditions de vente :<br>
+      Je m'engage à payer tous les frais et taxes<br>
+      s'il y avait un retard, une annulation<br><br>
+      hors du pays de départ des marchandises.
+      <span class="strong">Renvoyer signé et cacheté</span>
+    </div>
+  </div>
+</div>
+<script>
+  function setMode(m){
+    document.querySelectorAll('#items-host > *').forEach(el=>el.style.display='none');
+    const map={detail:'.view-detail',resume:'.view-resume',synth:'.view-synth'};
+    const el=document.querySelector(map[m]);
+    if(el)el.style.display=el.tagName==='TABLE'?'table':'block';
+    document.querySelectorAll('.toolbar .modes button').forEach(b=>b.classList.toggle('active',b.dataset.mode===m));
+    try{localStorage.setItem('proforma_mode',m);}catch(_){}
+  }
+  try{const saved=localStorage.getItem('proforma_mode');if(saved&&saved!=='detail')setMode(saved);}catch(_){}
+</script>
 </body></html>`);
   w.document.close();
-  setTimeout(()=>w.print(),300);
-  document.body.removeChild(ta);
 }
 function _showShareModal(url){
   const existing=document.getElementById('share-modal-bg');
@@ -2315,17 +2670,20 @@ async function loadSharedQuote(idsOverride){
   if(sqb){
     const _sqTon=(totalKg/1000).toFixed(1);
     const _sqPrix=_priceMode?all.reduce((s,p)=>s+((p.poids_net||0)/1000)*(p.price||0),0):0;
-    sqb.innerHTML=`<div class="sq-inner sq-slim"><span class="sq-slim-label">⭐ Sélection exclusive client · ${all.length} produit${all.length>1?'s':''} · ${_sqTon} T${_priceMode&&_sqPrix?' · <strong style="color:var(--red)">'+_sqPrix.toLocaleString('fr-FR',{maximumFractionDigits:0})+' €</strong>':''}</span><div style="display:flex;gap:8px;align-items:center"><button class="sq-btn-view" onclick="_exitSharedMode()" style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;">Voir tous les stocks →</button><button class="sq-btn-devis" onclick="_loadSharedIntoCart()">Demander un devis</button></div></div>`;
+    sqb.innerHTML=`<div class="sq-inner sq-slim"><span class="sq-slim-label">⭐ Sélection exclusive client · ${all.length} produit${all.length>1?'s':''} · ${_sqTon} T${_priceMode&&_sqPrix?' · <strong style="color:var(--red)">'+_sqPrix.toLocaleString('fr-FR',{maximumFractionDigits:0})+' €</strong>':''}</span><div style="display:flex;gap:8px;align-items:center"><button class="sq-btn-devis" onclick="_loadSharedIntoCart()">Demander un devis</button></div></div>`;
     sqb.style.display='block';
   }
 
   render(all.slice(0,PAGE));
   _updatePager();
   window._sharedProducts=products;
-  // Auto-load shared products into cart
-  cart=products.map(p=>({...rowToUi(p),poids_net:p.weight}));
+  // Don't auto-load shared products into cart — let client choose
+  cart=[];
+  localStorage.removeItem('prodi_cart');
   updateCartBadge();
   renderDrawer();
+
+  // Lock shared mode — filters & search work only within the selection
 }
 function _showSharedQuoteBanner(products){
   const banner=document.getElementById('shared-quote-banner');
@@ -2349,10 +2707,8 @@ function _showSharedQuoteBanner(products){
   window._sharedProducts=products;
 }
 function _exitSharedMode(){
-  _sharedMode=false;
-  const sqb=document.getElementById('shared-quote-banner');
-  if(sqb)sqb.style.display='none';
-  _doFilter();
+  // Blocked in shared mode — client cannot access full catalogue
+  return;
 }
 function _loadSharedIntoCart(){
   if(!window._sharedProducts)return;
@@ -2461,7 +2817,7 @@ function renderDrawer(){
     const _pFull=all.find(x=>x.id===+p.id)||p;
     const _qualite=p.qualite||_pFull.qualite||null;
     const _details=p.details||_pFull.details||null;
-    const ciTitle=_qualite?(_qualite+(QUALITE_LABELS[_qualite]?' — '+QUALITE_LABELS[_qualite]:'')):(p.name||'—');
+    const ciTitle=formatProductTitle(_qualite,p.name);
     const _ciSum=getProductDetailText(_pFull);
     const lot=p.ref?String(p.ref).replace(/^Photo_/i,'').trim()||null:null;
     const imgSrc=p.img||p.image_url||(all.find(x=>x.id===+p.id)?.image_url)||null;
@@ -2608,9 +2964,6 @@ window.addEventListener('load',async()=>{
       const r=await sbQ('shared_carts?code=eq.'+encodeURIComponent(_shareCode)+'&select=cart_ids&limit=1');
       if(r.data&&r.data[0]){
         loadSharedQuote(r.data[0].cart_ids);
-        // Remove ?s= from URL so refresh goes to full catalogue
-        const _cleanUrl=new URL(window.location);_cleanUrl.searchParams.delete('s');
-        history.replaceState(null,'',_cleanUrl.pathname+(_cleanUrl.searchParams.toString()?'?'+_cleanUrl.searchParams:''));
       } else {
         // Code not found — fallback to normal catalogue
         _sharedMode=false;
@@ -2619,8 +2972,6 @@ window.addEventListener('load',async()=>{
     }catch(e){ _sharedMode=false; _doFilter(); }
   } else if(_shareParam){
     loadSharedQuote();
-    const _cleanUrl2=new URL(window.location);_cleanUrl2.searchParams.delete('share');
-    history.replaceState(null,'',_cleanUrl2.pathname+(_cleanUrl2.searchParams.toString()?'?'+_cleanUrl2.searchParams:''));
   }
 });
 
@@ -2966,3 +3317,4 @@ function syncResultsBarTop(){
 }
 syncResultsBarTop();
 window.addEventListener('resize',syncResultsBarTop);
+
