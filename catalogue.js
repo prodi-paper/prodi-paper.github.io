@@ -942,27 +942,165 @@ const QUALITE_LABELS={
   'AUTRES':'Autres',
 };
 
-// HS4 customs codes per internal code (source: codes_douaniers_papier_prodiconseil.xlsx, "HS4 probable")
+// HS6 customs sub-positions per internal code (source: codes_douaniers_papier_prodiconseil.xlsx, "HS6 / sous-positions probables")
+// HS4 = 4 chiffres (chapitre), HS6 = 6 chiffres (sous-position), CN8 = 8 chiffres (TARIC final, dépend grammage/format).
 // SSBS, SLWC, RENV, UMAN added by extension (not in source file).
 const HS_CODES={
-  'R1SC':'4810','R2SC':'4810','RADH':'4811','RAFF':'4802','RBOA':'4810','RBON':'4805',
-  'RBOU':'4802','RCAM':'4809','RCAR':'4809','RCOL':'4802','RCUI':'4806','RDIV':'4823',
-  'RFLEX':'4807','RKDO':'4802','RKRA':'4804','RKRABRUN':'4804','RKRG':'4811','RKRR':'4807',
-  'RLINER':'4804','RLUX':'4810','RLWC':'4810','RMIN':'4802','RNEW':'4801','ROFF':'4802',
-  'RPAC':'4804','RPLA':'4811','RSIL':'4806','RTHERM':'4811','RTIS':'4803','RENV':'4817',
-  'S1SC':'4810','S2SC':'4810','SADH':'4811','SAFF':'4802','SBOA':'4810','SBON':'4805',
-  'SBOU':'4802','SCAM':'4809','SCAR':'4809','SCOL':'4802','SCUT':'4802','SDIV':'4823',
-  'SENV':'4817','SFLEX':'4807','SINK':'3215','SKRA':'4804','SKRM':'4804','SKRR':'4807',
-  'SLUX':'4810','SNEW':'4801','SOFB':'4802','SOFF':'4802','SPAC':'4804','SPLA':'4811',
-  'SSIL':'4806','SSPE':'4823','STIS':'4803','SSBS':'4810','SLWC':'4810',
-  'UMAC':'84','UMAN':'84',
+  'R1SC':'4810.13 / 4810.14 / 4810.19 / 4810.29',
+  'R2SC':'4810.13 / 4810.14 / 4810.19 / 4810.29',
+  'RADH':'4811.41 / 4811.49',
+  'RAFF':'4802.55-58 / 4810.xx / 4911.10',
+  'RBOA':'4810.32 / 4810.39 / 4810.92 / 4810.99',
+  'RBON':'4805.24 / 4805.25 / 4805.91-93',
+  'RBOU':'4802.55 / 4802.57 / 4802.58 / 4802.61 / 4802.69',
+  'RCAM':'4809.20 / 4816.20',
+  'RCAR':'4809.20 / 4816.20',
+  'RCOL':'4802.55-58 / 4810.xx',
+  'RCUI':'4806.10 / 4806.20 / 4806.40',
+  'RDIV':'4823.90',
+  'RFLEX':'4807.00 / 4811.51 / 4811.59 / 4811.90',
+  'RKDO':'4802.xx / 4811.xx / 4823.90',
+  'RKRA':'4804.11-59',
+  'RKRABRUN':'4804.11-59',
+  'RKRG':'4811.41 / 4811.49',
+  'RKRR':'4807.00 / 4811.90',
+  'RLINER':'4804.11 / 4804.19 / 4805.11 / 4805.19 / 4805.24 / 4805.25',
+  'RLUX':'4810.32 / 4810.39 / 4810.92 / 4810.99',
+  'RLWC':'4810.22',
+  'RMIN':'4802.54',
+  'RNEW':'4801.00',
+  'ROFF':'4802.55 / 4802.56 / 4802.57 / 4802.58',
+  'RPAC':'4804.xx / 4805.xx / 4819.xx',
+  'RPLA':'3920 / 3921 / 4811.51 / 4811.59',
+  'RSIL':'4806.40 / 4811.59 / 4811.90',
+  'RTHERM':'4811.90 / 4802.20',
+  'RTIS':'4803.00 / 4818.xx',
+  'RENV':'4817.10',
+  'S1SC':'4810.13 / 4810.14 / 4810.19 / 4810.29',
+  'S2SC':'4810.13 / 4810.14 / 4810.19 / 4810.29',
+  'SADH':'4811.41 / 4811.49',
+  'SAFF':'4802.55-58 / 4810.xx / 4911.10',
+  'SBOA':'4810.32 / 4810.39 / 4810.92 / 4810.99',
+  'SBON':'4805.24 / 4805.25 / 4805.91-93',
+  'SBOU':'4802.55 / 4802.57 / 4802.58 / 4802.61 / 4802.69',
+  'SCAM':'4809.20 / 4816.20',
+  'SCAR':'4809.20 / 4816.20',
+  'SCOL':'4802.55-58 / 4810.xx',
+  'SCUT':'4802.55 / 4802.56 / 4802.57 / 4802.58',
+  'SDIV':'4823.90',
+  'SENV':'4817.10',
+  'SFLEX':'4807.00 / 4811.51 / 4811.59 / 4811.90',
+  'SINK':'3215.11 / 3215.19',
+  'SKRA':'4804.11-59',
+  'SKRM':'4804.xx / 4805.xx',
+  'SKRR':'4807.00 / 4811.90',
+  'SLUX':'4810.32 / 4810.39 / 4810.92 / 4810.99',
+  'SNEW':'4801.00',
+  'SOFB':'4802.61 / 4802.62 / 4802.69',
+  'SOFF':'4802.55 / 4802.56 / 4802.57 / 4802.58',
+  'SPAC':'4804.xx / 4805.xx / 4819.xx',
+  'SPLA':'3920 / 3921 / 4811.51 / 4811.59',
+  'SSIL':'4806.40 / 4811.59 / 4811.90',
+  'SSPE':'4823.90',
+  'STIS':'4803.00 / 4818.xx',
+  'SSBS':'4810.32 / 4810.39 / 4810.92 / 4810.99',
+  'SLWC':'4810.22',
+  'UMAC':'8441 / 8439 / 8443',
+  'UMAN':'8441 / 8439 / 8443',
 };
 
-// Build product title: "BOBINE — PAPIER LUXE" / "PALETTE — KRAFT" / "MACHINE — …"
+// Compact a slash-separated HS code list into a range when codes share the same 4-digit chapter
+// e.g. "4802.55 / 4802.56 / 4802.57 / 4802.58" → "4802.55-58"
+//      "4810.32 / 4810.39 / 4810.92 / 4810.99" → "4810.32-99"
+function _hsRange(s){
+  if(!s)return s;
+  const arr=String(s).split(/\s*\/\s*/).map(x=>x.trim()).filter(Boolean);
+  if(arr.length<=1)return arr[0]||s;
+  const parts=arr.map(c=>c.match(/^(\d{4})\.(\d+)$/));
+  if(parts.every(p=>p)&&new Set(parts.map(p=>p[1])).size===1){
+    const chap=parts[0][1];
+    const nums=parts.map(p=>+p[2]);
+    const lo=Math.min(...nums),hi=Math.max(...nums);
+    if(lo===hi)return `${chap}.${String(lo).padStart(2,'0')}`;
+    return `${chap}.${String(lo).padStart(2,'0')}-${String(hi).padStart(2,'0')}`;
+  }
+  return arr.join(' / ');
+}
+
+// Refines HS6 code based on grammage / format. Falls back to the multi-option HS_CODES list.
+// Rules sourced from "Règle grammage / format" column of codes_douaniers_papier_prodiconseil.xlsx
+function getHsCode(qualite,gsm,format){
+  if(!qualite||!HS_CODES[qualite])return null;
+  const isPalette=format&&/palette|feuille/i.test(format);
+  const g=Number(gsm)||0;
+  switch(qualite){
+    case 'ROFF': case 'SOFF': case 'SCUT':
+      // Offset non couché: 4802.54 (<40) / 4802.55-57 (40-150) / 4802.58 (>150)
+      if(!g)break;
+      if(g<40)return '4802.54';
+      if(g<=150)return isPalette?'4802.56 / 4802.57':'4802.55';
+      return '4802.58';
+    case 'RBOU': case 'SBOU':
+      // Bouffant: <40 → 4802.54 / 40-150 → 4802.55-58 (graphique) ou 4802.61-62 (mécanique) / >150 → 4802.58
+      if(!g)break;
+      if(g<40)return '4802.54';
+      if(g<=150)return isPalette?'4802.62 / 4802.69':'4802.61';
+      return '4802.58 / 4802.69';
+    case 'SOFB':
+      // Offset avec bois (mécanique): 4802.61 (bobine) / 4802.62 (feuille) / 4802.69 (autre)
+      return isPalette?'4802.62':'4802.61';
+    case 'RBOA': case 'SBOA': case 'RLUX': case 'SLUX': case 'SSBS':
+      // Carton couché kaolin: <=150 → 4810.13-19 / 150-225 → 4810.32 / >225 → 4810.92 (multicouche) ou 4810.99
+      if(!g)break;
+      if(g<=150)return '4810.13 / 4810.14 / 4810.19';
+      if(g<=225)return '4810.32 / 4810.39';
+      return '4810.92 / 4810.99';
+    case 'R1SC': case 'S1SC': case 'R2SC': case 'S2SC':
+      // Couché 1 ou 2 faces: <=150 graphique → 4810.13-19 / >150 → 4810.29 (autre couché kaolin)
+      if(!g)break;
+      if(g<=150)return '4810.13 / 4810.14 / 4810.19';
+      return '4810.29';
+    case 'RBON': case 'SBON':
+      // Carton non couché: <=150 → 4805.24 (testliner) / 150-225 → 4805.91 / >225 → 4805.92 ou 4805.93
+      if(!g)break;
+      if(g<=150)return '4805.24 / 4805.25';
+      if(g<=225)return '4805.91';
+      return '4805.92 / 4805.93';
+    case 'RKRA': case 'SKRA':
+      // Kraft non couché: kraftliner 4804.11/19 (>=115g) / sack kraft 4804.21/29 (60-115g) / autres 4804.31-59
+      if(!g)break;
+      if(g>=60&&g<=115)return '4804.21 / 4804.29';
+      if(g>=115)return '4804.11 / 4804.19';
+      return '4804.31 / 4804.39';
+    case 'RKRABRUN':
+      if(!g)break;
+      if(g>=60&&g<=115)return '4804.29'; // sack kraft non blanchi
+      return '4804.31 / 4804.39'; // autres kraft non blanchi
+    case 'RLINER':
+      // Liner: kraftliner 4804.11/19 / fluting 4805.11/19 / testliner 4805.24/25
+      if(!g)break;
+      if(g<=150)return '4805.24 / 4805.25';
+      return '4804.11 / 4804.19';
+    case 'RLWC': case 'SLWC':
+      // LWC: toujours 4810.22 si <=72g (déjà unique dans HS_CODES)
+      return '4810.22';
+    case 'RCUI':
+      // Cuisson: parchemin 4806.10 / sulfurisé/greaseproof 4806.20 / glassine 4806.40
+      return '4806.10 / 4806.20 / 4806.40';
+    case 'RNEW': case 'SNEW': return '4801.00';
+    case 'RENV': case 'SENV': return '4817.10';
+    case 'RMIN':
+      if(g&&g<40)return '4802.54';
+      break;
+  }
+  return HS_CODES[qualite];
+}
+
+// Build product title: "BOBINE — PAPIER LUXE" / "FORMAT — KRAFT" / "MACHINE — …"
 function formatProductTitle(qualite, fallback){
   if(!qualite)return (fallback||'—').toString().toUpperCase();
   const c=qualite[0];
-  const prefix=c==='R'?'BOBINE':c==='S'?'PALETTE':c==='U'?'MACHINE':qualite;
+  const prefix=c==='R'?'BOBINE':c==='S'?'FORMAT':c==='U'?'MACHINE':qualite;
   const label=QUALITE_LABELS[qualite]||qualite;
   return `${prefix} — ${label.toUpperCase()}`;
 }
@@ -1048,6 +1186,14 @@ function toggleDepotPill(btn){
   const wasActive=btn.classList.contains('active');
   document.querySelectorAll('.fpill-depot').forEach(b=>b.classList.remove('active'));
   if(wasActive){ _depotFilter=''; } else { btn.classList.add('active'); _depotFilter=val; }
+  filterProducts();
+}
+let _photoFilter=''; // '' | 'with' | 'without'
+function togglePhotoPill(btn){
+  const val=btn.dataset.photo;
+  const wasActive=btn.classList.contains('active');
+  document.querySelectorAll('.fpill-photo').forEach(b=>b.classList.remove('active'));
+  if(wasActive){ _photoFilter=''; } else { btn.classList.add('active'); _photoFilter=val; }
   filterProducts();
 }
 function toggleFormatPill(btn){
@@ -1372,6 +1518,15 @@ function _filterSharedLocal(){
     if(_stockFilter==='fab'&&!(p.emplacement!=='OUR WAREHOUSE'&&((p.ref&&/FAB/i.test(String(p.ref)))||(p.emplacement&&/FABRICATION/i.test(p.emplacement))||(p.details&&/fabrication/i.test(p.details)))))return false;
     if(_stockFilter==='stocklot'&&((p.ref&&/FAB/i.test(String(p.ref)))||(p.emplacement&&/FABRICATION/i.test(p.emplacement))||(p.details&&/fabrication/i.test(p.details))))return false;
     if(_stockFilter==='siderun'&&!(p.emplacement==='OUR WAREHOUSE'&&((p.ref&&/FAB/i.test(String(p.ref)))||(p.details&&/fabrication/i.test(p.details)))))return false;
+    const _hasPhoto=p.image_url&&p.image_url.length>0;
+    if(_photoFilter==='with'&&!_hasPhoto)return false;
+    if(_photoFilter==='without'){
+      if(_hasPhoto)return false;
+      // Exclure uniquement les FAB purs (hors entrepôt) — ils n'ont jamais de photo par nature.
+      // Les Siderun (OUR WAREHOUSE + marqueurs FAB) sont gardés car certains ont des photos.
+      const _isFabPure=(p.emplacement&&p.emplacement!=='OUR WAREHOUSE'&&((p.ref&&/FAB/i.test(String(p.ref)))||/FAB|DIRECT USINE/i.test(p.emplacement)||(p.details&&/fabrication/i.test(p.details))||(p.zone&&/FABRICATION/i.test(p.zone))));
+      if(_isFabPure)return false;
+    }
     return true;
   });
 
@@ -1587,6 +1742,14 @@ async function _fetchAndRender(token){
     p.append('emplacement','eq.OUR WAREHOUSE');
     p.append('or','(ref.ilike.%FAB%,details.ilike.%fabrication%)');
   }
+  // Photo filter — image_url is NULL pour les produits sans photo réelle (mis à jour par scripts/verify_photos.py)
+  if(_photoFilter==='with')p.append('image_url','not.is.null');
+  else if(_photoFilter==='without'){
+    p.append('image_url','is.null');
+    // Exclure uniquement les FAB purs (hors entrepôt) — pas les Siderun (certains ont des photos).
+    // Garde le produit si emplacement = OUR WAREHOUSE (siderun/stocklot) OU si pas de marqueur FAB.
+    p.append('or','(emplacement.eq.OUR WAREHOUSE,and(or(ref.not.ilike.%FAB%,ref.is.null),or(details.not.ilike.%fabrication%,details.is.null),or(emplacement.not.ilike.%FAB%,emplacement.is.null),or(emplacement.not.ilike.%DIRECT USINE%,emplacement.is.null),or(zone.not.ilike.%FABRICATION%,zone.is.null)))');
+  }
   if(s==='gsm_asc'||s==='grammage_asc')p.set('order','gsm.asc.nullslast,id.asc');
   else if(s==='gsm_desc'||s==='grammage_desc')p.set('order','gsm.desc.nullslast,id.asc');
   else if(s==='price_asc'||s==='prix_asc')p.set('order','price.asc.nullslast,id.asc');
@@ -1778,6 +1941,7 @@ function updateFilterChips(){
   if(_activeOrigs.length>0)chips.push({label:(lang==='en'?'Origin':'Origine')+' : '+_activeOrigs.join(', '),clear:()=>{document.querySelectorAll('.fpill-orig.active').forEach(b=>b.classList.remove('active'));filterProducts();}});
   if(_stockFilter)chips.push({label:_stockFilter==='fab'?'Fabrication':_stockFilter==='siderun'?'Siderun':'Stocklots',clear:()=>{document.querySelectorAll('.fpill-stock').forEach(b=>b.classList.remove('active'));_stockFilter='';filterProducts();}});
   if(_depotFilter)chips.push({label:_depotFilter==='our'?'Notre dépôt':'Hors dépôt',clear:()=>{document.querySelectorAll('.fpill-depot').forEach(b=>b.classList.remove('active'));_depotFilter='';filterProducts();}});
+  if(_photoFilter)chips.push({label:_photoFilter==='with'?'Avec photo':'Sans photo',clear:()=>{document.querySelectorAll('.fpill-photo').forEach(b=>b.classList.remove('active'));_photoFilter='';filterProducts();}});
   if(_activeFmts.length>0)chips.push({label:LT[lang].t_fmt+' : '+_activeFmts.map(f=>f==='Bobine'?LT[lang].t_bobine:f==='Palette'?LT[lang].t_palette:f).join(', '),clear:()=>{document.querySelectorAll('.fpill.active').forEach(b=>b.classList.remove('active'));filterProducts();}});
   ['msd-type','msd-mandrin','msd-couleur'].forEach(id=>{
     const set=msdState[id];
@@ -1929,7 +2093,6 @@ function renderCards(list){
       p.noyau?['Mandrin',`Ø${p.noyau} mm`]:null,
       p.usine?['Usine',String(p.usine).replace(/^REF\s*/i,'')]:null,
       p.allee?['Zone',p.allee]:null,
-      p.qualite?['Code',p.qualite]:null,
     ].filter(Boolean).slice(0,6);
     const specsHtml=`<div class="pcard-specs">${specRows.map(([l,v])=>`<div class="pcard-spec"><span class="pspec-lbl">${l}</span><span class="pspec-val">${v}</span></div>`).join('')}</div>`;
     const _sub=getProductDetailText(p);
@@ -2132,7 +2295,6 @@ async function openDetail(id){
   // Specs grid
   const _typeLabel=p.qualite?formatProductTitle(p.qualite,p.qualite):null;
   const specDefs=[
-    {lbl: '',                                     val: p.format&&p.qualite!=='UMAC'&&p.qualite!=='UMAN'?(p.format.toLowerCase().includes('palette')?'Format':'Bobine'):null},
     {lbl: LT[lang].t_spec_couleur||'Couleur',   val: p.couleur},
     {lbl: LT[lang].t_spec_gsm||'Grammage',      val: p.grammage?p.grammage+' g/m²':null},
     {lbl: (p.format&&p.format.toLowerCase().includes('palette')&&p.largeur&&p.longueur)?'Dimensions':(LT[lang].t_spec_laize||'Laize'),
@@ -2143,7 +2305,8 @@ async function openDetail(id){
     {lbl: LT[lang].t_spec_depot||'Emplacement',  val: p.zone||p.emplacement},
     {lbl: 'Zone',                                  val: p.allee||null},
     {lbl: 'Usine',                                val: p.usine?String(p.usine).replace(/^REF\s*/i,''):'—', always:true},
-    {lbl: 'Code douane',                          val: p.qualite&&HS_CODES[p.qualite]?HS_CODES[p.qualite]:null},
+    {lbl: 'Code',                                 val: p.qualite||null},
+    {lbl: 'Code douane',                          val: _hsRange(getHsCode(p.qualite,p.grammage,p.format))},
   ].filter(s=>s.val||s.always);
   document.getElementById('det-specs').innerHTML=specDefs.map(s=>
     `<div class="dspec-item"><div class="dspec-lbl">${s.lbl}</div><div class="dspec-val">${s.val}</div></div>`
@@ -2237,8 +2400,8 @@ function resetFilters(){
     });
 
     // 4. Reset format pills
-    document.querySelectorAll('.fpill.active,.fpill-orig.active,.fpill-stock.active,.fpill-depot.active,.fb-pill.active').forEach(b=>b.classList.remove('active'));
-    _stockFilter='';_depotFilter='';
+    document.querySelectorAll('.fpill.active,.fpill-orig.active,.fpill-stock.active,.fpill-depot.active,.fpill-photo.active,.fb-pill.active').forEach(b=>b.classList.remove('active'));
+    _stockFilter='';_depotFilter='';_photoFilter='';
     ['fb-bobine','fb-palette','fb-recyc','fb-fab'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('active');});
 
     // 5. Clear all inputs

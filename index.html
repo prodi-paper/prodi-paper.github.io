@@ -38,7 +38,7 @@
 <link rel="preconnect" href="https://bvcgpdoukhcatjibmvnb.supabase.co">
 <link rel="dns-prefetch" href="https://stock.prodi.net">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="catalogue.css?v=199">
+<link rel="stylesheet" href="catalogue.css?v=202">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
@@ -83,12 +83,12 @@
         </button>
       </div>
       <div class="lang-sep"></div>
-      <button onclick="togglePriceMode(!_priceMode)" id="lang-fr" class="lang-btn on">FR</button>
+      <button onclick="togglePriceMode(!_priceMode)" id="lang-fr" class="lang-btn on" title="Afficher / masquer les prix">€</button>
     </div>
   </div>
   <!-- mobile lang bar -->
   <div class="mob-hbar">
-    <button onclick="togglePriceMode(!_priceMode)" id="lang-fr-m" class="lang-btn on">FR</button>
+    <button onclick="togglePriceMode(!_priceMode)" id="lang-fr-m" class="lang-btn on" title="Afficher / masquer les prix">€</button>
   </div>
 </header>
 
@@ -276,6 +276,7 @@
         </div>
       </div>
 
+
     </div>
   </div>
 
@@ -299,6 +300,14 @@
           <span id="correction-note"></span>
         </div>
         <div class="pager pager-top" id="pager-top"></div>
+        <div class="rbar-photo">
+          <button class="rbar-photo-btn fpill-photo" data-photo="with" onclick="togglePhotoPill(this)" title="Produits avec photo réelle">
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1" y="3" width="12" height="9" rx="1.5"/><circle cx="7" cy="7.5" r="2.2"/><path d="M5 3l1-1.5h2L9 3"/></svg>
+          </button>
+          <button class="rbar-photo-btn fpill-photo" data-photo="without" onclick="togglePhotoPill(this)" title="Produits sans photo">
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1" y="3" width="12" height="9" rx="1.5"/><line x1="1" y1="1" x2="13" y2="13" stroke-width="1.8"/></svg>
+          </button>
+        </div>
         <div class="rbar-sort">
           <span class="rbar-sort-lbl" data-i18n="t_trier">Trier :</span>
           <select class="rbar-sel" id="sort-sel" onchange="_doFilter()">
@@ -668,6 +677,6 @@
 </div>
 <div class="spin-bg" id="spinner"><div class="spin"></div></div>
 
-<script src="catalogue.js?v=214"></script>
+<script src="catalogue.js?v=222"></script>
 </body>
 </html>
