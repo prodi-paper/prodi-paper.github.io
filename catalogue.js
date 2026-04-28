@@ -390,7 +390,8 @@ const ALIAS_MAP=(()=>{
   // ── Industry codes courts ──
   t('nc','Offset'); t('mf','Offset'); t('ufwf','Offset'); t('wfum','Offset');
   t('sc','LWC'); t('glu','LWC'); t('mfc','Couché 2 faces');
-  t('ub','Kraft'); t('bkp','Kraft'); t('us','Kraft');
+  t('ub','Kraft'); t('bkp','Kraft'); t('us','Kraft'); t('mg','Kraft');
+  t('machine glaze','Kraft'); t('glassine','Kraft');
   t('gd1','Carton non couché'); t('ws','Carton non couché');
   t('duplex','Carton couché'); t('triplex','Carton couché'); t('bristol','SBS');
   t('carte postale','SBS'); t('postcard','SBS'); t('ivoire board','SBS');
@@ -587,6 +588,8 @@ function fuzzyVocab(tok){
     }
   }
   // 4. Fuzzy match against alias keys
+  // Tokens ≤2 chars: require exact match (already handled above) — no fuzzy
+  if(tok.length<=2)return null;
   const maxDist=tok.length<=4?1:tok.length<=6?1:tok.length<=9?2:3;
   let best=null,bestDist=Infinity,bestIsAlias=false;
   for(const[k,v]of ALIAS_MAP){const d=lev(tok,k);if(d<bestDist){bestDist=d;best=v;bestIsAlias=true;}}
@@ -1730,6 +1733,11 @@ async function _fetchAndRender(token){
   if(refCode)p.append('quality',`ilike.${refCode}%`);
   const usineVal=(document.getElementById('f-usine')?.value||'').trim();
   if(usineVal)p.append('usine',`eq.${usineVal}`);
+  const detailsVal=(document.getElementById('f-details')?.value||'').trim();
+  if(detailsVal){
+    const _de=detailsVal.replace(/[%_(),]/g,'\\$&');
+    p.append('details',`ilike.%${_de}%`);
+  }
   const zoneNum=(document.getElementById('f-zone-num')?.value||'').trim();
   const zoneLet=(document.getElementById('f-zone-let')?.value||'').trim().toUpperCase();
   if(zoneNum&&zoneLet)p.append('zone',`ilike.${zoneNum}${zoneLet}%`);
@@ -1886,7 +1894,7 @@ function _updatePager(){
     const pager=document.getElementById('pager');
     const pagerTop=document.getElementById('pager-top');
     if(!pager)return;
-    const isLast=all.length<PAGE;
+    const isLast=all.length<PAGE||(_totalCount>0&&currentPage*PAGE>=_totalCount);
     if(isLast&&currentPage===1){
       // Definitively only one page — ignore any stale _maxKnownPage
       _maxKnownPage=1;
@@ -1970,6 +1978,8 @@ function updateFilterChips(){
   // if(cpn||cpx)chips.push({label:LT[lang].t_chip_prix+...});
   const usineChip=(document.getElementById('f-usine')?.value||'').trim();
   if(usineChip)chips.push({label:'Usine : '+usineChip,clear:()=>{const e=document.getElementById('f-usine');if(e)e.value='';filterProducts();}});
+  const detailsChip=(document.getElementById('f-details')?.value||'').trim();
+  if(detailsChip)chips.push({label:'Détails : '+detailsChip,clear:()=>{const e=document.getElementById('f-details');if(e)e.value='';filterProducts();}});
   const zoneNumChip=(document.getElementById('f-zone-num')?.value||'').trim();
   const zoneLetChip=(document.getElementById('f-zone-let')?.value||'').trim();
   if(zoneNumChip)chips.push({label:'Zone : '+zoneNumChip,clear:()=>{['f-zone-num','f-zone-num-mob'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});filterProducts();}});
@@ -2094,11 +2104,13 @@ function renderCards(list){
     const photoRef='';
     // Mini spec rows (label + value, only if value exists)
     // Usine désormais affichée en chip overlay sur la photo
+    const _detClean=(p.details||'').replace(/(?<=^|\s)-(?=\s|$)/g,'').replace(/\s{2,}/g,' ').trim();
     const specRows=[
       p.couleur?['Couleur',p.couleur]:null,
       dimTag?['Laize',dimTag]:paletteDims?['Dimensions',paletteDims+' cm']:null,
       p.grammage?['Grammage',`${p.grammage} g/m²`]:null,
       p.noyau?['Mandrin',`Ø${p.noyau} mm`]:null,
+      _detClean?['Détails',_detClean]:null,
       ['Zone',p.allee||'—'],
     ].filter(Boolean).slice(0,6);
     const specsHtml=`<div class="pcard-specs">${specRows.map(([l,v])=>`<div class="pcard-spec"><span class="pspec-lbl">${l}</span><span class="pspec-val">${v}</span></div>`).join('')}</div>`;
@@ -2324,6 +2336,7 @@ async function openDetail(id){
     {lbl: LT[lang].t_spec_depot||'Emplacement',  val: p.zone||p.emplacement},
     {lbl: 'Zone',                                  val: p.allee||'—', always:true},
     {lbl: 'Type',                                 val: p.qualite||null},
+    {lbl: 'Détails',                               val: (p.details||'').replace(/(?<=^|\s)-(?=\s|$)/g,'').replace(/\s{2,}/g,' ').trim()||null},
     {lbl: 'Code douanier',                        val: _toCN8(getHsCode(p.qualite,p.grammage,p.format))},
   ].filter(s=>s.val||s.always);
   document.getElementById('det-specs').innerHTML=specDefs.map(s=>
@@ -2429,8 +2442,9 @@ function resetFilters(){
      'f-zone-num','f-zone-let','f-zone-num-mob','f-zone-let-mob',
      'f-gmin-sb','f-gmax-sb','f-pmin-sb','f-pmax-sb',
      'f-gmin-mob','f-gmax-mob','f-lmin-mob','f-lmax-mob','f-pmin-mob','f-pmax-mob',
-     'f-usine',
+     'f-usine','f-details',
      'search-input','search-input-mob'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    const _fdc=document.getElementById('f-details-clear');if(_fdc)_fdc.style.display='none';
 
     // 6. Clear chips & reset UI
     const fc=document.getElementById('filter-chips');if(fc)fc.innerHTML='';
