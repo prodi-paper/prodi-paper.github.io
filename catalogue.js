@@ -24,8 +24,9 @@ function togglePriceMode(on){
   ['lang-fr','lang-fr-m'].forEach(id=>{const e=document.getElementById(id);if(e){e.classList.toggle('on',true);e.style.background=on?'var(--red)':'';e.style.borderColor=on?'var(--red)':'';e.style.color=on?'#fff':'';}});
   const g=document.getElementById('pgrid');
   if(g&&g._lastList)render(g._lastList);
-  // Re-render detail modal if open
-  if(_detIdx>=0&&all[_detIdx])openDetail(all[_detIdx].id);
+  // Re-render detail modal only if it's actually open
+  if(_detIdx>=0&&all[_detIdx]&&document.getElementById('detail-bg')?.classList.contains('show'))
+    openDetail(all[_detIdx].id);
 }
 const ico=t=>({Kraft:'📦',FBB:'🗂️',SBS:'📋',Testliner:'🧱',Fluting:'〰️',Offset:'🧻',Thermique:'🏷️',Duplex:'📄',Triplex:'📑'}[t]||'📦');
 const icoType=n=>({'Kraft':'📦','Kraft armé':'🔩','Kraft gomme':'🔖','SBS':'📋','FBB':'🗂️','Liner':'📜','Testliner':'🧱','Fluting':'〰️','Offset':'🧻','Thermique':'🏷️','LWC':'📰','Couché 1 face':'🖨️','Couché 2 faces':'🖨️','Luxe':'✨','Ouate':'🤍','Journal':'📰','Duplex':'📄','Triplex':'📑','Couleur':'🎨','Adhésif':'🔖','Silicone-Glassine':'🫧','Complexe':'🧩','Emballage':'📦','Plastique':'🔲','Carton couché':'🗃️','Carton non couché':'🗃️','Bouffant':'📄','Autocopiant':'📄','Ramette':'📄','Spécial':'⭐','Papier affiche':'🖼️','Papier cadeau':'🎁','Cuisson':'🔥','Encre':'🖊️','Enveloppes':'✉️','Autres':'📦'}[n]||'📦');
@@ -424,6 +425,139 @@ const ALIAS_MAP=(()=>{
   f('feuille','Palette'); f('feuilles','Palette'); f('palette','Palette');
   f('rame','Palette'); f('rames','Palette'); f('fardeau','Palette');
   f('en feuille','Palette'); f('en palette','Palette');
+
+  // ════════ USE-CASE THESAURUS — semantic-ish search ════════
+  // ── Sacs / cornets / sachets ──
+  t('sac','Kraft'); t('sac kraft','Kraft'); t('sac papier','Kraft'); t('paper bag','Kraft');
+  t('sachet','Kraft'); t('sachet papier','Kraft'); t('cornet','Kraft'); t('paper cone','Kraft');
+  t('sac boulangerie','Kraft'); t('sac pain','Kraft'); t('bread bag','Kraft');
+  t('sac alimentaire','Kraft'); t('sac kraft brun','Kraft'); t('sac course','Kraft');
+  t('sac shopping','Kraft'); t('shopping bag','Kraft'); t('sac luxe','Luxe');
+  // ── Boîtes / cartons d'emballage ──
+  t('boite pizza','Liner'); t('boite a pizza','Liner'); t('pizza box','Liner');
+  t('boite carton','Liner'); t('cardboard box','Liner'); t('caisse americaine','Liner');
+  t('caisse carton','Liner'); t('carton demenagement','Liner'); t('moving box','Liner');
+  t('boite ondulee','Liner'); t('carton ondule','Liner'); t('ondulé','Liner');
+  t('cardboard','Carton couché'); t('boite alimentaire','SBS'); t('food box','SBS');
+  t('boite gateau','SBS'); t('cake box','SBS'); t('boite patisserie','SBS');
+  t('boite oeuf','Carton non couché'); t('egg carton','Carton non couché');
+  t('plateau','Carton couché'); t('plateau alimentaire','Carton couché');
+  // ── Imprimés commerciaux ──
+  t('flyer','Couché 2 faces'); t('flyers','Couché 2 faces'); t('depliant','Couché 2 faces');
+  t('depliants','Couché 2 faces'); t('plaquette','Couché 2 faces'); t('brochure','Couché 2 faces');
+  t('brochures','Couché 2 faces'); t('catalogue','Couché 2 faces'); t('catalog','LWC');
+  t('tract','Offset'); t('newsletter','Offset'); t('prospectus','Couché 2 faces');
+  t('publicite','Couché 2 faces'); t('mailing','Offset'); t('publipostage','Offset');
+  // ── Édition / livres ──
+  t('livre','Bouffant'); t('book','Bouffant'); t('roman','Bouffant');
+  t('manuel','Bouffant'); t('textbook','Bouffant'); t('paperback','Bouffant');
+  t('couverture livre','Couché 1 face'); t('book cover','Couché 1 face');
+  t('jaquette','Couché 1 face'); t('cover','Couché 1 face');
+  t('agenda','Bouffant'); t('cahier','Offset'); t('notebook','Offset');
+  t('bloc note','Offset'); t('bloc notes','Offset'); t('notepad','Offset');
+  // ── Cartes / faire-part ──
+  t('carte de visite','SBS'); t('business card','SBS'); t('cdv','SBS');
+  t('faire part','SBS'); t('wedding invitation','SBS'); t('invitation','SBS');
+  t('menu','SBS'); t('menu carton','SBS'); t('cartoline','SBS'); t('cartolina','SBS');
+  t('cardstock','SBS'); t('cover paper','SBS'); t('tag','SBS'); t('index','SBS');
+  // ── Calendriers / posters / luxe ──
+  t('calendrier','Couché 2 faces'); t('calendar','Couché 2 faces');
+  t('poster luxe','Luxe'); t('photo print','Luxe'); t('papier photo','Luxe');
+  t('tirage photo','Luxe'); t('high gloss paper','Luxe');
+  // ── Bureautique ──
+  t('photocopie','Ramette'); t('photocopieuse','Ramette'); t('photocopy','Ramette');
+  t('a4','Ramette'); t('a3','Ramette'); t('papier a4','Ramette'); t('papier bureau','Ramette');
+  t('papier impression bureau','Ramette'); t('imprimante','Offset'); t('printer paper','Offset');
+  t('imprimante laser','Offset'); t('imprimante jet d encre','Offset');
+  t('bond paper','Offset'); t('vellum','Offset'); t('verge','Offset'); t('velin','Offset');
+  // ── Étiquettes / codes-barres ──
+  t('etiquette adhesive','Adhésif'); t('etiquettes adhesives','Adhésif');
+  t('etiquette logistique','Adhésif'); t('etiquette prix','Adhésif'); t('price label','Adhésif');
+  t('code barre','Adhésif'); t('barcode','Adhésif'); t('rouleau etiquette','Adhésif');
+  t('etiquette autocollante','Adhésif'); t('autocollant','Adhésif');
+  // ── Tickets / reçus / caisse ──
+  t('ticket de caisse','Thermique'); t('ticket caisse','Thermique'); t('receipt','Thermique');
+  t('cb roll','Thermique'); t('rouleau caisse','Thermique'); t('terminal paiement','Thermique');
+  t('tpe','Thermique'); t('cb','Thermique'); t('atm paper','Thermique'); t('rouleau tpe','Thermique');
+  t('reçu','Thermique'); t('recu','Thermique');
+  // ── Cuisson / alimentaire ──
+  t('papier cuisson','Cuisson'); t('papier sulfurise','Cuisson'); t('parchment','Cuisson');
+  t('parchment paper','Cuisson'); t('baking paper','Cuisson'); t('papier patisserie','Cuisson');
+  t('greaseproof','Cuisson'); t('papier ingraissable','Cuisson'); t('papier four','Cuisson');
+  t('plaque cuisson','Cuisson'); t('caissette','Cuisson'); t('moule papier','Cuisson');
+  // ── Hygiène / domestique ──
+  t('papier toilette','Ouate'); t('toilet paper','Ouate'); t('pq','Ouate');
+  t('papier wc','Ouate'); t('serviette papier','Ouate'); t('paper napkin','Ouate');
+  t('nappe papier','Ouate'); t('paper tablecloth','Ouate'); t('lingette','Ouate');
+  t('industrial wiper','Ouate'); t('wiper','Ouate'); t('chiffon papier','Ouate');
+  t('air laid','Ouate'); t('airlaid','Ouate');
+  // ── Cadeaux / décoration ──
+  t('emballage cadeau','Papier cadeau'); t('papier emballage cadeau','Papier cadeau');
+  t('gift paper','Papier cadeau'); t('gift wrapping','Papier cadeau');
+  t('papier de soie','Bouffant'); t('papier soie','Bouffant'); t('tissue silk','Bouffant');
+  t('papier crepon','Spécial'); t('crepe paper','Spécial');
+  t('papier creatif','Luxe'); t('craft paper','Kraft');
+  // ── Affiches / signalétique ──
+  t('affichage','Papier affiche'); t('blueback','Papier affiche'); t('blue back','Papier affiche');
+  t('white back','Papier affiche'); t('whiteback','Papier affiche');
+  t('billboard paper','Papier affiche'); t('signage','Papier affiche');
+  t('papier signaletique','Papier affiche'); t('panneau papier','Papier affiche');
+  // ── Calque / spécial ──
+  t('calque','Bouffant'); t('papier calque','Bouffant'); t('tracing paper','Bouffant');
+  t('buvard','Bouffant'); t('blotting paper','Bouffant'); t('papier filtre','Spécial');
+  t('filter paper','Spécial'); t('filtre cafe','Spécial'); t('coffee filter','Spécial');
+  t('papier cigarette','Spécial'); t('cigarette paper','Spécial'); t('rolling paper','Spécial');
+  t('mince','Bouffant'); t('papier mince','Bouffant'); t('papier fin','Bouffant');
+  // ── Gobelets / packaging spécifique ──
+  t('gobelet','Couché 1 face'); t('gobelet carton','Couché 1 face'); t('paper cup','Couché 1 face');
+  t('verre carton','Couché 1 face'); t('cup stock','Couché 1 face');
+  t('barquette','Carton couché'); t('barquette alimentaire','Carton couché');
+  // ── Caractéristiques / propriétés ──
+  t('mat','Couché 1 face'); t('matte','Couché 1 face'); t('matt','Couché 1 face');
+  t('demi mat','Couché 2 faces'); t('semi mat','Couché 2 faces'); t('silk','Couché 2 faces');
+  t('satin','Couché 2 faces'); t('satine','Couché 2 faces'); t('glossy','Couché 2 faces');
+  t('gloss','Couché 2 faces'); t('high gloss','Luxe'); t('cast coated','Luxe');
+  t('sulfate','Kraft'); t('sulphate','Kraft'); t('sulfaté','Kraft');
+  t('pure pate','Kraft'); t('eco','Kraft'); t('ecologique','Kraft'); t('eco friendly','Kraft');
+  t('compostable','Kraft'); t('biodegradable','Kraft'); t('fsc','Kraft'); t('pefc','Kraft');
+  t('indechirable','Kraft armé'); t('tear resistant','Kraft armé'); t('renforce','Kraft armé');
+  t('etanche','Complexe'); t('waterproof','Complexe'); t('impermeable','Complexe');
+  t('barriere','Complexe'); t('barrier paper','Complexe'); t('grease barrier','Complexe');
+  // ── Carton / industrie complémentaire ──
+  t('greyback','Carton non couché'); t('grey back','Carton non couché');
+  t('whiteback duplex','Carton couché'); t('manille','Carton couché'); t('manila','Carton couché');
+  t('wlc','Carton couché'); t('white lined chipboard','Carton couché');
+  t('coated duplex','Carton couché'); t('triplex','Carton couché');
+  // ── Liner / ondulé complémentaire ──
+  t('white top kraftliner','Liner'); t('wtkl','Liner'); t('wtl','Liner');
+  t('flute','Liner'); t('cannelure simple','Liner'); t('cannelure double','Liner');
+  // ── Plastique / aluminium / divers ──
+  t('film','Plastique'); t('film alimentaire','Plastique'); t('cling film','Plastique');
+  t('papier alu','Plastique'); t('aluminum foil','Plastique'); t('papier paraffine','Cuisson');
+  t('paraffine','Cuisson'); t('wax paper','Cuisson');
+  // ── Encres / consommables ──
+  t('encre','Encre'); t('ink','Encre'); t('cartouche','Encre'); t('toner','Encre');
+  // ── Enveloppes ──
+  t('enveloppe','Enveloppes'); t('envelopes','Enveloppes'); t('pli','Enveloppes');
+  t('enveloppe kraft','Enveloppes'); t('enveloppe a fenetre','Enveloppes');
+  t('window envelope','Enveloppes'); t('manila envelope','Enveloppes');
+  // ── Industriel / autocopiant ──
+  t('bon de livraison','Autocopiant'); t('bon livraison','Autocopiant'); t('bl','Autocopiant');
+  t('facture autocopiante','Autocopiant'); t('liasse','Autocopiant');
+  t('formulaire','Autocopiant'); t('multi part form','Autocopiant');
+  // ── Couleurs spécifiques (tons demandés) ──
+  c('marron','Brun'); c('chocolat','Brun'); c('chocolate','Brun');
+  c('sable','Ivoire'); c('sand','Ivoire');
+  c('turquoise','Bleu'); c('marine','Bleu'); c('navy','Bleu'); c('ciel','Bleu');
+  c('emeraude','Vert'); c('olive','Vert'); c('kaki','Vert'); c('khaki','Vert');
+  c('bordeaux','Rouge'); c('grenat','Rouge'); c('framboise','Rouge'); c('corail','Orange');
+  c('saumon','Rose'); c('fuchsia','Rose'); c('magenta','Rose');
+  c('moutarde','Jaune'); c('citron','Jaune'); c('safran','Jaune');
+  c('lavande','Violet'); c('lilas','Violet'); c('mauve','Violet'); c('parme','Violet');
+  c('anthracite','Noir'); c('charbon','Noir'); c('charcoal','Noir');
+  c('argent metallise','Argent'); c('or metallise','Argent'); c('gold','Argent');
+  c('cuivre','Brun'); c('copper','Brun');
+
   return m;
 })();
 
@@ -1098,8 +1232,19 @@ document.addEventListener('click',e=>{
 let _lastDetectedTypes=[];
 let _lastFilterIntents=[];
 
+let _exactMode=false;
+function toggleExactMode(on){
+  _exactMode=!!on;
+  filterProducts();
+}
+
 function parseSearchQuery(raw){
-  if(!raw){_lastDetectedTypes=[];_lastFilterIntents=[];return{text:[],gsm:null,width:null,formats:[],colors:[],qualityCodes:[],corrections:[],detectedTypes:[],filterIntents:[]};}
+  if(!raw){_lastDetectedTypes=[];_lastFilterIntents=[];return{text:[],gsm:null,width:null,formats:[],colors:[],qualityCodes:[],corrections:[],detectedTypes:[],filterIntents:[],exact:false};}
+  // Exact mode: toggle button active → no alias, no fuzzy, literal substring match
+  if(_exactMode){
+    _lastDetectedTypes=[];_lastFilterIntents=[];
+    return{text:[raw.trim()],gsm:null,width:null,formats:[],colors:[],qualityCodes:[],corrections:[],detectedTypes:[],filterIntents:[],exact:true};
+  }
   const STOP=new Set(['de','du','le','la','les','en','et','un','une','kg','kilo','tonne','tonnes','paper','papier','carton','board','sur','stock','lot','lots','reel','sheet']);
   const CTX_GSM=new Set(['gramme','grammes','grammage','gms','gsm','g/m2','g/m','grm','grms','gr','gm','gm2']);
   const CTX_WIDTH=new Set(['laize','largeur','millimetre','millimetres','mm','larg']);
@@ -1242,6 +1387,7 @@ function _filterSharedLocal(){
   updateFilterChips();
   render(filtered.slice(0,PAGE));
   _updatePager();
+  if(typeof _updateAddPageBtn==='function')_updateAddPageBtn();
 }
 async function _fetchAndRenderFeatured(token){
   const g=document.getElementById('pgrid');
@@ -1392,8 +1538,8 @@ async function _fetchAndRender(token){
   const p=new URLSearchParams();
   p.set('select','*');
   parsed.text.forEach(term=>{
-    const stem=_stem(_norm(term));
-    const escaped=stem.replace(/[%_(),]/g,'\\$&');
+    const t=parsed.exact?_norm(term):_stem(_norm(term));
+    const escaped=t.replace(/[%_(),]/g,'\\$&');
     p.append('or',`(quality.ilike.%${escaped}%,color.ilike.%${escaped}%,details.ilike.%${escaped}%,ref.ilike.%${escaped}%)`);
   });
   if(_hasAutres&&typeCodes.length>0){
@@ -1462,7 +1608,7 @@ async function _fetchAndRender(token){
     // Fuzzy returns full product rows (same select=* shape as server), so rowToUi produces
     // identical UI objects. We also recompute tonnage here since the server RPC ran against
     // the 0-result query and would report 0T.
-    if(!error&&(!data||data.length===0)&&q.length>0&&currentPage===1){
+    if(!error&&(!data||data.length===0)&&q.length>0&&currentPage===1&&!parsed.exact){
       const fuzzy=await _fuzzyFallback(q,{
         longmin,longmax,wmin,wmax,
         quality_in:rpcParams.quality_in,color_in:rpcParams.color_in,
@@ -1542,6 +1688,7 @@ async function _fetchAndRender(token){
   renderEquivBanner();
   updateTilesActiveState();
   _updatePager();
+  if(typeof _updateAddPageBtn==='function')_updateAddPageBtn();
 }
 function renderEquivBanner(){
   let banner=document.getElementById('equiv-banner');
@@ -1776,16 +1923,13 @@ function renderCards(list){
     const photoRef='';
     // Mini spec rows (label + value, only if value exists)
     // Grammage intentionally omitted here (shown on image overlay + detail modal)
-    const _hsCode=p.qualite&&HS_CODES[p.qualite]?HS_CODES[p.qualite]:null;
     const specRows=[
       p.couleur?['Couleur',p.couleur]:null,
       dimTag?['Laize',dimTag]:paletteDims?['Dimensions',paletteDims+' cm']:null,
       p.noyau?['Mandrin',`Ø${p.noyau} mm`]:null,
       p.usine?['Usine',String(p.usine).replace(/^REF\s*/i,'')]:null,
-      (p.emplacement||p.zone)?['Dépôt',p.emplacement||p.zone]:null,
       p.allee?['Zone',p.allee]:null,
       p.qualite?['Code',p.qualite]:null,
-      _hsCode?['Douane',_hsCode]:null,
     ].filter(Boolean).slice(0,6);
     const specsHtml=`<div class="pcard-specs">${specRows.map(([l,v])=>`<div class="pcard-spec"><span class="pspec-lbl">${l}</span><span class="pspec-val">${v}</span></div>`).join('')}</div>`;
     const _sub=getProductDetailText(p);
@@ -1805,6 +1949,7 @@ function renderCards(list){
     </div>`;
   }).join('');
   _updatePager();
+  if(typeof _updateAddPageBtn==='function')_updateAddPageBtn();
 }
 
 let _viewMode='grid';
@@ -1814,7 +1959,7 @@ function _updateToggleBtn(){
   const html=_viewMode==='list'
     ?_SVG_GRID+'<span>Vue fiche</span>'
     :_SVG_LIST+'<span>Vue liste détaillée</span>';
-  document.querySelectorAll('.vt-toggle-btn').forEach(btn=>btn.innerHTML=html);
+  document.querySelectorAll('.vt-toggle-btn:not(.add-page-btn)').forEach(btn=>btn.innerHTML=html);
 }
 function toggleView(){
   setView(_viewMode==='grid'?'list':'grid');
@@ -1873,7 +2018,7 @@ function renderList(list){
   const _allPalette=list.length>0&&list.every(p=>p.format&&p.format.toLowerCase().includes('palette'));
   g.innerHTML=`<div style="overflow-x:auto"><table class="plist-table">
     <thead><tr>
-      <th class="plist-th-add"><button class="plist-sel-all" onclick="event.stopPropagation();toggleSelectAll(this)">+</button></th>
+      <th class="plist-th-add"></th>
       <th></th>
       <th class="plist-col-ref">Référence</th>
       <th>Qualité</th>
@@ -1892,6 +2037,7 @@ function renderList(list){
     <tbody>${rows}</tbody>
   </table></div>`;
   _updatePager();
+  if(typeof _updateAddPageBtn==='function')_updateAddPageBtn();
 }
 
 function render(list){
@@ -1997,6 +2143,7 @@ async function openDetail(id){
     {lbl: LT[lang].t_spec_depot||'Emplacement',  val: p.zone||p.emplacement},
     {lbl: 'Zone',                                  val: p.allee||null},
     {lbl: 'Usine',                                val: p.usine?String(p.usine).replace(/^REF\s*/i,''):'—', always:true},
+    {lbl: 'Code douane',                          val: p.qualite&&HS_CODES[p.qualite]?HS_CODES[p.qualite]:null},
   ].filter(s=>s.val||s.always);
   document.getElementById('det-specs').innerHTML=specDefs.map(s=>
     `<div class="dspec-item"><div class="dspec-lbl">${s.lbl}</div><div class="dspec-val">${s.val}</div></div>`
@@ -2030,6 +2177,7 @@ function closeDetail(){
   document.getElementById('detail-bg').classList.remove('show');
   document.body.style.overflow='';
   document.removeEventListener('keydown',_detKeyHandler);
+  _detIdx=-1;
 }
 function swImg(el,url){document.getElementById('det-main').innerHTML=`<img src="${url}">`;document.querySelectorAll('.dthumb').forEach(t=>t.classList.remove('active'));el.classList.add('active');}
 function openProforma(){if(!cur)return;const _proTitle=formatProductTitle(cur.qualite,cur.name||'Produit');document.getElementById('pf-prod-name').textContent=_proTitle+(cur.ref&&!String(cur.ref).startsWith('Photo_')?' — '+cur.ref:'');document.getElementById('proforma-bg').classList.add('show');}
@@ -2194,6 +2342,55 @@ function addToCart(id){
   if(mab){mab.classList.add('added');mab.innerHTML='✓';}
   toast(LT[lang].t_added_sel);
   renderDrawer();
+}
+
+function addPageToCart(){
+  const g=document.getElementById('pgrid');
+  const list=g&&g._lastList;
+  if(!list||!list.length){toast('Aucun produit sur cette page');return;}
+  const allIn=list.every(p=>cart.find(x=>x.id===+p.id));
+  if(allIn){
+    const ids=new Set(list.map(p=>+p.id));
+    const removed=ids.size;
+    cart=cart.filter(x=>!ids.has(+x.id));
+    localStorage.setItem('prodi_cart',JSON.stringify(cart));
+    updateCartBadge();
+    list.forEach(p=>{
+      const c=document.getElementById('cadd-'+p.id);
+      if(c){c.classList.remove('added');c.innerHTML='<span class="cart-icon">+</span><span class="cart-check">✓</span>';}
+      const l=document.getElementById('ladd-'+p.id);
+      if(l){l.classList.remove('added');l.textContent='+';}
+    });
+    toast(`${removed} produit${removed>1?'s':''} retiré${removed>1?'s':''} de la sélection`);
+    renderDrawer();_updateAddPageBtn();
+    return;
+  }
+  let added=0;
+  list.forEach(p=>{
+    if(cart.find(x=>x.id===+p.id))return;
+    cart.push({id:p.id,name:p.name,ref:p.ref,type:p.type,qualite:p.qualite||null,details:p.details||null,grammage:p.grammage,largeur:p.largeur,format:p.format,poids_net:p.poids_net,price:p.price||null,img:p.image_url||null,couleur:p.couleur||null,usine:p.usine||null,zone:p.zone||null,emplacement:p.emplacement||null,allee:p.allee||null});
+    added++;
+  });
+  localStorage.setItem('prodi_cart',JSON.stringify(cart));
+  updateCartBadge();
+  list.forEach(p=>{
+    const c=document.getElementById('cadd-'+p.id);
+    if(c){c.classList.add('added');c.innerHTML='<span class="cart-check">✓</span>';}
+    const l=document.getElementById('ladd-'+p.id);
+    if(l){l.classList.add('added');l.textContent='✓';}
+  });
+  toast(`${added} produit${added>1?'s':''} ajouté${added>1?'s':''} à la sélection`);
+  renderDrawer();_updateAddPageBtn();
+}
+
+function _updateAddPageBtn(){
+  const g=document.getElementById('pgrid');
+  const list=g&&g._lastList;
+  document.querySelectorAll('.add-page-btn').forEach(btn=>{
+    const allIn=list&&list.length&&list.every(p=>cart.find(x=>x.id===+p.id));
+    btn.classList.toggle('all-in',!!allIn);
+    btn.title=allIn?'Retirer tous les produits de la page de la sélection':'Ajouter tous les produits de la page à la sélection';
+  });
 }
 
 function removeFromCart(id){
