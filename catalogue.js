@@ -818,7 +818,7 @@ async function init(){
   // Hardcoded filter options — Couleur replaced by Offset Couleur + Dossier Couleur
   const typeVals=Object.keys(TYPE_MAP).filter(k=>k!=='Couleur'&&k!=='Offset Couleur'&&k!=='Dossier Couleur').concat(['Offset Couleur','Dossier Couleur']).sort((a,b)=>a.localeCompare(b));
   const couleurVals=['Blanc','Très blanc','Blanc nature','Brun','Crème','Ivoire','Gris','Noir','Transparent','Vert','Rouge','Bleu','Jaune','Orange','Argent','Rose','Or','Violet','Autres'];
-  const _typeLabel=v=>(v==='Offset Couleur'||v==='Dossier Couleur')?`RCOL — ${QUALITE_LABELS[v]}`:`${v} — ${QUALITE_LABELS[v]||v}`;
+  const _typeLabel=v=>v==='Offset Couleur'?`RCOL — ${QUALITE_LABELS[v]} <span class="msd-hint">&lt;&nbsp;150&nbsp;g/m²</span>`:v==='Dossier Couleur'?`RCOL — ${QUALITE_LABELS[v]} <span class="msd-hint">≥&nbsp;150&nbsp;g/m²</span>`:`${v} — ${QUALITE_LABELS[v]||v}`;
   buildMsdOptions('msd-type',QUALITE_CODES,'Tous',_typeLabel);
   buildMsdOptions('sb-msd-type',QUALITE_CODES,'Type de papier',_typeLabel,'msd-type');
   buildMsdOptions('msd-couleur',couleurVals,'Couleurs');
@@ -942,71 +942,60 @@ const QUALITE_LABELS={
   'AUTRES':'Autres',
 };
 
-// HS6 customs sub-positions per internal code (source: codes_douaniers_papier_prodiconseil.xlsx, "HS6 / sous-positions probables")
-// HS4 = 4 chiffres (chapitre), HS6 = 6 chiffres (sous-position), CN8 = 8 chiffres (TARIC final, dépend grammage/format).
-// SSBS, SLWC, RENV, UMAN added by extension (not in source file).
+// CN8 EU TARIC codes per internal code (source: TARIC chapitres 32, 48, 84 — taricsupport.com 2026).
+// UN SEUL code 8 chiffres par produit (le catch-all le plus probable). Affinement via getHsCode()
+// selon grammage/format pour pointer la sous-position exacte.
 const HS_CODES={
-  'R1SC':'4810.13 / 4810.14 / 4810.19 / 4810.29',
-  'R2SC':'4810.13 / 4810.14 / 4810.19 / 4810.29',
-  'RADH':'4811.41 / 4811.49',
-  'RAFF':'4802.55-58 / 4810.xx / 4911.10',
-  'RBOA':'4810.32 / 4810.39 / 4810.92 / 4810.99',
-  'RBON':'4805.24 / 4805.25 / 4805.91-93',
-  'RBOU':'4802.55 / 4802.57 / 4802.58 / 4802.61 / 4802.69',
-  'RCAM':'4809.20 / 4816.20',
-  'RCAR':'4809.20 / 4816.20',
-  'RCOL':'4802.55-58 / 4810.xx',
-  'RCUI':'4806.10 / 4806.20 / 4806.40',
-  'RDIV':'4823.90',
-  'RFLEX':'4807.00 / 4811.51 / 4811.59 / 4811.90',
-  'RKDO':'4802.xx / 4811.xx / 4823.90',
-  'RKRA':'4804.11-59',
-  'RKRABRUN':'4804.11-59',
-  'RKRG':'4811.41 / 4811.49',
-  'RKRR':'4807.00 / 4811.90',
-  'RLINER':'4804.11 / 4804.19 / 4805.11 / 4805.19 / 4805.24 / 4805.25',
-  'RLUX':'4810.32 / 4810.39 / 4810.92 / 4810.99',
-  'RLWC':'4810.22',
-  'RMIN':'4802.54',
-  'RNEW':'4801.00',
-  'ROFF':'4802.55 / 4802.56 / 4802.57 / 4802.58',
-  'RPAC':'4804.xx / 4805.xx / 4819.xx',
-  'RPLA':'3920 / 3921 / 4811.51 / 4811.59',
-  'RSIL':'4806.40 / 4811.59 / 4811.90',
-  'RTHERM':'4811.90 / 4802.20',
-  'RTIS':'4803.00 / 4818.xx',
-  'RENV':'4817.10',
-  'S1SC':'4810.13 / 4810.14 / 4810.19 / 4810.29',
-  'S2SC':'4810.13 / 4810.14 / 4810.19 / 4810.29',
-  'SADH':'4811.41 / 4811.49',
-  'SAFF':'4802.55-58 / 4810.xx / 4911.10',
-  'SBOA':'4810.32 / 4810.39 / 4810.92 / 4810.99',
-  'SBON':'4805.24 / 4805.25 / 4805.91-93',
-  'SBOU':'4802.55 / 4802.57 / 4802.58 / 4802.61 / 4802.69',
-  'SCAM':'4809.20 / 4816.20',
-  'SCAR':'4809.20 / 4816.20',
-  'SCOL':'4802.55-58 / 4810.xx',
-  'SCUT':'4802.55 / 4802.56 / 4802.57 / 4802.58',
-  'SDIV':'4823.90',
-  'SENV':'4817.10',
-  'SFLEX':'4807.00 / 4811.51 / 4811.59 / 4811.90',
-  'SINK':'3215.11 / 3215.19',
-  'SKRA':'4804.11-59',
-  'SKRM':'4804.xx / 4805.xx',
-  'SKRR':'4807.00 / 4811.90',
-  'SLUX':'4810.32 / 4810.39 / 4810.92 / 4810.99',
-  'SNEW':'4801.00',
-  'SOFB':'4802.61 / 4802.62 / 4802.69',
-  'SOFF':'4802.55 / 4802.56 / 4802.57 / 4802.58',
-  'SPAC':'4804.xx / 4805.xx / 4819.xx',
-  'SPLA':'3920 / 3921 / 4811.51 / 4811.59',
-  'SSIL':'4806.40 / 4811.59 / 4811.90',
-  'SSPE':'4823.90',
-  'STIS':'4803.00 / 4818.xx',
-  'SSBS':'4810.32 / 4810.39 / 4810.92 / 4810.99',
-  'SLWC':'4810.22',
-  'UMAC':'8441 / 8439 / 8443',
-  'UMAN':'8441 / 8439 / 8443',
+  // Couché 1/2 faces — défaut: autre graphique couché kaolin
+  'R1SC':'48101900', 'R2SC':'48101900', 'S1SC':'48101900', 'S2SC':'48101900',
+  // Adhésif / gommé
+  'RADH':'48114190', 'SADH':'48114190', 'RKRG':'48114190',
+  // Affiche / couleur — papier vierge >150g par défaut
+  'RAFF':'48025890', 'SAFF':'48025890', 'RCOL':'48025890', 'SCOL':'48025890',
+  // Carton couché kaolin (SBS/FBB/GC/GD/GT/luxe) — défaut multi-couche >225g
+  'RBOA':'48109290', 'SBOA':'48109290',
+  'RLUX':'48109290', 'SLUX':'48109290', 'SSBS':'48109290',
+  // Carton non couché — défaut autre >225g
+  'RBON':'48059380', 'SBON':'48059380',
+  // Bouffant — défaut autre mécanique
+  'RBOU':'48026900', 'SBOU':'48026900',
+  // Autocopiant / carbone
+  'RCAM':'48092000', 'SCAM':'48092000', 'RCAR':'48092000', 'SCAR':'48092000',
+  // Cuisson — défaut autre glazed transparent
+  'RCUI':'48064090',
+  // Divers / spécial / cadeau — catch-all "autres articles en papier"
+  'RDIV':'48239085', 'SDIV':'48239085', 'SSPE':'48239085', 'RKDO':'48239085',
+  // Complexes / kraft armé / thermique — défaut autre couché
+  'RFLEX':'48119000', 'SFLEX':'48119000',
+  'RKRR':'48119000', 'SKRR':'48119000', 'RTHERM':'48119000',
+  // Kraft non couché — défaut kraftliner unbleached other
+  'RKRA':'48041190', 'SKRA':'48041190', 'RKRABRUN':'48041190',
+  // Liner — défaut testliner ≤150g
+  'RLINER':'48052400',
+  // LWC
+  'RLWC':'48102200', 'SLWC':'48102200',
+  // Papier mince <40g
+  'RMIN':'48025400',
+  // Journal
+  'RNEW':'48010000', 'SNEW':'48010000',
+  // Offset / ramette / offset avec bois
+  'ROFF':'48025590', 'SOFF':'48025590', 'SCUT':'48025680', 'SOFB':'48026900',
+  // Emballage — défaut kraft >225g
+  'RPAC':'48045990', 'SPAC':'48045990',
+  // Plastique — défaut papier plastifié autre
+  'RPLA':'48115900', 'SPLA':'48115900',
+  // Silicone / glassine
+  'RSIL':'48064090', 'SSIL':'48064090',
+  // Ouate / tissue — défaut autre
+  'RTIS':'48030090', 'STIS':'48030090',
+  // Enveloppes
+  'RENV':'48171000', 'SENV':'48171000',
+  // Encres (chapitre 32) — défaut autres couleurs
+  'SINK':'32151900',
+  // Kraft pour maculature — testliner >150g
+  'SKRM':'48052500',
+  // Machines (chapitre 84) — défaut machines de découpe papier
+  'UMAC':'84413010', 'UMAN':'84413010',
 };
 
 // Compact a slash-separated HS code list into a range when codes share the same 4-digit chapter
@@ -1027,70 +1016,87 @@ function _hsRange(s){
   return arr.join(' / ');
 }
 
-// Refines HS6 code based on grammage / format. Falls back to the multi-option HS_CODES list.
-// Rules sourced from "Règle grammage / format" column of codes_douaniers_papier_prodiconseil.xlsx
+// Formats raw 8-char CN8 codes (digits or X wildcards) to display with dots: "XXXXXXXX" → "XXXX.XX.XX".
+// "48010000" → "4801.00.00" · "4810XXXX" → "4810.XX.XX" · "À préciser" → "À préciser" (verbatim)
+function _toCN8(code){
+  if(!code)return code;
+  return String(code).split(/\s*\/\s*/).map(seg=>{
+    seg=seg.trim();
+    const m=seg.match(/^([A-Z0-9]{4})([A-Z0-9]{2})([A-Z0-9]{2})$/i);
+    if(m)return `${m[1]}.${m[2]}.${m[3]}`.toUpperCase();
+    return seg;
+  }).join(' / ');
+}
+
+// Refines CN8 code based on grammage / format. UN SEUL code 8 chiffres retourné.
+// Codes TARIC réels chapitres 48 (papier) et 32 (encres) — source taricsupport.com 2026.
 function getHsCode(qualite,gsm,format){
   if(!qualite||!HS_CODES[qualite])return null;
   const isPalette=format&&/palette|feuille/i.test(format);
   const g=Number(gsm)||0;
   switch(qualite){
-    case 'ROFF': case 'SOFF': case 'SCUT':
-      // Offset non couché: 4802.54 (<40) / 4802.55-57 (40-150) / 4802.58 (>150)
+    case 'ROFF': case 'SOFF':
       if(!g)break;
-      if(g<40)return '4802.54';
-      if(g<=150)return isPalette?'4802.56 / 4802.57':'4802.55';
-      return '4802.58';
+      if(g<40)return '48025400';
+      if(isPalette)return g<=150?'48025680':'48025890';
+      if(g<=60)return '48025515';
+      if(g<=75)return '48025525';
+      if(g<=80)return '48025530';
+      if(g<=150)return '48025590';
+      return '48025810';
+    case 'SCUT':
+      if(!g)break;
+      if(g<40)return '48025400';
+      if(g<=150)return '48025680';
+      return '48025890';
     case 'RBOU': case 'SBOU':
-      // Bouffant: <40 → 4802.54 / 40-150 → 4802.55-58 (graphique) ou 4802.61-62 (mécanique) / >150 → 4802.58
       if(!g)break;
-      if(g<40)return '4802.54';
-      if(g<=150)return isPalette?'4802.62 / 4802.69':'4802.61';
-      return '4802.58 / 4802.69';
+      if(g<40)return '48025400';
+      if(isPalette)return '48026200';
+      if(g<=72)return '48026115';
+      if(g<=150)return '48026180';
+      return '48026900';
     case 'SOFB':
-      // Offset avec bois (mécanique): 4802.61 (bobine) / 4802.62 (feuille) / 4802.69 (autre)
-      return isPalette?'4802.62':'4802.61';
+      if(g&&g<=72&&!isPalette)return '48026115';
+      return isPalette?'48026200':'48026180';
     case 'RBOA': case 'SBOA': case 'RLUX': case 'SLUX': case 'SSBS':
-      // Carton couché kaolin: <=150 → 4810.13-19 / 150-225 → 4810.32 / >225 → 4810.92 (multicouche) ou 4810.99
       if(!g)break;
-      if(g<=150)return '4810.13 / 4810.14 / 4810.19';
-      if(g<=225)return '4810.32 / 4810.39';
-      return '4810.92 / 4810.99';
+      if(g<=150)return '48101900';
+      if(g<=225)return '48103290';
+      return '48109290';
     case 'R1SC': case 'S1SC': case 'R2SC': case 'S2SC':
-      // Couché 1 ou 2 faces: <=150 graphique → 4810.13-19 / >150 → 4810.29 (autre couché kaolin)
       if(!g)break;
-      if(g<=150)return '4810.13 / 4810.14 / 4810.19';
-      return '4810.29';
+      if(g<=150)return '48101900';
+      return isPalette?'48102980':'48102930';
     case 'RBON': case 'SBON':
-      // Carton non couché: <=150 → 4805.24 (testliner) / 150-225 → 4805.91 / >225 → 4805.92 ou 4805.93
       if(!g)break;
-      if(g<=150)return '4805.24 / 4805.25';
-      if(g<=225)return '4805.91';
-      return '4805.92 / 4805.93';
+      if(g<=150)return '48052400';
+      if(g<=225)return '48059200';
+      return '48059380';
     case 'RKRA': case 'SKRA':
-      // Kraft non couché: kraftliner 4804.11/19 (>=115g) / sack kraft 4804.21/29 (60-115g) / autres 4804.31-59
       if(!g)break;
-      if(g>=60&&g<=115)return '4804.21 / 4804.29';
-      if(g>=115)return '4804.11 / 4804.19';
-      return '4804.31 / 4804.39';
+      if(g<60)return '48043180';
+      if(g<=115)return '48042190';
+      if(g<175)return '48041190';
+      if(g<=225)return '48041119';
+      return '48045100';
     case 'RKRABRUN':
       if(!g)break;
-      if(g>=60&&g<=115)return '4804.29'; // sack kraft non blanchi
-      return '4804.31 / 4804.39'; // autres kraft non blanchi
+      if(g<=115)return '48042190';
+      if(g<175)return '48041190';
+      if(g<=225)return '48041119';
+      return '48045100';
     case 'RLINER':
-      // Liner: kraftliner 4804.11/19 / fluting 4805.11/19 / testliner 4805.24/25
       if(!g)break;
-      if(g<=150)return '4805.24 / 4805.25';
-      return '4804.11 / 4804.19';
-    case 'RLWC': case 'SLWC':
-      // LWC: toujours 4810.22 si <=72g (déjà unique dans HS_CODES)
-      return '4810.22';
-    case 'RCUI':
-      // Cuisson: parchemin 4806.10 / sulfurisé/greaseproof 4806.20 / glassine 4806.40
-      return '4806.10 / 4806.20 / 4806.40';
-    case 'RNEW': case 'SNEW': return '4801.00';
-    case 'RENV': case 'SENV': return '4817.10';
+      if(g<=150)return '48052400';
+      if(g<175)return '48052500';
+      return '48041119';
+    case 'RLWC': case 'SLWC': return '48102200';
+    case 'RCUI': return '48064090';
+    case 'RNEW': case 'SNEW': return '48010000';
+    case 'RENV': case 'SENV': return '48171000';
     case 'RMIN':
-      if(g&&g<40)return '4802.54';
+      if(g&&g<40)return '48025400';
       break;
   }
   return HS_CODES[qualite];
@@ -2081,24 +2087,25 @@ function renderCards(list){
     const poids=p.poids_net?`${p.poids_net.toLocaleString('fr-FR')}`:'—';
     const prixHtml=_priceMode&&p.price?`<div class="pcard-price">${p.price.toLocaleString('fr-FR')} €/T</div>`:'';
     const typeOverlay='';
-    const gsmOverlay=p.grammage?`<div class="pcard-gsm-overlay"><span class="pcard-gsm-num">${p.grammage}</span><span class="pcard-gsm-lbl">g/m²</span></div>`:'';
+    const _usineClean=p.usine?String(p.usine).replace(/^REF\s*/i,''):null;
+    const usineOverlay=_usineClean?`<div class="pcard-gsm-overlay"><span class="pcard-gsm-lbl">USINE</span><span class="pcard-gsm-num">${_usineClean}</span></div>`:'';
     const _refClean=(p.ref||'').replace(/^Photo_/i,'').trim();
     const refOverlay=_refClean?`<div class="pcard-ref-overlay" title="${_refClean}"><span class="pcard-ref-txt">${_refClean}</span></div>`:'';
     const photoRef='';
     // Mini spec rows (label + value, only if value exists)
-    // Grammage intentionally omitted here (shown on image overlay + detail modal)
+    // Usine désormais affichée en chip overlay sur la photo
     const specRows=[
       p.couleur?['Couleur',p.couleur]:null,
       dimTag?['Laize',dimTag]:paletteDims?['Dimensions',paletteDims+' cm']:null,
+      p.grammage?['Grammage',`${p.grammage} g/m²`]:null,
       p.noyau?['Mandrin',`Ø${p.noyau} mm`]:null,
-      p.usine?['Usine',String(p.usine).replace(/^REF\s*/i,'')]:null,
-      p.allee?['Zone',p.allee]:null,
+      ['Zone',p.allee||'—'],
     ].filter(Boolean).slice(0,6);
     const specsHtml=`<div class="pcard-specs">${specRows.map(([l,v])=>`<div class="pcard-spec"><span class="pspec-lbl">${l}</span><span class="pspec-val">${v}</span></div>`).join('')}</div>`;
     const _sub=getProductDetailText(p);
     const subtitleHtml=_sub?`<div class="pcard-subtitle">${_sub}</div>`:'';
     return`<div class="pcard" onclick="openDetail(${p.id})">
-      <div class="pcard-img">${imgHtml}${typeOverlay}${refOverlay}${gsmOverlay}${photoRef}</div>
+      <div class="pcard-img">${imgHtml}${typeOverlay}${refOverlay}${usineOverlay}${photoRef}</div>
       <div class="pcard-body">
         <div class="pcard-name">${formatProductTitle(p.qualite,p.type)}</div>
         ${subtitleHtml}
@@ -2269,6 +2276,18 @@ async function openDetail(id){
     :_detFallback;
   // Store fallback for onerror
   let _dfEl=document.getElementById('det-fallback');if(!_dfEl){_dfEl=document.createElement('div');_dfEl.id='det-fallback';_dfEl.style.display='none';document.body.appendChild(_dfEl);}_dfEl.innerHTML=_detFallback;
+  // Usine badge (chip)
+  const ub=document.getElementById('det-usine-badge');
+  if(ub){
+    const _uClean=p.usine?String(p.usine).replace(/^REF\s*/i,''):'';
+    if(_uClean){
+      const un=document.getElementById('det-usine-num');
+      if(un)un.textContent=_uClean;
+      ub.style.display='inline-flex';
+    } else {
+      ub.style.display='none';
+    }
+  }
   // Ref badge positionné dans dimg-col (hors dmain pour éviter les conflits)
   const rb=document.getElementById('det-ref-badge');
   if(rb){
@@ -2296,17 +2315,16 @@ async function openDetail(id){
   const _typeLabel=p.qualite?formatProductTitle(p.qualite,p.qualite):null;
   const specDefs=[
     {lbl: LT[lang].t_spec_couleur||'Couleur',   val: p.couleur},
-    {lbl: LT[lang].t_spec_gsm||'Grammage',      val: p.grammage?p.grammage+' g/m²':null},
+    {lbl: 'Grammage',                             val: p.grammage?p.grammage+' g/m²':null},
     {lbl: (p.format&&p.format.toLowerCase().includes('palette')&&p.largeur&&p.longueur)?'Dimensions':(LT[lang].t_spec_laize||'Laize'),
      val: (p.format&&p.format.toLowerCase().includes('palette')&&p.largeur&&p.longueur)?mmToCm(p.largeur)+' × '+mmToCm(p.longueur)+' cm':(p.largeur?mmToCm(p.largeur)+' cm':null)},
     {lbl: LT[lang].t_spec_longueur||'Longueur', val: p.format&&p.format.toLowerCase().includes('palette')&&p.largeur&&p.longueur?null:(p.format==='Palette'&&p.longueur?mmToCm(p.longueur)+' cm':null)},
     {lbl: LT[lang].t_spec_mandrin||'Mandrin',   val: p.noyau?p.noyau+' mm':null},
     {lbl: LT[lang].t_spec_format||'Dimensions',  val: p.qualite!=='UMAC'&&p.qualite!=='UMAN'&&!(p.format&&p.format.toLowerCase().includes('palette'))?formatLabel(p):null},
     {lbl: LT[lang].t_spec_depot||'Emplacement',  val: p.zone||p.emplacement},
-    {lbl: 'Zone',                                  val: p.allee||null},
-    {lbl: 'Usine',                                val: p.usine?String(p.usine).replace(/^REF\s*/i,''):'—', always:true},
-    {lbl: 'Code',                                 val: p.qualite||null},
-    {lbl: 'Code douane',                          val: _hsRange(getHsCode(p.qualite,p.grammage,p.format))},
+    {lbl: 'Zone',                                  val: p.allee||'—', always:true},
+    {lbl: 'Type',                                 val: p.qualite||null},
+    {lbl: 'Code douanier',                        val: _toCN8(getHsCode(p.qualite,p.grammage,p.format))},
   ].filter(s=>s.val||s.always);
   document.getElementById('det-specs').innerHTML=specDefs.map(s=>
     `<div class="dspec-item"><div class="dspec-lbl">${s.lbl}</div><div class="dspec-val">${s.val}</div></div>`
@@ -2701,19 +2719,33 @@ function _proformaDesignation(it){
 
 function printSelection(){
   if(!cart.length){toast('Sélection vide !');return;}
+  const clientName=(prompt('Nom de la sélection (client) :','')||'').trim();
+  if(!clientName)return;
   const items=cart.map(p=>{
     const _f=all.find(x=>x.id===+p.id)||p;
     const qualite=p.qualite||_f.qualite||'';
     const couleur=p.couleur||_f.couleur||'';
     const usine=String(p.usine||_f.usine||'').replace(/^REF\s*/i,'');
     const gsm=p.grammage||_f.grammage||'';
-    const largeurCm=p.largeur?mmToCm(p.largeur):'';
+    const largeur=p.largeur||_f.largeur||0;
+    const longueur=p.longueur||_f.longueur||0;
+    const largeurCm=largeur?mmToCm(largeur):'';
+    const format=p.format||_f.format||'';
+    const isPalette=format&&format.toLowerCase().includes('palette');
+    const dim=isPalette&&largeur&&longueur
+      ?`${mmToCm(largeur)} × ${mmToCm(longueur)} cm`
+      :largeur&&longueur
+        ?`${mmToCm(largeur)} cm · Ø ${mmToCm(longueur)} cm`
+        :largeur?`${mmToCm(largeur)} cm`:'—';
+    const details=p.details||_f.details||'';
+    const _detClean=details.replace(/[-–—\s]+/g,' ').trim();
     const poidsKg=Number(p.poids_net||0);
     const priceT=Number(_f.price||0);
     const priceKg=priceT/1000;
     const montant=poidsKg*priceKg;
-    const it={qualite,couleur,usine,gsm,largeurCm,details:p.details||_f.details||'',format:p.format||_f.format||'',emplacement:p.emplacement||_f.emplacement||''};
-    return{ref:qualite||'—',qualite,designation:_proformaDesignation(it),poidsKg,priceKg,priceT,montant};
+    const titre=formatProductTitle(qualite,qualite);
+    const it={qualite,couleur,usine,gsm,largeurCm,details,format,emplacement:p.emplacement||_f.emplacement||''};
+    return{ref:qualite||'—',qualite,titre,details:_detClean,couleur,gsm,dim,poidsKg,usine,priceKg,priceT,montant,designation:_proformaDesignation(it)};
   });
   const totalPoids=items.reduce((s,i)=>s+i.poidsKg,0);
   const totalMontant=items.reduce((s,i)=>s+i.montant,0);
@@ -2745,14 +2777,16 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
 .page{background:var(--bg);width:210mm;min-height:297mm;padding:14mm 14mm 12mm;box-shadow:0 4px 24px rgba(0,0,0,.08);position:relative;}
 .page-num{position:absolute;top:10mm;right:14mm;font-weight:600;font-size:11px;}
 .head{display:grid;grid-template-columns:1.05fr .95fr;gap:18px;margin-bottom:14px;}
-.brand{display:flex;align-items:flex-start;gap:10px;}
-.brand-logo{width:64px;height:64px;object-fit:contain;flex-shrink:0;}
-.brand-text .brand-name{font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--red);letter-spacing:.5px;line-height:1;margin-bottom:5px;font-weight:400;}
+.brand{display:flex;flex-direction:column;align-items:flex-start;gap:8px;}
+.brand-logo{width:200px;height:auto;max-height:42px;object-fit:contain;flex-shrink:0;display:block;}
+.brand-text{width:100%;}
 .brand-text .brand-line{font-size:9px;line-height:1.5;color:var(--ink);}
 .brand-text b{font-weight:700;}
 .brand-text .red{color:var(--red);font-weight:700;}
-.client{padding-top:6px;}
-.client-name{font-family:'DM Sans',sans-serif;font-weight:700;font-size:16px;letter-spacing:.5px;margin-bottom:10px;text-transform:uppercase;}
+.client{padding-top:6px;display:flex;flex-direction:column;align-items:flex-start;gap:8px;}
+.client-name{font-family:'DM Sans',sans-serif;font-weight:700;font-size:22px;letter-spacing:.5px;text-transform:uppercase;line-height:1.2;}
+.client .proforma-title{font-size:30px;line-height:1;}
+.client .commercial{font-size:10.5px;}
 .client-block{font-size:11px;line-height:1.7;}
 .client-block .country{font-weight:700;font-size:13px;letter-spacing:.5px;}
 .client-fields{margin-top:10px;font-size:10.5px;line-height:1.7;}
@@ -2786,6 +2820,16 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
 .items col.c-pn{width:11%;}
 .items col.c-pu{width:11%;}
 .items col.c-mt{width:14%;}
+.items col.c-q{width:7%;}
+.items col.c-tit{width:13%;}
+.items col.c-det{width:14%;}
+.items col.c-col{width:9%;}
+.items col.c-gsm{width:7%;}
+.items col.c-dim{width:11%;}
+.items col.c-us{width:6%;}
+.items.view-detail{font-size:8.5px;}
+.items.view-detail th{font-size:8.5px;padding:6px 5px;letter-spacing:.2px;}
+.items.view-detail td{padding:5px 5px;}
 .totals-block{padding:10px 14px;border:1.5px solid var(--line);border-top:none;background:#fafaf6;font-size:10.5px;line-height:1.8;font-weight:600;}
 .totals-block .row{display:flex;justify-content:space-between;}
 .totals-block .row b{color:var(--ink);}
@@ -2847,7 +2891,6 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
     <div class="brand">
       <img class="brand-logo" src="img/logo.png" alt="Prodiconseil" onerror="this.style.display='none'">
       <div class="brand-text">
-        <div class="brand-name">Prodiconseil</div>
         <div class="brand-line">9 Promenée Jeanne Hachette 94200 Ivry sur Seine - FRANCE</div>
         <div class="brand-line"><b>Contact e-mail :</b> clients@prodi.com</div>
         <div class="brand-line">Tel : 331 4672 0369 - Fax : 331 4959 8731</div>
@@ -2861,24 +2904,10 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
       </div>
     </div>
     <div class="client">
-      <div class="client-name" contenteditable="true">NOM DU CLIENT</div>
-      <div class="client-block">
-        <div contenteditable="true">Adresse ligne 1</div>
-        <div contenteditable="true">Code postal — Ville</div>
-        <div class="country" contenteditable="true">PAYS</div>
-      </div>
-      <div class="client-fields">
-        <div><span class="lbl">Ref. Interne :</span><span class="editable" contenteditable="true">—</span></div>
-        <div><span class="lbl">NIF :</span><span class="editable" contenteditable="true">—</span></div>
-        <div><span class="lbl">N° intra./RC :</span><span class="editable" contenteditable="true"></span></div>
-      </div>
+      <div class="proforma-title">Liste détaillée</div>
+      <div class="client-name" contenteditable="true">${clientName.replace(/</g,'&lt;').toUpperCase()}</div>
     </div>
   </div>
-
-  <div class="title-row">
-    <div class="proforma-title">Facture Proforma (Euros)</div>
-  </div>
-  <div class="commercial" style="margin-bottom:10px;"><span class="lbl">Votre commercial :</span> <b contenteditable="true">—</b></div>
 
   <div class="info-row">
     <table class="info-table">
@@ -2898,10 +2927,10 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
 
   <div id="items-host">
     <table class="items view-detail">
-      <colgroup><col class="c-ref"><col class="c-des"><col class="c-pn"><col class="c-pu"><col class="c-mt"></colgroup>
-      <thead><tr><th>Référence</th><th>Désignation</th><th style="text-align:right;">PN (kg)</th><th style="text-align:right;">P.U (€)</th><th style="text-align:right;">Montant HT (€)</th></tr></thead>
+      <colgroup><col class="c-q"><col class="c-tit"><col class="c-det"><col class="c-col"><col class="c-gsm"><col class="c-dim"><col class="c-pn"><col class="c-us"><col class="c-pu"><col class="c-mt"></colgroup>
+      <thead><tr><th>Réf.</th><th>Qualité</th><th>Détails</th><th>Couleur</th><th style="text-align:right;">GSM</th><th>Dimensions</th><th style="text-align:right;">PN (kg)</th><th style="text-align:right;">Usine</th><th style="text-align:right;">P.U (€)</th><th style="text-align:right;">Montant HT (€)</th></tr></thead>
       <tbody>
-        ${items.map(it=>`<tr><td class="ref">${it.ref}</td><td class="designation">${it.designation.replace(/</g,'&lt;')}</td><td class="num">${num(it.poidsKg)}</td><td class="num">${dec(it.priceKg,2)}</td><td class="num">${eur(it.montant)}</td></tr>`).join('')}
+        ${items.map(it=>`<tr><td class="ref">${it.ref}</td><td>${(it.titre||'').replace(/</g,'&lt;')}</td><td>${(it.details||'—').replace(/</g,'&lt;')}</td><td>${(it.couleur||'—').replace(/</g,'&lt;')}</td><td class="num">${it.gsm?it.gsm+' g/m²':'—'}</td><td>${it.dim||'—'}</td><td class="num">${num(it.poidsKg)}</td><td class="num">${it.usine||'—'}</td><td class="num">${dec(it.priceKg,2)}</td><td class="num">${eur(it.montant)}</td></tr>`).join('')}
       </tbody>
     </table>
     <table class="items view-resume" style="display:none;">
@@ -3181,8 +3210,12 @@ function renderDrawer(){
     const _ciSum=getProductDetailText(_pFull);
     const lot=p.ref?String(p.ref).replace(/^Photo_/i,'').trim()||null:null;
     const imgSrc=p.img||p.image_url||(all.find(x=>x.id===+p.id)?.image_url)||null;
-    const _isFabD=p.ref&&/FAB/i.test(String(p.ref));
-    const _fallback=_isFabD?'img/fabrication-sur-demande.png':'img/no-photo.png';
+    const _emp=p.emplacement||_pFull.emplacement||null;
+    const _zone=p.zone||_pFull.zone||null;
+    const _ref=p.ref||_pFull.ref||null;
+    const _isSiderunD=(_emp==='OUR WAREHOUSE'&&((_ref&&/FAB/i.test(String(_ref)))||(_details&&/fabrication/i.test(_details))));
+    const _isFabD=!_isSiderunD&&((_zone==='FABRICATION SUR COMMANDE'||_emp==='FABRICATION SUR COMMANDE')||(_ref&&/^Photo_FAB/i.test(String(_ref)))||(_details&&/^\s*fabrication\b/i.test(_details))||(_emp&&/FAB|DIRECT USINE/i.test(_emp))||(_zone&&/FABRICATION/i.test(_zone)));
+    const _fallback=_isSiderunD?'img/siderun-sur-demande.png':_isFabD?'img/fabrication-sur-demande.png':'img/no-photo.png';
     const imgHtml=imgSrc?`<img src="${imgSrc}" onerror="this.src='${_fallback}'">`:`<img src="${_fallback}" alt="">`;
     return`<div class="ci" id="ci-${p.id}">
       <div class="ci-img">${imgHtml}</div>

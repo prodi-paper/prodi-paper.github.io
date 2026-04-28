@@ -11,7 +11,7 @@ Usage:
   python3 import_stock_auto.py --dry    # dry run (affiche sans modifier la base)
 """
 
-import imaplib, email, os, sys, json, re, tempfile, subprocess
+import imaplib, email, os, sys, json, re, tempfile, subprocess, urllib.request
 from datetime import datetime
 from collections import defaultdict
 
@@ -145,6 +145,7 @@ def parse_all_files(files):
                 elif s.startswith('gr') and len(s) <= 3: col_map['gsm'] = ci
                 elif 'laize' in s: col_map['width'] = ci
                 elif 'longueur' in s: col_map['longueur'] = ci
+                elif 'diam' in s: col_map['longueur'] = ci
                 elif 'mandrin' in s: col_map['noyau'] = ci
                 elif 'poids' in s: col_map['weight'] = ci
                 elif 'depart' in s or 'exwork' in s: col_map['price'] = ci
@@ -266,8 +267,12 @@ def update_supabase(products):
     log(f"Insertion: {success} OK, {errors} erreurs")
 
     # Re-apply zones from correction_zone.xlsx if it exists
-    zone_file = "/Users/tantan/Desktop/dossier sans titre 2/correction_zone.xlsx"
-    if os.path.exists(zone_file):
+    zone_candidates = [
+        "/Users/tantan/Desktop/dossier sans titre 2/correction_zone.xlsx",
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "correction_zone.xlsx"),
+    ]
+    zone_file = next((p for p in zone_candidates if os.path.exists(p)), None)
+    if zone_file:
         log("Application des zones/allées...")
         import openpyxl
         wb = openpyxl.load_workbook(zone_file, read_only=True, data_only=True)
@@ -283,23 +288,28 @@ def update_supabase(products):
                 ref_zone[ref_str] = str(zone).strip()
         wb.close()
 
-        SQL_URL = "https://api.supabase.com/v1/projects/bvcgpdoukhcatjibmvnb/database/query"
-        refs_list = list(ref_zone.items())
-        for i in range(0, len(refs_list), 500):
-            batch = refs_list[i:i+500]
-            cases = []
-            where_refs = []
-            for ref, zone in batch:
-                zone_escaped = zone.replace("'", "''")
-                photo_ref = f"Photo_{ref}"
-                cases.append(f"WHEN ref = '{photo_ref}' THEN '{zone_escaped}'")
-                where_refs.append(f"'{photo_ref}'")
-            sql = f"UPDATE products SET zone = CASE {' '.join(cases)} ELSE zone END WHERE ref IN ({','.join(where_refs)});"
-            subprocess.run(['curl','-s','-X','POST', SQL_URL,
-                '-H',f'Authorization: Bearer {MGMT_TOKEN}',
-                '-H','Content-Type: application/json',
-                '-d', json.dumps({"query": sql})], capture_output=True)
-        log(f"Zones appliquées: {len(ref_zone)} refs")
+        # Apply zones via REST API PATCH (anon key works thanks to RLS)
+        applied = 0
+        failed = 0
+        for ref, zone in ref_zone.items():
+            photo_ref = f"Photo_{ref}"
+            url = f'{SUPABASE_URL}/rest/v1/products?ref=eq.{photo_ref}'
+            payload = json.dumps({"zone": zone}).encode()
+            req = urllib.request.Request(url, data=payload, method='PATCH', headers={
+                'apikey': ANON_KEY,
+                'Authorization': f'Bearer {ANON_KEY}',
+                'Content-Type': 'application/json',
+                'Prefer': 'return=minimal',
+            })
+            try:
+                with urllib.request.urlopen(req) as resp:
+                    if resp.status in (200, 204):
+                        applied += 1
+                    else:
+                        failed += 1
+            except Exception:
+                failed += 1
+        log(f"Zones appliquées: {applied} OK, {failed} erreurs (sur {len(ref_zone)} refs)")
 
 # ── MAIN ──
 if __name__ == '__main__':
