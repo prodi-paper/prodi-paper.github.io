@@ -2758,8 +2758,9 @@ function printSelection(){
     const priceKg=priceT/1000;
     const montant=poidsKg*priceKg;
     const titre=formatProductTitle(qualite,qualite);
+    const photoRef=String(p.ref||_f.ref||'').replace(/^Photo_/i,'').trim();
     const it={qualite,couleur,usine,gsm,largeurCm,details,format,emplacement:p.emplacement||_f.emplacement||''};
-    return{ref:qualite||'—',qualite,titre,details:_detClean,couleur,gsm,dim,poidsKg,usine,priceKg,priceT,montant,designation:_proformaDesignation(it)};
+    return{ref:qualite||'—',photoRef,qualite,titre,details:_detClean,couleur,gsm,dim,poidsKg,usine,priceKg,priceT,montant,designation:_proformaDesignation(it)};
   });
   const totalPoids=items.reduce((s,i)=>s+i.poidsKg,0);
   const totalMontant=items.reduce((s,i)=>s+i.montant,0);
@@ -2780,7 +2781,8 @@ function printSelection(){
   const numero=_proformaNumero();
   const baseUrl=location.origin+location.pathname.replace(/[^/]*$/,'');
   const w=window.open('','_blank');
-  w.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><base href="${baseUrl}"><title>Facture Proforma — ${numero}</title>
+  const _safeClient=clientName.replace(/[\/\\:*?"<>|]/g,'_');
+  w.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><base href="${baseUrl}"><title>Liste détaillée — ${_safeClient} — ${numero}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=Pinyon+Script&family=Playfair+Display:ital,wght@1,400;1,700&display=swap" rel="stylesheet">
 <style>
@@ -2834,13 +2836,14 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
 .items col.c-pn{width:11%;}
 .items col.c-pu{width:11%;}
 .items col.c-mt{width:14%;}
-.items col.c-q{width:7%;}
-.items col.c-tit{width:13%;}
-.items col.c-det{width:14%;}
-.items col.c-col{width:9%;}
+.items col.c-pref{width:8%;}
+.items col.c-q{width:6%;}
+.items col.c-tit{width:11%;}
+.items col.c-det{width:12%;}
+.items col.c-col{width:8%;}
 .items col.c-gsm{width:7%;}
-.items col.c-dim{width:11%;}
-.items col.c-us{width:6%;}
+.items col.c-dim{width:10%;}
+.items col.c-us{width:5%;}
 .items.view-detail{font-size:8.5px;}
 .items.view-detail th{font-size:8.5px;padding:6px 5px;letter-spacing:.2px;}
 .items.view-detail td{padding:5px 5px;}
@@ -2875,6 +2878,7 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
 .toolbar .modes button{background:transparent;color:var(--ink);padding:6px 12px;font-size:11px;border-radius:3px;letter-spacing:.3px;}
 .toolbar .modes button.active{background:var(--ink);color:#fff;}
 .toolbar .btn-print{background:var(--red);color:#fff;}
+.toolbar .btn-save{background:var(--ink);color:#fff;}
 .toolbar .btn-close{background:#fff;color:var(--ink);border:1.5px solid var(--ink);}
 .synthesis-block{border:1.5px solid var(--line);padding:30px 24px;text-align:center;background:#fafaf6;}
 .synthesis-block .sb-label{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1.5px;color:var(--gray);margin-bottom:8px;}
@@ -2887,6 +2891,10 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
   .page{box-shadow:none;width:auto;min-height:auto;padding:10mm 12mm;}
   .toolbar{display:none;}
   .editable{border-bottom-color:transparent;}
+  .items tr,.items thead{page-break-inside:avoid;}
+  .totals-block,.totals-grid,.foot-row,.synthesis-block{page-break-inside:avoid;}
+  .totals-block{page-break-before:avoid;}
+  .items tbody tr:last-child{page-break-after:avoid;}
   @page{size:A4 portrait;margin:0;}
 }
 </style></head><body>
@@ -2897,6 +2905,7 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
     <button data-mode="synth" onclick="setMode('synth')">Synthèse</button>
   </div>
   <button class="btn-print" onclick="window.print()">Imprimer</button>
+  <button class="btn-save" onclick="savePdf()">Enregistrer</button>
   <button class="btn-close" onclick="window.close()">Fermer</button>
 </div>
 <div class="page">
@@ -2941,10 +2950,10 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
 
   <div id="items-host">
     <table class="items view-detail">
-      <colgroup><col class="c-q"><col class="c-tit"><col class="c-det"><col class="c-col"><col class="c-gsm"><col class="c-dim"><col class="c-pn"><col class="c-us"><col class="c-pu"><col class="c-mt"></colgroup>
-      <thead><tr><th>Réf.</th><th>Qualité</th><th>Détails</th><th>Couleur</th><th style="text-align:right;">GSM</th><th>Dimensions</th><th style="text-align:right;">PN (kg)</th><th style="text-align:right;">Usine</th><th style="text-align:right;">P.U (€)</th><th style="text-align:right;">Montant HT (€)</th></tr></thead>
+      <colgroup><col class="c-pref"><col class="c-q"><col class="c-tit"><col class="c-det"><col class="c-col"><col class="c-gsm"><col class="c-dim"><col class="c-pn"><col class="c-us"><col class="c-pu"><col class="c-mt"></colgroup>
+      <thead><tr><th>N°</th><th>Réf.</th><th>Qualité</th><th>Détails</th><th>Couleur</th><th style="text-align:right;">GSM</th><th>Dimensions</th><th style="text-align:right;">PN (kg)</th><th style="text-align:right;">Usine</th><th style="text-align:right;">P.U (€)</th><th style="text-align:right;">Montant HT (€)</th></tr></thead>
       <tbody>
-        ${items.map(it=>`<tr><td class="ref">${it.ref}</td><td>${(it.titre||'').replace(/</g,'&lt;')}</td><td>${(it.details||'—').replace(/</g,'&lt;')}</td><td>${(it.couleur||'—').replace(/</g,'&lt;')}</td><td class="num">${it.gsm?it.gsm+' g/m²':'—'}</td><td>${it.dim||'—'}</td><td class="num">${num(it.poidsKg)}</td><td class="num">${it.usine||'—'}</td><td class="num">${dec(it.priceKg,2)}</td><td class="num">${eur(it.montant)}</td></tr>`).join('')}
+        ${items.map(it=>`<tr><td class="ref">${it.photoRef||'—'}</td><td class="ref">${it.ref}</td><td>${(it.titre||'').replace(/</g,'&lt;')}</td><td>${(it.details||'—').replace(/</g,'&lt;')}</td><td>${(it.couleur||'—').replace(/</g,'&lt;')}</td><td class="num">${it.gsm?it.gsm+' g/m²':'—'}</td><td>${it.dim||'—'}</td><td class="num">${num(it.poidsKg)}</td><td class="num">${it.usine||'—'}</td><td class="num">${dec(it.priceKg,2)}</td><td class="num">${eur(it.montant)}</td></tr>`).join('')}
       </tbody>
     </table>
     <table class="items view-resume" style="display:none;">
@@ -3005,6 +3014,28 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
   </div>
 </div>
 <script>
+  function savePdf(){
+    const btn=document.querySelector('.btn-save');
+    const orig=btn?btn.textContent:'';
+    if(btn){btn.textContent='Génération…';btn.disabled=true;}
+    function run(){
+      const el=document.querySelector('.page');
+      window.html2pdf().set({
+        margin:0,
+        filename:document.title.replace(/[\\/:*?"<>|]/g,'_')+'.pdf',
+        image:{type:'jpeg',quality:0.98},
+        html2canvas:{scale:2,useCORS:true,letterRendering:true,backgroundColor:'#ffffff'},
+        jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+        pagebreak:{mode:['css','legacy'],avoid:['tr','.totals-block','.totals-grid','.foot-row']}
+      }).from(el).save().then(()=>{if(btn){btn.textContent=orig;btn.disabled=false;}}).catch(()=>{if(btn){btn.textContent=orig;btn.disabled=false;}alert('Erreur de génération du PDF');});
+    }
+    if(window.html2pdf)return run();
+    const s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js';
+    s.onload=run;
+    s.onerror=()=>{if(btn){btn.textContent=orig;btn.disabled=false;}alert('Impossible de charger le générateur PDF');};
+    document.head.appendChild(s);
+  }
   function setMode(m){
     document.querySelectorAll('#items-host > *').forEach(el=>el.style.display='none');
     const map={detail:'.view-detail',resume:'.view-resume',synth:'.view-synth'};

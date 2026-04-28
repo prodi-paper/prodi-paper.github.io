@@ -197,7 +197,7 @@ header{background:rgba(255,255,255,.92);position:sticky;top:0;z-index:100;border
 .msd-scroll-hint.hidden{display:none;}
 @keyframes msd-bounce{from{transform:translateY(0)}to{transform:translateY(3px)}}
 .msd-option{padding:9px 11px;font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .1s;user-select:none;}
-.msd-hint{margin-left:6px;font-size:11px;font-weight:500;color:var(--gray);white-space:nowrap;}
+.msd-hint{margin-left:6px;font-size:10.5px;font-weight:700;color:var(--ink);white-space:nowrap;background:var(--off2);padding:2px 7px;border-radius:10px;letter-spacing:.2px;}
 .msd-option:hover{background:var(--off);}
 .msd-option.selected{color:var(--red);font-weight:700;background:rgba(254,0,0,.05);}
 .msd-check{width:16px;height:16px;border:2px solid #ccc;border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .1s;background:#fff;}

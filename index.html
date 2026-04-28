@@ -320,10 +320,10 @@
         <div class="rbar-sort">
           <span class="rbar-sort-lbl" data-i18n="t_trier">Trier :</span>
           <select class="rbar-sel" id="sort-sel" onchange="_doFilter()">
-            <option value="date_desc" data-i18n-opt="t_sort_new">Plus récents</option>
+            <option value="price_asc">Prix ↑</option>
+            <option value="price_desc">Prix ↓</option>
             <option value="gsm_asc" selected data-i18n-opt="t_sort_gsm_asc">Grammage ↑</option>
             <option value="gsm_desc" data-i18n-opt="t_sort_gsm_desc">Grammage ↓</option>
-            <!-- PRIX_MASQUÉ: <option value="price_asc">Prix ↑</option><option value="price_desc">Prix ↓</option> -->
           </select>
         </div>
         <button class="rbar-reset" id="rbar-reset" onclick="resetFilters()" style="display:none">Réinitialiser</button>
@@ -334,10 +334,10 @@
       <div class="sort-wrap">
         <span class="sort-lbl" data-i18n="t_trier">Trier :</span>
         <select class="sort-sel" id="sort-select" onchange="filterProducts()">
-          <option value="date">Plus récents</option>
+          <option value="prix_asc">Prix ↑</option>
+          <option value="prix_desc">Prix ↓</option>
           <option value="grammage_asc" selected>Grammage ↑</option>
           <option value="grammage_desc">Grammage ↓</option>
-          <!-- PRIX_MASQUÉ: <option value="prix_asc">Prix ↑</option><option value="prix_desc">Prix ↓</option> -->
         </select>
         <button class="vt-toggle-btn add-page-btn" onclick="addPageToCart()" title="Ajouter tous les produits de la page à la sélection">
           <svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="7" y1="2" x2="7" y2="12"/><line x1="2" y1="7" x2="12" y2="7"/></svg>
