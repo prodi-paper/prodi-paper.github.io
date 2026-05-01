@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://stock.prodi.net https://paper.prodi.com https://ethanelb.github.io https://images.unsplash.com; connect-src 'self' https://bvcgpdoukhcatjibmvnb.supabase.co https://api.emailjs.com https://cdn.jsdelivr.net; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Prodiconseil — Stocklots de papier & carton | European Paper Stocklots</title>
 <meta name="description" content="Stocklots de papier et carton européens. Négociant depuis 1991, 5800+ références : couché, kraft, SBS, offset, FBB. Expédition mondiale depuis la France.">
 <meta name="keywords" content="stocklots papier, carton, bobines papier, kraft paper, SBS board, FBB, testliner, fluting, coated paper, offset paper, European paper stocklots">
@@ -43,7 +46,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="dns-prefetch" href="https://bvcgpdoukhcatjibmvnb.supabase.co">
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
-<script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js" integrity="sha384-Ukv1p/xTma6P4/2bY5KzWBw+ydSpXmhCMtyciIQVDJ1RmOxtCYNMF1uXT9T63H67" crossorigin="anonymous" defer></script>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@600;700&family=Barlow+Condensed:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="vitrine.css?v=66">
 <script type="application/ld+json">
@@ -437,6 +440,7 @@
               <textarea id="f-msg" placeholder="" required></textarea>
               <div class="fg-msg" id="fg-msg-msg"></div>
             </div>
+            <input type="text" id="f-hp" name="website" autocomplete="off" tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px;opacity:0;height:0;width:0;pointer-events:none;">
             <button type="submit" class="btn-submit" id="f-submit" data-i18n="f_send">Envoyer le message</button>
           </form>
           <div id="form-ok" class="form-ok">

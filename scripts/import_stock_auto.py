@@ -17,13 +17,13 @@ from collections import defaultdict
 
 # ── CONFIG ──
 IMAP_HOST = "imap.gmail.com"
-IMAP_USER = "eelbilia@gmail.com"
-IMAP_PASS = "wbhy hljt xflf zibm"
+IMAP_USER = os.environ.get("IMAP_USER", "eelbilia@gmail.com")
+IMAP_PASS = os.environ["IMAP_PASS"]
 SENDER = "info@prodi.com"
 
 SUPABASE_URL = "https://bvcgpdoukhcatjibmvnb.supabase.co"
 ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2Y2dwZG91a2hjYXRqaWJtdm5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNzg5MjgsImV4cCI6MjA4Nzg1NDkyOH0.Ip3ykSUS9sajTH04yXBerOG1haBKMD1kAvMQNjnGL1Q"
-MGMT_TOKEN = "sbp_8bbc7fb2723ae1f9fd33b8b3eed4fff4e7656a28"
+MGMT_TOKEN = os.environ["SUPABASE_MGMT_TOKEN"]
 
 ALL_KEYS = ['quality','color','details','gsm','width','longueur','noyau','weight','price','ref','usine','emplacement','format','image_url']
 

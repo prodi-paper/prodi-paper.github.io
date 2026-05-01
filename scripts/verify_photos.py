@@ -12,7 +12,7 @@ import urllib.request, urllib.error, urllib.parse
 
 SUPABASE_URL = "https://bvcgpdoukhcatjibmvnb.supabase.co"
 ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2Y2dwZG91a2hjYXRqaWJtdm5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNzg5MjgsImV4cCI6MjA4Nzg1NDkyOH0.Ip3ykSUS9sajTH04yXBerOG1haBKMD1kAvMQNjnGL1Q"
-MGMT_TOKEN = os.environ.get("SUPABASE_MGMT_TOKEN", "sbp_8bbc7fb2723ae1f9fd33b8b3eed4fff4e7656a28")
+MGMT_TOKEN = os.environ["SUPABASE_MGMT_TOKEN"]
 PROJECT_REF = "bvcgpdoukhcatjibmvnb"
 
 DRY_RUN = "--dry-run" in sys.argv

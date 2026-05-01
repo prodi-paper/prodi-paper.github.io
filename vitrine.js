@@ -1,3 +1,11 @@
+// ─── SECURITY HELPERS ───
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const safeUrl = u => {
+  const s = String(u||'').trim();
+  if (!/^https?:\/\//i.test(s)) return '';
+  return esc(s);
+};
+
 // ─── TRANSLATIONS ───
 const T = {
   fr: {
@@ -230,6 +238,12 @@ const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 
 async function submitContact(e) {
   e.preventDefault();
+  // Honeypot anti-bot: hidden field should remain empty for real users.
+  if (document.getElementById('f-hp')?.value) {
+    document.getElementById('contact-form').style.display = 'none';
+    document.getElementById('form-ok').style.display = 'block';
+    return;
+  }
   const btn = document.getElementById('f-submit');
   btn.disabled = true;
   btn.textContent = '...';
@@ -400,7 +414,7 @@ async function submitQuickDevis(e){
       const det=(p.details||'').replace(/[-–—\s]+/g,' ').trim();
       const fmt=p.format||(p.noyau?'Bobine':'Palette');
       const weight=p.weight?Math.round(p.weight).toLocaleString('fr-FR')+' kg':'—';
-      return`<a class="sp-card" href="./index.html"><div class="sp-photo"><img src="${p.image_url}" alt="${title}" loading="lazy" onerror="this.parentElement.innerHTML='<div style=\\'display:flex;align-items:center;justify-content:center;height:100%;color:#ccc\\'>Photo sur demande</div>'"></div><div class="sp-body"><div class="sp-name">${title}</div>${det?`<div class="sp-type">${det.substring(0,35)}${det.length>35?'…':''}</div>`:''}<div class="sp-specs"><span class="sp-spec">${p.gsm?p.gsm+' g/m²':'—'}</span><span class="sp-spec">${fmt}</span></div><div class="sp-footer"><span class="sp-weight">${weight}</span></div></div></a>`;
+      return`<a class="sp-card" href="./index.html"><div class="sp-photo"><img src="${safeUrl(p.image_url)}" alt="${esc(title)}" loading="lazy" onerror="this.parentElement.innerHTML='<div style=\\'display:flex;align-items:center;justify-content:center;height:100%;color:#ccc\\'>Photo sur demande</div>'"></div><div class="sp-body"><div class="sp-name">${esc(title)}</div>${det?`<div class="sp-type">${esc(det.substring(0,35))}${det.length>35?'…':''}</div>`:''}<div class="sp-specs"><span class="sp-spec">${p.gsm?esc(p.gsm+' g/m²'):'—'}</span><span class="sp-spec">${esc(fmt)}</span></div><div class="sp-footer"><span class="sp-weight">${esc(weight)}</span></div></div></a>`;
     }
 
     track.innerHTML=slides.map(slide=>`<div class="sc-slide">${slide.map(cardHtml).join('')}</div>`).join('');

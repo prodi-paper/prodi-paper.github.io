@@ -15,6 +15,19 @@ async function sbQ(path,opts={}){
   const _rawCnt=cr&&cr.includes('/')?+cr.split('/')[1]:null;
   return{data:r.ok?d:null,error:r.ok?null:(d||{message:'HTTP '+r.status}),count:(_rawCnt!=null&&!isNaN(_rawCnt))?_rawCnt:null};
 }
+
+// ─── SECURITY HELPERS — XSS escape for product fields injected via innerHTML ───
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// safeUrl: whitelist http(s) and trusted hosts; returns empty string for anything else (data:, javascript:, etc.)
+const safeUrl = u => {
+  const s = String(u||'').trim();
+  if (!/^https?:\/\//i.test(s)) return '';
+  return esc(s);
+};
+// attrJs: produces a valid HTML-attribute-safe JS string literal (use WITHOUT surrounding quotes in onclick)
+const attrJs = s => esc(JSON.stringify(String(s ?? '')));
+// numId: coerce id to integer for use in onclick handlers (prevents JS injection if id is non-numeric string)
+const numId = v => Number.isFinite(+v) ? +v : 0;
 const WA='33649754915';
 let all=[],cur=null;
 const PAGE=40; let currentPage=1,_totalCount=0,_reqToken=0,_lastCorrections=[],_isFirstLoad=true,_featuredMode=false;
@@ -734,7 +747,7 @@ function updateCmpBar(){
     const id=[...cmpSet][i];
     if(!id)return`<div class="cmp-thumb-empty">+</div>`;
     const p=all.find(x=>x.id===+id);
-    return p&&p.image_url?`<img class="cmp-thumb" src="${p.image_url}" title="${p.name}">`:`<div class="cmp-thumb-empty" style="color:#aaa;font-size:10px">${p?.name?.substring(0,6)||'?'}</div>`;
+    return p&&p.image_url?`<img class="cmp-thumb" src="${safeUrl(p.image_url)}" title="${esc(p.name)}">`:`<div class="cmp-thumb-empty" style="color:#aaa;font-size:10px">${esc(p?.name?.substring(0,6)||'?')}</div>`;
   });
   items.innerHTML=slots.join('');
 }
@@ -760,10 +773,11 @@ function openCmpModal(){
     // PRIX_MASQUÉ: {lbl:'Prix',key:'price',unit:'€/T'},
   ];
   // header
-  let html=`<thead><tr><th>Spec</th>${products.map(p=>`<th><div style="font-size:13px;font-weight:700;color:var(--ink)">${p.name}</div><div style="font-size:11px;color:var(--gray);margin-top:2px">${p.ref&&!p.ref.startsWith('Photo_')?p.ref:''}</div></th>`).join('')}</tr></thead><tbody>`;
+  let html=`<thead><tr><th>Spec</th>${products.map(p=>`<th><div style="font-size:13px;font-weight:700;color:var(--ink)">${esc(p.name)}</div><div style="font-size:11px;color:var(--gray);margin-top:2px">${esc(p.ref&&!p.ref.startsWith('Photo_')?p.ref:'')}</div></th>`).join('')}</tr></thead><tbody>`;
   specs.forEach(({lbl,key,unit,transform})=>{
     const vals=products.map(p=>{
-      if(key==='img')return p.image_url?`<img src="${p.image_url}" style="max-height:80px;max-width:100px;object-fit:cover;border-radius:4px">`:'—';
+      // 'img' key returns pre-built HTML with safeUrl; mark as trusted for downstream esc skip
+      if(key==='img')return p.image_url?`<img src="${safeUrl(p.image_url)}" style="max-height:80px;max-width:100px;object-fit:cover;border-radius:4px">`:'—';
       if(key==='_type')return Object.entries(TYPE_MAP).find(([,v])=>v.includes(p.quality))?.[0]||p.quality||'—';
       if(key==='_format')return formatLabel(p)||p.format||'—';
       if(key==='ref')return(p.ref&&!p.ref.startsWith('Photo_'))?p.ref:'—';
@@ -775,10 +789,10 @@ function openCmpModal(){
     // highlight differences
     const unique=new Set(vals.filter(v=>v!=='—'));
     const diff=unique.size>1;
-    html+=`<tr><td class="cmp-label">${lbl}</td>${vals.map(v=>`<td class="${diff&&v!=='—'?'cmp-diff':''}">${v}</td>`).join('')}</tr>`;
+    html+=`<tr><td class="cmp-label">${esc(lbl)}</td>${vals.map((v,i)=>`<td class="${diff&&v!=='—'?'cmp-diff':''}">${key==='img'?v:esc(v)}</td>`).join('')}</tr>`;
   });
   // CTA row
-  html+=`<tr><td class="cmp-label">Action</td>${products.map(p=>`<td><button class="btn-add-cart" style="width:auto;padding:7px 14px" onclick="addToCart(${p.id})">+ ${lang==='en'?'Add':'Ajouter'}</button></td>`).join('')}</tr>`;
+  html+=`<tr><td class="cmp-label">Action</td>${products.map(p=>`<td><button class="btn-add-cart" style="width:auto;padding:7px 14px" onclick="addToCart(${numId(p.id)})">+ ${lang==='en'?'Add':'Ajouter'}</button></td>`).join('')}</tr>`;
   html+='</tbody>';
   document.getElementById('cmp-table').innerHTML=html;
   document.getElementById('cmp-modal-bg').classList.add('show');
@@ -1312,7 +1326,7 @@ function showSuggestions(val,inp){
     if(n>=20&&n<=800)hints.push({label:`${n} g/m² — Filtrer par grammage`,action:`${raw.replace(/\d+$/,'')}${n}g `});
     if(n>=20&&n<=350)hints.push({label:`${n} cm — Filtrer par laize`,action:`${raw.replace(/\d+$/,'')}${n}cm `});
     if(hints.length){
-      box.innerHTML=hints.map(h=>`<div class="suggest-item suggest-hint" onclick="document.getElementById('search-input').value='${h.action.trim()}';filterProducts();hideSuggestions()"><span>${h.label}</span></div>`).join('');
+      box.innerHTML=hints.map(h=>`<div class="suggest-item suggest-hint" onclick="document.getElementById('search-input').value=${attrJs(h.action.trim())};filterProducts();hideSuggestions()"><span>${esc(h.label)}</span></div>`).join('');
       const rect=el.getBoundingClientRect();
       box.style.cssText=`position:fixed;top:${rect.bottom+5}px;left:${rect.left}px;min-width:${rect.width+60}px;`;
       box.classList.add('show');_sugIdx=-1;return;
@@ -1324,8 +1338,8 @@ function showSuggestions(val,inp){
   const intentMatch=_matchFilterIntent(last);
   if(intentMatch){
     const idx=FILTER_INTENTS.indexOf(intentMatch);
-    box.innerHTML=`<div class="suggest-item suggest-filter-hint" onclick="_applyFilterIntent(FILTER_INTENTS[${idx}])">
-      <span class="suggest-label">Filtrer par <strong>${intentMatch.label}</strong></span>
+    box.innerHTML=`<div class="suggest-item suggest-filter-hint" onclick="_applyFilterIntent(FILTER_INTENTS[${numId(idx)}])">
+      <span class="suggest-label">Filtrer par <strong>${esc(intentMatch.label)}</strong></span>
       <span class="suggest-check" style="color:var(--red)">→</span>
     </div>`;
     const rect=el.getBoundingClientRect();
@@ -1354,8 +1368,8 @@ function showSuggestions(val,inp){
   const kindLabel={type:'📄 Type',color:'🎨 Couleur',format:'📦 Format'};
   const kindColor={type:'var(--ink)','color':'var(--red)',format:'#059669'};
   box.innerHTML=scored.map(({v,score})=>`
-    <div class="suggest-item" onclick="applySuggestion('${v.display.replace(/'/g,"\\'")}')">
-      <span class="suggest-label">${v.display}</span>
+    <div class="suggest-item" onclick="applySuggestion(${attrJs(v.display)})">
+      <span class="suggest-label">${esc(v.display)}</span>
       ${score===0?'<span class="suggest-check">✓</span>':''}
     </div>`).join('');
   _sugIdx=-1;
@@ -1879,7 +1893,7 @@ function renderEquivBanner(){
   const unique=[...new Set(equivTypes)];
   if(!unique.length||!_lastDetectedTypes.length){banner.innerHTML='';return;}
   const equivLabel=lang==='en'?'See also:':'Voir aussi :';
-  banner.innerHTML=`<div class="equiv-banner"><span class="equiv-label">💡 ${equivLabel}</span>${unique.map(t=>`<button class="equiv-pill" onclick="applyEquivType('${t.replace(/'/g,"\\'")}')">${t}</button>`).join('')}</div>`;
+  banner.innerHTML=`<div class="equiv-banner"><span class="equiv-label">💡 ${esc(equivLabel)}</span>${unique.map(t=>`<button class="equiv-pill" onclick="applyEquivType(${attrJs(t)})">${esc(t)}</button>`).join('')}</div>`;
 }
 function applyEquivType(typeName){
   const inp=document.getElementById('search-input');
@@ -2087,8 +2101,8 @@ function renderCards(list){
     const _isSiderun=(p.emplacement==='OUR WAREHOUSE'&&((p.ref&&/FAB/i.test(String(p.ref)))||(p.details&&/fabrication/i.test(p.details))));
     const _fallbackImg=_isSiderun?'img/siderun-sur-demande.png':_isFab?'img/fabrication-sur-demande.png':'img/no-photo.png';
     const imgHtml=p.image_url
-        ?`<img src="${p.image_url}" alt="${_altTxt}" loading="lazy" onerror="this.src='${_fallbackImg}';this.className='pcard-nophoto'">`
-        :`<img src="${_fallbackImg}" alt="Photo sur demande" class="pcard-nophoto">`;
+        ?`<img src="${safeUrl(p.image_url)}" alt="${esc(_altTxt)}" loading="lazy" onerror="this.src='${esc(_fallbackImg)}';this.className='pcard-nophoto'">`
+        :`<img src="${esc(_fallbackImg)}" alt="Photo sur demande" class="pcard-nophoto">`;
     const {cls:badgeCls,txt:badgeTxt}=decodeQuality(p.type);
     const isPalette=p.format&&p.format.toLowerCase().includes('palette');
     const dimTag=!isPalette&&p.largeur?`${mmToCm(p.largeur)} cm`:'';
@@ -2098,9 +2112,9 @@ function renderCards(list){
     const prixHtml=_priceMode&&p.price?`<div class="pcard-price">${p.price.toLocaleString('fr-FR')} €/T</div>`:'';
     const typeOverlay='';
     const _usineClean=p.usine?String(p.usine).replace(/^REF\s*/i,''):null;
-    const usineOverlay=_usineClean?`<div class="pcard-gsm-overlay"><span class="pcard-gsm-lbl">USINE</span><span class="pcard-gsm-num">${_usineClean}</span></div>`:'';
+    const usineOverlay=_usineClean?`<div class="pcard-gsm-overlay"><span class="pcard-gsm-lbl">USINE</span><span class="pcard-gsm-num">${esc(_usineClean)}</span></div>`:'';
     const _refClean=(p.ref||'').replace(/^Photo_/i,'').trim();
-    const refOverlay=_refClean?`<div class="pcard-ref-overlay" title="${_refClean}"><span class="pcard-ref-txt">${_refClean}</span></div>`:'';
+    const refOverlay=_refClean?`<div class="pcard-ref-overlay" title="${esc(_refClean)}"><span class="pcard-ref-txt">${esc(_refClean)}</span></div>`:'';
     const photoRef='';
     // Mini spec rows (label + value, only if value exists)
     // Usine désormais affichée en chip overlay sur la photo
@@ -2113,18 +2127,18 @@ function renderCards(list){
       _detClean?['Détails',_detClean]:null,
       ['Zone',p.allee||'—'],
     ].filter(Boolean).slice(0,6);
-    const specsHtml=`<div class="pcard-specs">${specRows.map(([l,v])=>`<div class="pcard-spec"><span class="pspec-lbl">${l}</span><span class="pspec-val">${v}</span></div>`).join('')}</div>`;
+    const specsHtml=`<div class="pcard-specs">${specRows.map(([l,v])=>`<div class="pcard-spec"><span class="pspec-lbl">${esc(l)}</span><span class="pspec-val">${esc(v)}</span></div>`).join('')}</div>`;
     const _sub=getProductDetailText(p);
-    const subtitleHtml=_sub?`<div class="pcard-subtitle">${_sub}</div>`:'';
-    return`<div class="pcard" onclick="openDetail(${p.id})">
+    const subtitleHtml=_sub?`<div class="pcard-subtitle">${esc(_sub)}</div>`:'';
+    return`<div class="pcard" onclick="openDetail(${numId(p.id)})">
       <div class="pcard-img">${imgHtml}${typeOverlay}${refOverlay}${usineOverlay}${photoRef}</div>
       <div class="pcard-body">
-        <div class="pcard-name">${formatProductTitle(p.qualite,p.type)}</div>
+        <div class="pcard-name">${esc(formatProductTitle(p.qualite,p.type))}</div>
         ${subtitleHtml}
         ${specsHtml}
-        <button class="btn-add-cart${cart.find(x=>x.id===+p.id)?' added':''}" id="cadd-${p.id}" aria-label="${lang==='en'?'Add to selection':'Ajouter à la sélection'}" onclick="event.stopPropagation();addToCart(${p.id})"><span class="cart-icon">+</span><span class="cart-check">✓</span></button>
+        <button class="btn-add-cart${cart.find(x=>x.id===+p.id)?' added':''}" id="cadd-${numId(p.id)}" aria-label="${lang==='en'?'Add to selection':'Ajouter à la sélection'}" onclick="event.stopPropagation();addToCart(${numId(p.id)})"><span class="cart-icon">+</span><span class="cart-check">✓</span></button>
         <div class="pcard-foot">
-          <div class="pton">${poids}<span class="pton-s"> KGS</span></div>
+          <div class="pton">${esc(poids)}<span class="pton-s"> KGS</span></div>
           ${prixHtml}
         </div>
       </div>
@@ -2163,12 +2177,12 @@ function renderList(list){
     const _isSiderunL=(p.emplacement==='OUR WAREHOUSE'&&((p.ref&&/FAB/i.test(String(p.ref)))||(p.details&&/fabrication/i.test(p.details))));
     const _listFallback=_isSiderunL?'img/siderun-sur-demande.png':_isFabL?'img/fabrication-sur-demande.png':'img/no-photo.png';
     const thumb=p.image_url
-        ?`<img src="${p.image_url}" alt="${title}" class="plist-thumb" loading="lazy" onerror="this.src='${_listFallback}'">`
-        :`<img src="${_listFallback}" alt="" class="plist-thumb">`;
+        ?`<img src="${safeUrl(p.image_url)}" alt="${esc(title)}" class="plist-thumb" loading="lazy" onerror="this.src='${esc(_listFallback)}'">`
+        :`<img src="${esc(_listFallback)}" alt="" class="plist-thumb">`;
     // PRIX_MASQUÉ: const price=p.price?`<span class="plist-price">${p.price.toLocaleString('fr-FR')} €/T</span>`:`<span class="plist-price-ask">Sur dem.</span>`;
     const price='';
     const inCart=cart.find(x=>x.id===+p.id);
-    const addBtn=`<button class="plist-add${inCart?' added':''}" id="ladd-${p.id}" aria-label="${lang==='en'?'Add to selection':'Ajouter à la sélection'}" onclick="event.stopPropagation();addToCart(${p.id})">${inCart?'✓':'+'}</button>`;
+    const addBtn=`<button class="plist-add${inCart?' added':''}" id="ladd-${numId(p.id)}" aria-label="${lang==='en'?'Add to selection':'Ajouter à la sélection'}" onclick="event.stopPropagation();addToCart(${numId(p.id)})">${inCart?'✓':'+'}</button>`;
     const isPalette=p.format&&p.format.toLowerCase().includes('palette');
     // Dimensions: Bobine → Laize | Ø Diamètre | Mandrin / Palette → Dimensions (laize×long)
     const laize=p.largeur?`${mmToCm(p.largeur)} cm`:'—';
@@ -2178,23 +2192,23 @@ function renderList(list){
     const paletteDims2=isPalette&&(p.largeur||p.longueur)?[p.largeur,p.longueur].filter(Boolean).map(v=>mmToCm(v)).join(' × ')+' cm':null;
     const mandrin=isPalette?null:(p.noyau?`${p.noyau} mm`:'—');
     const _detClean=p.details?p.details.replace(/[-–—\s]+/g,' ').trim():'';
-    const detailsTxt=_detClean&&_detClean.length>3?`<span class="plist-details" title="${p.details}">${_detClean.substring(0,30)}${_detClean.length>30?'…':''}</span>`:'';
-    return`<tr onclick="openDetail(${p.id})" class="${isPalette?'plist-palette':'plist-bobine'}">
+    const detailsTxt=_detClean&&_detClean.length>3?`<span class="plist-details" title="${esc(p.details)}">${esc(_detClean.substring(0,30))}${_detClean.length>30?'…':''}</span>`:'';
+    return`<tr onclick="openDetail(${numId(p.id)})" class="${isPalette?'plist-palette':'plist-bobine'}">
       <td class="plist-td plist-td-add">${addBtn}</td>
       <td class="plist-td plist-thumb-wrap">${thumb}</td>
-      <td class="plist-td plist-td-ref plist-col-ref">${p.ref?`<span class="plist-ref-badge">${p.ref.replace(/^Photo_/i,'').toUpperCase()}</span>`:'—'}</td>
-      <td class="plist-td plist-td-title"><strong class="plist-qtitle">${title}</strong></td>
+      <td class="plist-td plist-td-ref plist-col-ref">${p.ref?`<span class="plist-ref-badge">${esc(p.ref.replace(/^Photo_/i,'').toUpperCase())}</span>`:'—'}</td>
+      <td class="plist-td plist-td-title"><strong class="plist-qtitle">${esc(title)}</strong></td>
       <td class="plist-td plist-td-details">${detailsTxt||'—'}</td>
-      <td class="plist-td">${p.couleur||'—'}</td>
-      <td class="plist-td plist-td-num"><span class="plist-gsm">${p.grammage?p.grammage+' g/m²':'—'}</span></td>
+      <td class="plist-td">${esc(p.couleur||'—')}</td>
+      <td class="plist-td plist-td-num"><span class="plist-gsm">${p.grammage?esc(p.grammage+' g/m²'):'—'}</span></td>
       ${isPalette&&paletteDims2
-        ?`<td class="plist-td plist-td-num" colspan="3">${paletteDims2}</td>`
-        :`<td class="plist-td plist-td-num">${laize}</td><td class="plist-td plist-td-num">${dim2}</td><td class="plist-td plist-td-num plist-col-mandrin">${mandrin||'—'}</td>`}
-      <td class="plist-td plist-td-num">${p.poids_net?p.poids_net.toLocaleString('fr-FR')+' kg':'—'}</td>
-      ${_priceMode?`<td class="plist-td plist-td-num plist-price">${p.price?p.price.toLocaleString('fr-FR')+' €/T':'—'}</td>`:''}
-      <td class="plist-td plist-td-usine plist-col-usine">${p.usine?String(p.usine).replace(/^REF\s*/i,''):'—'}</td>
-      <td class="plist-td plist-td-depot">${p.zone||'—'}</td>
-      <td class="plist-td plist-td-zone">${p.allee||'—'}</td>
+        ?`<td class="plist-td plist-td-num" colspan="3">${esc(paletteDims2)}</td>`
+        :`<td class="plist-td plist-td-num">${esc(laize)}</td><td class="plist-td plist-td-num">${esc(dim2)}</td><td class="plist-td plist-td-num plist-col-mandrin">${esc(mandrin||'—')}</td>`}
+      <td class="plist-td plist-td-num">${p.poids_net?esc(p.poids_net.toLocaleString('fr-FR')+' kg'):'—'}</td>
+      ${_priceMode?`<td class="plist-td plist-td-num plist-price">${p.price?esc(p.price.toLocaleString('fr-FR')+' €/T'):'—'}</td>`:''}
+      <td class="plist-td plist-td-usine plist-col-usine">${p.usine?esc(String(p.usine).replace(/^REF\s*/i,'')):'—'}</td>
+      <td class="plist-td plist-td-depot">${esc(p.zone||'—')}</td>
+      <td class="plist-td plist-td-zone">${esc(p.allee||'—')}</td>
     </tr>`;
   }).join('');
   const _allPalette=list.length>0&&list.every(p=>p.format&&p.format.toLowerCase().includes('palette'));
@@ -2284,7 +2298,7 @@ async function openDetail(id){
   const _isSiderunD=(p.emplacement==='OUR WAREHOUSE'&&((p.ref&&/FAB/i.test(String(p.ref)))||(p.details&&/fabrication/i.test(p.details))));
   const _DET_SIDERUN_PHOTO=`<img src="img/siderun-sur-demande.png" alt="Siderun" style="width:100%;height:100%;object-fit:contain;">`;
   const _detFallback=_isSiderunD?_DET_SIDERUN_PHOTO:_isFab?_DET_FAB_PHOTO:_DET_NO_PHOTO;
-  mi.innerHTML=p.image_url?`<img src="${p.image_url}" loading="lazy" alt="${_detAlt}" onerror="this.onerror=null;this.parentNode.innerHTML=document.getElementById('det-fallback').innerHTML;">`
+  mi.innerHTML=p.image_url?`<img src="${safeUrl(p.image_url)}" loading="lazy" alt="${esc(_detAlt)}" onerror="this.onerror=null;this.parentNode.innerHTML=document.getElementById('det-fallback').innerHTML;">`
     :_detFallback;
   // Store fallback for onerror
   let _dfEl=document.getElementById('det-fallback');if(!_dfEl){_dfEl=document.createElement('div');_dfEl.id='det-fallback';_dfEl.style.display='none';document.body.appendChild(_dfEl);}_dfEl.innerHTML=_detFallback;
@@ -2340,7 +2354,7 @@ async function openDetail(id){
     {lbl: 'Code douanier',                        val: _toCN8(getHsCode(p.qualite,p.grammage,p.format))},
   ].filter(s=>s.val||s.always);
   document.getElementById('det-specs').innerHTML=specDefs.map(s=>
-    `<div class="dspec-item"><div class="dspec-lbl">${s.lbl}</div><div class="dspec-val">${s.val}</div></div>`
+    `<div class="dspec-item"><div class="dspec-lbl">${esc(s.lbl)}</div><div class="dspec-val">${esc(s.val)}</div></div>`
   ).join('');
 
   // Détails texte masqué (déjà affiché comme sous-titre)
@@ -2373,7 +2387,7 @@ function closeDetail(){
   document.removeEventListener('keydown',_detKeyHandler);
   _detIdx=-1;
 }
-function swImg(el,url){document.getElementById('det-main').innerHTML=`<img src="${url}">`;document.querySelectorAll('.dthumb').forEach(t=>t.classList.remove('active'));el.classList.add('active');}
+function swImg(el,url){document.getElementById('det-main').innerHTML=`<img src="${safeUrl(url)}">`;document.querySelectorAll('.dthumb').forEach(t=>t.classList.remove('active'));el.classList.add('active');}
 function openProforma(){if(!cur)return;const _proTitle=formatProductTitle(cur.qualite,cur.name||'Produit');document.getElementById('pf-prod-name').textContent=_proTitle+(cur.ref&&!String(cur.ref).startsWith('Photo_')?' — '+cur.ref:'');document.getElementById('proforma-bg').classList.add('show');}
 function closeProforma(){document.getElementById('proforma-bg').classList.remove('show');}
 const emailRx=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -2385,6 +2399,8 @@ function validateField(fgId,valid,errMsg){
   if(e&&errMsg)e.textContent=errMsg;
 }
 async function sendProforma(){
+  // Honeypot anti-bot: hidden field should remain empty for real users.
+  if(document.getElementById('pf-hp')?.value){ toast('✅ Demande envoyée'); return; }
   const nom=document.getElementById('pf-nom').value.trim();
   const tel=document.getElementById('pf-tel').value.trim();
   let ok=true;
@@ -2697,7 +2713,7 @@ async function _doImportRefs(){
 
     // Show result
     let msg=`<span style="color:#1a9e5c;font-weight:600">✓ ${found.length} trouvé(s), ${added} ajouté(s)</span>`;
-    if(notFound.length)msg+=`<br><span style="color:#e53e3e">✗ ${notFound.length} introuvable(s) : ${notFound.join(', ')}</span>`;
+    if(notFound.length)msg+=`<br><span style="color:#e53e3e">✗ ${notFound.length} introuvable(s) : ${esc(notFound.join(', '))}</span>`;
     result.innerHTML=msg;
     btn.disabled=false;btn.textContent='AJOUTER À LA SÉLECTION';
   }catch(e){
@@ -2928,7 +2944,7 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
     </div>
     <div class="client">
       <div class="proforma-title">Liste détaillée</div>
-      <div class="client-name" contenteditable="true">${clientName.replace(/</g,'&lt;').toUpperCase()}</div>
+      <div class="client-name" contenteditable="true">${esc(String(clientName).toUpperCase())}</div>
     </div>
   </div>
 
@@ -2953,14 +2969,14 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
       <colgroup><col class="c-pref"><col class="c-q"><col class="c-tit"><col class="c-det"><col class="c-col"><col class="c-gsm"><col class="c-dim"><col class="c-pn"><col class="c-us"><col class="c-pu"><col class="c-mt"></colgroup>
       <thead><tr><th>N°</th><th>Réf.</th><th>Qualité</th><th>Détails</th><th>Couleur</th><th style="text-align:right;">GSM</th><th>Dimensions</th><th style="text-align:right;">PN (kg)</th><th style="text-align:right;">Usine</th><th style="text-align:right;">P.U (€)</th><th style="text-align:right;">Montant HT (€)</th></tr></thead>
       <tbody>
-        ${items.map(it=>`<tr><td class="ref">${it.photoRef||'—'}</td><td class="ref">${it.ref}</td><td>${(it.titre||'').replace(/</g,'&lt;')}</td><td>${(it.details||'—').replace(/</g,'&lt;')}</td><td>${(it.couleur||'—').replace(/</g,'&lt;')}</td><td class="num">${it.gsm?it.gsm+' g/m²':'—'}</td><td>${it.dim||'—'}</td><td class="num">${num(it.poidsKg)}</td><td class="num">${it.usine||'—'}</td><td class="num">${dec(it.priceKg,2)}</td><td class="num">${eur(it.montant)}</td></tr>`).join('')}
+        ${items.map(it=>`<tr><td class="ref">${esc(it.photoRef||'—')}</td><td class="ref">${esc(it.ref)}</td><td>${esc(it.titre||'')}</td><td>${esc(it.details||'—')}</td><td>${esc(it.couleur||'—')}</td><td class="num">${it.gsm?esc(it.gsm+' g/m²'):'—'}</td><td>${esc(it.dim||'—')}</td><td class="num">${esc(num(it.poidsKg))}</td><td class="num">${esc(it.usine||'—')}</td><td class="num">${esc(dec(it.priceKg,2))}</td><td class="num">${esc(eur(it.montant))}</td></tr>`).join('')}
       </tbody>
     </table>
     <table class="items view-resume" style="display:none;">
       <colgroup><col style="width:18%"><col><col style="width:13%"><col style="width:14%"><col style="width:18%"></colgroup>
       <thead><tr><th>Code</th><th>Désignation</th><th style="text-align:right;">Réfs</th><th style="text-align:right;">PN (kg)</th><th style="text-align:right;">Montant HT (€)</th></tr></thead>
       <tbody>
-        ${groups.map(g=>`<tr><td class="ref">${g.qualite}</td><td>${(formatProductTitle(g.qualite,g.qualite)).replace(/</g,'&lt;')}</td><td class="num">${num(g.count)}</td><td class="num">${num(g.poidsKg)}</td><td class="num">${eur(g.montant)}</td></tr>`).join('')}
+        ${groups.map(g=>`<tr><td class="ref">${esc(g.qualite)}</td><td>${esc(formatProductTitle(g.qualite,g.qualite))}</td><td class="num">${esc(num(g.count))}</td><td class="num">${esc(num(g.poidsKg))}</td><td class="num">${esc(eur(g.montant))}</td></tr>`).join('')}
       </tbody>
     </table>
     <div class="synthesis-block view-synth" style="display:none;">
@@ -3032,6 +3048,8 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
     if(window.html2pdf)return run();
     const s=document.createElement('script');
     s.src='https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js';
+    s.integrity='sha384-Yv5O+t3uE3hunW8uyrbpPW3iw6/5/Y7HitWJBLgqfMoA36NogMmy+8wWZMpn3HWc';
+    s.crossOrigin='anonymous';
     s.onload=run;
     s.onerror=()=>{if(btn){btn.textContent=orig;btn.disabled=false;}alert('Impossible de charger le générateur PDF');};
     document.head.appendChild(s);
@@ -3156,12 +3174,11 @@ function _openSharedQuoteModal(){
   const existing=document.getElementById('sq-modal-bg');if(existing)existing.remove();
   const totalKg=products.reduce((s,p)=>s+(+p.weight||0),0);
   const rows=products.map(p=>`<tr style="border-bottom:1px solid #f0f0f0;">
-    <td style="padding:8px 4px;font-weight:600;font-size:12px;">${p.quality||p.type||'—'}</td>
-    <td style="padding:8px 4px;font-size:12px;color:#555;">${p.color||'—'}</td>
-    <td style="padding:8px 4px;font-size:12px;">${p.gsm?p.gsm+' g/m²':'—'}</td>
-    <td style="padding:8px 4px;font-size:12px;">${p.width?mmToCm(p.width)+' cm':'—'}</td>
-    <td style="padding:8px 4px;font-size:12px;font-weight:600;">${p.weight?p.weight+' kg':'—'}</td>
-    <!-- PRIX_MASQUÉ: <td>${p.price?p.price.toLocaleString('fr-FR')+' €/T':'Sur dem.'}</td> -->
+    <td style="padding:8px 4px;font-weight:600;font-size:12px;">${esc(p.quality||p.type||'—')}</td>
+    <td style="padding:8px 4px;font-size:12px;color:#555;">${esc(p.color||'—')}</td>
+    <td style="padding:8px 4px;font-size:12px;">${p.gsm?esc(p.gsm+' g/m²'):'—'}</td>
+    <td style="padding:8px 4px;font-size:12px;">${p.width?esc(mmToCm(p.width)+' cm'):'—'}</td>
+    <td style="padding:8px 4px;font-size:12px;font-weight:600;">${p.weight?esc(p.weight+' kg'):'—'}</td>
   </tr>`).join('');
   const d=document.createElement('div');
   d.id='sq-modal-bg';
@@ -3261,26 +3278,26 @@ function renderDrawer(){
     const _isSiderunD=(_emp==='OUR WAREHOUSE'&&((_ref&&/FAB/i.test(String(_ref)))||(_details&&/fabrication/i.test(_details))));
     const _isFabD=!_isSiderunD&&((_zone==='FABRICATION SUR COMMANDE'||_emp==='FABRICATION SUR COMMANDE')||(_ref&&/^Photo_FAB/i.test(String(_ref)))||(_details&&/^\s*fabrication\b/i.test(_details))||(_emp&&/FAB|DIRECT USINE/i.test(_emp))||(_zone&&/FABRICATION/i.test(_zone)));
     const _fallback=_isSiderunD?'img/siderun-sur-demande.png':_isFabD?'img/fabrication-sur-demande.png':'img/no-photo.png';
-    const imgHtml=imgSrc?`<img src="${imgSrc}" onerror="this.src='${_fallback}'">`:`<img src="${_fallback}" alt="">`;
-    return`<div class="ci" id="ci-${p.id}">
+    const imgHtml=imgSrc?`<img src="${safeUrl(imgSrc)}" onerror="this.src='${esc(_fallback)}'">`:`<img src="${esc(_fallback)}" alt="">`;
+    return`<div class="ci" id="ci-${numId(p.id)}">
       <div class="ci-img">${imgHtml}</div>
       <div class="ci-body">
         <div class="ci-row1">
-          <span class="ci-laize">${ciTitle}</span>
-          ${p.grammage?`<span class="ci-gsm">${p.grammage} g/m²</span>`:''}
+          <span class="ci-laize">${esc(ciTitle)}</span>
+          ${p.grammage?`<span class="ci-gsm">${esc(p.grammage+' g/m²')}</span>`:''}
         </div>
-        ${_ciSum?`<div class="ci-name">${_ciSum}</div>`:''}
+        ${_ciSum?`<div class="ci-name">${esc(_ciSum)}</div>`:''}
         <div class="ci-foot">
-          <button class="ci-rm" onclick="removeFromCart(${p.id})" aria-label="${lang==='en'?'Remove':'Retirer'}">${_trashSvg}</button>
-          ${lot?`<span class="ci-lot" onclick="navigator.clipboard.writeText('${lot}').then(()=>toast('📋 Réf. copiée'))">${lot}<svg width="11" height="11" viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.6"/><path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>`:'<span></span>'}
-          ${_priceMode&&_pFull.price?`<span class="ci-price" style="color:var(--red);font-weight:700;font-size:13px">${_pFull.price.toLocaleString('fr-FR')} €/T</span>`:''}
-          <span class="ci-kgs">${fmt(Math.round(qkg))}</span>
+          <button class="ci-rm" onclick="removeFromCart(${numId(p.id)})" aria-label="${lang==='en'?'Remove':'Retirer'}">${_trashSvg}</button>
+          ${lot?`<span class="ci-lot" onclick="navigator.clipboard.writeText(${attrJs(lot)}).then(()=>toast('📋 Réf. copiée'))">${esc(lot)}<svg width="11" height="11" viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.6"/><path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>`:'<span></span>'}
+          ${_priceMode&&_pFull.price?`<span class="ci-price" style="color:var(--red);font-weight:700;font-size:13px">${esc(_pFull.price.toLocaleString('fr-FR')+' €/T')}</span>`:''}
+          <span class="ci-kgs">${esc(fmt(Math.round(qkg)))}</span>
         </div>
       </div>
-      <div class="ci-confirm" id="ci-confirm-${p.id}">
+      <div class="ci-confirm" id="ci-confirm-${numId(p.id)}">
         <span>${lang==='en'?'Remove this item?':'Retirer cet article\u00a0?'}</span>
-        <button class="ci-confirm-no" onclick="ciCancelRemove(${p.id})">${lang==='en'?'Cancel':'Annuler'}</button>
-        <button class="ci-confirm-yes" onclick="removeFromCart(${p.id})">${lang==='en'?'Remove':'Retirer'}</button>
+        <button class="ci-confirm-no" onclick="ciCancelRemove(${numId(p.id)})">${lang==='en'?'Cancel':'Annuler'}</button>
+        <button class="ci-confirm-yes" onclick="removeFromCart(${numId(p.id)})">${lang==='en'?'Remove':'Retirer'}</button>
       </div>
     </div>`;
   }).join('');
@@ -3312,12 +3329,14 @@ function openCartProforma(){
   document.getElementById('pf-cart-count').textContent=cart.length;
   const subEl=document.getElementById('pf-cart-sub');
   if(subEl)subEl.innerHTML=(lang==='en'?'Group request — ':'Demande groupée — ')+'<span id="pf-cart-count">'+cart.length+'</span> '+(lang==='en'?'product(s)':'produit(s)');
-  document.getElementById('pf-cart-items').innerHTML=cart.map(p=>`<div class="pf-item-line">▪ ${p.name}${(p.ref&&!p.ref.startsWith('Photo_'))?' ('+p.ref+')':''} — ${fmt(p.poids_net)}</div>`).join('');
+  document.getElementById('pf-cart-items').innerHTML=cart.map(p=>`<div class="pf-item-line">▪ ${esc(p.name)}${(p.ref&&!p.ref.startsWith('Photo_'))?' ('+esc(p.ref)+')':''} — ${esc(fmt(p.poids_net))}</div>`).join('');
   document.getElementById('proforma-cart-bg').classList.add('show');
 }
 function closeCartProforma(){document.getElementById('proforma-cart-bg').classList.remove('show');}
 
 async function sendCartProforma(){
+  // Honeypot anti-bot: hidden field should remain empty for real users.
+  if(document.getElementById('pfc-hp')?.value){ toast('✅ Demande envoyée'); return; }
   const nom=document.getElementById('pfc-nom').value.trim();
   const tel=document.getElementById('pfc-tel').value.trim();
   let ok=true;

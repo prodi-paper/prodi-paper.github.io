@@ -6,3 +6,10 @@ __pycache__/
 *.pyc
 skills-lock.json
 scripts/*.log
+
+# Security: never commit prompt files containing leaked secrets / dev brief
+SECURITY_FIX_PROMPT.md
+ARCHITECTURE.pdf
+
+# Local-only admin page (if user picks Option B for Faille #2)
+admin.local.html
