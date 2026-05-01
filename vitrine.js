@@ -269,13 +269,21 @@ async function submitContact(e) {
 }
 
 // ─── QUICK DEVIS ───
+// Note: this handler has no corresponding form in vitrine.html (dead code).
+// Kept for compatibility; honeypot guard added so it cannot be abused via the
+// browser console as a unauthenticated POST endpoint to proforma_requests.
 async function submitQuickDevis(e){
-  e.preventDefault();
-  const btn=e.target.querySelector('button[type=submit]');
-  const nom=document.getElementById('qd-nom').value.trim();
-  const email=document.getElementById('qd-email').value.trim();
-  const besoin=document.getElementById('qd-besoin').value.trim();
-  btn.disabled=true;
+  if (e && e.preventDefault) e.preventDefault();
+  if (document.getElementById('qd-hp')?.value) {
+    const f=document.getElementById('qd-form'); if (f) f.style.display='none';
+    const ok=document.getElementById('qd-ok'); if (ok) ok.style.display='block';
+    return;
+  }
+  const btn=e?.target?.querySelector?.('button[type=submit]');
+  const nom=document.getElementById('qd-nom')?.value?.trim()||'';
+  const email=document.getElementById('qd-email')?.value?.trim()||'';
+  const besoin=document.getElementById('qd-besoin')?.value?.trim()||'';
+  if (btn) btn.disabled=true;
   try{
     await fetch(SURL+'/rest/v1/proforma_requests',{
       method:'POST',
@@ -283,8 +291,8 @@ async function submitQuickDevis(e){
       body:JSON.stringify({nom,email,message:besoin,quantite_souhaitee:'Quick devis vitrine',statut:'quick_devis'})
     });
   }catch(_){}
-  document.getElementById('qd-form').style.display='none';
-  document.getElementById('qd-ok').style.display='block';
+  const f=document.getElementById('qd-form'); if (f) f.style.display='none';
+  const ok=document.getElementById('qd-ok'); if (ok) ok.style.display='block';
 }
 
 

@@ -1860,7 +1860,7 @@ async function _fetchAndRender(token){
   if(rbarRefs)rbarRefs.textContent=_totalCount.toLocaleString('fr-FR');
   if(rbarTons)rbarTons.textContent=(_totalWeightKg/1000).toFixed(1);
   const cn=document.getElementById('correction-note');
-  if(cn)cn.innerHTML=_lastCorrections.length?` <span class="correction-note">· correction : ${_lastCorrections.map(c=>`<b>${c.from}</b> → ${c.to}`).join(', ')}</span>`:'';
+  if(cn)cn.innerHTML=_lastCorrections.length?` <span class="correction-note">· correction : ${_lastCorrections.map(c=>`<b>${esc(c.from)}</b> → ${esc(c.to)}`).join(', ')}</span>`:'';
   // Update fd-count for mobile drawer
   const fdCount=document.getElementById('fd-count');
   if(fdCount)fdCount.textContent=_totalCount.toLocaleString('fr-FR');
@@ -1999,7 +1999,7 @@ function updateFilterChips(){
   if(zoneNumChip)chips.push({label:'Zone : '+zoneNumChip,clear:()=>{['f-zone-num','f-zone-num-mob'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});filterProducts();}});
   if(zoneLetChip)chips.push({label:'Allée : '+zoneLetChip,clear:()=>{['f-zone-let','f-zone-let-mob'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});filterProducts();}});
   if(!chips.length){container.innerHTML='';const ac2=document.getElementById('active-chips');if(ac2)ac2.innerHTML='';return;}
-  const chipsHtml=chips.map((chip,i)=>`<div class="fchip" id="chip-${i}">${chip.label}<button onclick="clearChip(${i})" title="Retirer ce filtre">✕</button></div>`).join('')
+  const chipsHtml=chips.map((chip,i)=>`<div class="fchip" id="chip-${numId(i)}">${esc(chip.label)}<button onclick="clearChip(${numId(i)})" title="Retirer ce filtre">✕</button></div>`).join('')
     +(chips.length>1?`<button class="chips-clear" onclick="resetFilters()">Tout effacer</button>`:'');
   container.innerHTML=chipsHtml;
   container._chips=chips;
@@ -2253,7 +2253,7 @@ function render(list){
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       </div>
       <div class="empty-lbl">${_fi?'Vous cherchez par filtre ?':LT[lang].t_no_results}</div>
-      <div class="empty-sub">${_fi?`"${document.getElementById('search-input')?.value||''}" correspond à un filtre — utilisez le panneau de gauche.`:LT[lang].t_no_results_sub}</div>
+      <div class="empty-sub">${_fi?`"${esc(document.getElementById('search-input')?.value||'')}" correspond à un filtre — utilisez le panneau de gauche.`:LT[lang].t_no_results_sub}</div>
       ${filterHints}
       <button class="btn-empty-reset" style="margin-top:8px" onclick="resetFilters()">${LT[lang].t_reset}</button>
     </div>`;
@@ -2400,7 +2400,14 @@ function validateField(fgId,valid,errMsg){
 }
 async function sendProforma(){
   // Honeypot anti-bot: hidden field should remain empty for real users.
-  if(document.getElementById('pf-hp')?.value){ toast('✅ Demande envoyée'); return; }
+  // On hit, fake the success path (close modal, swap to success state) so
+  // the bot can't distinguish accept vs reject by inspecting the DOM.
+  if(document.getElementById('pf-hp')?.value){
+    const box=document.querySelector('#proforma-bg .pf-box');
+    if(box)box.innerHTML=`<div class="pf-success"><div class="pf-success-ico">✅</div><div class="pf-success-t">Demande envoyée</div><div class="pf-success-s">Nous vous recontacterons rapidement.</div><button class="btn-pf-close" onclick="closeProforma();document.querySelector('#proforma-bg .pf-box').innerHTML=''">Fermer</button></div>`;
+    toast('✅ Demande envoyée');
+    return;
+  }
   const nom=document.getElementById('pf-nom').value.trim();
   const tel=document.getElementById('pf-tel').value.trim();
   let ok=true;
@@ -3336,7 +3343,12 @@ function closeCartProforma(){document.getElementById('proforma-cart-bg').classLi
 
 async function sendCartProforma(){
   // Honeypot anti-bot: hidden field should remain empty for real users.
-  if(document.getElementById('pfc-hp')?.value){ toast('✅ Demande envoyée'); return; }
+  // On hit, fake the success path so the bot can't tell accept vs reject.
+  if(document.getElementById('pfc-hp')?.value){
+    closeCartProforma();
+    toast('✅ Demande envoyée');
+    return;
+  }
   const nom=document.getElementById('pfc-nom').value.trim();
   const tel=document.getElementById('pfc-tel').value.trim();
   let ok=true;
