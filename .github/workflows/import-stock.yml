@@ -5,18 +5,26 @@ on:
     - cron: '15 6 * * 1-5'  # 8h15 heure Paris (UTC+2) du lundi au vendredi
   workflow_dispatch: # permet de lancer manuellement
 
+permissions:
+  contents: read
+
+concurrency:
+  group: import-stock
+  cancel-in-progress: true
+
 jobs:
   import:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
+      # Actions pinned to commit SHAs so a tag-takeover can't slip arbitrary
+      # code into the runner with our SUPABASE_MGMT_TOKEN secret.
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
         with:
           python-version: '3.12'
 
       - name: Install dependencies
-        run: pip install openpyxl
+        run: pip install openpyxl==3.1.5
 
       - name: Run import
         env:

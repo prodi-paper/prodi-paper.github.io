@@ -1744,19 +1744,20 @@ async function _fetchAndRender(token){
   if(longmax)p.append('longueur',`lte.${longmax}`);
   if(wmin)p.append('weight',`gte.${wmin}`);
   if(wmax)p.append('weight',`lte.${wmax}`);
-  if(refCode)p.append('quality',`ilike.${refCode}%`);
+  // Escape PostgREST glob/group meta-chars so free-form inputs can't break the query
+  const _pgEsc = s => String(s||'').replace(/[%_(),]/g,'\\$&');
+  if(refCode)p.append('quality',`ilike.${_pgEsc(refCode)}%`);
   const usineVal=(document.getElementById('f-usine')?.value||'').trim();
-  if(usineVal)p.append('usine',`eq.${usineVal}`);
+  if(usineVal)p.append('usine',`eq.${_pgEsc(usineVal)}`);
   const detailsVal=(document.getElementById('f-details')?.value||'').trim();
   if(detailsVal){
-    const _de=detailsVal.replace(/[%_(),]/g,'\\$&');
-    p.append('details',`ilike.%${_de}%`);
+    p.append('details',`ilike.%${_pgEsc(detailsVal)}%`);
   }
   const zoneNum=(document.getElementById('f-zone-num')?.value||'').trim();
   const zoneLet=(document.getElementById('f-zone-let')?.value||'').trim().toUpperCase();
-  if(zoneNum&&zoneLet)p.append('zone',`ilike.${zoneNum}${zoneLet}%`);
-  else if(zoneNum)p.append('zone',`like.${zoneNum}%`);
-  else if(zoneLet)p.append('zone',`ilike.%${zoneLet}%`);
+  if(zoneNum&&zoneLet)p.append('zone',`ilike.${_pgEsc(zoneNum)}${_pgEsc(zoneLet)}%`);
+  else if(zoneNum)p.append('zone',`like.${_pgEsc(zoneNum)}%`);
+  else if(zoneLet)p.append('zone',`ilike.%${_pgEsc(zoneLet)}%`);
   // Dépôt filter
   if(_depotFilter==='our')p.append('emplacement',`eq.OUR WAREHOUSE`);
   else if(_depotFilter==='ext')p.append('emplacement',`neq.OUR WAREHOUSE`);
@@ -1824,7 +1825,7 @@ async function _fetchAndRender(token){
 
   if(error){
     console.error(error);
-    if(g)g.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="empty-lbl">${LT[lang].t_err_title}</div><div class="empty-sub">${error.message||LT[lang].t_err_load}</div><button class="btn-empty-reset" onclick="_doFilter()">${LT[lang].t_retry}</button></div>`;
+    if(g)g.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="empty-lbl">${LT[lang].t_err_title}</div><div class="empty-sub">${esc(error.message||LT[lang].t_err_load)}</div><button class="btn-empty-reset" onclick="_doFilter()">${LT[lang].t_retry}</button></div>`;
     return;
   }
 
@@ -3074,24 +3075,10 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
 </body></html>`);
   w.document.close();
 }
-function _showShareModal(url){
-  const existing=document.getElementById('share-modal-bg');
-  if(existing)existing.remove();
-  const d=document.createElement('div');
-  d.id='share-modal-bg';
-  d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;display:flex;align-items:center;justify-content:center;padding:16px;';
-  d.innerHTML=`<div style="background:#fff;border-radius:12px;padding:28px;max-width:480px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2);">
-    <div style="font-family:\'Bebas Neue\',sans-serif;font-size:18px;letter-spacing:1.5px;margin-bottom:8px;">PARTAGER LA SÉLECTION</div>
-    <div style="font-size:12px;color:#999;margin-bottom:14px;">Envoie ce lien à ton client — il verra exactement les ${cart.length} produits sélectionnés.</div>
-    <input id="share-url-input" value="${url}" style="width:100%;padding:10px 12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:12px;font-family:monospace;box-sizing:border-box;" readonly onclick="this.select()">
-    <div style="display:flex;gap:8px;margin-top:12px;">
-      <button onclick="const inp=document.getElementById(\'share-url-input\');const u=inp.value;(navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(u):Promise.reject()).then(()=>{toast(\'🔗 Lien copié !\');document.getElementById(\'share-modal-bg\').remove();}).catch(()=>{inp.select();document.execCommand(\'copy\');toast(\'🔗 Lien copié !\');document.getElementById(\'share-modal-bg\').remove();});" style="flex:1;padding:10px;background:#FE0000;color:#fff;border:none;border-radius:8px;font-family:\'Bebas Neue\',sans-serif;font-size:14px;letter-spacing:1px;cursor:pointer;">COPIER</button>
-      <button onclick="document.getElementById(\'share-modal-bg\').remove();" style="padding:10px 16px;background:transparent;border:1.5px solid #e0e0e0;border-radius:8px;font-size:13px;cursor:pointer;">Fermer</button>
-    </div>
-  </div>`;
-  document.body.appendChild(d);
-  d.addEventListener('click',e=>{if(e.target===d)d.remove();});
-}
+// _showShareModal removed (dead code, no call sites). Used to interpolate
+// `${url}` raw into innerHTML — latent XSS if ever revived. If a share modal
+// is needed again, build it via DOM APIs (createElement + setAttribute) or
+// pass `url` through esc()/safeUrl().
 
 // ── LOAD SHARED QUOTE ──
 // Detected synchronously at script load so _doFilter can check it
