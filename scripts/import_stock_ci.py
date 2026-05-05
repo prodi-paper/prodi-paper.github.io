@@ -147,6 +147,7 @@ def parse_all_files(files):
                 elif s.startswith('gr') and len(s) <= 3: col_map['gsm'] = ci
                 elif 'laize' in s: col_map['width'] = ci
                 elif 'longueur' in s: col_map['longueur'] = ci
+                elif 'diam' in s: col_map['longueur'] = ci
                 elif 'mandrin' in s: col_map['noyau'] = ci
                 elif 'poids' in s: col_map['weight'] = ci
                 elif 'depart' in s or 'exwork' in s: col_map['price'] = ci
