@@ -1525,7 +1525,11 @@ function _rebuildDetailsMsd(){
   if(!_allProductsCache){
     if(!_detailsCacheKick){
       _detailsCacheKick=true;
-      _loadAllProducts().then(()=>{ _detailsLastSig=null; _rebuildDetailsMsd(); }).catch(()=>{});
+      _loadAllProducts().then(()=>{
+        _detailsLastSig=null;
+        Object.keys(_facetSig).forEach(k=>delete _facetSig[k]);
+        _refreshAllFacets();
+      }).catch(()=>{});
     }
     panel.innerHTML='<div class="msd-search-wrap"><input class="msd-search-inp" type="text" placeholder="Chargement…" disabled></div>';
     return;
