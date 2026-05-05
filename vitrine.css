@@ -427,3 +427,46 @@ footer{background:#111;border-top:none;padding:30px 0;}
   .hd{padding:0 16px;}
 }
 
+/* ============ MOBILE — complément, desktop intact ============ */
+@media(max-width:600px){
+  body{overflow-x:hidden;}
+  .hd-inner{gap:10px;}
+  .hero h1{font-size:clamp(30px,8vw,42px);letter-spacing:0;overflow-wrap:break-word;}
+  .hero-video-wrap{width:200px;height:355px;margin:0 auto;}
+  .hero-sub{font-size:13px;line-height:1.7;margin-bottom:18px;}
+  .btn-hero,.btn-hero-outline{padding:14px 28px;font-size:11px;}
+  /* Search hero stocklots — passe en stack vertical */
+  .sc-search{max-width:none;flex-direction:column;border-radius:14px;padding:6px;gap:6px;align-items:stretch;}
+  .sc-search-ico{display:none;}
+  .sc-search-input{padding:11px 14px;font-size:13px;min-width:0;width:100%;}
+  .sc-search-btn{padding:12px;font-size:11px;letter-spacing:.5px;border-radius:10px;width:100%;margin:0;}
+  .sc-stat{gap:4px;flex-direction:column;justify-content:center;text-align:center;padding:0 16px;margin:12px 0;}
+  .sc-stat-num{font-size:20px;}
+  .sc-stat-label{font-size:10px;letter-spacing:1.2px;}
+  .sec-sub{font-size:13px;line-height:1.7;margin-bottom:24px;max-width:100%;}
+  .sec-h{font-size:clamp(28px,7vw,38px);letter-spacing:1px;}
+  .geo-sec .sec-sub{max-width:100%;}
+  .ct-header{padding:40px 16px 24px;}
+  .ct-header h2{font-size:34px;letter-spacing:1px;}
+  .ct-header p{font-size:13px;}
+  .ct-wrap{padding:0 16px 40px;gap:30px;}
+  .ct-aside{padding:24px 18px;}
+  .ct-aside h3{font-size:22px;margin-bottom:16px;}
+  .form-row{grid-template-columns:1fr;gap:10px;}
+  .fg input,.fg textarea,.fg select{padding:11px 12px;font-size:13px;}
+  .btn-submit{padding:15px;}
+  .sp-name{font-size:11px;}
+  .sp-body{padding:8px 9px 10px;}
+  footer{padding:24px 0;}
+}
+
+@media(max-width:380px){
+  .sc-slide{grid-template-columns:1fr;gap:12px;}
+  .sp-photo{height:160px;}
+  .hero-video-wrap{width:170px;height:302px;}
+  .hero h1{font-size:28px;}
+  .ct-header h2{font-size:28px;}
+  .btn-hero,.btn-hero-outline{padding:13px 22px;font-size:10px;}
+  .sc-search-btn{padding:11px;font-size:10px;}
+}
+
