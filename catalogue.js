@@ -932,6 +932,7 @@ async function init(){
   // Single query: first page + total count
   _featuredMode = true;
   _updateGroupedToggleBtn();
+  _refreshAllFacets();
   await _doFilter();
   _updateToggleBtn();
 }
@@ -955,11 +956,13 @@ const msdState = {
   'msd-type': new Set(),
   'msd-mandrin': new Set(),
   'msd-couleur': new Set(),
+  'msd-details': new Set(),
 };
 const msdLabels = {
   'msd-type': 'Type de papier',
   'msd-mandrin': 'Mandrins',
   'msd-couleur': 'Couleurs',
+  'msd-details': 'Détails',
 };
 const QUALITE_CODES=['R1SC','R2SC','RADH','RAFF','RBOA','RBON','RBOU','RCAR','ROFF','Offset Couleur','Dossier Couleur','RCUI','RDIV','RFLEX','RKDO','RKRA','RKRABRUN','RKRG','RKRR','RLINER','RLUX','RLWC','RNEW','RPAC','RPLA','RSIL','RTHERM','RTIS','S1SC','S2SC','SADH','SAFF','SBOA','SBON','SBOU','SCAR','SCOL','SCUT','SDIV','SENV','SKDO','SKRA','SLUX','SLWC','SNEW','SOFF','SPAC','SPLA','SSBS','SSPE','SINK','UMAC','AUTRES'];
 const QUALITE_KNOWN=QUALITE_CODES.filter(c=>c!=='AUTRES');
@@ -1226,6 +1229,7 @@ function toggleMsdOption(el, id) {
 
 function updateMsdBtn(id) {
   const set = msdState[id];
+  const _disp = v => v===DETAILS_NONE ? 'Sans détails' : v;
   const btns = [
     ...document.querySelectorAll(`#${id} .msd-btn, #${id} .fb-msd-btn`),
     ...document.querySelectorAll(`[data-msd-id="${id}"]`)
@@ -1237,9 +1241,9 @@ function updateMsdBtn(id) {
     if(set.size === 0){
       label.textContent = msdLabels[id];
     } else if(set.size <= 2){
-      label.textContent = [...set].join(' · ');
+      label.textContent = [...set].map(_disp).join(' · ');
     } else {
-      label.textContent = [...set].slice(0,2).join(' · ');
+      label.textContent = [...set].slice(0,2).map(_disp).join(' · ');
       const badge = document.createElement('span');
       badge.className = 'msd-count'; badge.textContent = '+' + (set.size - 2);
       const arrow = btn.querySelector('.msd-arrow,.fb-msd-arrow');
@@ -1354,6 +1358,233 @@ function buildMsdOptions(msdId, values, defaultLabel, labelFn, stateId){
     if(v==='Offset Couleur'||v==='Dossier Couleur') opt&&(opt.dataset.search='roff rcol offset couleur dossier');
     if(v==='SCOL') opt&&(opt.dataset.search='scol offset couleur format');
   });
+}
+
+// ── FACETED "Détails" FILTER ──
+// Options come from the full DB (_allProductsCache), filtered by all OTHER
+// active filters so the dropdown only lists details that exist for the
+// current selection (Amazon-style facet). Selected values are always shown
+// even when their count hits 0, so the user can always unselect.
+let _detailsCacheKick=false, _detailsLastSig=null;
+const DETAILS_NONE='__none__'; // sentinel for "no details" option
+function _matchesActiveFilters(row, excludeKey){
+  const types=getMsdValues('msd-type');
+  if(excludeKey!=='msd-type' && types.size>0){
+    const hasAutres=types.has('AUTRES');
+    const known=[...types].filter(c=>c!=='AUTRES');
+    const sideCodes=known.flatMap(c=>(c==='Offset Couleur'||c==='Dossier Couleur')?['RCOL']:[c]);
+    const q=row.quality||'';
+    if(hasAutres && !sideCodes.length){
+      if(QUALITE_KNOWN_DB.includes(q)) return false;
+    } else if(hasAutres){
+      if(!sideCodes.includes(q) && QUALITE_KNOWN_DB.includes(q)) return false;
+    } else if(!sideCodes.includes(q)) return false;
+    if(types.has('Offset Couleur')&&!types.has('Dossier Couleur')&&+row.gsm>149) return false;
+    if(types.has('Dossier Couleur')&&!types.has('Offset Couleur')&&+row.gsm<150) return false;
+  }
+  if(excludeKey!=='msd-couleur'){
+    const couleurs=getMsdValues('msd-couleur');
+    if(couleurs.size>0){
+      const dbColors=[...couleurs].flatMap(c=>_COLOR_DB[c]||[c]);
+      if(!dbColors.includes(row.color)) return false;
+    }
+  }
+  if(excludeKey!=='msd-mandrin'){
+    const mandrins=getMsdValues('msd-mandrin');
+    if(mandrins.size>0 && !mandrins.has(String(row.noyau))) return false;
+  }
+  const gn=+document.getElementById('f-gmin')?.value||0;
+  const gx=+document.getElementById('f-gmax')?.value||0;
+  if(gn && +row.gsm<gn) return false;
+  if(gx && +row.gsm>gx) return false;
+  const lminCm=+document.getElementById('f-lmin')?.value||0;
+  const lmaxCm=+document.getElementById('f-lmax')?.value||0;
+  if(lminCm && +row.width<lminCm*10) return false;
+  if(lmaxCm && +row.width>lmaxCm*10) return false;
+  const longmin=+document.getElementById('f-longmin')?.value||0;
+  const longmax=+document.getElementById('f-longmax')?.value||0;
+  if(longmin && +row.longueur<longmin) return false;
+  if(longmax && +row.longueur>longmax) return false;
+  const wmin=+document.getElementById('f-wmin')?.value||0;
+  const wmax=+document.getElementById('f-wmax')?.value||0;
+  if(wmin && +row.weight<wmin) return false;
+  if(wmax && +row.weight>wmax) return false;
+  if(_depotFilter==='our' && row.emplacement!=='OUR WAREHOUSE') return false;
+  if(_depotFilter==='ext' && row.emplacement==='OUR WAREHOUSE') return false;
+  if(_photoFilter==='with' && !row.image_url) return false;
+  if(_photoFilter==='without' && row.image_url) return false;
+  const refCode=(document.getElementById('f-ref-code')?.value||'').trim().toUpperCase();
+  if(refCode && !String(row.quality||'').toUpperCase().startsWith(refCode)) return false;
+  const usineVal=(document.getElementById('f-usine')?.value||'').trim();
+  if(usineVal && String(row.usine||'')!==usineVal) return false;
+  const zoneNum=(document.getElementById('f-zone-num')?.value||'').trim();
+  const zoneLet=(document.getElementById('f-zone-let')?.value||'').trim().toUpperCase();
+  const zStr=String(row.zone||'').toUpperCase();
+  if(zoneNum && zoneLet){ if(!zStr.startsWith(zoneNum+zoneLet)) return false; }
+  else if(zoneNum){ if(!zStr.startsWith(zoneNum)) return false; }
+  else if(zoneLet){ if(!zStr.includes(zoneLet)) return false; }
+  const formats=new Set([...document.querySelectorAll('.fpill.active:not(.fpill-orig):not(.fpill-stock):not(.fpill-depot)')].map(b=>b.dataset.format));
+  if(formats.size && !formats.has(row.format)) return false;
+  return true;
+}
+// ── Faceting for hardcoded msd (Type / Couleurs / Mandrins) ──
+// The option list itself is fixed; we just refresh counts + hide the 0s.
+function _optMatchesValue(row, msdId, val){
+  if(msdId==='msd-couleur'){
+    const dbColors=_COLOR_DB[val]||[val];
+    return dbColors.includes(row.color);
+  }
+  if(msdId==='msd-mandrin'){
+    return String(row.noyau)===String(val);
+  }
+  if(msdId==='msd-type'){
+    const q=row.quality||'';
+    if(val==='AUTRES') return !QUALITE_KNOWN_DB.includes(q);
+    if(val==='Offset Couleur') return q==='RCOL' && +row.gsm<=149;
+    if(val==='Dossier Couleur') return q==='RCOL' && +row.gsm>=150;
+    return q===val;
+  }
+  return false;
+}
+function _allMsdContainers(msdId){
+  const ids=[msdId,'sb-'+msdId,msdId+'-sidebar',msdId+'-mob','sb-'+msdId+'-mob'];
+  return ids.map(id=>document.getElementById(id)).filter(Boolean);
+}
+const _facetSig={};
+function _updateMsdFacetCounts(msdId){
+  if(!_allProductsCache) return;
+  const conts=_allMsdContainers(msdId);
+  if(!conts.length) return;
+  const allOpts=conts.flatMap(c=>[...c.querySelectorAll('.msd-option')]);
+  if(!allOpts.length) return;
+  const values=[...new Set(allOpts.map(o=>o.dataset.val).filter(Boolean))];
+  // Skip if neither the active filters NOR our own option set changed
+  const sig=_detailsFiltersSig()+'|'+values.sort().join(',')+'|'+[...msdState[msdId]].sort().join(',');
+  if(_facetSig[msdId]===sig) return;
+  _facetSig[msdId]=sig;
+  const baseRows=_allProductsCache.filter(r=>_matchesActiveFilters(r,msdId));
+  const counts={};
+  values.forEach(v=>{
+    let n=0;
+    for(const r of baseRows) if(_optMatchesValue(r,msdId,v)) n++;
+    counts[v]=n;
+  });
+  const sel=msdState[msdId];
+  allOpts.forEach(opt=>{
+    const v=opt.dataset.val;
+    const n=counts[v]||0;
+    let cnt=opt.querySelector('.msd-count-inline');
+    if(!cnt){
+      cnt=document.createElement('span');
+      cnt.className='msd-count-inline';
+      opt.appendChild(cnt);
+    }
+    cnt.textContent=n;
+    if(n===0 && !sel.has(v)){
+      opt.style.display='none';
+    } else {
+      opt.style.display='';
+      opt.style.opacity = (n===0 && sel.has(v)) ? '.45' : '';
+    }
+  });
+}
+function _refreshAllFacets(){
+  _rebuildDetailsMsd();
+  _updateMsdFacetCounts('msd-type');
+  _updateMsdFacetCounts('msd-couleur');
+  _updateMsdFacetCounts('msd-mandrin');
+}
+function _detailsFiltersSig(){
+  // Signature of all filters EXCEPT msd-details — used to skip rebuild
+  // when only the details selection itself changed.
+  return JSON.stringify({
+    t:[...getMsdValues('msd-type')].sort(),
+    c:[...getMsdValues('msd-couleur')].sort(),
+    m:[...getMsdValues('msd-mandrin')].sort(),
+    gn:document.getElementById('f-gmin')?.value||'',
+    gx:document.getElementById('f-gmax')?.value||'',
+    lmin:document.getElementById('f-lmin')?.value||'',
+    lmax:document.getElementById('f-lmax')?.value||'',
+    lgmin:document.getElementById('f-longmin')?.value||'',
+    lgmax:document.getElementById('f-longmax')?.value||'',
+    wmin:document.getElementById('f-wmin')?.value||'',
+    wmax:document.getElementById('f-wmax')?.value||'',
+    dep:_depotFilter, ph:_photoFilter,
+    ref:document.getElementById('f-ref-code')?.value||'',
+    us:document.getElementById('f-usine')?.value||'',
+    zn:document.getElementById('f-zone-num')?.value||'',
+    zl:document.getElementById('f-zone-let')?.value||'',
+    fmt:[...document.querySelectorAll('.fpill.active:not(.fpill-orig):not(.fpill-stock):not(.fpill-depot)')].map(b=>b.dataset.format).sort(),
+  });
+}
+function _rebuildDetailsMsd(){
+  const msd=document.getElementById('sb-msd-details');
+  if(!msd) return;
+  const panel=msd.querySelector('.msd-panel');
+  if(!panel) return;
+  if(!_allProductsCache){
+    if(!_detailsCacheKick){
+      _detailsCacheKick=true;
+      _loadAllProducts().then(()=>{ _detailsLastSig=null; _rebuildDetailsMsd(); }).catch(()=>{});
+    }
+    panel.innerHTML='<div class="msd-search-wrap"><input class="msd-search-inp" type="text" placeholder="Chargement…" disabled></div>';
+    return;
+  }
+  // Skip rebuild when only the details selection itself changed (preserves
+  // panel scroll, search-bar text and avoids visual flicker while the user
+  // is ticking boxes inside the dropdown).
+  const sig=_detailsFiltersSig();
+  if(sig===_detailsLastSig){ updateMsdBtn('msd-details'); return; }
+  _detailsLastSig=sig;
+  const rows=_allProductsCache.filter(r=>_matchesActiveFilters(r,'msd-details'));
+  const counts=new Map();
+  let emptyN=0;
+  rows.forEach(r=>{
+    const raw=String(r.details||'').trim();
+    if(!raw){ emptyN++; return; }
+    const k=raw.toLowerCase();
+    const cur=counts.get(k);
+    if(cur){ cur.n++; } else { counts.set(k,{label:raw,n:1}); }
+  });
+  const sel=msdState['msd-details'];
+  sel.forEach(v=>{
+    const k=String(v).toLowerCase();
+    if(!counts.has(k)) counts.set(k,{label:v,n:0});
+  });
+  const sorted=[...counts.values()].sort((a,b)=>{
+    const aS=sel.has(a.label)?0:1, bS=sel.has(b.label)?0:1;
+    if(aS!==bS) return aS-bS;
+    if(b.n!==a.n) return b.n-a.n;
+    return a.label.localeCompare(b.label);
+  });
+  panel.innerHTML='';
+  const sw=document.createElement('div');
+  sw.className='msd-search-wrap';
+  sw.innerHTML='<input class="msd-search-inp" type="text" placeholder="Rechercher…" autocomplete="off">';
+  panel.appendChild(sw);
+  sw.querySelector('.msd-search-inp').addEventListener('input',e=>{
+    const q=e.target.value.toLowerCase();
+    panel.querySelectorAll('.msd-option').forEach(opt=>{
+      opt.style.display=opt.textContent.toLowerCase().includes(q)?'':'none';
+    });
+  });
+  sw.addEventListener('click',e=>e.stopPropagation());
+  const mkOpt=(val,label,n,extraCls)=>{
+    const opt=document.createElement('div');
+    opt.className='msd-option'+(extraCls?' '+extraCls:'');
+    opt.setAttribute('data-val',val);
+    if(sel.has(val)) opt.classList.add('selected');
+    const dim=n===0?' style="opacity:.45"':'';
+    opt.innerHTML=`<div class="msd-check"><svg width="9" height="7" fill="none" stroke="#fff" stroke-width="2.5"><polyline points="1,4 3.5,6.5 8,1"/></svg></div><span class="msd-label"${dim}>${esc(label)}</span><span class="msd-count-inline">${n}</span>`;
+    opt.addEventListener('click',()=>toggleMsdOption(opt,'msd-details'));
+    panel.appendChild(opt);
+  };
+  // Special "Sans détails" option (matches rows where details is null or empty)
+  if(emptyN>0 || sel.has(DETAILS_NONE)){
+    mkOpt(DETAILS_NONE,'Sans détails',emptyN,'msd-option-none');
+  }
+  sorted.forEach(({label,n})=>mkOpt(label,label,n));
+  updateMsdBtn('msd-details');
 }
 
 // ===== AUTOCOMPLETE =====
@@ -1564,6 +1795,7 @@ async function _doFilter(){
   currentPage=1;
   _isFirstLoad=false;
   _maxKnownPage=1;
+  _refreshAllFacets();
   if(_featuredMode){await _fetchAndRenderFeatured(++_reqToken);return;}
   await _fetchAndRender(++_reqToken);
 }
@@ -1812,9 +2044,22 @@ async function _fetchAndRender(token){
   if(refCode)p.append('quality',`ilike.${_pgEsc(refCode)}%`);
   const usineVal=(document.getElementById('f-usine')?.value||'').trim();
   if(usineVal)p.append('usine',`eq.${_pgEsc(usineVal)}`);
-  const detailsVal=(document.getElementById('f-details')?.value||'').trim();
-  if(detailsVal){
-    p.append('details',`ilike.%${_pgEsc(detailsVal)}%`);
+  const detailsSel=getMsdValues('msd-details');
+  if(detailsSel.size>0){
+    const _hasNone=detailsSel.has(DETAILS_NONE);
+    const _real=[...detailsSel].filter(v=>v!==DETAILS_NONE);
+    if(_hasNone && _real.length===0){
+      // "Sans détails" only — match null OR empty string
+      p.append('or','(details.is.null,details.eq.)');
+    } else if(_hasNone){
+      // "Sans détails" + real values
+      const _eqs=_real.map(v=>'details.eq.'+'"'+String(v).replace(/"/g,'""')+'"').join(',');
+      p.append('or',`(details.is.null,details.eq.,${_eqs})`);
+    } else {
+      // Real values only
+      const _qVals=_real.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',');
+      p.append('details',`in.(${_qVals})`);
+    }
   }
   const zoneNum=(document.getElementById('f-zone-num')?.value||'').trim();
   const zoneLet=(document.getElementById('f-zone-let')?.value||'').trim().toUpperCase();
@@ -2102,11 +2347,12 @@ function updateFilterChips(){
   if(_depotFilter)chips.push({label:_depotFilter==='our'?'Notre dépôt':'Hors dépôt',clear:()=>{document.querySelectorAll('.fpill-depot').forEach(b=>b.classList.remove('active'));_depotFilter='';filterProducts();}});
   if(_photoFilter)chips.push({label:_photoFilter==='with'?'Avec photo':'Sans photo',clear:()=>{document.querySelectorAll('.fpill-photo').forEach(b=>b.classList.remove('active'));_photoFilter='';filterProducts();}});
   if(_activeFmts.length>0)chips.push({label:LT[lang].t_fmt+' : '+_activeFmts.map(f=>f==='Bobine'?LT[lang].t_bobine:f==='Palette'?LT[lang].t_palette:f).join(', '),clear:()=>{document.querySelectorAll('.fpill.active').forEach(b=>b.classList.remove('active'));filterProducts();}});
-  ['msd-type','msd-mandrin','msd-couleur'].forEach(id=>{
+  ['msd-type','msd-mandrin','msd-couleur','msd-details'].forEach(id=>{
     const set=msdState[id];
     if(set.size>0){
-      const lbl={'msd-type':LT[lang].t_type_lbl,'msd-mandrin':LT[lang].t_mandrin_lbl,'msd-couleur':LT[lang].t_couleur_lbl}[id];
-      chips.push({label:lbl+' : '+[...set].join(', '),clear:()=>{resetMsd(id);filterProducts();}});
+      const lbl={'msd-type':LT[lang].t_type_lbl,'msd-mandrin':LT[lang].t_mandrin_lbl,'msd-couleur':LT[lang].t_couleur_lbl,'msd-details':'Détails'}[id];
+      const vals=[...set].map(v=>v===DETAILS_NONE?'Sans détails':v).join(', ');
+      chips.push({label:lbl+' : '+vals,clear:()=>{resetMsd(id);filterProducts();}});
     }
   });
   if(gn||gx)chips.push({label:LT[lang].t_chip_gram+' : '+(gn||'—')+' → '+(gx||'—')+' g/m²',clear:()=>{document.getElementById('f-gmin').value='';document.getElementById('f-gmax').value='';filterProducts();}});
@@ -2123,8 +2369,6 @@ function updateFilterChips(){
   // if(cpn||cpx)chips.push({label:LT[lang].t_chip_prix+...});
   const usineChip=(document.getElementById('f-usine')?.value||'').trim();
   if(usineChip)chips.push({label:'Usine : '+usineChip,clear:()=>{const e=document.getElementById('f-usine');if(e)e.value='';filterProducts();}});
-  const detailsChip=(document.getElementById('f-details')?.value||'').trim();
-  if(detailsChip)chips.push({label:'Détails : '+detailsChip,clear:()=>{const e=document.getElementById('f-details');if(e)e.value='';filterProducts();}});
   const zoneNumChip=(document.getElementById('f-zone-num')?.value||'').trim();
   const zoneLetChip=(document.getElementById('f-zone-let')?.value||'').trim();
   if(zoneNumChip)chips.push({label:'Zone : '+zoneNumChip,clear:()=>{['f-zone-num','f-zone-num-mob'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});filterProducts();}});
@@ -2265,7 +2509,6 @@ function renderCards(list){
       dimTag?['Laize',dimTag]:paletteDims?['Dimensions',paletteDims+' cm']:null,
       p.grammage?['Grammage',`${p.grammage} g/m²`]:null,
       _mandrinTxt?['Mandrin',_mandrinTxt]:null,
-      _detClean?['Détails',_detClean]:null,
       ['Zone',p.allee||'—'],
     ].filter(Boolean).slice(0,6);
     const specsHtml=`<div class="pcard-specs">${specRows.map(([l,v])=>`<div class="pcard-spec"><span class="pspec-lbl">${esc(l)}</span><span class="pspec-val">${esc(v)}</span></div>`).join('')}</div>`;
@@ -2447,28 +2690,47 @@ const _DET_NO_PHOTO=`<img src="img/photos-sur-demande.png" alt="Photos sur deman
 const _DET_FAB_PHOTO=`<img src="img/fabrication-sur-demande.png" alt="Fabrication sur demande" style="width:100%;height:100%;object-fit:contain;">`;
 function detImgErr(img){img.onerror=null;img.parentNode.innerHTML=_DET_NO_PHOTO;}
 let _detIdx=-1;
+let _detSource='list'; // 'list' = navigation dans la page courante, 'cart' = dans la sélection
 function _detKeyHandler(e){
   if(e.key==='ArrowLeft')navDetail(-1);
   else if(e.key==='ArrowRight')navDetail(1);
   else if(e.key==='Escape')closeDetail();
 }
+function _detList(){return _detSource==='cart'?cart:all;}
 function navDetail(dir){
-  if(!all||!all.length)return;
+  const list=_detList();
+  if(!list||!list.length)return;
   const next=_detIdx+dir;
-  if(next<0||next>=all.length)return;
-  openDetail(all[next].id);
+  if(next<0||next>=list.length)return;
+  openDetail(list[next].id);
 }
 function _updateDetNav(){
   const prev=document.getElementById('dmod-prev');
   const next=document.getElementById('dmod-next');
+  const len=_detList().length;
   if(prev)prev.disabled=(_detIdx<=0);
-  if(next)next.disabled=(_detIdx>=all.length-1);
+  if(next)next.disabled=(_detIdx>=len-1);
 }
 async function openDetail(id){
-  const idx=all.findIndex(x=>x.id===+id);
-  const p=idx>=0?all[idx]:null; if(!p) return;
+  const list=_detList();
+  let idx=list.findIndex(x=>x.id===+id);
+  // Source list n'a pas le produit (édge: cart change pendant la session) → fallback sur `all`
+  let p=idx>=0?list[idx]:null;
+  if(!p){
+    idx=all.findIndex(x=>x.id===+id);
+    p=idx>=0?all[idx]:null;
+    if(p)_detSource='list';
+  }
+  if(!p) return;
+  // Pour le mode cart, hydrater `all` avec les données cart si manquantes (modal lit depuis `all`)
+  if(_detSource==='cart'&&!all.find(x=>x.id===+id)){
+    const ci=cart.find(x=>x.id===+id);
+    if(ci)all.push({id:+id,name:ci.name,ref:ci.ref,type:ci.type,qualite:ci.qualite||null,details:ci.details||null,grammage:ci.grammage||null,largeur:ci.largeur||null,longueur:null,noyau:null,format:ci.format||null,poids_net:ci.poids_net||null,price:ci.price||null,image_url:ci.img||null,couleur:ci.couleur||null,usine:ci.usine||null,zone:ci.zone||null,emplacement:ci.emplacement||null,allee:ci.allee||null});
+  }
   _detIdx=idx;
-  cur = p;
+  // cur doit pointer sur l'objet de `all` (avec toutes les colonnes BDD) pour les rendus
+  cur = all.find(x=>x.id===+id) || p;
+  p = cur;
 
   // Image
   const mi=document.getElementById('det-main');
@@ -2564,6 +2826,7 @@ function closeDetail(){
   document.body.style.overflow='';
   document.removeEventListener('keydown',_detKeyHandler);
   _detIdx=-1;
+  _detSource='list'; // reset pour la prochaine ouverture
 }
 function swImg(el,url){document.getElementById('det-main').innerHTML=`<img src="${safeUrl(url)}">`;document.querySelectorAll('.dthumb').forEach(t=>t.classList.remove('active'));el.classList.add('active');}
 function openProforma(){if(!cur)return;const _proTitle=formatProductTitle(cur.qualite,cur.name||'Produit');document.getElementById('pf-prod-name').textContent=_proTitle+(cur.ref&&!String(cur.ref).startsWith('Photo_')?' — '+cur.ref:'');document.getElementById('proforma-bg').classList.add('show');}
@@ -2620,7 +2883,7 @@ function resetFilters(){
     document.querySelectorAll('.msd-option.selected').forEach(o=>o.classList.remove('selected'));
 
     // 3. Reset all msd button labels
-    ['msd-type','msd-mandrin','msd-couleur'].forEach(id=>{
+    ['msd-type','msd-mandrin','msd-couleur','msd-details'].forEach(id=>{
       // fbar button
       const fbBtn=document.querySelector(`#${id} .fb-msd-btn`);
       if(fbBtn){ const lbl=fbBtn.querySelector('span:first-child');if(lbl)lbl.textContent=msdLabels[id]; }
@@ -2643,9 +2906,8 @@ function resetFilters(){
      'f-zone-num','f-zone-let','f-zone-num-mob','f-zone-let-mob',
      'f-gmin-sb','f-gmax-sb','f-pmin-sb','f-pmax-sb',
      'f-gmin-mob','f-gmax-mob','f-lmin-mob','f-lmax-mob','f-pmin-mob','f-pmax-mob',
-     'f-usine','f-details',
+     'f-usine',
      'search-input','search-input-mob'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-    const _fdc=document.getElementById('f-details-clear');if(_fdc)_fdc.style.display='none';
 
     // 6. Clear chips & reset UI
     const fc=document.getElementById('filter-chips');if(fc)fc.innerHTML='';
@@ -3027,9 +3289,43 @@ function _proformaDesignation(it){
   return lines.filter((l,i,a)=>!(l===''&&(i===0||a[i-1]===''))).join('\n');
 }
 
-function printSelection(){
+function askText({title,sub,placeholder,value,okLabel,cancelLabel}={}){
+  return new Promise(resolve=>{
+    const bg=document.createElement('div');
+    bg.className='askp-bg show';
+    bg.innerHTML=`
+      <div class="askp-box" role="dialog" aria-modal="true" onclick="event.stopPropagation()">
+        ${title?`<div class="askp-title">${esc(title)}</div>`:''}
+        ${sub?`<div class="askp-sub">${esc(sub)}</div>`:''}
+        <input type="text" class="askp-input" placeholder="${esc(placeholder||'')}" value="${esc(value||'')}">
+        <div class="askp-actions">
+          <button class="askp-btn askp-btn-cancel">${esc(cancelLabel||'Annuler')}</button>
+          <button class="askp-btn askp-btn-ok">${esc(okLabel||'OK')}</button>
+        </div>
+      </div>`;
+    document.body.appendChild(bg);
+    const input=bg.querySelector('input');
+    const close=(val)=>{bg.remove();document.removeEventListener('keydown',keyHandler);resolve(val);};
+    const keyHandler=(e)=>{
+      if(e.key==='Enter'){e.preventDefault();close((input.value||'').trim());}
+      else if(e.key==='Escape'){e.preventDefault();close(null);}
+    };
+    bg.addEventListener('click',e=>{if(e.target===bg)close(null);});
+    bg.querySelector('.askp-btn-cancel').addEventListener('click',()=>close(null));
+    bg.querySelector('.askp-btn-ok').addEventListener('click',()=>close((input.value||'').trim()));
+    document.addEventListener('keydown',keyHandler);
+    setTimeout(()=>input.focus(),50);
+  });
+}
+
+async function printSelection(){
   if(!cart.length){toast('Sélection vide !');return;}
-  const clientName=(prompt('Nom de la sélection (client) :','')||'').trim();
+  const clientName=await askText({
+    title:'Imprimer la sélection',
+    sub:'Donne un nom à cette sélection (le nom du client par exemple).',
+    placeholder:'Ex : Société Dupont',
+    okLabel:'Imprimer'
+  });
   if(!clientName)return;
   const items=cart.map(p=>{
     const _f=all.find(x=>x.id===+p.id)||p;
@@ -3056,22 +3352,45 @@ function printSelection(){
     const titre=formatProductTitle(qualite,qualite);
     const photoRef=String(p.ref||_f.ref||'').replace(/^Photo_/i,'').trim();
     const it={qualite,couleur,usine,gsm,largeurCm,details,format,emplacement:p.emplacement||_f.emplacement||''};
-    return{ref:qualite||'—',photoRef,qualite,titre,details:_detClean,couleur,gsm,dim,poidsKg,usine,priceKg,priceT,montant,designation:_proformaDesignation(it)};
+    const hs=getHsCode(qualite,gsm,format)||'';
+    return{ref:qualite||'—',photoRef,qualite,titre,details:_detClean,couleur,gsm,dim,poidsKg,usine,priceKg,priceT,montant,format,hs,designation:_proformaDesignation(it)};
   });
+  const _isPaletteIt=it=>!!(it.format&&/palette|feuille/i.test(it.format));
+  const itemsBobine=items.filter(it=>!_isPaletteIt(it));
+  const itemsFormat=items.filter(_isPaletteIt);
   const totalPoids=items.reduce((s,i)=>s+i.poidsKg,0);
   const totalMontant=items.reduce((s,i)=>s+i.montant,0);
   // Grouped view (résumé) — by qualite code
   const groupsMap=new Map();
   items.forEach(it=>{
     const k=it.qualite||'—';
-    const g=groupsMap.get(k)||{qualite:k,count:0,poidsKg:0,montant:0};
+    const g=groupsMap.get(k)||{qualite:k,count:0,poidsKg:0,montant:0,hsSet:new Set()};
     g.count+=1;g.poidsKg+=it.poidsKg;g.montant+=it.montant;
+    if(it.hs)g.hsSet.add(it.hs);
     groupsMap.set(k,g);
   });
   const groups=[...groupsMap.values()].sort((a,b)=>b.poidsKg-a.poidsKg);
+  groups.forEach(g=>{
+    const codes6=[...new Set([...(g.hsSet||[])].map(c=>{
+      const m=String(c).match(/^([A-Z0-9]{4})([A-Z0-9]{2})/i);
+      return m?`${m[1]}.${m[2]}`:c;
+    }))];
+    g.hs=codes6.length?_hsRange(codes6.join(' / ')):'';
+  });
   const eur=v=>(v||0).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2});
   const num=v=>(v||0).toLocaleString('fr-FR',{maximumFractionDigits:0});
   const dec=(v,d=2)=>(v||0).toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d});
+  const _detailRow=it=>`<tr><td class="ref">${esc(it.photoRef||'—')}</td><td class="ref">${esc(it.ref)}</td><td>${esc(it.titre||'')}</td><td>${esc(it.details||'—')}</td><td>${esc(it.couleur||'—')}</td><td class="num">${it.gsm?esc(it.gsm+' g/m²'):'—'}</td><td>${esc(it.dim||'—')}</td><td class="num">${esc(num(it.poidsKg))}</td><td class="num">${esc(it.usine||'—')}</td><td class="num">${esc(dec(it.priceKg,2))}</td><td class="num">${esc(eur(it.montant))}</td></tr>`;
+  const _detailTable=(rows,dimLbl)=>`<table class="items view-detail">
+      <colgroup><col class="c-pref"><col class="c-q"><col class="c-tit"><col class="c-det"><col class="c-col"><col class="c-gsm"><col class="c-dim"><col class="c-pn"><col class="c-us"><col class="c-pu"><col class="c-mt"></colgroup>
+      <thead><tr><th>N°</th><th>Réf.</th><th>Qualité</th><th>Détails</th><th>Couleur</th><th style="text-align:right;">GSM</th><th>${dimLbl}</th><th style="text-align:right;">PN (kg)</th><th style="text-align:right;">Usine</th><th style="text-align:right;">P.U (€)</th><th style="text-align:right;">Montant HT (€)</th></tr></thead>
+      <tbody>${rows.map(_detailRow).join('')}</tbody>
+    </table>`;
+  const _detailHTML=(itemsBobine.length&&itemsFormat.length)
+    ?`<div class="section-title">Bobines</div>${_detailTable(itemsBobine,'Laize')}<div class="section-title">Formats</div>${_detailTable(itemsFormat,'Dimensions')}`
+    :itemsBobine.length
+      ?_detailTable(itemsBobine,'Laize')
+      :_detailTable(itemsFormat,'Dimensions');
   const today=new Date();
   const dateFR=`${String(today.getDate()).padStart(2,'0')}/${String(today.getMonth()+1).padStart(2,'0')}/${String(today.getFullYear()).slice(2)}`;
   const numero=_proformaNumero();
@@ -3097,6 +3416,7 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
 .brand-text .red{color:var(--red);font-weight:700;}
 .client{padding-top:6px;display:flex;flex-direction:column;align-items:flex-start;gap:8px;}
 .client-name{font-family:'DM Sans',sans-serif;font-weight:700;font-size:22px;letter-spacing:.5px;text-transform:uppercase;line-height:1.2;}
+.client-date{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray);margin-top:6px;font-variant-numeric:tabular-nums;}
 .client .proforma-title{font-size:30px;line-height:1;}
 .client .commercial{font-size:10.5px;}
 .client-block{font-size:11px;line-height:1.7;}
@@ -3143,6 +3463,9 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
 .items.view-detail{font-size:8.5px;}
 .items.view-detail th{font-size:8.5px;padding:6px 5px;letter-spacing:.2px;}
 .items.view-detail td{padding:5px 5px;}
+.section-title{font-family:'DM Sans',sans-serif;font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.6px;margin:14px 0 6px;padding:6px 10px;background:var(--ink);color:#fff;border:1.5px solid var(--ink);}
+.section-title:first-child{margin-top:0;}
+.mode-detail .section-title + .items{margin-top:0;}
 .totals-block{padding:10px 14px;border:1.5px solid var(--line);border-top:none;background:#fafaf6;font-size:10.5px;line-height:1.8;font-weight:600;}
 .totals-block .row{display:flex;justify-content:space-between;}
 .totals-block .row b{color:var(--ink);}
@@ -3176,11 +3499,6 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
 .toolbar .btn-print{background:var(--red);color:#fff;}
 .toolbar .btn-save{background:var(--ink);color:#fff;}
 .toolbar .btn-close{background:#fff;color:var(--ink);border:1.5px solid var(--ink);}
-.synthesis-block{border:1.5px solid var(--line);padding:30px 24px;text-align:center;background:#fafaf6;}
-.synthesis-block .sb-label{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1.5px;color:var(--gray);margin-bottom:8px;}
-.synthesis-block .sb-main{font-family:'Bebas Neue',sans-serif;font-size:46px;letter-spacing:1.5px;color:var(--ink);line-height:1.1;}
-.synthesis-block .sb-main .sep{color:var(--red);margin:0 14px;}
-.synthesis-block .sb-sub{margin-top:14px;font-size:11px;color:var(--gray);font-style:italic;}
 @media print{
   html,body{background:#fff;}
   body{padding:0;display:block;}
@@ -3188,7 +3506,7 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
   .toolbar{display:none;}
   .editable{border-bottom-color:transparent;}
   .items tr,.items thead{page-break-inside:avoid;}
-  .totals-block,.totals-grid,.foot-row,.synthesis-block{page-break-inside:avoid;}
+  .totals-block,.totals-grid,.foot-row{page-break-inside:avoid;}
   .totals-block{page-break-before:avoid;}
   .items tbody tr:last-child{page-break-after:avoid;}
   @page{size:A4 portrait;margin:0;}
@@ -3198,7 +3516,6 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
   <div class="modes">
     <button data-mode="detail" class="active" onclick="setMode('detail')">Détail</button>
     <button data-mode="resume" onclick="setMode('resume')">Résumé</button>
-    <button data-mode="synth" onclick="setMode('synth')">Synthèse</button>
   </div>
   <button class="btn-print" onclick="window.print()">Imprimer</button>
   <button class="btn-save" onclick="savePdf()">Enregistrer</button>
@@ -3225,44 +3542,20 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
     <div class="client">
       <div class="proforma-title">Liste détaillée</div>
       <div class="client-name" contenteditable="true">${esc(String(clientName).toUpperCase())}</div>
-    </div>
-  </div>
-
-  <div class="info-row">
-    <table class="info-table">
-      <thead><tr><th>Numéro</th><th>Date</th><th>Référence</th></tr></thead>
-      <tbody><tr><td>${numero}</td><td>${dateFR}</td><td contenteditable="true">—</td></tr></tbody>
-    </table>
-    <div class="cond-box">
-      <div class="cond-head">Conditions de livraison</div>
-      <div class="cond-body">
-        <div contenteditable="true">CFR</div>
-        <div contenteditable="true">PORT</div>
-        <div class="row" style="margin-top:4px;"><span class="lbl">Pays d'origine :</span><span class="red" contenteditable="true">—</span></div>
-        <div class="row"><span class="lbl">Pays de provenance :</span><span class="red" contenteditable="true">FRANCE</span></div>
-      </div>
+      <div class="client-date">${dateFR}</div>
     </div>
   </div>
 
   <div id="items-host">
-    <table class="items view-detail">
-      <colgroup><col class="c-pref"><col class="c-q"><col class="c-tit"><col class="c-det"><col class="c-col"><col class="c-gsm"><col class="c-dim"><col class="c-pn"><col class="c-us"><col class="c-pu"><col class="c-mt"></colgroup>
-      <thead><tr><th>N°</th><th>Réf.</th><th>Qualité</th><th>Détails</th><th>Couleur</th><th style="text-align:right;">GSM</th><th>Dimensions</th><th style="text-align:right;">PN (kg)</th><th style="text-align:right;">Usine</th><th style="text-align:right;">P.U (€)</th><th style="text-align:right;">Montant HT (€)</th></tr></thead>
-      <tbody>
-        ${items.map(it=>`<tr><td class="ref">${esc(it.photoRef||'—')}</td><td class="ref">${esc(it.ref)}</td><td>${esc(it.titre||'')}</td><td>${esc(it.details||'—')}</td><td>${esc(it.couleur||'—')}</td><td class="num">${it.gsm?esc(it.gsm+' g/m²'):'—'}</td><td>${esc(it.dim||'—')}</td><td class="num">${esc(num(it.poidsKg))}</td><td class="num">${esc(it.usine||'—')}</td><td class="num">${esc(dec(it.priceKg,2))}</td><td class="num">${esc(eur(it.montant))}</td></tr>`).join('')}
-      </tbody>
-    </table>
-    <table class="items view-resume" style="display:none;">
-      <colgroup><col style="width:18%"><col><col style="width:13%"><col style="width:14%"><col style="width:18%"></colgroup>
-      <thead><tr><th>Code</th><th>Désignation</th><th style="text-align:right;">Réfs</th><th style="text-align:right;">PN (kg)</th><th style="text-align:right;">Montant HT (€)</th></tr></thead>
-      <tbody>
-        ${groups.map(g=>`<tr><td class="ref">${esc(g.qualite)}</td><td>${esc(formatProductTitle(g.qualite,g.qualite))}</td><td class="num">${esc(num(g.count))}</td><td class="num">${esc(num(g.poidsKg))}</td><td class="num">${esc(eur(g.montant))}</td></tr>`).join('')}
-      </tbody>
-    </table>
-    <div class="synthesis-block view-synth" style="display:none;">
-      <div class="sb-label">Demande de prix</div>
-      <div class="sb-main">${num(items.length)} PRODUITS<span class="sep">·</span>${dec(totalPoids/1000,1)} T</div>
-      <div class="sb-sub">Liste détaillée disponible sur demande — référence proforma : ${numero}</div>
+    <div class="mode-detail">${_detailHTML}</div>
+    <div class="mode-resume" style="display:none;">
+      <table class="items view-resume">
+        <colgroup><col style="width:14%"><col><col style="width:14%"><col style="width:10%"><col style="width:12%"><col style="width:16%"></colgroup>
+        <thead><tr><th>Code</th><th>Désignation</th><th>Code douanier</th><th style="text-align:right;">Réfs</th><th style="text-align:right;">PN (kg)</th><th style="text-align:right;">Montant HT (€)</th></tr></thead>
+        <tbody>
+          ${groups.map(g=>`<tr><td class="ref">${esc(g.qualite)}</td><td>${esc(formatProductTitle(g.qualite,g.qualite))}</td><td>${esc(g.hs||'—')}</td><td class="num">${esc(num(g.count))}</td><td class="num">${esc(num(g.poidsKg))}</td><td class="num">${esc(eur(g.montant))}</td></tr>`).join('')}
+        </tbody>
+      </table>
     </div>
   </div>
 
@@ -3275,7 +3568,7 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
   <div class="totals-grid">
     <div><div class="lbl">Total HT</div><div class="val">${eur(totalMontant)} €</div></div>
     <div><div class="lbl">Total TTC</div><div class="val">${eur(totalMontant)} €</div></div>
-    <div><div class="lbl">Poids Total (kg)</div><div class="val">${num(totalPoids)}</div></div>
+    <div><div class="lbl">Poids Total (kg)</div><div class="val">${num(totalPoids)} kg</div></div>
     <div class="net"><div class="lbl">Net à payer</div><div class="val">${eur(totalMontant)} €</div></div>
   </div>
 
@@ -3335,14 +3628,18 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
     document.head.appendChild(s);
   }
   function setMode(m){
-    document.querySelectorAll('#items-host > *').forEach(el=>el.style.display='none');
-    const map={detail:'.view-detail',resume:'.view-resume',synth:'.view-synth'};
-    const el=document.querySelector(map[m]);
-    if(el)el.style.display=el.tagName==='TABLE'?'table':'block';
+    const map={detail:'mode-detail',resume:'mode-resume'};
+    document.querySelectorAll('#items-host > div').forEach(el=>el.style.display='none');
+    const el=document.querySelector('#items-host .'+map[m]);
+    if(el)el.style.display='block';
     document.querySelectorAll('.toolbar .modes button').forEach(b=>b.classList.toggle('active',b.dataset.mode===m));
     try{localStorage.setItem('proforma_mode',m);}catch(_){}
   }
-  try{const saved=localStorage.getItem('proforma_mode');if(saved&&saved!=='detail')setMode(saved);}catch(_){}
+  try{
+    const saved=localStorage.getItem('proforma_mode');
+    if(saved==='resume')setMode('resume');
+    else if(saved&&saved!=='detail')localStorage.removeItem('proforma_mode');
+  }catch(_){}
 </script>
 </body></html>`);
   w.document.close();
@@ -3545,7 +3842,7 @@ function renderDrawer(){
     const _isFabD=!_isSiderunD&&((_zone==='FABRICATION SUR COMMANDE'||_emp==='FABRICATION SUR COMMANDE')||(_ref&&/^Photo_FAB/i.test(String(_ref)))||(_details&&/^\s*fabrication\b/i.test(_details))||(_emp&&/FAB|DIRECT USINE/i.test(_emp))||(_zone&&/FABRICATION/i.test(_zone)));
     const _fallback=_isSiderunD?'img/siderun-sur-demande.png':_isFabD?'img/fabrication-sur-demande.png':'img/no-photo.png';
     const imgHtml=imgSrc?`<img src="${safeUrl(imgSrc)}" onerror="this.src='${esc(_fallback)}'">`:`<img src="${esc(_fallback)}" alt="">`;
-    return`<div class="ci" id="ci-${numId(p.id)}">
+    return`<div class="ci" id="ci-${numId(p.id)}" onclick="_ciOpenDetail(${numId(p.id)})" style="cursor:pointer">
       <div class="ci-img">${imgHtml}</div>
       <div class="ci-body">
         <div class="ci-row1">
@@ -3554,19 +3851,23 @@ function renderDrawer(){
         </div>
         ${_ciSum?`<div class="ci-name">${esc(_ciSum)}</div>`:''}
         <div class="ci-foot">
-          <button class="ci-rm" onclick="removeFromCart(${numId(p.id)})" aria-label="${lang==='en'?'Remove':'Retirer'}">${_trashSvg}</button>
-          ${lot?`<span class="ci-lot" onclick="navigator.clipboard.writeText(${attrJs(lot)}).then(()=>toast('📋 Réf. copiée'))">${esc(lot)}<svg width="11" height="11" viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.6"/><path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>`:'<span></span>'}
+          <button class="ci-rm" onclick="event.stopPropagation();removeFromCart(${numId(p.id)})" aria-label="${lang==='en'?'Remove':'Retirer'}">${_trashSvg}</button>
+          ${lot?`<span class="ci-lot" onclick="event.stopPropagation();navigator.clipboard.writeText(${attrJs(lot)}).then(()=>toast('📋 Réf. copiée'))">${esc(lot)}<svg width="11" height="11" viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.6"/><path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>`:'<span></span>'}
           ${_priceMode&&_pFull.price?`<span class="ci-price" style="color:var(--red);font-weight:700;font-size:13px">${esc(_pFull.price.toLocaleString('fr-FR')+' €/T')}</span>`:''}
           <span class="ci-kgs">${esc(fmt(Math.round(qkg)))}</span>
         </div>
       </div>
-      <div class="ci-confirm" id="ci-confirm-${numId(p.id)}">
+      <div class="ci-confirm" id="ci-confirm-${numId(p.id)}" onclick="event.stopPropagation()">
         <span>${lang==='en'?'Remove this item?':'Retirer cet article\u00a0?'}</span>
-        <button class="ci-confirm-no" onclick="ciCancelRemove(${numId(p.id)})">${lang==='en'?'Cancel':'Annuler'}</button>
-        <button class="ci-confirm-yes" onclick="removeFromCart(${numId(p.id)})">${lang==='en'?'Remove':'Retirer'}</button>
+        <button class="ci-confirm-no" onclick="event.stopPropagation();ciCancelRemove(${numId(p.id)})">${lang==='en'?'Cancel':'Annuler'}</button>
+        <button class="ci-confirm-yes" onclick="event.stopPropagation();removeFromCart(${numId(p.id)})">${lang==='en'?'Remove':'Retirer'}</button>
       </div>
     </div>`;
   }).join('');
+}
+function _ciOpenDetail(id){
+  _detSource='cart'; // les flèches navigueront dans le panier (haut→bas = next/right)
+  openDetail(id);
 }
 const _trashSvg=`<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 4h12M5.333 4V2.667A1.333 1.333 0 016.667 1.333h2.666A1.333 1.333 0 0110.667 2.667V4m2 0-.667 9.333A1.333 1.333 0 0110.667 14.667H5.333A1.333 1.333 0 014 13.333L3.333 4h9.334z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 function ciQty(id,delta){
@@ -3839,7 +4140,7 @@ const LT={
     t_f_email:'Email *', t_f_email_err:'Email invalide',
     t_f_phone:'Téléphone', t_f_qty:'Quantité souhaitée', t_f_msg:'Message',
     t_send:'ENVOYER',
-    t_pf_btn:'📄 DEMANDER UN DEVIS', t_clear_cart:'Vider la sélection',
+    t_pf_btn:'DEMANDER UN DEVIS', t_clear_cart:'Vider la sélection',
     t_filtres:'FILTRES', t_effacer:'Réinitialiser', t_trier:'Trier :', t_poids_total:'Poids total',
     t_fmt:'Format', t_bobine:'Bobine', t_palette:'Palette',
     t_type_lbl:'Type', t_couleur_lbl:'Couleur', t_couleurs_lbl:'Couleurs', t_mandrin_lbl:'Mandrin', t_gsm_lbl:'Grammage', t_laize_lbl:'Laize', t_longueur_lbl:'Longueur', t_prix_lbl:'Prix',
@@ -3900,7 +4201,7 @@ const LT={
     t_f_email:'Email *', t_f_email_err:'Invalid email',
     t_f_phone:'Phone', t_f_qty:'Desired quantity', t_f_msg:'Message',
     t_send:'SEND',
-    t_pf_btn:'📄 REQUEST A QUOTE', t_clear_cart:'Clear selection',
+    t_pf_btn:'REQUEST A QUOTE', t_clear_cart:'Clear selection',
     t_filtres:'FILTERS', t_effacer:'Reset', t_trier:'Sort:', t_poids_total:'Total weight',
     t_fmt:'Format', t_bobine:'Reel', t_palette:'Sheet',
     t_type_lbl:'Type', t_couleur_lbl:'Colour', t_couleurs_lbl:'Colours', t_mandrin_lbl:'Core', t_gsm_lbl:'Grammage', t_laize_lbl:'Width', t_longueur_lbl:'Length', t_prix_lbl:'Price',

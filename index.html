@@ -239,11 +239,11 @@
         </div>
       </div>
       <div class="fg">
-        <div class="fdet-wrap">
-          <input type="text" id="f-details" placeholder="Mot dans les détails…" oninput="filterProducts()">
-          <button type="button" onclick="filterProducts()" aria-label="Rechercher">
-            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <div class="msd" id="sb-msd-details">
+          <button class="msd-btn" data-msd-id="msd-details" onclick="toggleMsd('sb-msd-details')">
+            <span class="msd-btn-label">Détails</span><span class="msd-arrow">▾</span>
           </button>
+          <div class="msd-panel"></div>
         </div>
       </div>
       <div class="fg">
@@ -300,7 +300,7 @@
         <button class="vt-toggle-btn add-page-btn" id="add-page-btn" onclick="addPageToCart()" title="Ajouter tous les produits de la page à la sélection">
           <svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="7" y1="2" x2="7" y2="12"/><line x1="2" y1="7" x2="12" y2="7"/></svg>
         </button>
-        <button class="vt-toggle-btn grp-toggle-btn" id="grp-toggle" onclick="toggleGroupedMode()" title="Regrouper les produits identiques">
+        <button class="vt-toggle-btn grp-toggle-btn" id="grp-toggle" onclick="toggleGroupedMode()" title="Regrouper les produits identiques" style="display:none">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="1" width="5" height="5" rx="1"/><rect x="8" y="1" width="5" height="5" rx="1"/><rect x="1" y="8" width="5" height="5" rx="1"/><rect x="8" y="8" width="5" height="5" rx="1"/><line x1="3.5" y1="3.5" x2="10.5" y2="10.5"/></svg>
           <span class="grp-toggle-lbl">Groupé</span>
         </button>
@@ -406,9 +406,13 @@
       <div class="drawer-meta" id="drawer-meta">—</div>
     </div>
     <div class="drawer-head-actions">
-      <button class="btn-clear-drawer-top" onclick="openImportRefs()" style="font-size:11px;border-color:var(--ink);color:var(--ink);">📋 Importer refs</button>
-      <button class="btn-clear-drawer-top" onclick="doClearCart()" data-i18n="t_clear_cart">Vider la sélection</button>
-      <button class="drawer-close" onclick="closeCartDrawer()">✕</button>
+      <button class="dh-icon-btn" onclick="openImportRefs()" title="Importer des références" aria-label="Importer des références">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+      </button>
+      <button class="dh-clear-btn" onclick="doClearCart()" data-i18n="t_clear_cart" title="Vider la sélection">Vider la sélection</button>
+      <button class="dh-close-btn" onclick="closeCartDrawer()" aria-label="Fermer">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
   </div>
   <div class="drawer-items" id="drawer-items">
@@ -420,18 +424,25 @@
     </div>
   </div>
   <div class="drawer-footer" id="drawer-footer" style="display:none">
-    <button class="btn-share-drawer" id="btn-share-cart" onclick="shareCart()">🔗 Partager cette sélection</button>
-    <button class="btn-share-drawer" onclick="printSelection()" style="background:#fff;color:var(--ink);border:1.5px solid var(--border);">🖨 Imprimer la sélection</button>
-    <button class="btn-pf-drawer" onclick="openCartProforma()" data-i18n="t_pf_btn">📄 DEMANDER UN DEVIS</button>
-    <div class="drawer-total-card">
-      <div class="drawer-total-row">
-        <div class="drawer-total-label" data-i18n="t_tonnage_total">TONNAGE TOTAL</div>
-        <div class="drawer-total-val" id="drawer-total">—</div>
+    <div class="drawer-totals">
+      <div class="dt-row">
+        <span class="dt-lbl" data-i18n="t_tonnage_total">TONNAGE TOTAL</span>
+        <span class="dt-val" id="drawer-total">—</span>
       </div>
-      <div class="drawer-total-row" id="drawer-price-row" style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px;display:none">
-        <div class="drawer-total-label" data-i18n="t_total_estime">TOTAL ESTIMÉ</div>
-        <div class="drawer-total-val" id="drawer-price-val" style="font-size:26px">—</div>
+      <div class="dt-row" id="drawer-price-row" style="display:none">
+        <span class="dt-lbl" data-i18n="t_total_estime">TOTAL ESTIMÉ</span>
+        <span class="dt-val" id="drawer-price-val">—</span>
       </div>
+    </div>
+    <div class="drawer-actions">
+      <button class="da-action" id="btn-share-cart" onclick="shareCart()" title="Partager cette sélection">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        <span>Partager</span>
+      </button>
+      <button class="da-action" onclick="printSelection()" title="Imprimer la sélection">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        <span>Imprimer</span>
+      </button>
     </div>
   </div>
 </div>
