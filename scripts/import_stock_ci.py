@@ -201,6 +201,11 @@ def parse_all_files(files):
     # Extract image URLs from hyperlinks
     log("Extraction des URLs photos...")
     ref_to_url = {}
+    # stock.prodi.net serves images at /albums/photo/<numeric>.jpg.
+    # Some source Excel files contain hyperlinks with one or more "Photo_"
+    # prefixes baked into the filename (e.g. /Photo_Photo_919465.jpg) which
+    # all 404. Normalize to the bare numeric form.
+    url_norm_re = re.compile(r'(/albums/photo/)(?:Photo_)+(.+)$', re.IGNORECASE)
     for fp in files:
         try:
             import openpyxl as oxl
@@ -214,7 +219,8 @@ def parse_all_files(files):
                 if ref_val and ref_val != 'To view picture click here':
                     key = f"Photo_{ref_val}"
                     while 'Photo_Photo_' in key: key = key.replace('Photo_Photo_','Photo_')
-                    ref_to_url[key] = cell.hyperlink.target
+                    target = url_norm_re.sub(r'\1\2', cell.hyperlink.target)
+                    ref_to_url[key] = target
         wb2.close()
 
     img_count = 0
