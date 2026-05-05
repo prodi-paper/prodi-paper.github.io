@@ -3565,8 +3565,8 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
 
   <div class="totals-block">
     <div class="row"><b>MONTANT FOB :</b><span contenteditable="true">${eur(totalMontant)} €</span></div>
-    <div class="row"><b>MONTANT DU FRET :</b><span contenteditable="true">0,00 €</span></div>
-    <div class="row"><b>MONTANT COÛT ET FRET :</b><span contenteditable="true">${eur(totalMontant)} €</span></div>
+    <div class="row"><b>MONTANT DU FRET :</b><span contenteditable="true">${eur(2800)} €</span></div>
+    <div class="row"><b>MONTANT COÛT ET FRET :</b><span contenteditable="true">${eur(totalMontant+2800)} €</span></div>
   </div>
 
   <div class="totals-grid">
