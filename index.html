@@ -69,13 +69,14 @@
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       </button>
     </div>
-    <div class="live-pill live-pill-desktop"><div class="live-dot"></div> <span data-i18n="t_live">Stock en direct</span> · <span style="font-weight:600;">Origine UE</span></div>
     </div>
+    <button class="mob-search-head" onclick="toggleMobSearch()" aria-label="Rechercher">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    </button>
     <button class="mob-filter-head" onclick="openFilterDrawer()" aria-label="Filtres">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><circle cx="8" cy="6" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="16" cy="12" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="8" cy="18" r="2" fill="currentColor" stroke="none"/></svg>
     </button>
     <div class="hright">
-      <div class="live-pill live-pill-hright"><div class="live-dot"></div> <span data-i18n="t_live">Stock en direct</span> · <span style="font-weight:600;">Origine UE</span></div>
       <div class="cart-wrap">
         <button class="btn-head btn-head-panier" onclick="openCartDrawer()" id="cart-btn" title="Ma Sélection">
           <img src="img/truck2.png" alt="truck" style="height:30px;width:auto;vertical-align:-6px;"> <span class="btn-panier-txt">Ma Sélection</span>
@@ -539,6 +540,19 @@
     <button class="fd-close" onclick="closeFilterDrawer()">✕</button>
   </div>
   <div class="fd-body">
+    <!-- Stock -->
+    <div class="fd-section open">
+      <div class="fd-section-head" onclick="toggleFdSection(this)">
+        <span class="fd-section-title">Stock</span><span class="fd-section-arrow">▾</span>
+      </div>
+      <div class="fd-section-body">
+        <div class="format-pills" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <button class="fpill fpill-stock fpill-dark" data-stock="stocklot" onclick="toggleStockPill(this)" style="justify-content:center;grid-column:1/-1;">Stocklots</button>
+          <button class="fpill fpill-stock fpill-yellow" data-stock="fab" onclick="toggleStockPill(this)" style="justify-content:center;">Fabrication</button>
+          <button class="fpill fpill-stock fpill-blue" data-stock="siderun" onclick="toggleStockPill(this)" style="justify-content:center;">Siderun</button>
+        </div>
+      </div>
+    </div>
     <!-- Format -->
     <div class="fd-section open">
       <div class="fd-section-head" onclick="toggleFdSection(this)">
@@ -551,7 +565,6 @@
         </div>
       </div>
     </div>
-
     <!-- Type -->
     <div class="fd-section open">
       <div class="fd-section-head" onclick="toggleFdSection(this)">
@@ -562,6 +575,51 @@
           <button class="msd-btn" id="fd-msd-type-btn" data-msd-id="msd-type" onclick="toggleMsd('msd-type-mob')">
             <span class="msd-btn-label" id="fd-msd-type-label">Tous</span>
             <span class="msd-count" id="fd-msd-type-count" style="display:none"></span>
+            <span class="msd-arrow">▾</span>
+          </button>
+          <div class="msd-panel"></div>
+        </div>
+      </div>
+    </div>
+    <!-- Couleur -->
+    <div class="fd-section open">
+      <div class="fd-section-head" onclick="toggleFdSection(this)">
+        <span class="fd-section-title">Couleur</span><span class="fd-section-arrow">▾</span>
+      </div>
+      <div class="fd-section-body" style="margin-top:6px;">
+        <div class="msd" id="msd-couleur-mob">
+          <button class="msd-btn" data-msd-id="msd-couleur" onclick="toggleMsd('msd-couleur-mob')">
+            <span class="msd-btn-label" id="fd-msd-couleur-label">Couleurs</span>
+            <span class="msd-arrow">▾</span>
+          </button>
+          <div class="msd-panel"></div>
+        </div>
+      </div>
+    </div>
+    <!-- Mandrin -->
+    <div class="fd-section open" id="mob-sec-mandrin">
+      <div class="fd-section-head" onclick="toggleFdSection(this)">
+        <span class="fd-section-title">Mandrin (mm)</span><span class="fd-section-arrow">▾</span>
+      </div>
+      <div class="fd-section-body" style="margin-top:6px;">
+        <div class="msd" id="msd-mandrin-mob">
+          <button class="msd-btn" data-msd-id="msd-mandrin" onclick="toggleMsd('msd-mandrin-mob')">
+            <span class="msd-btn-label" id="fd-msd-mandrin-label">Mandrins</span>
+            <span class="msd-arrow">▾</span>
+          </button>
+          <div class="msd-panel"></div>
+        </div>
+      </div>
+    </div>
+    <!-- Détails -->
+    <div class="fd-section open">
+      <div class="fd-section-head" onclick="toggleFdSection(this)">
+        <span class="fd-section-title">Détails</span><span class="fd-section-arrow">▾</span>
+      </div>
+      <div class="fd-section-body" style="margin-top:6px;">
+        <div class="msd" id="msd-details-mob">
+          <button class="msd-btn" data-msd-id="msd-details" onclick="toggleMsd('msd-details-mob')">
+            <span class="msd-btn-label">Détails</span>
             <span class="msd-arrow">▾</span>
           </button>
           <div class="msd-panel"></div>
@@ -616,6 +674,18 @@
         </div>
       </div>
     </div>
+    <!-- Dépôt -->
+    <div class="fd-section open">
+      <div class="fd-section-head" onclick="toggleFdSection(this)">
+        <span class="fd-section-title">Dépôt</span><span class="fd-section-arrow">▾</span>
+      </div>
+      <div class="fd-section-body" style="padding-top:6px;">
+        <div class="format-pills" style="display:flex;gap:8px;">
+          <button class="fpill fpill-dark fpill-depot" data-depot="our" onclick="toggleDepotPill(this)" style="flex:1;justify-content:center;">Notre dépôt</button>
+          <button class="fpill fpill-yellow fpill-depot" data-depot="ext" onclick="toggleDepotPill(this)" style="flex:1;justify-content:center;">Hors dépôt</button>
+        </div>
+      </div>
+    </div>
     <!-- Zone & Allée -->
     <div class="fd-section open" id="mob-sec-zone">
       <div class="fd-section-head" onclick="toggleFdSection(this)">
@@ -628,33 +698,30 @@
         </div>
       </div>
     </div>
-    <!-- Mandrin -->
-    <div class="fd-section open" id="mob-sec-mandrin">
-      <div class="fd-section-head" onclick="toggleFdSection(this)">
-        <span class="fd-section-title">Mandrin (mm)</span><span class="fd-section-arrow">▾</span>
-      </div>
-      <div class="fd-section-body" style="margin-top:6px;">
-        <div class="msd" id="msd-mandrin-mob">
-          <button class="msd-btn" data-msd-id="msd-mandrin" onclick="toggleMsd('msd-mandrin-mob')">
-            <span class="msd-btn-label" id="fd-msd-mandrin-label">Mandrins</span>
-            <span class="msd-arrow">▾</span>
-          </button>
-          <div class="msd-panel"></div>
-        </div>
-      </div>
-    </div>
-    <!-- Couleur -->
+    <!-- Référence usine -->
     <div class="fd-section open">
       <div class="fd-section-head" onclick="toggleFdSection(this)">
-        <span class="fd-section-title">Couleur</span><span class="fd-section-arrow">▾</span>
+        <span class="fd-section-title">Référence usine</span><span class="fd-section-arrow">▾</span>
       </div>
-      <div class="fd-section-body" style="margin-top:6px;">
-        <div class="msd" id="msd-couleur-mob">
-          <button class="msd-btn" data-msd-id="msd-couleur" onclick="toggleMsd('msd-couleur-mob')">
-            <span class="msd-btn-label" id="fd-msd-couleur-label">Couleurs</span>
-            <span class="msd-arrow">▾</span>
+      <div class="fd-section-body" style="padding-top:6px;">
+        <input class="fi" type="number" id="f-usine-mob" placeholder="N° usine" oninput="syncMobFilter('f-usine','f-usine-mob')">
+      </div>
+    </div>
+    <!-- Photo -->
+    <div class="fd-section open">
+      <div class="fd-section-head" onclick="toggleFdSection(this)">
+        <span class="fd-section-title">Photo</span><span class="fd-section-arrow">▾</span>
+      </div>
+      <div class="fd-section-body" style="padding-top:6px;">
+        <div class="format-pills" style="display:flex;gap:8px;">
+          <button class="fpill fpill-photo" data-photo="with" onclick="togglePhotoPill(this)" style="flex:1;justify-content:center;gap:6px;">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1" y="3" width="12" height="9" rx="1.5"/><circle cx="7" cy="7.5" r="2.2"/><path d="M5 3l1-1.5h2L9 3"/></svg>
+            Avec photo
           </button>
-          <div class="msd-panel"></div>
+          <button class="fpill fpill-photo" data-photo="without" onclick="togglePhotoPill(this)" style="flex:1;justify-content:center;gap:6px;">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1" y="3" width="12" height="9" rx="1.5"/><line x1="1" y1="1" x2="13" y2="13" stroke-width="1.8"/></svg>
+            Sans photo
+          </button>
         </div>
       </div>
     </div>

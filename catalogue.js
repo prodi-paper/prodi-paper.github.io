@@ -1518,10 +1518,9 @@ function _detailsFiltersSig(){
   });
 }
 function _rebuildDetailsMsd(){
-  const msd=document.getElementById('sb-msd-details');
-  if(!msd) return;
-  const panel=msd.querySelector('.msd-panel');
-  if(!panel) return;
+  const containers=['sb-msd-details','msd-details-mob'].map(id=>document.getElementById(id)).filter(Boolean);
+  if(!containers.length) return;
+  // First pass: handle the loading state on every panel
   if(!_allProductsCache){
     if(!_detailsCacheKick){
       _detailsCacheKick=true;
@@ -1531,7 +1530,10 @@ function _rebuildDetailsMsd(){
         _refreshAllFacets();
       }).catch(()=>{});
     }
-    panel.innerHTML='<div class="msd-search-wrap"><input class="msd-search-inp" type="text" placeholder="Chargement…" disabled></div>';
+    containers.forEach(msd=>{
+      const p=msd.querySelector('.msd-panel');
+      if(p) p.innerHTML='<div class="msd-search-wrap"><input class="msd-search-inp" type="text" placeholder="Chargement…" disabled></div>';
+    });
     return;
   }
   // Skip rebuild when only the details selection itself changed (preserves
@@ -1561,33 +1563,37 @@ function _rebuildDetailsMsd(){
     if(b.n!==a.n) return b.n-a.n;
     return a.label.localeCompare(b.label);
   });
-  panel.innerHTML='';
-  const sw=document.createElement('div');
-  sw.className='msd-search-wrap';
-  sw.innerHTML='<input class="msd-search-inp" type="text" placeholder="Rechercher…" autocomplete="off">';
-  panel.appendChild(sw);
-  sw.querySelector('.msd-search-inp').addEventListener('input',e=>{
-    const q=e.target.value.toLowerCase();
-    panel.querySelectorAll('.msd-option').forEach(opt=>{
-      opt.style.display=opt.textContent.toLowerCase().includes(q)?'':'none';
+  // Render the same option list into each container (sidebar + mobile drawer)
+  containers.forEach(msd=>{
+    const panel=msd.querySelector('.msd-panel');
+    if(!panel) return;
+    panel.innerHTML='';
+    const sw=document.createElement('div');
+    sw.className='msd-search-wrap';
+    sw.innerHTML='<input class="msd-search-inp" type="text" placeholder="Rechercher…" autocomplete="off">';
+    panel.appendChild(sw);
+    sw.querySelector('.msd-search-inp').addEventListener('input',e=>{
+      const q=e.target.value.toLowerCase();
+      panel.querySelectorAll('.msd-option').forEach(opt=>{
+        opt.style.display=opt.textContent.toLowerCase().includes(q)?'':'none';
+      });
     });
+    sw.addEventListener('click',e=>e.stopPropagation());
+    const mkOpt=(val,label,n,extraCls)=>{
+      const opt=document.createElement('div');
+      opt.className='msd-option'+(extraCls?' '+extraCls:'');
+      opt.setAttribute('data-val',val);
+      if(sel.has(val)) opt.classList.add('selected');
+      const dim=n===0?' style="opacity:.45"':'';
+      opt.innerHTML=`<div class="msd-check"><svg width="9" height="7" fill="none" stroke="#fff" stroke-width="2.5"><polyline points="1,4 3.5,6.5 8,1"/></svg></div><span class="msd-label"${dim}>${esc(label)}</span><span class="msd-count-inline">${n}</span>`;
+      opt.addEventListener('click',()=>toggleMsdOption(opt,'msd-details'));
+      panel.appendChild(opt);
+    };
+    if(emptyN>0 || sel.has(DETAILS_NONE)){
+      mkOpt(DETAILS_NONE,'Sans détails',emptyN,'msd-option-none');
+    }
+    sorted.forEach(({label,n})=>mkOpt(label,label,n));
   });
-  sw.addEventListener('click',e=>e.stopPropagation());
-  const mkOpt=(val,label,n,extraCls)=>{
-    const opt=document.createElement('div');
-    opt.className='msd-option'+(extraCls?' '+extraCls:'');
-    opt.setAttribute('data-val',val);
-    if(sel.has(val)) opt.classList.add('selected');
-    const dim=n===0?' style="opacity:.45"':'';
-    opt.innerHTML=`<div class="msd-check"><svg width="9" height="7" fill="none" stroke="#fff" stroke-width="2.5"><polyline points="1,4 3.5,6.5 8,1"/></svg></div><span class="msd-label"${dim}>${esc(label)}</span><span class="msd-count-inline">${n}</span>`;
-    opt.addEventListener('click',()=>toggleMsdOption(opt,'msd-details'));
-    panel.appendChild(opt);
-  };
-  // Special "Sans détails" option (matches rows where details is null or empty)
-  if(emptyN>0 || sel.has(DETAILS_NONE)){
-    mkOpt(DETAILS_NONE,'Sans détails',emptyN,'msd-option-none');
-  }
-  sorted.forEach(({label,n})=>mkOpt(label,label,n));
   updateMsdBtn('msd-details');
 }
 
@@ -4085,6 +4091,16 @@ function toggleFbMsd(wrapperId){
   }
 }
 
+function toggleMobSearch(){
+  const bar=document.querySelector('.mob-search-bar');
+  if(!bar) return;
+  const opening=!bar.classList.contains('show');
+  bar.classList.toggle('show');
+  if(opening){
+    const inp=document.getElementById('search-input-mob');
+    if(inp) setTimeout(()=>inp.focus(),50);
+  }
+}
 function openFilterDrawer(){
   document.getElementById('filter-drawer').classList.add('open');
   document.getElementById('filter-drawer-overlay').classList.add('show');
