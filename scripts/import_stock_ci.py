@@ -24,6 +24,8 @@ SENDER = "info@prodi.com"
 SUPABASE_URL = os.environ["SUPABASE_URL"]
 ANON_KEY = os.environ["SUPABASE_ANON_KEY"]
 MGMT_TOKEN = os.environ["SUPABASE_MGMT_TOKEN"]
+# service_role bypasses RLS — required for DELETE/INSERT since RLS hardening (2026-05-01)
+SERVICE_ROLE = os.environ["SUPABASE_SERVICE_ROLE"]
 
 ALL_KEYS = ['quality','color','details','gsm','width','longueur','noyau','weight','price','ref','usine','emplacement','format','image_url']
 
@@ -241,7 +243,7 @@ def update_supabase(products):
     log("Suppression des anciens produits...")
     subprocess.run(['curl','-s','-o','/dev/null','-X','DELETE',
         f'{SUPABASE_URL}/rest/v1/products?id=gt.0',
-        '-H',f'apikey: {ANON_KEY}','-H',f'Authorization: Bearer {ANON_KEY}',
+        '-H',f'apikey: {SERVICE_ROLE}','-H',f'Authorization: Bearer {SERVICE_ROLE}',
         '-H','Prefer: return=minimal'], capture_output=True)
 
     BATCH = 500
@@ -253,7 +255,7 @@ def update_supabase(products):
         with open(tmpfile,'w') as f: json.dump(batch, f, ensure_ascii=False)
         result = subprocess.run(['curl','-s','-w','%{http_code}','-X','POST',
             f'{SUPABASE_URL}/rest/v1/products',
-            '-H',f'apikey: {ANON_KEY}','-H',f'Authorization: Bearer {ANON_KEY}',
+            '-H',f'apikey: {SERVICE_ROLE}','-H',f'Authorization: Bearer {SERVICE_ROLE}',
             '-H','Content-Type: application/json','-H','Prefer: return=minimal',
             '-d','@/tmp/prodi_batch.json'], capture_output=True, text=True)
         code = result.stdout[-3:]
