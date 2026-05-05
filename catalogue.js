@@ -31,6 +31,68 @@ const numId = v => Number.isFinite(+v) ? +v : 0;
 const WA='33649754915';
 let all=[],cur=null;
 const PAGE=40; let currentPage=1,_totalCount=0,_reqToken=0,_lastCorrections=[],_isFirstLoad=true,_featuredMode=false;
+// ─── MODE REGROUPÉ ───
+// Groupe les unités physiques par (qualité+couleur+détails+gsm+laize+format).
+// Default ON (clarifie le catalogue : 5651 unités → ~3200 produits distincts).
+let _groupedMode = (()=>{
+  try{
+    // Reset one-shot pour les users qui auraient cliqué sur l'ancien toggle mal-libellé
+    if(!localStorage.getItem('prodi_grouped_v2')){
+      localStorage.removeItem('prodi_grouped_mode');
+      localStorage.setItem('prodi_grouped_v2','1');
+    }
+    const v=localStorage.getItem('prodi_grouped_mode');
+    return v===null?true:v==='1';
+  }catch(_){return true;}
+})();
+let _allUnitsCache=null;        // tous les rows correspondant aux filtres courants
+let _allUnitsCacheKey=null;     // signature des filtres ayant produit le cache (évite re-fetch inutile)
+let _groupsList=[];             // [{gid, units[], count, totalWeight, mandrins:Set, depots:Set, _proto, image_url, proto_id}]
+let _groupedTotalCount=0;       // nb de groupes
+let _groupQty={};               // gid → qty sélectionnée dans la card (1 par défaut)
+const groupKey = p => [
+  p.qualite||'',
+  p.couleur||'',
+  (p.details||'').trim(),
+  p.grammage??'',
+  p.largeur??'',
+  p.format||''
+].join('|');
+function groupProducts(rows){
+  const map=new Map();
+  rows.forEach(p=>{
+    const k=groupKey(p);
+    let g=map.get(k);
+    if(!g){g={gid:k,units:[],count:0,totalWeight:0,mandrins:new Set(),depots:new Set(),usines:new Set(),_proto:null,image_url:'',proto_id:null};map.set(k,g);}
+    g.units.push(p);
+    g.count++;
+    g.totalWeight+=(+p.poids_net||0);
+    if(p.noyau)g.mandrins.add(String(p.noyau));
+    if(p.emplacement)g.depots.add(p.emplacement);
+    if(p.usine)g.usines.add(String(p.usine).replace(/^REF\s*/i,''));
+  });
+  for(const g of map.values()){
+    g.units.sort((a,b)=>(b.image_url?1:0)-(a.image_url?1:0));
+    g._proto=g.units[0];
+    g.image_url=g._proto.image_url||'';
+    g.proto_id=g._proto.id;
+  }
+  return Array.from(map.values());
+}
+function toggleGroupedMode(){
+  _groupedMode=!_groupedMode;
+  try{localStorage.setItem('prodi_grouped_mode',_groupedMode?'1':'0');}catch(_){ }
+  _allUnitsCache=null;_allUnitsCacheKey=null;_groupsList=[];currentPage=1;
+  _updateGroupedToggleBtn();
+  if(typeof _doFilter==='function')_doFilter();
+}
+function _updateGroupedToggleBtn(){
+  const btn=document.getElementById('grp-toggle');
+  if(!btn)return;
+  btn.classList.toggle('on',_groupedMode);
+  const lbl=btn.querySelector('.grp-toggle-lbl');
+  if(lbl)lbl.textContent=_groupedMode?'Groupé':'Détaillé';
+}
 let _priceMode=false;
 function togglePriceMode(on){
   _priceMode=on;
@@ -869,6 +931,7 @@ async function init(){
   // type tiles disabled
   // Single query: first page + total count
   _featuredMode = true;
+  _updateGroupedToggleBtn();
   await _doFilter();
   _updateToggleBtn();
 }
@@ -1845,13 +1908,80 @@ async function _fetchAndRender(token){
     }catch(_){}
   }
   all=(data||[]).map(rowToUi);
-  // If this is the only page (all.length < PAGE on page 1), trust the actual result count
-  if(all.length<PAGE&&currentPage===1){
-    _totalCount=all.length;
-    _maxKnownPage=1;
+  // ─── MODE REGROUPÉ ───
+  // En mode groupé : on fetche TOUS les rows correspondant aux filtres (par batch de 1000),
+  // on les regroupe, puis on pagine les groupes côté client. Chaque produit affiché devient
+  // le "proto" du groupe (premier avec photo) augmenté de méta-données _grp*.
+  if(_groupedMode&&_reqToken===token){
+    try{
+      const _ap=new URLSearchParams(p);
+      _ap.set('select','*');
+      _ap.delete('order');
+      const _cacheKey=_ap.toString();
+      let _allUi;
+      if(_allUnitsCache&&_allUnitsCacheKey===_cacheKey){
+        _allUi=_allUnitsCache;
+      } else {
+        const _allRows=[];let _aOff=0,_aDone=false;
+        while(!_aDone&&_reqToken===token){
+          const _ar=await sbQ('products?'+_ap,{headers:{'Range':_aOff+'-'+(_aOff+999)}});
+          if(_ar.data&&_ar.data.length){_allRows.push(..._ar.data);_aOff+=_ar.data.length;if(_ar.data.length<1000)_aDone=true;}
+          else _aDone=true;
+        }
+        if(_reqToken!==token)return;
+        _allUi=_allRows.map(rowToUi);
+        _allUnitsCache=_allUi;
+        _allUnitsCacheKey=_cacheKey;
+      }
+      _groupsList=groupProducts(_allUi);
+      _groupedTotalCount=_groupsList.length;
+      // Tri des groupes selon le sort sélectionné (cohérent avec serveur)
+      const _sortKey=(()=>{const v=document.getElementById('sort-sel')?.value||'';
+        if(v==='gsm_asc'||v==='grammage_asc')return['grammage','asc'];
+        if(v==='gsm_desc'||v==='grammage_desc')return['grammage','desc'];
+        if(v==='price_asc'||v==='prix_asc')return['price','asc'];
+        if(v==='price_desc'||v==='prix_desc')return['price','desc'];
+        return null;})();
+      if(_sortKey){
+        const[k,d]=_sortKey;
+        _groupsList.sort((a,b)=>{const av=a._proto[k],bv=b._proto[k];
+          if(av==null&&bv==null)return 0;if(av==null)return 1;if(bv==null)return -1;
+          return d==='asc'?av-bv:bv-av;});
+      }
+      // Slice page courante
+      const _gOff=(currentPage-1)*PAGE;
+      const _pageGroups=_groupsList.slice(_gOff,_gOff+PAGE);
+      // Construit `all` à partir des protos enrichis
+      all=_pageGroups.map(g=>{
+        // Default qty = max disponible (le client veut tout par défaut)
+        if(g.count>1&&_groupQty[g.gid]==null)_groupQty[g.gid]=g.count;
+        return {
+          ...g._proto,
+          _grpCount:g.count,
+          _grpTotalWeight:g.totalWeight,
+          _grpMandrins:Array.from(g.mandrins),
+          _grpDepots:Array.from(g.depots),
+          _grpUsines:Array.from(g.usines),
+          _grpUnitIds:g.units.map(u=>u.id),
+          _grpKey:g.gid,
+          _grpProtoId:g.proto_id
+        };
+      });
+      _totalCount=_groupedTotalCount;
+      _maxKnownPage=Math.max(1,Math.ceil(_totalCount/PAGE)||1);
+      _totalWeightKg=_allUi.reduce((s,r)=>s+(+r.poids_net||0),0);
+    }catch(_){
+      // En cas d'erreur, on retombe sur le mode paginé classique
+    }
   } else {
-    _totalCount=(_exactCount!=null&&!isNaN(_exactCount))?_exactCount:all.length+(currentPage-1)*PAGE;
-    _maxKnownPage=Math.max(1,Math.ceil(_totalCount/PAGE)||1);
+    // Mode paginé classique (non groupé)
+    if(all.length<PAGE&&currentPage===1){
+      _totalCount=all.length;
+      _maxKnownPage=1;
+    } else {
+      _totalCount=(_exactCount!=null&&!isNaN(_exactCount))?_exactCount:all.length+(currentPage-1)*PAGE;
+      _maxKnownPage=Math.max(1,Math.ceil(_totalCount/PAGE)||1);
+    }
   }
   // Update stats bar with real total
   const _st=document.getElementById('s-ton');if(_st&&_totalCount)_st.textContent=_totalCount.toLocaleString('fr-FR')+' produits';
@@ -2109,39 +2239,68 @@ function renderCards(list){
     const dimTag=!isPalette&&p.largeur?`${mmToCm(p.largeur)} cm`:'';
     const fmtLabel=p.format?(isPalette?'Format':'Bobine'):null;
     const paletteDims=isPalette&&(p.largeur||p.longueur)?[p.largeur,p.longueur].filter(Boolean).map(v=>mmToCm(v)).join('×'):null;
-    const poids=p.poids_net?`${p.poids_net.toLocaleString('fr-FR')}`:'—';
+    const _isGroup=p._grpCount&&p._grpCount>1;
+    const _grpTotal=_isGroup?p._grpTotalWeight:0;
+    const poids=_isGroup
+      ?`${Math.round(_grpTotal).toLocaleString('fr-FR')}`
+      :(p.poids_net?`${p.poids_net.toLocaleString('fr-FR')}`:'—');
     const prixHtml=_priceMode&&p.price?`<div class="pcard-price">${p.price.toLocaleString('fr-FR')} €/T</div>`:'';
     const typeOverlay='';
     const _usineClean=p.usine?String(p.usine).replace(/^REF\s*/i,''):null;
-    const usineOverlay=_usineClean?`<div class="pcard-gsm-overlay"><span class="pcard-gsm-lbl">USINE</span><span class="pcard-gsm-num">${esc(_usineClean)}</span></div>`:'';
+    const _usineLbl=_isGroup&&p._grpUsines&&p._grpUsines.length>1
+      ?`+${p._grpUsines.length}`
+      :_usineClean;
+    const usineOverlay=_usineLbl?`<div class="pcard-gsm-overlay"><span class="pcard-gsm-lbl">USINE</span><span class="pcard-gsm-num">${esc(_usineLbl)}</span></div>`:'';
     const _refClean=(p.ref||'').replace(/^Photo_/i,'').trim();
     const refOverlay=_refClean?`<div class="pcard-ref-overlay" title="${esc(_refClean)}"><span class="pcard-ref-txt">${esc(_refClean)}</span></div>`:'';
     const photoRef='';
     // Mini spec rows (label + value, only if value exists)
     // Usine désormais affichée en chip overlay sur la photo
     const _detClean=(p.details||'').replace(/(?<=^|\s)-(?=\s|$)/g,'').replace(/\s{2,}/g,' ').trim();
+    const _mandrinTxt=_isGroup&&p._grpMandrins&&p._grpMandrins.length
+      ?(p._grpMandrins.length>1?p._grpMandrins.join(' / '):`Ø${p._grpMandrins[0]} mm`)
+      :(p.noyau?`Ø${p.noyau} mm`:'');
     const specRows=[
       p.couleur?['Couleur',p.couleur]:null,
       dimTag?['Laize',dimTag]:paletteDims?['Dimensions',paletteDims+' cm']:null,
       p.grammage?['Grammage',`${p.grammage} g/m²`]:null,
-      p.noyau?['Mandrin',`Ø${p.noyau} mm`]:null,
+      _mandrinTxt?['Mandrin',_mandrinTxt]:null,
       _detClean?['Détails',_detClean]:null,
       ['Zone',p.allee||'—'],
     ].filter(Boolean).slice(0,6);
     const specsHtml=`<div class="pcard-specs">${specRows.map(([l,v])=>`<div class="pcard-spec"><span class="pspec-lbl">${esc(l)}</span><span class="pspec-val">${esc(v)}</span></div>`).join('')}</div>`;
     const _sub=getProductDetailText(p);
     const subtitleHtml=_sub?`<div class="pcard-subtitle">${esc(_sub)}</div>`:'';
+    // Bouton ajouter : groupé → sélecteur qté avec poids live; sinon → bouton classique
+    const _q=_groupQty[p._grpKey]||1;
+    const _initialW=_isGroup?Math.round((p._grpUnitIds||[]).slice(0,_q).reduce((s,uid)=>{const u=(_groupsList.find(g=>g.gid===p._grpKey)?.units||[]).find(x=>x.id===uid);return s+(+(u?.poids_net||0));},0)).toLocaleString('fr-FR')+' kg':'';
+    const _totalW=_isGroup?Math.round(p._grpTotalWeight).toLocaleString('fr-FR')+' kg':'';
+    const _grpAllIn=_isGroup&&(p._grpUnitIds||[]).slice(0,_q).every(id=>cart.find(x=>x.id===+id))&&_q>0;
+    const addCtrl=_isGroup
+      ?`<div class="pcard-grp-add" onclick="event.stopPropagation();" data-gid="${esc(p._grpKey||'')}">
+          <div class="grp-info"><span class="grp-info-max">Max ${p._grpCount}</span><span class="grp-info-sep">·</span><span class="grp-info-tot">${esc(_totalW)} dispo</span></div>
+          <div class="grp-row">
+            <div class="grp-qty-wrap">
+              <button class="grp-qty-btn grp-qty-btn-minus" onclick="_grpQtyAdj(${attrJs(p._grpKey)},-1)" aria-label="−"${_q<=1?' disabled':''}>−</button>
+              <input type="number" class="grp-qty-input" min="1" max="${numId(p._grpCount)}" value="${_q}" onchange="_grpQtySet(${attrJs(p._grpKey)},this.value)" oninput="_grpQtySet(${attrJs(p._grpKey)},this.value)">
+              <button class="grp-qty-btn grp-qty-btn-plus" onclick="_grpQtyAdj(${attrJs(p._grpKey)},1)" aria-label="+"${_q>=p._grpCount?' disabled':''}>+</button>
+            </div>
+            <span class="grp-weight">${esc(_initialW)}</span>
+          </div>
+          <button class="btn-add-cart grp-add-btn${_grpAllIn?' added':''}" onclick="addGroupToCart(${attrJs(p._grpKey)})">${_grpAllIn?`✓ Ajouté ${_q}`:`+ Ajouter ${_q}`}</button>
+        </div>`
+      :`<button class="btn-add-cart${cart.find(x=>x.id===+p.id)?' added':''}" id="cadd-${numId(p.id)}" aria-label="${lang==='en'?'Add to selection':'Ajouter à la sélection'}" onclick="event.stopPropagation();addToCart(${numId(p.id)})"><span class="cart-icon">+</span><span class="cart-check">✓</span></button>`;
     return`<div class="pcard" onclick="openDetail(${numId(p.id)})">
       <div class="pcard-img">${imgHtml}${typeOverlay}${refOverlay}${usineOverlay}${photoRef}</div>
       <div class="pcard-body">
         <div class="pcard-name">${esc(formatProductTitle(p.qualite,p.type))}</div>
         ${subtitleHtml}
         ${specsHtml}
-        <button class="btn-add-cart${cart.find(x=>x.id===+p.id)?' added':''}" id="cadd-${numId(p.id)}" aria-label="${lang==='en'?'Add to selection':'Ajouter à la sélection'}" onclick="event.stopPropagation();addToCart(${numId(p.id)})"><span class="cart-icon">+</span><span class="cart-check">✓</span></button>
-        <div class="pcard-foot">
+        ${addCtrl}
+        ${_isGroup?'':`<div class="pcard-foot">
           <div class="pton">${esc(poids)}<span class="pton-s"> KGS</span></div>
           ${prixHtml}
-        </div>
+        </div>`}
       </div>
     </div>`;
   }).join('');
@@ -2156,7 +2315,7 @@ function _updateToggleBtn(){
   const html=_viewMode==='list'
     ?_SVG_GRID+'<span>Vue fiche</span>'
     :_SVG_LIST+'<span>Vue liste détaillée</span>';
-  document.querySelectorAll('.vt-toggle-btn:not(.add-page-btn)').forEach(btn=>btn.innerHTML=html);
+  document.querySelectorAll('.vt-toggle-btn:not(.add-page-btn):not(.grp-toggle-btn)').forEach(btn=>btn.innerHTML=html);
 }
 function toggleView(){
   setView(_viewMode==='grid'?'list':'grid');
@@ -2183,7 +2342,22 @@ function renderList(list){
     // PRIX_MASQUÉ: const price=p.price?`<span class="plist-price">${p.price.toLocaleString('fr-FR')} €/T</span>`:`<span class="plist-price-ask">Sur dem.</span>`;
     const price='';
     const inCart=cart.find(x=>x.id===+p.id);
-    const addBtn=`<button class="plist-add${inCart?' added':''}" id="ladd-${numId(p.id)}" aria-label="${lang==='en'?'Add to selection':'Ajouter à la sélection'}" onclick="event.stopPropagation();addToCart(${numId(p.id)})">${inCart?'✓':'+'}</button>`;
+    const _isGroupL=p._grpCount&&p._grpCount>1;
+    const _grpCur=_groupQty[p._grpKey]||1;
+    const _grpAllInL=_isGroupL&&(p._grpUnitIds||[]).slice(0,_grpCur).every(id=>cart.find(x=>x.id===+id))&&_grpCur>0;
+    const addBtn=_isGroupL
+      ?`<div class="plist-grp-cell" onclick="event.stopPropagation();" data-gid="${esc(p._grpKey||'')}">
+          <div class="plist-grp-stepper">
+            <button class="plist-grp-step" onclick="_grpQtyAdj(${attrJs(p._grpKey)},-1)"${_grpCur<=1?' disabled':''} aria-label="−1">−</button>
+            <span class="plist-grp-valwrap">
+              <input type="number" class="plist-grp-val" min="1" max="${numId(p._grpCount)}" value="${_grpCur}" onchange="_grpQtySet(${attrJs(p._grpKey)},this.value)" oninput="_grpQtySet(${attrJs(p._grpKey)},this.value)" aria-label="${lang==='en'?'Quantity':'Quantité'}">
+              <span class="plist-grp-max">/${numId(p._grpCount)}</span>
+            </span>
+            <button class="plist-grp-step" onclick="_grpQtyAdj(${attrJs(p._grpKey)},1)"${_grpCur>=p._grpCount?' disabled':''} aria-label="+1">+</button>
+          </div>
+          <button class="plist-grp-add${_grpAllInL?' added':''}" onclick="addGroupToCart(${attrJs(p._grpKey)})" title="${lang==='en'?'Add':'Ajouter'} ${_grpCur}" aria-label="${lang==='en'?'Add':'Ajouter'} ${_grpCur}">${_grpAllInL?'✓':'+'}</button>
+        </div>`
+      :`<button class="plist-add${inCart?' added':''}" id="ladd-${numId(p.id)}" aria-label="${lang==='en'?'Add to selection':'Ajouter à la sélection'}" onclick="event.stopPropagation();addToCart(${numId(p.id)})">${inCart?'✓':'+'}</button>`;
     const isPalette=p.format&&p.format.toLowerCase().includes('palette');
     // Dimensions: Bobine → Laize | Ø Diamètre | Mandrin / Palette → Dimensions (laize×long)
     const laize=p.largeur?`${mmToCm(p.largeur)} cm`:'—';
@@ -2191,7 +2365,11 @@ function renderList(list){
       ?(p.longueur?`${mmToCm(p.longueur)} cm`:'—')
       :(p.longueur?`Ø ${mmToCm(p.longueur)} cm`:'—');
     const paletteDims2=isPalette&&(p.largeur||p.longueur)?[p.largeur,p.longueur].filter(Boolean).map(v=>mmToCm(v)).join(' × ')+' cm':null;
-    const mandrin=isPalette?null:(p.noyau?`${p.noyau} mm`:'—');
+    const _grpMan=_isGroupL&&p._grpMandrins&&p._grpMandrins.length?p._grpMandrins.join(' / ')+' mm':null;
+    const mandrin=isPalette?null:(_grpMan||(p.noyau?`${p.noyau} mm`:'—'));
+    const _poidsTxt=_isGroupL?Math.round(p._grpTotalWeight).toLocaleString('fr-FR')+' kg':(p.poids_net?p.poids_net.toLocaleString('fr-FR')+' kg':'—');
+    const _depotTxt=_isGroupL&&p._grpDepots&&p._grpDepots.length>1?p._grpDepots.length+' dépôts':(p.zone||'—');
+    const _usineTxt=_isGroupL&&p._grpUsines&&p._grpUsines.length>1?'+'+p._grpUsines.length:(p.usine?String(p.usine).replace(/^REF\s*/i,''):'—');
     const _detClean=p.details?p.details.replace(/[-–—\s]+/g,' ').trim():'';
     const detailsTxt=_detClean&&_detClean.length>3?`<span class="plist-details" title="${esc(p.details)}">${esc(_detClean.substring(0,30))}${_detClean.length>30?'…':''}</span>`:'';
     return`<tr onclick="openDetail(${numId(p.id)})" class="${isPalette?'plist-palette':'plist-bobine'}">
@@ -2205,10 +2383,10 @@ function renderList(list){
       ${isPalette&&paletteDims2
         ?`<td class="plist-td plist-td-num" colspan="3">${esc(paletteDims2)}</td>`
         :`<td class="plist-td plist-td-num">${esc(laize)}</td><td class="plist-td plist-td-num">${esc(dim2)}</td><td class="plist-td plist-td-num plist-col-mandrin">${esc(mandrin||'—')}</td>`}
-      <td class="plist-td plist-td-num">${p.poids_net?esc(p.poids_net.toLocaleString('fr-FR')+' kg'):'—'}</td>
+      <td class="plist-td plist-td-num">${esc(_poidsTxt)}</td>
       ${_priceMode?`<td class="plist-td plist-td-num plist-price">${p.price?esc(p.price.toLocaleString('fr-FR')+' €/T'):'—'}</td>`:''}
-      <td class="plist-td plist-td-usine plist-col-usine">${p.usine?esc(String(p.usine).replace(/^REF\s*/i,'')):'—'}</td>
-      <td class="plist-td plist-td-depot">${esc(p.zone||'—')}</td>
+      <td class="plist-td plist-td-usine plist-col-usine">${esc(_usineTxt)}</td>
+      <td class="plist-td plist-td-depot">${esc(_depotTxt)}</td>
       <td class="plist-td plist-td-zone">${esc(p.allee||'—')}</td>
     </tr>`;
   }).join('');
@@ -2351,7 +2529,6 @@ async function openDetail(id){
     {lbl: LT[lang].t_spec_depot||'Emplacement',  val: p.zone||p.emplacement},
     {lbl: 'Zone',                                  val: p.allee||'—', always:true},
     {lbl: 'Type',                                 val: p.qualite||null},
-    {lbl: 'Détails',                               val: (p.details||'').replace(/(?<=^|\s)-(?=\s|$)/g,'').replace(/\s{2,}/g,' ').trim()||null},
     {lbl: 'Code douanier',                        val: _toCN8(getHsCode(p.qualite,p.grammage,p.format))},
   ].filter(s=>s.val||s.always);
   document.getElementById('det-specs').innerHTML=specDefs.map(s=>
@@ -2534,6 +2711,101 @@ function toggleSelectAll(btn){
     btn.textContent='−';
     toast(LT[lang].t_added_all);
   }
+}
+
+// ─── Helpers mode regroupé ───
+function _grpFindOnPage(gid){
+  // gid → produit "proto" sur la page courante (avec _grpUnitIds, _grpCount, etc.)
+  return all.find(x=>x._grpKey===gid);
+}
+function _grpComputeWeight(gid,qty){
+  const grp=_groupsList.find(g=>g.gid===gid);
+  if(!grp)return 0;
+  return grp.units.slice(0,Math.max(1,qty|0)).reduce((s,u)=>s+(+u.poids_net||0),0);
+}
+function _grpQtySet(gid,v){
+  const p=_grpFindOnPage(gid);if(!p)return;
+  let n=parseInt(v,10);if(!Number.isFinite(n)||n<1)n=1;
+  if(n>p._grpCount)n=p._grpCount;
+  _groupQty[gid]=n;
+  const sel=`[data-gid="${CSS.escape(gid)}"]`;
+  // sync inputs (cards + lignes peuvent coexister si on switch view)
+  document.querySelectorAll(`${sel} input.grp-qty-input,${sel} input.plist-grp-val`).forEach(i=>{if(+i.value!==n)i.value=n;});
+  // poids live = somme des N premières unités (priorisées photo)
+  const w=_grpComputeWeight(gid,n);
+  const wTxt=Math.round(w).toLocaleString('fr-FR')+' kg';
+  document.querySelectorAll(`${sel} .grp-weight`).forEach(el=>el.textContent=wTxt);
+  // libellé + état "added" en fonction de la nouvelle qty
+  const grp=_groupsList.find(g=>g.gid===gid);
+  const tIds=grp?grp.units.slice(0,n).map(u=>u.id):[];
+  const allIn=tIds.length>0&&tIds.every(id=>cart.find(x=>x.id===+id));
+  document.querySelectorAll(`${sel} .grp-add-btn`).forEach(b=>{
+    if(b.classList.contains('plist-grp-add'))return;
+    b.classList.toggle('added',allIn);
+    b.textContent=allIn?`✓ Ajouté ${n}`:`+ Ajouter ${n}`;
+  });
+  document.querySelectorAll(`${sel} .plist-grp-add`).forEach(b=>{
+    b.classList.toggle('added',allIn);
+    b.textContent=allIn?'✓':'+';
+    const lbl=`${typeof lang!=='undefined'&&lang==='en'?'Add':'Ajouter'} ${n}`;
+    b.title=lbl; b.setAttribute('aria-label',lbl);
+  });
+  // état des boutons − et + (grid + list)
+  document.querySelectorAll(`${sel} .grp-qty-btn-minus`).forEach(b=>b.disabled=(n<=1));
+  document.querySelectorAll(`${sel} .grp-qty-btn-plus`).forEach(b=>b.disabled=(n>=p._grpCount));
+  document.querySelectorAll(`${sel} .plist-grp-stepper .plist-grp-step:first-of-type`).forEach(b=>b.disabled=(n<=1));
+  document.querySelectorAll(`${sel} .plist-grp-stepper .plist-grp-step:last-of-type`).forEach(b=>b.disabled=(n>=p._grpCount));
+}
+function _grpQtyAdj(gid,delta){
+  const p=_grpFindOnPage(gid);if(!p)return;
+  const cur=_groupQty[gid]||1;
+  _grpQtySet(gid,cur+delta);
+}
+function addGroupToCart(gid){
+  const p=_grpFindOnPage(gid);
+  if(!p){toast('Groupe introuvable');return;}
+  const qty=Math.max(1,Math.min(p._grpCount,_groupQty[gid]||1));
+  const grp=_groupsList.find(g=>g.gid===gid);
+  if(!grp){toast('Groupe introuvable');return;}
+  const targetIds=grp.units.slice(0,qty).map(u=>u.id);
+  const allIn=targetIds.length>0&&targetIds.every(id=>cart.find(x=>x.id===+id));
+  if(allIn){
+    // Toggle OFF — retire tous les produits du groupe (qty courante)
+    const ids=new Set(targetIds);
+    cart=cart.filter(x=>!ids.has(+x.id));
+    localStorage.setItem('prodi_cart',JSON.stringify(cart));
+    updateCartBadge();renderDrawer();
+    _grpRefreshAddedState(gid,false);
+    toast(`${targetIds.length} produit${targetIds.length>1?'s':''} retiré${targetIds.length>1?'s':''}`);
+    return;
+  }
+  let added=0;
+  targetIds.forEach(id=>{
+    if(cart.find(x=>x.id===+id))return;
+    const u=grp.units.find(x=>x.id===id);if(!u)return;
+    cart.push({id:u.id,name:u.name,ref:u.ref,type:u.type,qualite:u.qualite||null,details:u.details||null,grammage:u.grammage,largeur:u.largeur,format:u.format,poids_net:u.poids_net,price:u.price||null,img:u.image_url||null,couleur:u.couleur||null,usine:u.usine||null,zone:u.zone||null,emplacement:u.emplacement||null,allee:u.allee||null});
+    added++;
+  });
+  localStorage.setItem('prodi_cart',JSON.stringify(cart));
+  updateCartBadge();renderDrawer();
+  _grpRefreshAddedState(gid,true);
+  if(added)toast(`${added} produit${added>1?'s':''} ajouté${added>1?'s':''} à la sélection`);
+  else toast('Déjà ajoutés');
+}
+function _grpRefreshAddedState(gid,isAdded){
+  const sel=`[data-gid="${CSS.escape(gid)}"]`;
+  // Bouton list view (compact pill +)
+  document.querySelectorAll(`${sel} .plist-grp-add`).forEach(b=>{
+    b.classList.toggle('added',isAdded);
+    b.textContent=isAdded?'✓':'+';
+  });
+  // Bouton grid card view (avec texte "+ Ajouter N")
+  document.querySelectorAll(`${sel} .grp-add-btn`).forEach(b=>{
+    b.classList.toggle('added',isAdded);
+    const n=_groupQty[gid]||1;
+    if(b.classList.contains('plist-grp-add'))return;
+    b.textContent=isAdded?`✓ Ajouté ${n}`:`+ Ajouter ${n}`;
+  });
 }
 
 function addToCart(id){
