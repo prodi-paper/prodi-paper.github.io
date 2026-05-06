@@ -1470,22 +1470,27 @@ function _updateMsdFacetCounts(msdId){
     counts[v]=n;
   });
   const sel=msdState[msdId];
-  allOpts.forEach(opt=>{
-    const v=opt.dataset.val;
-    const n=counts[v]||0;
-    let cnt=opt.querySelector('.msd-count-inline');
-    if(!cnt){
-      cnt=document.createElement('span');
-      cnt.className='msd-count-inline';
-      opt.appendChild(cnt);
-    }
-    cnt.textContent=n;
-    if(n===0 && !sel.has(v)){
-      opt.style.display='none';
-    } else {
-      opt.style.display='';
+  conts.forEach(cont=>{
+    const searchInp=cont.querySelector('.msd-search-inp');
+    const q=(searchInp?.value||'').toLowerCase();
+    cont.querySelectorAll('.msd-option').forEach(opt=>{
+      const v=opt.dataset.val;
+      const n=counts[v]||0;
+      let cnt=opt.querySelector('.msd-count-inline');
+      if(!cnt){
+        cnt=document.createElement('span');
+        cnt.className='msd-count-inline';
+        opt.appendChild(cnt);
+      }
+      cnt.textContent=n;
+      let visible = !(n===0 && !sel.has(v));
+      if(visible && q){
+        const hay=(opt.textContent+' '+(opt.dataset.search||'')).toLowerCase();
+        if(!hay.includes(q)) visible=false;
+      }
+      opt.style.display = visible ? '' : 'none';
       opt.style.opacity = (n===0 && sel.has(v)) ? '.45' : '';
-    }
+    });
   });
 }
 function _refreshAllFacets(){
@@ -1843,8 +1848,8 @@ function _filterSharedLocal(){
     if(formats.size&&!formats.has(p.format))return false;
     if(_depotFilter==='our'&&p.emplacement!=='OUR WAREHOUSE')return false;
     if(_depotFilter==='ext'&&p.emplacement==='OUR WAREHOUSE')return false;
-    if(_stockFilter==='fab'&&!(p.emplacement!=='OUR WAREHOUSE'&&((p.ref&&/FAB/i.test(String(p.ref)))||(p.emplacement&&/FABRICATION/i.test(p.emplacement))||(p.details&&/fabrication/i.test(p.details)))))return false;
-    if(_stockFilter==='stocklot'&&((p.ref&&/FAB/i.test(String(p.ref)))||(p.emplacement&&/FABRICATION/i.test(p.emplacement))||(p.details&&/fabrication/i.test(p.details))))return false;
+    if(_stockFilter==='fab'&&!(p.emplacement!=='OUR WAREHOUSE'&&((p.ref&&/FAB/i.test(String(p.ref)))||(p.emplacement&&/FAB|DIRECT USINE/i.test(p.emplacement))||(p.details&&/fabrication/i.test(p.details))||(p.zone&&/FABRICATION/i.test(p.zone)))))return false;
+    if(_stockFilter==='stocklot'&&((p.ref&&/FAB/i.test(String(p.ref)))||(p.emplacement&&/FAB|DIRECT USINE/i.test(p.emplacement))||(p.details&&/fabrication/i.test(p.details))||(p.zone&&/FABRICATION/i.test(p.zone))))return false;
     if(_stockFilter==='siderun'&&!(p.emplacement==='OUR WAREHOUSE'&&((p.ref&&/FAB/i.test(String(p.ref)))||(p.details&&/fabrication/i.test(p.details)))))return false;
     const _hasPhoto=p.image_url&&p.image_url.length>0;
     if(_photoFilter==='with'&&!_hasPhoto)return false;
@@ -2082,9 +2087,9 @@ async function _fetchAndRender(token){
   // Stocklot/Fabrication server-side filter
   if(_stockFilter==='fab'){
     p.append('emplacement','neq.OUR WAREHOUSE');
-    p.append('or','(ref.ilike.%FAB%,emplacement.ilike.%FABRICATION%,details.ilike.%fabrication%)');
+    p.append('or','(ref.ilike.%FAB%,emplacement.ilike.%FAB%,emplacement.ilike.%DIRECT USINE%,details.ilike.%fabrication%,zone.ilike.%FABRICATION%)');
   } else if(_stockFilter==='stocklot'){
-    p.append('and','(or(ref.not.ilike.%FAB%,ref.is.null),or(details.not.ilike.%fabrication%,details.is.null),or(emplacement.not.ilike.%FABRICATION%,emplacement.is.null))');
+    p.append('and','(or(ref.not.ilike.%FAB%,ref.is.null),or(details.not.ilike.%fabrication%,details.is.null),or(emplacement.not.ilike.%FAB%,emplacement.is.null),or(emplacement.not.ilike.%DIRECT USINE%,emplacement.is.null),or(zone.not.ilike.%FABRICATION%,zone.is.null))');
   } else if(_stockFilter==='siderun'){
     p.append('emplacement','eq.OUR WAREHOUSE');
     p.append('or','(ref.ilike.%FAB%,details.ilike.%fabrication%)');
