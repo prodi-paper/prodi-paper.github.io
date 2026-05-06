@@ -3395,10 +3395,10 @@ async function printSelection(){
   const eur=v=>(v||0).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2});
   const num=v=>(v||0).toLocaleString('fr-FR',{maximumFractionDigits:0});
   const dec=(v,d=2)=>(v||0).toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d});
-  const _detailRow=it=>`<tr><td class="ref">${esc(it.photoRef||'—')}</td><td class="ref">${esc(it.ref)}</td><td>${esc(it.titre||'')}</td><td>${esc(it.details||'—')}</td><td>${esc(it.couleur||'—')}</td><td class="num">${it.gsm?esc(it.gsm+' g/m²'):'—'}</td><td>${esc(it.dim||'—')}</td><td class="num">${esc(num(it.poidsKg))}</td><td class="num">${esc(it.usine||'—')}</td><td class="num">${esc(dec(it.priceKg,2))}</td><td class="num">${esc(eur(it.montant))}</td></tr>`;
+  const _detailRow=it=>`<tr><td class="ref">${esc(it.photoRef||'—')}</td><td class="ref">${esc(it.ref)}</td><td>${esc(it.titre||'')}</td><td>${esc(it.details||'—')}</td><td>${esc(it.couleur||'—')}</td><td class="num">${it.gsm?esc(it.gsm+' g/m²'):'—'}</td><td>${esc(it.dim||'—')}</td><td class="num">${esc(num(it.poidsKg)+' kg')}</td><td class="num">${esc(it.usine||'—')}</td><td class="num">${esc(num(it.priceT)+' €/T')}</td><td class="num">${esc(eur(it.montant)+' €')}</td></tr>`;
   const _detailTable=(rows,dimLbl)=>`<table class="items view-detail">
-      <colgroup><col class="c-pref"><col class="c-q"><col class="c-tit"><col class="c-det"><col class="c-col"><col class="c-gsm"><col class="c-dim"><col class="c-pn"><col class="c-us"><col class="c-pu"><col class="c-mt"></colgroup>
-      <thead><tr><th>N°</th><th>Réf.</th><th>Qualité</th><th>Détails</th><th>Couleur</th><th style="text-align:right;">GSM</th><th>${dimLbl}</th><th style="text-align:right;">PN (kg)</th><th style="text-align:right;">Usine</th><th style="text-align:right;">P.U (€)</th><th style="text-align:right;">Montant HT (€)</th></tr></thead>
+      <colgroup><col class="c-pref"><col class="c-q"><col class="c-tit"><col class="c-det"><col class="c-col"><col class="c-gsm"><col class="c-dim"><col class="c-pn"><col class="c-us"><col class="c-pt"><col class="c-mt"></colgroup>
+      <thead><tr><th>N°</th><th>Réf.</th><th>Qualité</th><th>Détails</th><th>Couleur</th><th style="text-align:right;">GSM</th><th>${dimLbl}</th><th style="text-align:right;">PN (kg)</th><th style="text-align:right;">Usine</th><th style="text-align:right;">P/T (€)</th><th style="text-align:right;">Montant HT (€)</th></tr></thead>
       <tbody>${rows.map(_detailRow).join('')}</tbody>
     </table>`;
   const _detailHTML=(itemsBobine.length&&itemsFormat.length)
@@ -3465,7 +3465,7 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
 .items col.c-ref{width:13%;}
 .items col.c-des{width:auto;}
 .items col.c-pn{width:11%;}
-.items col.c-pu{width:11%;}
+.items col.c-pt{width:11%;}
 .items col.c-mt{width:14%;}
 .items col.c-pref{width:8%;}
 .items col.c-q{width:6%;}
