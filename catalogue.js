@@ -3410,6 +3410,23 @@ async function printSelection(){
   const dateFR=`${String(today.getDate()).padStart(2,'0')}/${String(today.getMonth()+1).padStart(2,'0')}/${String(today.getFullYear()).slice(2)}`;
   const numero=_proformaNumero();
   const baseUrl=location.origin+location.pathname.replace(/[^/]*$/,'');
+  // ── Share link & mailto for "Envoyer par mail" ──
+  const _shareCode=_shortCode();
+  const _shareIds=cart.map(x=>x.id).join(',');
+  const _shareUrl=window.location.origin+window.location.pathname+'?s='+_shareCode+(_priceMode?'&p=1':'');
+  sbQ('shared_carts',{method:'POST',body:{code:_shareCode,cart_ids:_shareIds},headers:{'Prefer':'return=minimal'}}).catch(()=>{});
+  const _mailLines=[
+    `Bonjour M. ${clientName},`,'',
+    `Suite à notre échange, je vous transmets notre proposition (proforma ${numero} du ${dateFR}).`,'',
+    `Vous trouverez la sélection complète avec photos ici :`,
+    _shareUrl,'',
+    `Total : ${dec(totalPoids/1000,3)} T — ${eur(totalMontant)} € HT`,'',
+    `Le détail tarifaire est dans le PDF ci-joint.`,'',
+    'Je reste à votre disposition pour toute question.','',
+    'Bien cordialement,','Prodiconseil'
+  ].join('\n');
+  const _mailSubject=`Proforma ${numero} — ${clientName} — ${dateFR}`;
+  const _mailtoUrl=`mailto:?subject=${encodeURIComponent(_mailSubject).replace(/'/g,'%27')}&body=${encodeURIComponent(_mailLines).replace(/'/g,'%27')}`;
   const w=window.open('','_blank');
   const _safeClient=clientName.replace(/[\/\\:*?"<>|]/g,'_');
   w.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><base href="${baseUrl}"><title>Liste détaillée — ${_safeClient} — ${numero}</title>
@@ -3458,7 +3475,7 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
 .cond-body .red{color:var(--red);font-weight:700;}
 .items{width:100%;border-collapse:collapse;border:1.5px solid var(--line);font-size:10px;margin-bottom:0;}
 .items th{background:var(--ink);color:#fff;padding:7px 8px;text-align:left;font-weight:700;font-size:9.5px;text-transform:uppercase;letter-spacing:.4px;border:1px solid var(--ink);}
-.items td{padding:7px 8px;border:1px solid #c8c4bd;vertical-align:top;}
+.items td{padding:7px 8px;border:1px solid #c8c4bd;vertical-align:top;word-break:normal;overflow-wrap:break-word;hyphens:auto;}
 .items td.ref{font-weight:700;font-size:10.5px;letter-spacing:.3px;}
 .items td.designation{white-space:pre-line;line-height:1.5;}
 .items td.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;}
@@ -3467,13 +3484,13 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
 .items col.c-pn{width:11%;}
 .items col.c-pt{width:11%;}
 .items col.c-mt{width:14%;}
-.items col.c-pref{width:8%;}
-.items col.c-q{width:6%;}
-.items col.c-tit{width:11%;}
-.items col.c-det{width:12%;}
-.items col.c-col{width:8%;}
-.items col.c-gsm{width:7%;}
-.items col.c-dim{width:10%;}
+.items col.c-pref{width:7%;}
+.items col.c-q{width:5%;}
+.items col.c-tit{width:14%;}
+.items col.c-det{width:11%;}
+.items col.c-col{width:7%;}
+.items col.c-gsm{width:6%;}
+.items col.c-dim{width:9%;}
 .items col.c-us{width:5%;}
 .items.view-detail{font-size:8.5px;}
 .items.view-detail th{font-size:8.5px;padding:6px 5px;letter-spacing:.2px;}
@@ -3513,6 +3530,7 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
 .toolbar .modes button.active{background:var(--ink);color:#fff;}
 .toolbar .btn-print{background:var(--red);color:#fff;}
 .toolbar .btn-save{background:var(--ink);color:#fff;}
+.toolbar .btn-mail{background:#0a7d3d;color:#fff;}
 .toolbar .btn-close{background:#fff;color:var(--ink);border:1.5px solid var(--ink);}
 @media print{
   html,body{background:#fff;}
@@ -3534,6 +3552,7 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
   </div>
   <button class="btn-print" onclick="window.print()">Imprimer</button>
   <button class="btn-save" onclick="savePdf()">Enregistrer</button>
+  <button class="btn-mail" onclick="sendByEmail(event)">Envoyer par mail</button>
   <button class="btn-close" onclick="window.close()">Fermer</button>
 </div>
 <div class="page">
@@ -3583,7 +3602,7 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
   <div class="totals-grid">
     <div><div class="lbl">Total HT</div><div class="val">${eur(totalMontant)} €</div></div>
     <div><div class="lbl">Total TTC</div><div class="val">${eur(totalMontant)} €</div></div>
-    <div><div class="lbl">Poids Total (kg)</div><div class="val">${num(totalPoids)} kg</div></div>
+    <div><div class="lbl">Poids Total</div><div class="val">${dec(totalPoids/1000,3)} T</div></div>
     <div class="net"><div class="lbl">Net à payer</div><div class="val">${eur(totalMontant)} €</div></div>
   </div>
 
@@ -3618,29 +3637,78 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
   </div>
 </div>
 <script>
-  function savePdf(){
-    const btn=document.querySelector('.btn-save');
+  function _ensureHtml2Pdf(){
+    if(window.html2pdf)return Promise.resolve();
+    return new Promise((resolve,reject)=>{
+      const s=document.createElement('script');
+      s.src='https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js';
+      s.integrity='sha384-Yv5O+t3uE3hunW8uyrbpPW3iw6/5/Y7HitWJBLgqfMoA36NogMmy+8wWZMpn3HWc';
+      s.crossOrigin='anonymous';
+      s.onload=()=>resolve();
+      s.onerror=()=>reject(new Error('Loader failed'));
+      document.head.appendChild(s);
+    });
+  }
+  function _pdfWorker(){
+    const el=document.querySelector('.page');
+    return window.html2pdf().set({
+      margin:0,
+      filename:document.title.replace(/[\\/:*?"<>|]/g,'_')+'.pdf',
+      image:{type:'jpeg',quality:0.98},
+      html2canvas:{scale:2,useCORS:true,letterRendering:true,backgroundColor:'#ffffff'},
+      jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+      pagebreak:{mode:['css','legacy'],avoid:['tr','.totals-block','.totals-grid','.foot-row']}
+    }).from(el);
+  }
+  function _withBtnState(btnSel,fn){
+    const btn=document.querySelector(btnSel);
     const orig=btn?btn.textContent:'';
     if(btn){btn.textContent='Génération…';btn.disabled=true;}
-    function run(){
-      const el=document.querySelector('.page');
-      window.html2pdf().set({
-        margin:0,
-        filename:document.title.replace(/[\\/:*?"<>|]/g,'_')+'.pdf',
-        image:{type:'jpeg',quality:0.98},
-        html2canvas:{scale:2,useCORS:true,letterRendering:true,backgroundColor:'#ffffff'},
-        jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
-        pagebreak:{mode:['css','legacy'],avoid:['tr','.totals-block','.totals-grid','.foot-row']}
-      }).from(el).save().then(()=>{if(btn){btn.textContent=orig;btn.disabled=false;}}).catch(()=>{if(btn){btn.textContent=orig;btn.disabled=false;}alert('Erreur de génération du PDF');});
+    const restore=()=>{if(btn){btn.textContent=orig;btn.disabled=false;}};
+    return fn().finally(restore);
+  }
+  function savePdf(){
+    _withBtnState('.btn-save',()=>_ensureHtml2Pdf().then(()=>_pdfWorker().save()))
+      .catch(()=>alert('Erreur de génération du PDF'));
+  }
+  async function sendByEmail(ev){
+    if(ev)ev.preventDefault();
+    const mailHref=${JSON.stringify(_mailtoUrl)};
+    const subject=${JSON.stringify(_mailSubject)};
+    const body=${JSON.stringify(_mailLines)};
+    const filename=document.title.replace(/[\\/:*?"<>|]/g,'_')+'.pdf';
+    function openMail(){
+      const a=document.createElement('a');
+      a.href=mailHref;a.style.display='none';
+      document.body.appendChild(a);a.click();a.remove();
     }
-    if(window.html2pdf)return run();
-    const s=document.createElement('script');
-    s.src='https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js';
-    s.integrity='sha384-Yv5O+t3uE3hunW8uyrbpPW3iw6/5/Y7HitWJBLgqfMoA36NogMmy+8wWZMpn3HWc';
-    s.crossOrigin='anonymous';
-    s.onload=run;
-    s.onerror=()=>{if(btn){btn.textContent=orig;btn.disabled=false;}alert('Impossible de charger le générateur PDF');};
-    document.head.appendChild(s);
+    try{
+      await _withBtnState('.btn-mail',async()=>{
+        await _ensureHtml2Pdf();
+        const blob=await _pdfWorker().outputPdf('blob');
+        // Best UX: Web Share API → système share sheet → Mail attache le PDF auto
+        if(navigator.canShare){
+          const file=new File([blob],filename,{type:'application/pdf'});
+          if(navigator.canShare({files:[file]})){
+            try{
+              await navigator.share({title:subject,text:body,files:[file]});
+              return;
+            }catch(e){
+              if(e&&e.name==='AbortError')return; // user cancelled
+              // fall through to fallback
+            }
+          }
+        }
+        // Fallback: ouvre le PDF dans un nouvel onglet + mailto
+        const url=URL.createObjectURL(blob);
+        window.open(url,'_blank');
+        setTimeout(()=>URL.revokeObjectURL(url),60000);
+        openMail();
+      });
+    }catch(e){
+      // PDF a planté → ouvre quand même le mail
+      openMail();
+    }
   }
   function setMode(m){
     const map={detail:'mode-detail',resume:'mode-resume'};
