@@ -2,7 +2,9 @@ name: Import stock quotidien
 
 on:
   schedule:
-    - cron: '15 6 * * 1-5'  # 8h15 heure Paris (UTC+2) du lundi au vendredi
+    - cron: '15 5 * * 1-5'  # 7h15 Paris (filet amont)
+    - cron: '15 6 * * 1-5'  # 8h15 Paris (créneau principal)
+    - cron: '15 7 * * 1-5'  # 9h15 Paris (filet aval)
   workflow_dispatch: # permet de lancer manuellement
 
 permissions:
@@ -10,11 +12,12 @@ permissions:
 
 concurrency:
   group: import-stock
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   import:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       # Actions pinned to commit SHAs so a tag-takeover can't slip arbitrary
       # code into the runner with our SUPABASE_MGMT_TOKEN secret.
@@ -23,10 +26,38 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Skip if already imported today
+        id: idempotence
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "Manual dispatch — bypass idempotence."
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          LATEST=$(curl -s -f \
+            "$SUPABASE_URL/rest/v1/products?select=created_at&order=created_at.desc&limit=1" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+            | python3 -c "import sys,json; r=json.load(sys.stdin); print(r[0]['created_at'][:10] if r else '')")
+          TODAY=$(date -u +%Y-%m-%d)
+          echo "Dernier import: '$LATEST' | aujourd'hui: '$TODAY'"
+          if [ "$LATEST" = "$TODAY" ]; then
+            echo "Stock déjà importé aujourd'hui — skip."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Install dependencies
+        if: steps.idempotence.outputs.skip != 'true'
         run: pip install openpyxl==3.1.5
 
       - name: Run import
+        if: steps.idempotence.outputs.skip != 'true'
         env:
           IMAP_USER: ${{ secrets.IMAP_USER }}
           IMAP_PASS: ${{ secrets.IMAP_PASS }}
