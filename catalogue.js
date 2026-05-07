@@ -3178,7 +3178,18 @@ function _shortCode(){
 }
 async function shareCart(){
   if(!cart.length){toast(lang==='en'?'Sélection vide':'Sélection vide !');return;}
-  return printSelection({autoSendMail:true});
+  // Réserver l'onglet PDF MAINTENANT, dans le user gesture (sinon Safari
+  // bloque tout window.open déclenché plus tard, hors-gesture).
+  let pdfWin=null;
+  try{
+    pdfWin=window.open('about:blank','_blank');
+    if(pdfWin){
+      pdfWin.document.open();
+      pdfWin.document.write('<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Génération du PDF…</title><style>body{margin:0;font:16px/1.4 system-ui,-apple-system,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:#f5f5f3;color:#666;gap:14px}.s{width:36px;height:36px;border:3px solid #ddd;border-top-color:#FE0000;border-radius:50%;animation:r 1s linear infinite}@keyframes r{to{transform:rotate(360deg)}}</style></head><body><div class="s"></div><div>Génération du PDF…</div></body></html>');
+      pdfWin.document.close();
+    }
+  }catch(_){}
+  return printSelection({autoSendMail:true,pdfWin});
 }
 function openImportRefs(){
   const existing=document.getElementById('import-refs-bg');
@@ -3314,6 +3325,7 @@ async function printSelection(opts){
   const autoSendMail=!!(opts&&opts.autoSendMail);
   const autoPrint=!!(opts&&opts.autoPrint);
   const headless=autoSendMail||autoPrint;
+  const pdfWin=opts&&opts.pdfWin;
   if(!cart.length){toast('Sélection vide !');return;}
   const clientName=await askText(autoSendMail?{
     title:'Partager la sélection',
@@ -3326,7 +3338,7 @@ async function printSelection(opts){
     placeholder:'Ex : Société Dupont',
     okLabel:'Imprimer'
   });
-  if(!clientName)return;
+  if(!clientName){if(pdfWin){try{pdfWin.close();}catch(_){}}return;}
   const items=cart.map(p=>{
     const _f=all.find(x=>x.id===+p.id)||p;
     const qualite=p.qualite||_f.qualite||'';
@@ -3427,14 +3439,22 @@ async function printSelection(opts){
       const d=ev&&ev.data;
       if(d==='proforma-share-done'){_cleanup();return;}
       if(d&&d.type==='proforma-share-fallback'){
-        try{
-          const url=URL.createObjectURL(d.blob);
+        const url=URL.createObjectURL(d.blob);
+        if(pdfWin&&!pdfWin.closed){
+          // Pousse le PDF dans l'onglet réservé au clic (gesture-safe)
+          try{pdfWin.location.href=url;}catch(_){
+            // Cross-origin write impossible une fois sur blob: → fallback download
+            const dl=document.createElement('a');
+            dl.href=url;dl.download=d.filename;dl.style.display='none';
+            document.body.appendChild(dl);dl.click();dl.remove();
+          }
+        }else{
+          // Pas de fenêtre dispo (popup bloqué) → fallback download
           const dl=document.createElement('a');
-          dl.href=url;dl.download=d.filename;dl.rel='noopener';dl.style.display='none';
+          dl.href=url;dl.download=d.filename;dl.style.display='none';
           document.body.appendChild(dl);dl.click();dl.remove();
-          setTimeout(()=>URL.revokeObjectURL(url),60000);
-          toast('📎 PDF téléchargé — glisse-le dans le mail');
-        }catch(e){toast('❌ PDF: '+(e&&e.message||e));}
+        }
+        setTimeout(()=>URL.revokeObjectURL(url),120000);
         const ml=document.createElement('a');
         ml.href=d.mailHref;ml.style.display='none';
         document.body.appendChild(ml);ml.click();ml.remove();
