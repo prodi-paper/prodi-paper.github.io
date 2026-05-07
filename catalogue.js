@@ -3176,10 +3176,8 @@ function removeFromCart(id){
 function _shortCode(){
   return Array.from(crypto.getRandomValues(new Uint8Array(6)),b=>'0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'[b%62]).join('');
 }
-async function shareCart(){
-  if(!cart.length){toast(lang==='en'?'Sélection vide':'Sélection vide !');return;}
-  return printSelection({autoSendMail:true});
-}
+// shareCart conservé pour compat (peut être appelé depuis du HTML legacy)
+async function shareCart(){return printSelection({autoGenerate:true});}
 function openImportRefs(){
   const existing=document.getElementById('import-refs-bg');
   if(existing)existing.remove();
@@ -3317,18 +3315,16 @@ function askText({title,sub,placeholder,value,okLabel,cancelLabel,onConfirm}={})
 }
 
 async function printSelection(opts){
-  const autoSendMail=!!(opts&&opts.autoSendMail);
-  const autoPrint=!!(opts&&opts.autoPrint);
-  const headless=autoSendMail||autoPrint;
-  // Réservé à la validation du nom client (clic OK = user gesture frais
-  // pour window.open du PDF preview).
+  const autoGenerate=!!(opts&&opts.autoGenerate);
+  const headless=autoGenerate;
+  // Onglet PDF réservé dans le user gesture du clic OK / Enter.
   let pdfWin=null;
   if(!cart.length){toast('Sélection vide !');return;}
-  const clientName=await askText(autoSendMail?{
-    title:'Partager la sélection',
-    sub:'Nom du client (utilisé dans le PDF et le mail).',
+  const clientName=await askText(autoGenerate?{
+    title:'Générer la liste',
+    sub:'Nom du client (utilisé dans le PDF).',
     placeholder:'Ex : Société Dupont',
-    okLabel:'Continuer',
+    okLabel:'Générer',
     onConfirm:()=>{
       try{
         pdfWin=window.open('about:blank','_blank');
@@ -3448,26 +3444,21 @@ async function printSelection(opts){
       if(d&&d.type==='proforma-share-fallback'){
         const url=URL.createObjectURL(d.blob);
         if(pdfWin&&!pdfWin.closed){
-          // Pousse le PDF dans l'onglet réservé au clic (gesture-safe)
           try{pdfWin.location.href=url;}catch(_){
-            // Cross-origin write impossible une fois sur blob: → fallback download
             const dl=document.createElement('a');
             dl.href=url;dl.download=d.filename;dl.style.display='none';
             document.body.appendChild(dl);dl.click();dl.remove();
           }
         }else{
-          // Pas de fenêtre dispo (popup bloqué) → fallback download
           const dl=document.createElement('a');
           dl.href=url;dl.download=d.filename;dl.style.display='none';
           document.body.appendChild(dl);dl.click();dl.remove();
         }
         setTimeout(()=>URL.revokeObjectURL(url),120000);
-        const ml=document.createElement('a');
-        ml.href=d.mailHref;ml.style.display='none';
-        document.body.appendChild(ml);ml.click();ml.remove();
       }
       if(d&&d.type==='proforma-share-error'){
         toast('❌ '+(d.message||'erreur PDF'));
+        if(pdfWin&&!pdfWin.closed){try{pdfWin.close();}catch(_){}}
       }
     };
     window.addEventListener('message',_onMsg);
@@ -3746,12 +3737,13 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
             }
           }
         }
-        // En mode iframe (autoSendMail), déléguer download + mailto au parent
-        // pour éviter les restrictions Safari sur les iframes.
-        if(${autoSendMail}){
-          try{parent.postMessage({type:'proforma-share-fallback',blob,mailHref,filename},'*');return;}catch(_){}
+        // En mode iframe (autoGenerate), poste le PDF blob au parent qui
+        // l'affichera dans l'onglet pré-réservé. Évite les restrictions
+        // Safari sur les iframes (window.open / download bloqués).
+        if(${autoGenerate}){
+          try{parent.postMessage({type:'proforma-share-fallback',blob,filename},'*');return;}catch(_){}
         }
-        // Mode popup (Imprimer manuel) : download + mailto en local.
+        // Mode popup (legacy : print/save manuel depuis la fenêtre proforma).
         const url=URL.createObjectURL(blob);
         const dl=document.createElement('a');
         dl.href=url;dl.download=filename;dl.style.display='none';
@@ -3778,19 +3770,10 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
     if(saved==='resume')setMode('resume');
     else if(saved&&saved!=='detail')localStorage.removeItem('proforma_mode');
   }catch(_){}
-  if(${autoSendMail})setTimeout(async()=>{
+  if(${autoGenerate})setTimeout(async()=>{
     try{await sendByEmail();}catch(_){}
     setTimeout(()=>{try{parent.postMessage('proforma-share-done','*');}catch(_){}},1500);
   },300);
-  if(${autoPrint}){
-    (async()=>{
-      try{if(document.fonts&&document.fonts.ready)await document.fonts.ready;}catch(_){}
-      window.addEventListener('afterprint',()=>{try{parent.postMessage('proforma-share-done','*');}catch(_){}},{once:true});
-      setTimeout(()=>{try{window.focus();window.print();}catch(_){}},200);
-      // Safety: si afterprint ne fire pas (user dismiss sans interaction), cleanup à 2min
-      setTimeout(()=>{try{parent.postMessage('proforma-share-done','*');}catch(_){}},120000);
-    })();
-  }
 </script>
 </body></html>`);
   w.document.close();
