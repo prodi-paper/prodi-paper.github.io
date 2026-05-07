@@ -3546,9 +3546,10 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
 .totals-grid .val{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;}
 .totals-grid .net .lbl{text-decoration:underline;}
 .totals-grid .net .val{font-size:18px;color:var(--ink);}
-.foot-row{margin-top:14px;display:grid;grid-template-columns:1fr 1.4fr;gap:14px;}
-.stamp{display:flex;align-items:flex-end;justify-content:flex-start;min-height:90px;}
+.foot-row{margin-top:14px;display:block;}
+.stamp{display:none;}
 .stamp-img{max-width:170px;opacity:.85;}
+.proforma-foot-block{page-break-inside:avoid;break-inside:avoid;}
 .payment-cond{font-size:10.5px;line-height:1.5;}
 .payment-cond .row{display:flex;gap:8px;align-items:baseline;margin-bottom:6px;}
 .payment-cond b{font-weight:700;text-transform:uppercase;letter-spacing:.4px;font-size:10.5px;}
@@ -3645,14 +3646,12 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
     <div class="net"><div class="lbl">Net à payer</div><div class="val">${eur(totalMontant)} €</div></div>
   </div>
 
+  <div class="proforma-foot-block">
   <div class="foot-row">
-    <div class="stamp"></div>
-    <div>
-      <div class="payment-cond">
-        <div class="row"><b>Conditions de paiement :</b><span class="amt" contenteditable="true">${eur(totalMontant)}</span><span contenteditable="true">REMISE DOCUMENTAIRE PAYABLE À VUE</span></div>
-        <div class="row"><b>Banque du client :</b><span contenteditable="true">—</span></div>
-        <div contenteditable="true" style="padding-left:115px;">—</div>
-      </div>
+    <div class="payment-cond">
+      <div class="row"><b>Conditions de paiement :</b><span class="amt" contenteditable="true">${eur(totalMontant)}</span><span contenteditable="true">REMISE DOCUMENTAIRE PAYABLE À VUE</span></div>
+      <div class="row"><b>Banque du client :</b><span contenteditable="true">—</span></div>
+      <div contenteditable="true" style="padding-left:160px;">—</div>
     </div>
   </div>
 
@@ -3673,6 +3672,7 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
       hors du pays de départ des marchandises.
       <span class="strong">Renvoyer signé et cacheté</span>
     </div>
+  </div>
   </div>
 </div>
 <script>
@@ -3696,7 +3696,7 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
       image:{type:'jpeg',quality:0.98},
       html2canvas:{scale:2,useCORS:true,letterRendering:true,backgroundColor:'#ffffff'},
       jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
-      pagebreak:{mode:['avoid-all','css','legacy'],avoid:['tr','.totals-block','.totals-grid','.foot-row','.bank-row','.confirm','.payment-cond','.bank-table']}
+      pagebreak:{mode:['avoid-all','css','legacy'],avoid:['tr','.totals-block','.totals-grid','.foot-row','.bank-row','.confirm','.payment-cond','.bank-table','.proforma-foot-block']}
     }).from(el);
   }
   function _withBtnState(btnSel,fn){
