@@ -3178,31 +3178,8 @@ function _shortCode(){
 }
 async function shareCart(){
   if(!cart.length){toast(lang==='en'?'Sélection vide':'Sélection vide !');return;}
-  const ids=cart.map(x=>x.id).join(',');
-  const code=_shortCode();
-  const url=window.location.origin+window.location.pathname+'?s='+code+(_priceMode?'&p=1':'');
-  // Copy immediately while still in user gesture context (before any await)
-  try{
-    await navigator.clipboard.writeText(url);
-    toast('🔗 Lien copié !');
-  }catch(e){
-    const ta=document.createElement('textarea');
-    ta.value=url;ta.style.cssText='position:fixed;opacity:0;top:0;left:0';
-    document.body.appendChild(ta);ta.focus();ta.select();
-    try{document.execCommand('copy');toast('🔗 Lien copié !');}catch(_){toast('❌ Copie échouée');}
-    document.body.removeChild(ta);
-  }
-  // Save to Supabase in background
-  sbQ('shared_carts',{method:'POST',body:{code,cart_ids:ids},headers:{'Prefer':'return=minimal'}}).catch(()=>{});
+  return printSelection({autoSendMail:true});
 }
-function _copyFallback(url){
-  const ta=document.createElement('textarea');
-  ta.value=url;ta.style.cssText='position:fixed;opacity:0;top:0;left:0';
-  document.body.appendChild(ta);ta.focus();ta.select();
-  try{document.execCommand('copy');toast('🔗 Lien copié !');}
-  catch(_){prompt('Copie ce lien :',url);}
-}
-
 function openImportRefs(){
   const existing=document.getElementById('import-refs-bg');
   if(existing)existing.remove();
@@ -3333,9 +3310,17 @@ function askText({title,sub,placeholder,value,okLabel,cancelLabel}={}){
   });
 }
 
-async function printSelection(){
+async function printSelection(opts){
+  const autoSendMail=!!(opts&&opts.autoSendMail);
+  const autoPrint=!!(opts&&opts.autoPrint);
+  const headless=autoSendMail||autoPrint;
   if(!cart.length){toast('Sélection vide !');return;}
-  const clientName=await askText({
+  const clientName=await askText(autoSendMail?{
+    title:'Partager la sélection',
+    sub:'Nom du client (utilisé dans le PDF et le mail).',
+    placeholder:'Ex : Société Dupont',
+    okLabel:'Continuer'
+  }:{
     title:'Imprimer la sélection',
     sub:'Donne un nom à cette sélection (le nom du client par exemple).',
     placeholder:'Ex : Société Dupont',
@@ -3427,7 +3412,42 @@ async function printSelection(){
   ].join('\n');
   const _mailSubject=`Proforma ${numero} — ${clientName} — ${dateFR}`;
   const _mailtoUrl=`mailto:?subject=${encodeURIComponent(_mailSubject).replace(/'/g,'%27')}&body=${encodeURIComponent(_mailLines).replace(/'/g,'%27')}`;
-  const w=window.open('','_blank');
+  let w, _shareIframe;
+  if(headless){
+    // Headless iframe — pas d'onglet visible. La proforma est rendue
+    // hors écran juste pour qu'html2pdf (share) ou window.print (print)
+    // ait un DOM à manipuler. Le download + mailto sont délégués au parent.
+    _shareIframe=document.createElement('iframe');
+    _shareIframe.setAttribute('aria-hidden','true');
+    _shareIframe.style.cssText='position:fixed;left:-99999px;top:-99999px;width:1200px;height:1600px;border:0;opacity:0;pointer-events:none;';
+    document.body.appendChild(_shareIframe);
+    w=_shareIframe.contentWindow;
+    const _cleanup=()=>{window.removeEventListener('message',_onMsg);try{_shareIframe&&_shareIframe.parentNode&&_shareIframe.remove();}catch(_){}};
+    const _onMsg=(ev)=>{
+      const d=ev&&ev.data;
+      if(d==='proforma-share-done'){_cleanup();return;}
+      if(d&&d.type==='proforma-share-fallback'){
+        try{
+          const url=URL.createObjectURL(d.blob);
+          const dl=document.createElement('a');
+          dl.href=url;dl.download=d.filename;dl.rel='noopener';dl.style.display='none';
+          document.body.appendChild(dl);dl.click();dl.remove();
+          setTimeout(()=>URL.revokeObjectURL(url),60000);
+          toast('📎 PDF téléchargé');
+        }catch(e){toast('❌ PDF: '+(e&&e.message||e));}
+        const ml=document.createElement('a');
+        ml.href=d.mailHref;ml.style.display='none';
+        document.body.appendChild(ml);ml.click();ml.remove();
+      }
+      if(d&&d.type==='proforma-share-error'){
+        toast('❌ '+(d.message||'erreur PDF'));
+      }
+    };
+    window.addEventListener('message',_onMsg);
+    setTimeout(_cleanup,120000);
+  }else{
+    w=window.open('','_blank');
+  }
   const _safeClient=clientName.replace(/[\/\\:*?"<>|]/g,'_');
   w.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><base href="${baseUrl}"><title>Liste détaillée — ${_safeClient} — ${numero}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -3699,14 +3719,22 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
             }
           }
         }
-        // Fallback: ouvre le PDF dans un nouvel onglet + mailto
+        // En mode iframe (autoSendMail), déléguer download + mailto au parent
+        // pour éviter les restrictions Safari sur les iframes.
+        if(${autoSendMail}){
+          try{parent.postMessage({type:'proforma-share-fallback',blob,mailHref,filename},'*');return;}catch(_){}
+        }
+        // Mode popup (Imprimer manuel) : download + mailto en local.
         const url=URL.createObjectURL(blob);
-        window.open(url,'_blank');
+        const dl=document.createElement('a');
+        dl.href=url;dl.download=filename;dl.style.display='none';
+        document.body.appendChild(dl);dl.click();dl.remove();
         setTimeout(()=>URL.revokeObjectURL(url),60000);
         openMail();
       });
     }catch(e){
-      // PDF a planté → ouvre quand même le mail
+      // PDF a planté → ouvre quand même le mail + signale au parent
+      try{parent.postMessage({type:'proforma-share-error',message:String(e&&e.message||e)},'*');}catch(_){}
       openMail();
     }
   }
@@ -3723,6 +3751,19 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
     if(saved==='resume')setMode('resume');
     else if(saved&&saved!=='detail')localStorage.removeItem('proforma_mode');
   }catch(_){}
+  if(${autoSendMail})setTimeout(async()=>{
+    try{await sendByEmail();}catch(_){}
+    setTimeout(()=>{try{parent.postMessage('proforma-share-done','*');}catch(_){}},1500);
+  },300);
+  if(${autoPrint}){
+    (async()=>{
+      try{if(document.fonts&&document.fonts.ready)await document.fonts.ready;}catch(_){}
+      window.addEventListener('afterprint',()=>{try{parent.postMessage('proforma-share-done','*');}catch(_){}},{once:true});
+      setTimeout(()=>{try{window.focus();window.print();}catch(_){}},200);
+      // Safety: si afterprint ne fire pas (user dismiss sans interaction), cleanup à 2min
+      setTimeout(()=>{try{parent.postMessage('proforma-share-done','*');}catch(_){}},120000);
+    })();
+  }
 </script>
 </body></html>`);
   w.document.close();
