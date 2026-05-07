@@ -3457,7 +3457,11 @@ async function printSelection(opts){
       const d=ev&&ev.data;
       if(d==='proforma-share-done'){_cleanup();return;}
       if(d&&d.type==='proforma-share-fallback'){
-        const url=URL.createObjectURL(d.blob);
+        // Créer le blob URL dans le scope de pdfWin (sinon Safari bloque
+        // l'accès cross-window quand l'iframe enfant tente de charger).
+        let url;
+        try{url=(pdfWin&&pdfWin.URL?pdfWin.URL:URL).createObjectURL(d.blob);}
+        catch(_){url=URL.createObjectURL(d.blob);}
         if(pdfWin&&!pdfWin.closed){
           try{
             const _esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
