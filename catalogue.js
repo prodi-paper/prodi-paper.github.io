@@ -3314,7 +3314,9 @@ function askText({title,sub,placeholder,value,okLabel,cancelLabel,onConfirm}={})
     // onConfirm s'exécute SYNC dans le user gesture du clic OK / Enter — utile
     // pour window.open qui sinon serait bloqué par Safari hors-gesture.
     const confirmAndClose=(val)=>{
-      if(val&&onConfirm){try{onConfirm(val);}catch(_){}}
+      // val peut être '' (OK avec input vide) — on déclenche quand même onConfirm.
+      // Seul un cancel (null) ne le déclenche pas.
+      if(onConfirm){try{onConfirm(val);}catch(_){}}
       close(val);
     };
     const keyHandler=(e)=>{
@@ -3356,7 +3358,8 @@ async function printSelection(opts){
     placeholder:'Ex : Société Dupont',
     okLabel:'Imprimer'
   });
-  if(!clientName){if(pdfWin){try{pdfWin.close();}catch(_){}}return;}
+  // null = cancel (Annuler / Escape / clic hors-modal). '' = Générer sans nom.
+  if(clientName===null){if(pdfWin){try{pdfWin.close();}catch(_){}}return;}
   const items=cart.map(p=>{
     const _f=all.find(x=>x.id===+p.id)||p;
     const qualite=p.qualite||_f.qualite||'';
@@ -3482,7 +3485,8 @@ async function printSelection(opts){
     w=window.open('','_blank');
   }
   const _safeClient=clientName.replace(/[\/\\:*?"<>|]/g,'_');
-  w.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><base href="${baseUrl}"><title>Liste détaillée — ${_safeClient} — ${numero}</title>
+  const _docTitle=_safeClient?`Liste détaillée — ${_safeClient} — ${numero}`:`Liste détaillée — ${numero}`;
+  w.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><base href="${baseUrl}"><title>${_docTitle}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=Pinyon+Script&family=Playfair+Display:ital,wght@1,400;1,700&display=swap" rel="stylesheet">
 <style>
