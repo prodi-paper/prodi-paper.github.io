@@ -3433,7 +3433,7 @@ async function printSelection(opts){
           dl.href=url;dl.download=d.filename;dl.rel='noopener';dl.style.display='none';
           document.body.appendChild(dl);dl.click();dl.remove();
           setTimeout(()=>URL.revokeObjectURL(url),60000);
-          toast('📎 PDF téléchargé');
+          toast('📎 PDF téléchargé — glisse-le dans le mail');
         }catch(e){toast('❌ PDF: '+(e&&e.message||e));}
         const ml=document.createElement('a');
         ml.href=d.mailHref;ml.style.display='none';
