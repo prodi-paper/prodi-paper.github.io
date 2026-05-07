@@ -1256,18 +1256,23 @@ function toggleOriginePill(btn){
   btn.classList.toggle('active');
   filterProducts();
 }
-let _stockFilter=''; // '' | 'stocklot' | 'fab' | 'siderun'
+let _stockFilter=new Set(); // Set of 'stocklot' | 'fab' | 'siderun' — multichoix (OR)
+// Tester l'appartenance d'un produit aux 3 catégories de stock.
+function _stockMatch(p){
+  if(_stockFilter.size===0)return true;
+  const _hasFab=(p.ref&&/FAB/i.test(String(p.ref)))||(p.emplacement&&/FAB|DIRECT USINE/i.test(p.emplacement))||(p.details&&/fabrication/i.test(p.details))||(p.zone&&/FABRICATION/i.test(p.zone));
+  const _isFab=_hasFab&&p.emplacement!=='OUR WAREHOUSE';
+  const _isSiderun=p.emplacement==='OUR WAREHOUSE'&&((p.ref&&/FAB/i.test(String(p.ref)))||(p.details&&/fabrication/i.test(p.details)));
+  const _isStocklot=!_hasFab;
+  return (_stockFilter.has('fab')&&_isFab)||(_stockFilter.has('siderun')&&_isSiderun)||(_stockFilter.has('stocklot')&&_isStocklot);
+}
 function toggleStockPill(btn){
   const val=btn.dataset.stock;
   const wasActive=btn.classList.contains('active');
-  // Deselect all stock pills first (mutually exclusive)
-  document.querySelectorAll('.fpill-stock').forEach(b=>b.classList.remove('active'));
-  if(wasActive){
-    _stockFilter='';
-  } else {
-    btn.classList.add('active');
-    _stockFilter=val;
-  }
+  if(wasActive){btn.classList.remove('active');_stockFilter.delete(val);}
+  else{btn.classList.add('active');_stockFilter.add(val);}
+  // Sync les pills jumelles (header + drawer mobile) sur le même data-stock
+  document.querySelectorAll('.fpill-stock[data-stock="'+val+'"]').forEach(b=>b.classList.toggle('active',_stockFilter.has(val)));
   filterProducts();
 }
 let _depotFilter=''; // '' | 'our' | 'ext'
@@ -1848,9 +1853,7 @@ function _filterSharedLocal(){
     if(formats.size&&!formats.has(p.format))return false;
     if(_depotFilter==='our'&&p.emplacement!=='OUR WAREHOUSE')return false;
     if(_depotFilter==='ext'&&p.emplacement==='OUR WAREHOUSE')return false;
-    if(_stockFilter==='fab'&&!(p.emplacement!=='OUR WAREHOUSE'&&((p.ref&&/FAB/i.test(String(p.ref)))||(p.emplacement&&/FAB|DIRECT USINE/i.test(p.emplacement))||(p.details&&/fabrication/i.test(p.details))||(p.zone&&/FABRICATION/i.test(p.zone)))))return false;
-    if(_stockFilter==='stocklot'&&((p.ref&&/FAB/i.test(String(p.ref)))||(p.emplacement&&/FAB|DIRECT USINE/i.test(p.emplacement))||(p.details&&/fabrication/i.test(p.details))||(p.zone&&/FABRICATION/i.test(p.zone))))return false;
-    if(_stockFilter==='siderun'&&!(p.emplacement==='OUR WAREHOUSE'&&((p.ref&&/FAB/i.test(String(p.ref)))||(p.details&&/fabrication/i.test(p.details)))))return false;
+    if(!_stockMatch(p))return false;
     const _hasPhoto=p.image_url&&p.image_url.length>0;
     if(_photoFilter==='with'&&!_hasPhoto)return false;
     if(_photoFilter==='without'){
@@ -2084,15 +2087,20 @@ async function _fetchAndRender(token){
   // Dépôt filter
   if(_depotFilter==='our')p.append('emplacement',`eq.OUR WAREHOUSE`);
   else if(_depotFilter==='ext')p.append('emplacement',`neq.OUR WAREHOUSE`);
-  // Stocklot/Fabrication server-side filter
-  if(_stockFilter==='fab'){
-    p.append('emplacement','neq.OUR WAREHOUSE');
-    p.append('or','(ref.ilike.%FAB%,emplacement.ilike.%FAB%,emplacement.ilike.%DIRECT USINE%,details.ilike.%fabrication%,zone.ilike.%FABRICATION%)');
-  } else if(_stockFilter==='stocklot'){
-    p.append('and','(or(ref.not.ilike.%FAB%,ref.is.null),or(details.not.ilike.%fabrication%,details.is.null),or(emplacement.not.ilike.%FAB%,emplacement.is.null),or(emplacement.not.ilike.%DIRECT USINE%,emplacement.is.null),or(zone.not.ilike.%FABRICATION%,zone.is.null))');
-  } else if(_stockFilter==='siderun'){
-    p.append('emplacement','eq.OUR WAREHOUSE');
-    p.append('or','(ref.ilike.%FAB%,details.ilike.%fabrication%)');
+  // Stocklot/Fabrication server-side filter — uniquement quand 1 seule pill
+  // active. En multichoix (>=2), pas de filtre serveur, _stockMatch côté
+  // client gère la logique OR.
+  if(_stockFilter.size===1){
+    const _sf=[..._stockFilter][0];
+    if(_sf==='fab'){
+      p.append('emplacement','neq.OUR WAREHOUSE');
+      p.append('or','(ref.ilike.%FAB%,emplacement.ilike.%FAB%,emplacement.ilike.%DIRECT USINE%,details.ilike.%fabrication%,zone.ilike.%FABRICATION%)');
+    } else if(_sf==='stocklot'){
+      p.append('and','(or(ref.not.ilike.%FAB%,ref.is.null),or(details.not.ilike.%fabrication%,details.is.null),or(emplacement.not.ilike.%FAB%,emplacement.is.null),or(emplacement.not.ilike.%DIRECT USINE%,emplacement.is.null),or(zone.not.ilike.%FABRICATION%,zone.is.null))');
+    } else if(_sf==='siderun'){
+      p.append('emplacement','eq.OUR WAREHOUSE');
+      p.append('or','(ref.ilike.%FAB%,details.ilike.%fabrication%)');
+    }
   }
   // Photo filter — image_url is NULL pour les produits sans photo réelle (mis à jour par scripts/verify_photos.py)
   if(_photoFilter==='with')p.append('image_url','not.is.null');
@@ -2358,7 +2366,14 @@ function updateFilterChips(){
   const _activeFmts=Array.from(document.querySelectorAll('.fpill.active:not(.fpill-orig):not(.fpill-stock):not(.fpill-depot)')).map(b=>b.dataset.format);
   const _activeOrigs=Array.from(document.querySelectorAll('.fpill-orig.active')).map(b=>b.dataset.origine==='R'?LT[lang].t_origine_recycl:LT[lang].t_origine_fab);
   if(_activeOrigs.length>0)chips.push({label:(lang==='en'?'Origin':'Origine')+' : '+_activeOrigs.join(', '),clear:()=>{document.querySelectorAll('.fpill-orig.active').forEach(b=>b.classList.remove('active'));filterProducts();}});
-  if(_stockFilter)chips.push({label:_stockFilter==='fab'?'Fabrication':_stockFilter==='siderun'?'Siderun':'Stocklots',clear:()=>{document.querySelectorAll('.fpill-stock').forEach(b=>b.classList.remove('active'));_stockFilter='';filterProducts();}});
+  _stockFilter.forEach(_sf=>{
+    const _label=_sf==='fab'?'Fabrication':_sf==='siderun'?'Siderun':'Stocklots';
+    chips.push({label:_label,clear:()=>{
+      _stockFilter.delete(_sf);
+      document.querySelectorAll('.fpill-stock[data-stock="'+_sf+'"]').forEach(b=>b.classList.remove('active'));
+      filterProducts();
+    }});
+  });
   if(_depotFilter)chips.push({label:_depotFilter==='our'?'Notre dépôt':'Hors dépôt',clear:()=>{document.querySelectorAll('.fpill-depot').forEach(b=>b.classList.remove('active'));_depotFilter='';filterProducts();}});
   if(_photoFilter)chips.push({label:_photoFilter==='with'?'Avec photo':'Sans photo',clear:()=>{document.querySelectorAll('.fpill-photo').forEach(b=>b.classList.remove('active'));_photoFilter='';filterProducts();}});
   if(_activeFmts.length>0)chips.push({label:LT[lang].t_fmt+' : '+_activeFmts.map(f=>f==='Bobine'?LT[lang].t_bobine:f==='Palette'?LT[lang].t_palette:f).join(', '),clear:()=>{document.querySelectorAll('.fpill.active').forEach(b=>b.classList.remove('active'));filterProducts();}});
@@ -2911,7 +2926,7 @@ function resetFilters(){
 
     // 4. Reset format pills
     document.querySelectorAll('.fpill.active,.fpill-orig.active,.fpill-stock.active,.fpill-depot.active,.fpill-photo.active,.fb-pill.active').forEach(b=>b.classList.remove('active'));
-    _stockFilter='';_depotFilter='';_photoFilter='';
+    _stockFilter.clear();_depotFilter='';_photoFilter='';
     ['fb-bobine','fb-palette','fb-recyc','fb-fab'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('active');});
 
     // 5. Clear all inputs
