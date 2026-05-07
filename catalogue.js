@@ -3457,47 +3457,9 @@ async function printSelection(opts){
       const d=ev&&ev.data;
       if(d==='proforma-share-done'){_cleanup();return;}
       if(d&&d.type==='proforma-share-fallback'){
-        // Créer le blob URL dans le scope de pdfWin (sinon Safari bloque
-        // l'accès cross-window quand l'iframe enfant tente de charger).
-        let url;
-        try{url=(pdfWin&&pdfWin.URL?pdfWin.URL:URL).createObjectURL(d.blob);}
-        catch(_){url=URL.createObjectURL(d.blob);}
+        const url=URL.createObjectURL(d.blob);
         if(pdfWin&&!pdfWin.closed){
-          try{
-            const _esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
-            const _safeTitle=_esc(d.filename||'Liste détaillée');
-            const _mailHrefAttr=_esc(d.mailHref||'');
-            const _pdfSrc=_esc(url);
-            pdfWin.document.open();
-            pdfWin.document.write(`<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>${_safeTitle}</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;background:#f5f5f3}
-body{display:flex;flex-direction:column;height:100vh}
-.toolbar{display:flex;gap:10px;padding:14px 20px;background:#fff;border-bottom:1px solid #e8e8e4;justify-content:flex-end;align-items:center;flex-shrink:0}
-.toolbar .title{margin-right:auto;font-weight:600;color:#222;font-size:15px;letter-spacing:.2px}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border:1.5px solid #e0e0e0;background:#fff;color:#222;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;border-radius:8px;transition:all .15s}
-.btn:hover{border-color:#222;background:#f5f5f3}
-.btn.primary{background:#FE0000;border-color:#FE0000;color:#fff}
-.btn.primary:hover{background:#d40000;border-color:#d40000}
-.btn svg{width:16px;height:16px;flex-shrink:0}
-iframe{flex:1;border:0;background:#525659;width:100%;height:100%}
-</style></head><body>
-<div class="toolbar">
-  <div class="title">${_safeTitle.replace(/\\.pdf$/,'')}</div>
-  <button class="btn" onclick="document.getElementById('pdf').contentWindow.focus();document.getElementById('pdf').contentWindow.print()" title="Imprimer le PDF">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-    Imprimer
-  </button>
-  <button class="btn primary" onclick="window.location.href=${JSON.stringify(d.mailHref||'')}" title="Partager le lien des photos par mail"${d.mailHref?'':' disabled'}>
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-    Partager
-  </button>
-</div>
-<iframe id="pdf" src="${_pdfSrc}" title="${_safeTitle}"></iframe>
-</body></html>`);
-            pdfWin.document.close();
-          }catch(_){
+          try{pdfWin.location.href=url;}catch(_){
             const dl=document.createElement('a');
             dl.href=url;dl.download=d.filename;dl.style.display='none';
             document.body.appendChild(dl);dl.click();dl.remove();
@@ -3507,7 +3469,7 @@ iframe{flex:1;border:0;background:#525659;width:100%;height:100%}
           dl.href=url;dl.download=d.filename;dl.style.display='none';
           document.body.appendChild(dl);dl.click();dl.remove();
         }
-        setTimeout(()=>URL.revokeObjectURL(url),300000);
+        setTimeout(()=>URL.revokeObjectURL(url),120000);
       }
       if(d&&d.type==='proforma-share-error'){
         toast('❌ '+(d.message||'erreur PDF'));
