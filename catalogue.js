@@ -3457,9 +3457,47 @@ async function printSelection(opts){
       const d=ev&&ev.data;
       if(d==='proforma-share-done'){_cleanup();return;}
       if(d&&d.type==='proforma-share-fallback'){
-        const url=URL.createObjectURL(d.blob);
+        // URL créée dans pdfWin pour que <embed> enfant puisse y accéder.
+        let url;
+        try{url=(pdfWin&&pdfWin.URL?pdfWin.URL:URL).createObjectURL(d.blob);}
+        catch(_){url=URL.createObjectURL(d.blob);}
         if(pdfWin&&!pdfWin.closed){
-          try{pdfWin.location.href=url;}catch(_){
+          try{
+            const _esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+            const _safeTitle=_esc(d.filename||'Liste détaillée');
+            const _pdfSrc=_esc(url);
+            const _mailHrefJS=JSON.stringify(d.mailHref||'');
+            pdfWin.document.open();
+            pdfWin.document.write(`<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>${_safeTitle}</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;background:#525659}
+body{display:flex;flex-direction:column;height:100vh}
+.toolbar{display:flex;gap:10px;padding:12px 18px;background:#fff;border-bottom:1px solid #e8e8e4;justify-content:flex-end;align-items:center;flex-shrink:0}
+.toolbar .title{margin-right:auto;font-weight:600;color:#222;font-size:14px;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60%}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border:1.5px solid #e0e0e0;background:#fff;color:#222;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;border-radius:8px;transition:all .15s;white-space:nowrap}
+.btn:hover{border-color:#222;background:#f5f5f3}
+.btn.primary{background:#FE0000;border-color:#FE0000;color:#fff}
+.btn.primary:hover{background:#d40000;border-color:#d40000}
+.btn svg{width:16px;height:16px;flex-shrink:0}
+.viewer{flex:1;width:100%;height:100%;background:#525659;display:block}
+@media print{.toolbar{display:none!important}.viewer{position:fixed;inset:0;width:100vw;height:100vh}}
+</style></head><body>
+<div class="toolbar">
+  <div class="title">${_safeTitle.replace(/\\.pdf$/,'')}</div>
+  <button class="btn" onclick="window.print()" title="Imprimer">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+    Imprimer
+  </button>
+  <button class="btn primary" onclick="window.location.href=${_mailHrefJS}" title="Partager le lien des photos par mail">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+    Partager
+  </button>
+</div>
+<embed class="viewer" src="${_pdfSrc}" type="application/pdf">
+</body></html>`);
+            pdfWin.document.close();
+          }catch(_){
             const dl=document.createElement('a');
             dl.href=url;dl.download=d.filename;dl.style.display='none';
             document.body.appendChild(dl);dl.click();dl.remove();
@@ -3469,7 +3507,7 @@ async function printSelection(opts){
           dl.href=url;dl.download=d.filename;dl.style.display='none';
           document.body.appendChild(dl);dl.click();dl.remove();
         }
-        setTimeout(()=>URL.revokeObjectURL(url),120000);
+        setTimeout(()=>URL.revokeObjectURL(url),300000);
       }
       if(d&&d.type==='proforma-share-error'){
         toast('❌ '+(d.message||'erreur PDF'));
