@@ -3178,18 +3178,7 @@ function _shortCode(){
 }
 async function shareCart(){
   if(!cart.length){toast(lang==='en'?'Sélection vide':'Sélection vide !');return;}
-  // Réserver l'onglet PDF MAINTENANT, dans le user gesture (sinon Safari
-  // bloque tout window.open déclenché plus tard, hors-gesture).
-  let pdfWin=null;
-  try{
-    pdfWin=window.open('about:blank','_blank');
-    if(pdfWin){
-      pdfWin.document.open();
-      pdfWin.document.write('<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Génération du PDF…</title><style>body{margin:0;font:16px/1.4 system-ui,-apple-system,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:#f5f5f3;color:#666;gap:14px}.s{width:36px;height:36px;border:3px solid #ddd;border-top-color:#FE0000;border-radius:50%;animation:r 1s linear infinite}@keyframes r{to{transform:rotate(360deg)}}</style></head><body><div class="s"></div><div>Génération du PDF…</div></body></html>');
-      pdfWin.document.close();
-    }
-  }catch(_){}
-  return printSelection({autoSendMail:true,pdfWin});
+  return printSelection({autoSendMail:true});
 }
 function openImportRefs(){
   const existing=document.getElementById('import-refs-bg');
@@ -3292,7 +3281,7 @@ function _proformaDesignation(it){
   return lines.filter((l,i,a)=>!(l===''&&(i===0||a[i-1]===''))).join('\n');
 }
 
-function askText({title,sub,placeholder,value,okLabel,cancelLabel}={}){
+function askText({title,sub,placeholder,value,okLabel,cancelLabel,onConfirm}={}){
   return new Promise(resolve=>{
     const bg=document.createElement('div');
     bg.className='askp-bg show';
@@ -3309,13 +3298,19 @@ function askText({title,sub,placeholder,value,okLabel,cancelLabel}={}){
     document.body.appendChild(bg);
     const input=bg.querySelector('input');
     const close=(val)=>{bg.remove();document.removeEventListener('keydown',keyHandler);resolve(val);};
+    // onConfirm s'exécute SYNC dans le user gesture du clic OK / Enter — utile
+    // pour window.open qui sinon serait bloqué par Safari hors-gesture.
+    const confirmAndClose=(val)=>{
+      if(val&&onConfirm){try{onConfirm(val);}catch(_){}}
+      close(val);
+    };
     const keyHandler=(e)=>{
-      if(e.key==='Enter'){e.preventDefault();close((input.value||'').trim());}
+      if(e.key==='Enter'){e.preventDefault();confirmAndClose((input.value||'').trim());}
       else if(e.key==='Escape'){e.preventDefault();close(null);}
     };
     bg.addEventListener('click',e=>{if(e.target===bg)close(null);});
     bg.querySelector('.askp-btn-cancel').addEventListener('click',()=>close(null));
-    bg.querySelector('.askp-btn-ok').addEventListener('click',()=>close((input.value||'').trim()));
+    bg.querySelector('.askp-btn-ok').addEventListener('click',()=>confirmAndClose((input.value||'').trim()));
     document.addEventListener('keydown',keyHandler);
     setTimeout(()=>input.focus(),50);
   });
@@ -3325,13 +3320,25 @@ async function printSelection(opts){
   const autoSendMail=!!(opts&&opts.autoSendMail);
   const autoPrint=!!(opts&&opts.autoPrint);
   const headless=autoSendMail||autoPrint;
-  const pdfWin=opts&&opts.pdfWin;
+  // Réservé à la validation du nom client (clic OK = user gesture frais
+  // pour window.open du PDF preview).
+  let pdfWin=null;
   if(!cart.length){toast('Sélection vide !');return;}
   const clientName=await askText(autoSendMail?{
     title:'Partager la sélection',
     sub:'Nom du client (utilisé dans le PDF et le mail).',
     placeholder:'Ex : Société Dupont',
-    okLabel:'Continuer'
+    okLabel:'Continuer',
+    onConfirm:()=>{
+      try{
+        pdfWin=window.open('about:blank','_blank');
+        if(pdfWin){
+          pdfWin.document.open();
+          pdfWin.document.write('<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Génération du PDF…</title><style>body{margin:0;font:16px/1.4 system-ui,-apple-system,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:#f5f5f3;color:#666;gap:14px}.s{width:36px;height:36px;border:3px solid #ddd;border-top-color:#FE0000;border-radius:50%;animation:r 1s linear infinite}@keyframes r{to{transform:rotate(360deg)}}</style></head><body><div class="s"></div><div>Génération du PDF…</div></body></html>');
+          pdfWin.document.close();
+        }
+      }catch(_){}
+    }
   }:{
     title:'Imprimer la sélection',
     sub:'Donne un nom à cette sélection (le nom du client par exemple).',
