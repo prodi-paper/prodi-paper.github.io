@@ -3546,22 +3546,6 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
 .totals-grid .val{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;}
 .totals-grid .net .lbl{text-decoration:underline;}
 .totals-grid .net .val{font-size:18px;color:var(--ink);}
-.foot-row{margin-top:14px;display:block;}
-.stamp{display:none;}
-.stamp-img{max-width:170px;opacity:.85;}
-.proforma-foot-block{page-break-inside:avoid;break-inside:avoid;}
-.payment-cond{font-size:10.5px;line-height:1.5;}
-.payment-cond .row{display:flex;gap:8px;align-items:baseline;margin-bottom:6px;}
-.payment-cond b{font-weight:700;text-transform:uppercase;letter-spacing:.4px;font-size:10.5px;}
-.payment-cond .amt{font-weight:700;font-variant-numeric:tabular-nums;}
-.bank-row{margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start;}
-.bank-table{width:100%;border-collapse:collapse;font-size:8.5px;}
-.bank-table th,.bank-table td{border:1px solid var(--line);padding:3px 5px;}
-.bank-table th{background:#f7f4ee;font-weight:700;text-transform:uppercase;letter-spacing:.3px;}
-.bank-table td{vertical-align:middle;}
-.bank-table td.bk-name{font-weight:600;}
-.confirm{font-size:10.5px;line-height:1.55;text-align:right;font-style:italic;color:#333;}
-.confirm .strong{font-weight:700;font-style:normal;display:block;margin-top:8px;letter-spacing:.4px;}
 .toolbar{position:fixed;top:14px;right:14px;display:flex;gap:8px;z-index:100;align-items:center;background:rgba(255,255,255,.95);padding:6px;border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,.12);}
 .toolbar button{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:9px 16px;border:none;border-radius:4px;cursor:pointer;letter-spacing:.4px;}
 .toolbar .modes{display:flex;gap:0;background:#f3f1ec;border-radius:4px;padding:3px;margin-right:4px;}
@@ -3573,8 +3557,7 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
 .toolbar .btn-close{background:#fff;color:var(--ink);border:1.5px solid var(--ink);}
 /* page-break-* hors @media print pour que html2pdf (mode css) les voit */
 .items tr,.items thead{page-break-inside:avoid;}
-.totals-block,.totals-grid,.foot-row,.bank-row,.confirm,.payment-cond,.bank-table{page-break-inside:avoid;}
-.totals-block,.foot-row,.bank-row{page-break-before:auto;}
+.totals-block,.totals-grid{page-break-inside:avoid;}
 .items tbody tr:last-child{page-break-after:avoid;}
 @media print{
   html,body{background:#fff;}
@@ -3646,35 +3629,7 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
     <div class="net"><div class="lbl">Net à payer</div><div class="val">${eur(totalMontant)} €</div></div>
   </div>
 
-  <div class="proforma-foot-block">
-  <div class="foot-row">
-    <div class="payment-cond">
-      <div class="row"><b>Conditions de paiement :</b><span class="amt" contenteditable="true">${eur(totalMontant)}</span><span contenteditable="true">REMISE DOCUMENTAIRE PAYABLE À VUE</span></div>
-      <div class="row"><b>Banque du client :</b><span contenteditable="true">—</span></div>
-      <div contenteditable="true" style="padding-left:160px;">—</div>
-    </div>
   </div>
-
-  <div class="bank-row" style="margin-top:14px;">
-    <table class="bank-table">
-      <thead><tr><th colspan="4">Banque Prodiconseil</th><th>Code</th><th>Guichet</th><th>Compte</th><th>RIB</th></tr></thead>
-      <tbody>
-        <tr><td class="bk-name" colspan="4">BNP PARIBAS - ILE DE FRANCE EST ENTREPRISES (02511)<br>IBAN : FR 76 3000 4008 3400 0100 1743 986 - SWIFT:BNPAFRPPIFE</td><td>30004</td><td>00834</td><td>00010017439</td><td>86</td></tr>
-        <tr><td class="bk-name" colspan="4">BANQUE POPULAIRE - BP RIVES CA TOLBIAC (00118)<br>IBAN : FR 76 1020 7000 1304 0130 5290 161-SWIFT:CCBPFRPPMTG</td><td>10207</td><td>00013</td><td>04013052901</td><td>61</td></tr>
-        <tr><td class="bk-name" colspan="4">SOCIETE GENERALE - SG IVRY SUR SEINE (04240)<br>IBAN : FR 76 3000 3042 4000 0209 3161 041 - SWIFT:SOGEFRPP</td><td>30003</td><td>04240</td><td>00020931610</td><td>41</td></tr>
-      </tbody>
-    </table>
-    <div class="confirm">
-      Je confirme mon accord sur cette proforma<br>
-      et les conditions de vente :<br>
-      Je m'engage à payer tous les frais et taxes<br>
-      s'il y avait un retard, une annulation<br><br>
-      hors du pays de départ des marchandises.
-      <span class="strong">Renvoyer signé et cacheté</span>
-    </div>
-  </div>
-  </div>
-</div>
 <script>
   function _ensureHtml2Pdf(){
     if(window.html2pdf)return Promise.resolve();
@@ -3696,7 +3651,7 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
       image:{type:'jpeg',quality:0.98},
       html2canvas:{scale:2,useCORS:true,letterRendering:true,backgroundColor:'#ffffff'},
       jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
-      pagebreak:{mode:['avoid-all','css','legacy'],avoid:['tr','.totals-block','.totals-grid','.foot-row','.bank-row','.confirm','.payment-cond','.bank-table','.proforma-foot-block']}
+      pagebreak:{mode:['avoid-all','css','legacy'],avoid:['tr','.totals-block','.totals-grid']}
     }).from(el);
   }
   function _withBtnState(btnSel,fn){
