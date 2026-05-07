@@ -3570,16 +3570,17 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
 .toolbar .btn-save{background:var(--ink);color:#fff;}
 .toolbar .btn-mail{background:#0a7d3d;color:#fff;}
 .toolbar .btn-close{background:#fff;color:var(--ink);border:1.5px solid var(--ink);}
+/* page-break-* hors @media print pour que html2pdf (mode css) les voit */
+.items tr,.items thead{page-break-inside:avoid;}
+.totals-block,.totals-grid,.foot-row,.bank-row,.confirm,.payment-cond,.bank-table{page-break-inside:avoid;}
+.totals-block,.foot-row,.bank-row{page-break-before:auto;}
+.items tbody tr:last-child{page-break-after:avoid;}
 @media print{
   html,body{background:#fff;}
   body{padding:0;display:block;}
   .page{box-shadow:none;width:auto;min-height:auto;padding:10mm 12mm;}
   .toolbar{display:none;}
   .editable{border-bottom-color:transparent;}
-  .items tr,.items thead{page-break-inside:avoid;}
-  .totals-block,.totals-grid,.foot-row{page-break-inside:avoid;}
-  .totals-block{page-break-before:avoid;}
-  .items tbody tr:last-child{page-break-after:avoid;}
   @page{size:A4 portrait;margin:0;}
 }
 </style></head><body>
@@ -3695,7 +3696,7 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
       image:{type:'jpeg',quality:0.98},
       html2canvas:{scale:2,useCORS:true,letterRendering:true,backgroundColor:'#ffffff'},
       jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
-      pagebreak:{mode:['css','legacy'],avoid:['tr','.totals-block','.totals-grid','.foot-row']}
+      pagebreak:{mode:['avoid-all','css','legacy'],avoid:['tr','.totals-block','.totals-grid','.foot-row','.bank-row','.confirm','.payment-cond','.bank-table']}
     }).from(el);
   }
   function _withBtnState(btnSel,fn){
