@@ -2569,6 +2569,10 @@ function renderCards(list){
         <div class="pcard-name">${esc(formatProductTitle(p.qualite,p.type))}</div>
         ${subtitleHtml}
         ${specsHtml}
+        ${_isGroup?`<div class="pcard-foot">
+          <div class="pton">${esc(poids)}<span class="pton-s"> KGS</span></div>
+          ${prixHtml}
+        </div>`:''}
         ${addCtrl}
         ${_isGroup?'':`<div class="pcard-foot">
           <div class="pton">${esc(poids)}<span class="pton-s"> KGS</span></div>
