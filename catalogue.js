@@ -1221,8 +1221,14 @@ function toggleMsd(id) {
 function toggleMsdOption(el, id) {
   const val = el.dataset.val;
   const set = msdState[id];
-  if (set.has(val)) { set.delete(val); el.classList.remove('selected'); }
-  else { set.add(val); el.classList.add('selected'); }
+  const willSelect = !set.has(val);
+  if (willSelect) set.add(val); else set.delete(val);
+  // Sync toutes les options jumelles (panels mobile + desktop partagent le même state)
+  const _esc = (typeof CSS!=='undefined'&&CSS.escape)?CSS.escape:(s=>String(s).replace(/[^a-zA-Z0-9_-]/g,'\\$&'));
+  document.querySelectorAll(`.msd-option[data-val="${_esc(val)}"]`).forEach(o=>{
+    if(!o.closest(`#${id},#${id}-mob,#sb-${id}`))return;
+    o.classList.toggle('selected', willSelect);
+  });
   updateMsdBtn(id);
   filterProducts();
 }
@@ -1268,33 +1274,36 @@ function _stockMatch(p){
 }
 function toggleStockPill(btn){
   const val=btn.dataset.stock;
-  const wasActive=btn.classList.contains('active');
-  if(wasActive){btn.classList.remove('active');_stockFilter.delete(val);}
-  else{btn.classList.add('active');_stockFilter.add(val);}
-  // Sync les pills jumelles (header + drawer mobile) sur le même data-stock
-  document.querySelectorAll('.fpill-stock[data-stock="'+val+'"]').forEach(b=>b.classList.toggle('active',_stockFilter.has(val)));
+  // Source de vérité = _stockFilter (pas le DOM, qui peut être désync entre les pills jumelles header/drawer)
+  const willSelect=!_stockFilter.has(val);
+  if(willSelect)_stockFilter.add(val); else _stockFilter.delete(val);
+  // Sync visuel sur TOUTES les pills jumelles (header + drawer mobile) sur le même data-stock
+  document.querySelectorAll('.fpill-stock[data-stock="'+val+'"]').forEach(b=>b.classList.toggle('active',willSelect));
   filterProducts();
 }
 let _depotFilter=''; // '' | 'our' | 'ext'
 function toggleDepotPill(btn){
   const val=btn.dataset.depot;
-  const wasActive=btn.classList.contains('active');
-  document.querySelectorAll('.fpill-depot').forEach(b=>b.classList.remove('active'));
-  if(wasActive){ _depotFilter=''; } else { btn.classList.add('active'); _depotFilter=val; }
+  // Source de vérité = _depotFilter (pas le DOM, qui peut désync entre pills jumelles)
+  const willSelect=(_depotFilter!==val);
+  _depotFilter=willSelect?val:'';
+  document.querySelectorAll('.fpill-depot').forEach(b=>b.classList.toggle('active',_depotFilter===b.dataset.depot));
   filterProducts();
 }
 let _photoFilter=''; // '' | 'with' | 'without'
 function togglePhotoPill(btn){
   const val=btn.dataset.photo;
-  const wasActive=btn.classList.contains('active');
-  document.querySelectorAll('.fpill-photo').forEach(b=>b.classList.remove('active'));
-  if(wasActive){ _photoFilter=''; } else { btn.classList.add('active'); _photoFilter=val; }
+  const willSelect=(_photoFilter!==val);
+  _photoFilter=willSelect?val:'';
+  document.querySelectorAll('.fpill-photo').forEach(b=>b.classList.toggle('active',_photoFilter===b.dataset.photo));
   filterProducts();
 }
+let _formatFilter=''; // '' | 'Bobine' | 'Palette'
 function toggleFormatPill(btn){
-  const wasActive=btn.classList.contains('active');
-  document.querySelectorAll('.fpill[data-format]').forEach(b=>b.classList.remove('active'));
-  if(!wasActive)btn.classList.add('active');
+  const fmt=btn.dataset.format;
+  const willSelect=(_formatFilter!==fmt);
+  _formatFilter=willSelect?fmt:'';
+  document.querySelectorAll('.fpill[data-format]').forEach(b=>b.classList.toggle('active',_formatFilter===b.dataset.format));
   updateFilterVisibility();
   filterProducts();
 }
@@ -2368,15 +2377,11 @@ function updateFilterChips(){
   if(_activeOrigs.length>0)chips.push({label:(lang==='en'?'Origin':'Origine')+' : '+_activeOrigs.join(', '),clear:()=>{document.querySelectorAll('.fpill-orig.active').forEach(b=>b.classList.remove('active'));filterProducts();}});
   _stockFilter.forEach(_sf=>{
     const _label=_sf==='fab'?'Fabrication':_sf==='siderun'?'Siderun':'Stocklots';
-    chips.push({label:_label,clear:()=>{
-      _stockFilter.delete(_sf);
-      document.querySelectorAll('.fpill-stock[data-stock="'+_sf+'"]').forEach(b=>b.classList.remove('active'));
-      filterProducts();
-    }});
+    chips.push({label:_label,clear:()=>{_stockFilter.delete(_sf);syncFilterPills();filterProducts();}});
   });
-  if(_depotFilter)chips.push({label:_depotFilter==='our'?'Notre dépôt':'Hors dépôt',clear:()=>{document.querySelectorAll('.fpill-depot').forEach(b=>b.classList.remove('active'));_depotFilter='';filterProducts();}});
-  if(_photoFilter)chips.push({label:_photoFilter==='with'?'Avec photo':'Sans photo',clear:()=>{document.querySelectorAll('.fpill-photo').forEach(b=>b.classList.remove('active'));_photoFilter='';filterProducts();}});
-  if(_activeFmts.length>0)chips.push({label:LT[lang].t_fmt+' : '+_activeFmts.map(f=>f==='Bobine'?LT[lang].t_bobine:f==='Palette'?LT[lang].t_palette:f).join(', '),clear:()=>{document.querySelectorAll('.fpill.active').forEach(b=>b.classList.remove('active'));filterProducts();}});
+  if(_depotFilter)chips.push({label:_depotFilter==='our'?'Notre dépôt':'Hors dépôt',clear:()=>{_depotFilter='';syncFilterPills();filterProducts();}});
+  if(_photoFilter)chips.push({label:_photoFilter==='with'?'Avec photo':'Sans photo',clear:()=>{_photoFilter='';syncFilterPills();filterProducts();}});
+  if(_activeFmts.length>0)chips.push({label:LT[lang].t_fmt+' : '+_activeFmts.map(f=>f==='Bobine'?LT[lang].t_bobine:f==='Palette'?LT[lang].t_palette:f).join(', '),clear:()=>{_formatFilter='';syncFilterPills();filterProducts();}});
   ['msd-type','msd-mandrin','msd-couleur','msd-details'].forEach(id=>{
     const set=msdState[id];
     if(set.size>0){
@@ -2930,7 +2935,7 @@ function resetFilters(){
 
     // 4. Reset format pills
     document.querySelectorAll('.fpill.active,.fpill-orig.active,.fpill-stock.active,.fpill-depot.active,.fpill-photo.active,.fb-pill.active').forEach(b=>b.classList.remove('active'));
-    _stockFilter.clear();_depotFilter='';_photoFilter='';
+    _stockFilter.clear();_depotFilter='';_photoFilter='';_formatFilter='';
     ['fb-bobine','fb-palette','fb-recyc','fb-fab'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('active');});
 
     // 5. Clear all inputs
@@ -4263,7 +4268,16 @@ function toggleMobSearch(){
     if(inp) setTimeout(()=>inp.focus(),50);
   }
 }
+function syncFilterPills(){
+  // Aligne TOUTES les pills (header + drawer mobile) sur les états sources de vérité.
+  // Les comparaisons `''===dataset.x` sont sûres : aucune pill n'a un data-* vide.
+  document.querySelectorAll('.fpill-stock').forEach(b=>b.classList.toggle('active',_stockFilter.has(b.dataset.stock)));
+  document.querySelectorAll('.fpill[data-format]').forEach(b=>b.classList.toggle('active',_formatFilter===b.dataset.format));
+  document.querySelectorAll('.fpill-depot').forEach(b=>b.classList.toggle('active',_depotFilter===b.dataset.depot));
+  document.querySelectorAll('.fpill-photo').forEach(b=>b.classList.toggle('active',_photoFilter===b.dataset.photo));
+}
 function openFilterDrawer(){
+  syncFilterPills(); // Évite que les pills du drawer soient désync avec l'état réel
   document.getElementById('filter-drawer').classList.add('open');
   document.getElementById('filter-drawer-overlay').classList.add('show');
   document.body.style.overflow='hidden';
