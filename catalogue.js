@@ -3555,8 +3555,8 @@ body{display:flex;flex-direction:column;height:100vh}
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{--ink:#1a1a1a;--gray:#6b6b6b;--line:#1a1a1a;--soft:#e5e5e0;--red:#d22;--bg:#fdfcfa;}
 html,body{background:#eeeae3;}
-body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;color:var(--ink);line-height:1.35;padding:24px;display:flex;justify-content:center;}
-.page{background:var(--bg);width:210mm;min-height:297mm;padding:14mm 14mm 12mm;box-shadow:0 4px 24px rgba(0,0,0,.08);position:relative;}
+body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;color:var(--ink);line-height:1.35;padding:24px;min-width:fit-content;}
+.page{background:var(--bg);width:210mm;min-height:297mm;padding:14mm 14mm 12mm;box-shadow:0 4px 24px rgba(0,0,0,.08);position:relative;margin:0 auto;}
 .page-num{position:absolute;top:10mm;right:14mm;font-weight:600;font-size:11px;}
 .head{display:grid;grid-template-columns:1.05fr .95fr;gap:18px;margin-bottom:14px;}
 .brand{display:flex;flex-direction:column;align-items:flex-start;gap:8px;}
@@ -3721,11 +3721,14 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
   }
   function _pdfWorker(){
     const el=document.querySelector('.page');
+    // Largeur en px du .page (210mm). On capture exactement cette largeur pour éviter qu'html2canvas
+    // capte la position relative du .page dans le body (qui peut être décalée si le popup est étroit).
+    const _pageW=el.getBoundingClientRect().width;
     return window.html2pdf().set({
       margin:0,
       filename:document.title.replace(/[\\/:*?"<>|]/g,'_')+'.pdf',
       image:{type:'jpeg',quality:0.98},
-      html2canvas:{scale:2,useCORS:true,letterRendering:true,backgroundColor:'#ffffff',windowWidth:900,windowHeight:1273,scrollX:0,scrollY:0},
+      html2canvas:{scale:2,useCORS:true,letterRendering:true,backgroundColor:'#ffffff',width:_pageW,windowWidth:_pageW+48,windowHeight:1273,scrollX:0,scrollY:0,x:0,y:0},
       jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
       pagebreak:{mode:['avoid-all','css','legacy'],avoid:['tr','.totals-block','.totals-grid']}
     }).from(el);
