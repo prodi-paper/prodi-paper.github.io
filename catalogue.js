@@ -3192,7 +3192,7 @@ function _shortCode(){
   return Array.from(crypto.getRandomValues(new Uint8Array(6)),b=>'0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'[b%62]).join('');
 }
 // shareCart conservé pour compat (peut être appelé depuis du HTML legacy)
-async function shareCart(){return printSelection({autoGenerate:true});}
+async function shareCart(){return printSelection({autoGenerate:false});}
 function openImportRefs(){
   const existing=document.getElementById('import-refs-bg');
   if(existing)existing.remove();
@@ -3353,10 +3353,10 @@ async function printSelection(opts){
       }catch(_){}
     }
   }:{
-    title:'Imprimer la sélection',
+    title:'Générer la liste',
     sub:'Donne un nom à cette sélection (le nom du client par exemple).',
     placeholder:'Ex : Société Dupont',
-    okLabel:'Imprimer'
+    okLabel:'Générer'
   });
   // null = cancel (Annuler / Escape / clic hors-modal). '' = Générer sans nom.
   if(clientName===null){if(pdfWin){try{pdfWin.close();}catch(_){}}return;}
@@ -3449,7 +3449,7 @@ async function printSelection(opts){
     // ait un DOM à manipuler. Le download + mailto sont délégués au parent.
     _shareIframe=document.createElement('iframe');
     _shareIframe.setAttribute('aria-hidden','true');
-    _shareIframe.style.cssText='position:fixed;left:-99999px;top:-99999px;width:1200px;height:1600px;border:0;opacity:0;pointer-events:none;';
+    _shareIframe.style.cssText='position:fixed;left:0;top:0;width:1200px;height:1600px;border:0;opacity:0;pointer-events:none;z-index:-1;';
     document.body.appendChild(_shareIframe);
     w=_shareIframe.contentWindow;
     const _cleanup=()=>{window.removeEventListener('message',_onMsg);try{_shareIframe&&_shareIframe.parentNode&&_shareIframe.remove();}catch(_){}};
@@ -3457,7 +3457,11 @@ async function printSelection(opts){
       const d=ev&&ev.data;
       if(d==='proforma-share-done'){_cleanup();return;}
       if(d&&d.type==='proforma-share-fallback'){
-        // URL créée dans pdfWin pour que <embed> enfant puisse y accéder.
+        // Transfert du blob à pdfWin → pdfWin crée son propre object URL
+        // (Safari refuse souvent les blob URLs cross-window dans <embed>/<iframe>).
+        if(pdfWin&&!pdfWin.closed){
+          try{pdfWin.__pdfBlob=d.blob;}catch(_){}
+        }
         let url;
         try{url=(pdfWin&&pdfWin.URL?pdfWin.URL:URL).createObjectURL(d.blob);}
         catch(_){url=URL.createObjectURL(d.blob);}
@@ -3489,12 +3493,26 @@ body{display:flex;flex-direction:column;height:100vh}
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
     Imprimer
   </button>
+  <button class="btn" onclick="window.location.href=document.getElementById('pdf-viewer').src" title="Ouvrir le PDF">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    Voir PDF
+  </button>
   <button class="btn primary" onclick="window.location.href=${_mailHrefJS}" title="Partager le lien des photos par mail">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
     Partager
   </button>
 </div>
-<embed class="viewer" src="${_pdfSrc}" type="application/pdf">
+<embed class="viewer" id="pdf-viewer" src="${_pdfSrc}" type="application/pdf">
+<script>
+  // Si le blob a été transmis directement, recrée l'URL dans pdfWin (plus fiable Safari).
+  try{
+    if(window.__pdfBlob){
+      var _localUrl=URL.createObjectURL(window.__pdfBlob);
+      var _v=document.getElementById('pdf-viewer');
+      if(_v)_v.src=_localUrl;
+    }
+  }catch(_){}
+</script>
 </body></html>`);
             pdfWin.document.close();
           }catch(_){
@@ -3600,8 +3618,8 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
 .totals-grid .val{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;}
 .totals-grid .net .lbl{text-decoration:underline;}
 .totals-grid .net .val{font-size:18px;color:var(--ink);}
-.toolbar{position:fixed;top:14px;right:14px;display:flex;gap:8px;z-index:100;align-items:center;background:rgba(255,255,255,.95);padding:6px;border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,.12);}
-.toolbar button{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:9px 16px;border:none;border-radius:4px;cursor:pointer;letter-spacing:.4px;}
+.toolbar{position:fixed;top:14px;right:14px;display:flex;gap:12px;z-index:100;align-items:center;background:rgba(255,255,255,.95);padding:10px;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.12);}
+.toolbar button{font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;padding:14px 26px;border:none;border-radius:6px;cursor:pointer;letter-spacing:.4px;}
 .toolbar .modes{display:flex;gap:0;background:#f3f1ec;border-radius:4px;padding:3px;margin-right:4px;}
 .toolbar .modes button{background:transparent;color:var(--ink);padding:6px 12px;font-size:11px;border-radius:3px;letter-spacing:.3px;}
 .toolbar .modes button.active{background:var(--ink);color:#fff;}
@@ -3623,14 +3641,9 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
 }
 </style></head><body>
 <div class="toolbar">
-  <div class="modes">
-    <button data-mode="detail" class="active" onclick="setMode('detail')">Détail</button>
-    <button data-mode="resume" onclick="setMode('resume')">Résumé</button>
-  </div>
   <button class="btn-print" onclick="window.print()">Imprimer</button>
   <button class="btn-save" onclick="savePdf()">Enregistrer</button>
   <button class="btn-mail" onclick="sendByEmail(event)">Envoyer par mail</button>
-  <button class="btn-close" onclick="window.close()">Fermer</button>
 </div>
 <div class="page">
   <div class="page-num">1</div>
@@ -3680,7 +3693,7 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
     <div><div class="lbl">Total HT</div><div class="val">${eur(totalMontant)} €</div></div>
     <div><div class="lbl">Total TTC</div><div class="val">${eur(totalMontant)} €</div></div>
     <div><div class="lbl">Poids Total</div><div class="val">${dec(totalPoids/1000,3)} T</div></div>
-    <div class="net"><div class="lbl">Net à payer</div><div class="val">${eur(totalMontant)} €</div></div>
+    <div class="net"><div class="lbl">Net à payer</div><div class="val">${eur(totalMontant+2800)} €</div></div>
   </div>
 
   </div>
@@ -3780,10 +3793,21 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
     if(saved==='resume')setMode('resume');
     else if(saved&&saved!=='detail')localStorage.removeItem('proforma_mode');
   }catch(_){}
-  if(${autoGenerate})setTimeout(async()=>{
-    try{await sendByEmail();}catch(_){}
-    setTimeout(()=>{try{parent.postMessage('proforma-share-done','*');}catch(_){}},1500);
-  },300);
+  if(${autoGenerate}){
+    (async()=>{
+      try{
+        // Race: wait for fonts/images mais max 1.2s pour ne pas bloquer si fail
+        const _ready=Promise.all([
+          (document.fonts&&document.fonts.ready)?document.fonts.ready.catch(()=>{}):Promise.resolve(),
+          Promise.all([...document.images].map(i=>i.complete?null:new Promise(r=>{i.onload=i.onerror=r;})))
+        ]).catch(()=>{});
+        const _maxWait=new Promise(r=>setTimeout(r,1200));
+        await Promise.race([_ready,_maxWait]);
+        await sendByEmail();
+      }catch(_){}
+      setTimeout(()=>{try{parent.postMessage('proforma-share-done','*');}catch(_){}},1500);
+    })();
+  }
 </script>
 </body></html>`);
   w.document.close();
