@@ -3543,7 +3543,7 @@ body{display:flex;flex-direction:column;height:100vh}
   }
   const _safeClient=clientName.replace(/[\/\\:*?"<>|]/g,'_');
   const _docTitle=_safeClient?`Liste détaillée — ${_safeClient} — ${numero}`:`Liste détaillée — ${numero}`;
-  w.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><base href="${baseUrl}"><title>${_docTitle}</title>
+  w.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><base href="${baseUrl}"><title>${_docTitle}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=Pinyon+Script&family=Playfair+Display:ital,wght@1,400;1,700&display=swap" rel="stylesheet">
 <style>
@@ -3720,7 +3720,7 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
       margin:0,
       filename:document.title.replace(/[\\/:*?"<>|]/g,'_')+'.pdf',
       image:{type:'jpeg',quality:0.98},
-      html2canvas:{scale:2,useCORS:true,letterRendering:true,backgroundColor:'#ffffff'},
+      html2canvas:{scale:2,useCORS:true,letterRendering:true,backgroundColor:'#ffffff',windowWidth:900,windowHeight:1273,scrollX:0,scrollY:0},
       jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
       pagebreak:{mode:['avoid-all','css','legacy'],avoid:['tr','.totals-block','.totals-grid']}
     }).from(el);
