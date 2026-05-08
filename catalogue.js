@@ -3423,11 +3423,23 @@ async function printSelection(opts){
   const num=v=>(v||0).toLocaleString('fr-FR',{maximumFractionDigits:0});
   const dec=(v,d=2)=>(v||0).toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d});
   const _detailRow=it=>`<tr><td class="ref">${esc(it.photoRef||'—')}</td><td class="ref">${esc(it.ref)}</td><td>${esc(it.titre||'')}</td><td>${esc(it.details||'—')}</td><td>${esc(it.couleur||'—')}</td><td class="num">${it.gsm?esc(it.gsm+' g/m²'):'—'}</td><td>${esc(it.dim||'—')}</td><td class="num">${esc(num(it.poidsKg)+' kg')}</td><td class="num">${esc(it.usine||'—')}</td><td class="num">${esc(num(it.priceT)+' €/T')}</td><td class="num">${esc(eur(it.montant)+' €')}</td></tr>`;
-  const _detailTable=(rows,dimLbl)=>`<table class="items view-detail">
-      <colgroup><col class="c-pref"><col class="c-q"><col class="c-tit"><col class="c-det"><col class="c-col"><col class="c-gsm"><col class="c-dim"><col class="c-pn"><col class="c-us"><col class="c-pt"><col class="c-mt"></colgroup>
-      <thead><tr><th>N°</th><th>Réf.</th><th>Qualité</th><th>Détails</th><th>Couleur</th><th style="text-align:right;">GSM</th><th>${dimLbl}</th><th style="text-align:right;">PN (kg)</th><th style="text-align:right;">Usine</th><th style="text-align:right;">P/T (€)</th><th style="text-align:right;">Montant HT (€)</th></tr></thead>
-      <tbody>${rows.map(_detailRow).join('')}</tbody>
-    </table>`;
+  const _itemsThead=dimLbl=>`<thead><tr><th>N°</th><th>Réf.</th><th>Qualité</th><th>Détails</th><th>Couleur</th><th style="text-align:right;">GSM</th><th>${dimLbl}</th><th style="text-align:right;">PN (kg)</th><th style="text-align:right;">Usine</th><th style="text-align:right;">P/T (€)</th><th style="text-align:right;">Montant HT (€)</th></tr></thead>`;
+  const _itemsColgroup=`<colgroup><col class="c-pref"><col class="c-q"><col class="c-tit"><col class="c-det"><col class="c-col"><col class="c-gsm"><col class="c-dim"><col class="c-pn"><col class="c-us"><col class="c-pt"><col class="c-mt"></colgroup>`;
+  // html2pdf utilise html2canvas (screenshot unique) → le <thead> ne se répète pas naturellement sur les pages 2+.
+  // Workaround : on splitte le tableau en chunks, chacun avec son propre thead, séparés par page-break-before:always.
+  // CHUNK_FIRST plus petit pour laisser la place au header logo/adresse/TVA + au titre Bobines/Formats au-dessus.
+  const _chunk=(arr,size)=>{const out=[];for(let i=0;i<arr.length;i+=size)out.push(arr.slice(i,i+size));return out;};
+  const _detailTable=(rows,dimLbl)=>{
+    const CHUNK_FIRST=10, CHUNK_REST=14;
+    if(rows.length<=CHUNK_FIRST){
+      return `<table class="items view-detail">${_itemsColgroup}${_itemsThead(dimLbl)}<tbody>${rows.map(_detailRow).join('')}</tbody></table>`;
+    }
+    const chunks=[rows.slice(0,CHUNK_FIRST), ..._chunk(rows.slice(CHUNK_FIRST),CHUNK_REST)];
+    return chunks.map((chunk,idx)=>{
+      const _breakStyle=idx>0?' style="page-break-before:always;"':'';
+      return `<table class="items view-detail"${_breakStyle}>${_itemsColgroup}${_itemsThead(dimLbl)}<tbody>${chunk.map(_detailRow).join('')}</tbody></table>`;
+    }).join('');
+  };
   const _detailHTML=(itemsBobine.length&&itemsFormat.length)
     ?`<div class="section-title">Bobines</div>${_detailTable(itemsBobine,'Laize')}<div class="section-title">Formats</div>${_detailTable(itemsFormat,'Dimensions')}`
     :itemsBobine.length
