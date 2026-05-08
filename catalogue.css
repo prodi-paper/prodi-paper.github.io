@@ -825,7 +825,11 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
   /* Reset asymmetric body-wrap padding (was 16px 24px 16px 0 for desktop sidebar) */
   .body-wrap{padding:0 !important;max-width:100% !important;}
   .body-wrap>div:last-child{padding:0 !important;min-width:0;}
-  .pgrid{padding:0 8px;}
+  /* Filet de sécurité contre tout débordement horizontal (mot long dans une cellule, grid blowout, etc.) */
+  html,body{overflow-x:hidden;}
+  /* Force le grid à pouvoir shrink — sans `minmax(0,1fr)`, le `auto` minimum d'une 1fr peut faire déborder à cause du contenu min-content d'une carte */
+  .pgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;padding:0 8px;}
+  .pcard{min-width:0;}
 }
 
 
