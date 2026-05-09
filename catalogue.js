@@ -1268,10 +1268,11 @@ let _stockFilter=new Set(); // Set of 'stocklot' | 'fab' | 'siderun' — multich
 // Tester l'appartenance d'un produit aux 3 catégories de stock.
 function _stockMatch(p){
   if(_stockFilter.size===0)return true;
-  const _hasFab=(p.ref&&/FAB/i.test(String(p.ref)))||(p.emplacement&&/FAB|DIRECT USINE/i.test(p.emplacement))||(p.details&&/fabrication/i.test(p.details))||(p.zone&&/FABRICATION/i.test(p.zone));
-  const _isFab=_hasFab&&p.emplacement!=='OUR WAREHOUSE';
-  const _isSiderun=p.emplacement==='OUR WAREHOUSE'&&((p.ref&&/FAB/i.test(String(p.ref)))||(p.details&&/fabrication/i.test(p.details)));
-  const _isStocklot=!_hasFab;
+  const _ref=String(p.ref||'');
+  // Définitions par préfixe de ref
+  const _isSiderun=/^Photo_DU/i.test(_ref);                                    // photos bleues — sur demande
+  const _isFab=/^Photo_FAB/i.test(_ref)&&p.emplacement!=='OUR WAREHOUSE';      // photos jaunes — fabrication hors dépôt
+  const _isStocklot=!_isSiderun&&!_isFab;
   return (_stockFilter.has('fab')&&_isFab)||(_stockFilter.has('siderun')&&_isSiderun)||(_stockFilter.has('stocklot')&&_isStocklot);
 }
 function toggleStockPill(btn){
@@ -1869,9 +1870,8 @@ function _filterSharedLocal(){
     if(_photoFilter==='with'&&!_hasPhoto)return false;
     if(_photoFilter==='without'){
       if(_hasPhoto)return false;
-      // Exclure uniquement les FAB purs (hors entrepôt) — ils n'ont jamais de photo par nature.
-      // Les Siderun (OUR WAREHOUSE + marqueurs FAB) sont gardés car certains ont des photos.
-      const _isFabPure=(p.emplacement&&p.emplacement!=='OUR WAREHOUSE'&&((p.ref&&/FAB/i.test(String(p.ref)))||/FAB|DIRECT USINE/i.test(p.emplacement)||(p.details&&/fabrication/i.test(p.details))||(p.zone&&/FABRICATION/i.test(p.zone))));
+      // Exclure uniquement les FAB purs (Photo_FAB hors dépôt) — ils n'ont jamais de photo par nature.
+      const _isFabPure=p.ref&&/^Photo_FAB/i.test(String(p.ref))&&p.emplacement!=='OUR WAREHOUSE';
       if(_isFabPure)return false;
     }
     return true;
@@ -2104,22 +2104,23 @@ async function _fetchAndRender(token){
   if(_stockFilter.size===1){
     const _sf=[..._stockFilter][0];
     if(_sf==='fab'){
+      // FAB = ref commence par Photo_FAB ET hors dépôt
+      p.append('ref','ilike.Photo_FAB%');
       p.append('emplacement','neq.OUR WAREHOUSE');
-      p.append('or','(ref.ilike.%FAB%,emplacement.ilike.%FAB%,emplacement.ilike.%DIRECT USINE%,details.ilike.%fabrication%,zone.ilike.%FABRICATION%)');
     } else if(_sf==='stocklot'){
-      p.append('and','(or(ref.not.ilike.%FAB%,ref.is.null),or(details.not.ilike.%fabrication%,details.is.null),or(emplacement.not.ilike.%FAB%,emplacement.is.null),or(emplacement.not.ilike.%DIRECT USINE%,emplacement.is.null),or(zone.not.ilike.%FABRICATION%,zone.is.null))');
+      // STOCKLOT = ni Photo_DU* ni Photo_FAB*
+      p.append('and','(or(ref.not.ilike.Photo_DU%,ref.is.null),or(ref.not.ilike.Photo_FAB%,ref.is.null))');
     } else if(_sf==='siderun'){
-      p.append('emplacement','eq.OUR WAREHOUSE');
-      p.append('or','(ref.ilike.%FAB%,details.ilike.%fabrication%)');
+      // SIDERUN = ref commence par Photo_DU
+      p.append('ref','ilike.Photo_DU%');
     }
   }
   // Photo filter — image_url is NULL pour les produits sans photo réelle (mis à jour par scripts/verify_photos.py)
   if(_photoFilter==='with')p.append('image_url','not.is.null');
   else if(_photoFilter==='without'){
     p.append('image_url','is.null');
-    // Exclure uniquement les FAB purs (hors entrepôt) — pas les Siderun (certains ont des photos).
-    // Garde le produit si emplacement = OUR WAREHOUSE (siderun/stocklot) OU si pas de marqueur FAB.
-    p.append('or','(emplacement.eq.OUR WAREHOUSE,and(or(ref.not.ilike.%FAB%,ref.is.null),or(details.not.ilike.%fabrication%,details.is.null),or(emplacement.not.ilike.%FAB%,emplacement.is.null),or(emplacement.not.ilike.%DIRECT USINE%,emplacement.is.null),or(zone.not.ilike.%FABRICATION%,zone.is.null)))');
+    // Exclure uniquement les FAB purs (Photo_FAB hors dépôt) — ils n'ont jamais de photo par nature.
+    p.append('or','(ref.not.ilike.Photo_FAB%,ref.is.null,emplacement.eq.OUR WAREHOUSE)');
   }
   if(s==='gsm_asc'||s==='grammage_asc')p.set('order','gsm.asc.nullslast,id.asc');
   else if(s==='gsm_desc'||s==='grammage_desc')p.set('order','gsm.desc.nullslast,id.asc');
@@ -2509,8 +2510,8 @@ function renderCards(list){
   g.innerHTML=list.map(p=>{
     const initials=(p.type||'?').substring(0,2).toUpperCase();
     const _altTxt=[p.name,p.grammage?p.grammage+'g/m²':'',p.couleur].filter(Boolean).join(' — ')||'Produit';
-    const _isFab=(p.zone==='FABRICATION SUR COMMANDE'||p.emplacement==='FABRICATION SUR COMMANDE'||(p.ref&&/^Photo_FAB/i.test(String(p.ref)))||(p.details&&/^\s*fabrication\b/i.test(p.details))||(p.emplacement&&/FAB|DIRECT USINE/i.test(p.emplacement)));
-    const _isSiderun=(p.emplacement==='OUR WAREHOUSE'&&((p.ref&&/FAB/i.test(String(p.ref)))||(p.details&&/fabrication/i.test(p.details))));
+    const _isFab=p.ref&&/^Photo_FAB/i.test(String(p.ref))&&p.emplacement!=='OUR WAREHOUSE';
+    const _isSiderun=p.ref&&/^Photo_DU/i.test(String(p.ref));
     const _fallbackImg=_isSiderun?'img/siderun-sur-demande.png':_isFab?'img/fabrication-sur-demande.png':'img/no-photo.png';
     const imgHtml=p.image_url
         ?`<img src="${safeUrl(p.image_url)}" alt="${esc(_altTxt)}" loading="lazy" onerror="this.src='${esc(_fallbackImg)}';this.className='pcard-nophoto'">`
@@ -2619,9 +2620,9 @@ function renderList(list){
   if(!g)return;
   g.className='pgrid plist';
   const rows=list.map(p=>{
-    const _isFabL=(p.zone==='FABRICATION SUR COMMANDE'||p.emplacement==='FABRICATION SUR COMMANDE'||(p.ref&&/^Photo_FAB/i.test(String(p.ref)))||(p.details&&/^\s*fabrication\b/i.test(p.details))||(p.emplacement&&/FAB|DIRECT USINE/i.test(p.emplacement)));
+    const _isFabL=p.ref&&/^Photo_FAB/i.test(String(p.ref))&&p.emplacement!=='OUR WAREHOUSE';
     const title=formatProductTitle(p.qualite,p.name);
-    const _isSiderunL=(p.emplacement==='OUR WAREHOUSE'&&((p.ref&&/FAB/i.test(String(p.ref)))||(p.details&&/fabrication/i.test(p.details))));
+    const _isSiderunL=p.ref&&/^Photo_DU/i.test(String(p.ref));
     const _listFallback=_isSiderunL?'img/siderun-sur-demande.png':_isFabL?'img/fabrication-sur-demande.png':'img/no-photo.png';
     const thumb=p.image_url
         ?`<img src="${safeUrl(p.image_url)}" alt="${esc(title)}" class="plist-thumb" loading="lazy" onerror="this.src='${esc(_listFallback)}'">`
@@ -2779,8 +2780,8 @@ async function openDetail(id){
   // Image
   const mi=document.getElementById('det-main');
   const _detAlt=[p.name,p.grammage?p.grammage+'g/m²':'',p.couleur].filter(Boolean).join(' — ')||'Produit';
-  const _isFab=(p.zone==='FABRICATION SUR COMMANDE'||p.emplacement==='FABRICATION SUR COMMANDE'||(p.ref&&/^Photo_FAB/i.test(String(p.ref)))||(p.details&&/^\s*fabrication\b/i.test(p.details))||(p.emplacement&&/FAB|DIRECT USINE/i.test(p.emplacement)));
-  const _isSiderunD=(p.emplacement==='OUR WAREHOUSE'&&((p.ref&&/FAB/i.test(String(p.ref)))||(p.details&&/fabrication/i.test(p.details))));
+  const _isFab=p.ref&&/^Photo_FAB/i.test(String(p.ref))&&p.emplacement!=='OUR WAREHOUSE';
+  const _isSiderunD=p.ref&&/^Photo_DU/i.test(String(p.ref));
   const _DET_SIDERUN_PHOTO=`<img src="img/siderun-sur-demande.png" alt="Siderun" style="width:100%;height:100%;object-fit:contain;">`;
   const _detFallback=_isSiderunD?_DET_SIDERUN_PHOTO:_isFab?_DET_FAB_PHOTO:_DET_NO_PHOTO;
   mi.innerHTML=p.image_url?`<img src="${safeUrl(p.image_url)}" loading="lazy" alt="${esc(_detAlt)}" onerror="this.onerror=null;this.parentNode.innerHTML=document.getElementById('det-fallback').innerHTML;">`
@@ -4057,8 +4058,8 @@ function renderDrawer(){
     const _emp=p.emplacement||_pFull.emplacement||null;
     const _zone=p.zone||_pFull.zone||null;
     const _ref=p.ref||_pFull.ref||null;
-    const _isSiderunD=(_emp==='OUR WAREHOUSE'&&((_ref&&/FAB/i.test(String(_ref)))||(_details&&/fabrication/i.test(_details))));
-    const _isFabD=!_isSiderunD&&((_zone==='FABRICATION SUR COMMANDE'||_emp==='FABRICATION SUR COMMANDE')||(_ref&&/^Photo_FAB/i.test(String(_ref)))||(_details&&/^\s*fabrication\b/i.test(_details))||(_emp&&/FAB|DIRECT USINE/i.test(_emp))||(_zone&&/FABRICATION/i.test(_zone)));
+    const _isSiderunD=_ref&&/^Photo_DU/i.test(String(_ref));
+    const _isFabD=_ref&&/^Photo_FAB/i.test(String(_ref))&&_emp!=='OUR WAREHOUSE';
     const _fallback=_isSiderunD?'img/siderun-sur-demande.png':_isFabD?'img/fabrication-sur-demande.png':'img/no-photo.png';
     const imgHtml=imgSrc?`<img src="${safeUrl(imgSrc)}" onerror="this.src='${esc(_fallback)}'">`:`<img src="${esc(_fallback)}" alt="">`;
     return`<div class="ci" id="ci-${numId(p.id)}" onclick="_ciOpenDetail(${numId(p.id)})" style="cursor:pointer">

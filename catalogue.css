@@ -464,27 +464,27 @@ body.drawer-open .modal-bg{
   padding-left:max(16px, calc((100vw - 420px - 657px) / 2));
   padding-right:436px;
 }
-body.drawer-open .dmod-prev{left:max(8px, calc(50vw - 664px));}
-body.drawer-open .dmod-next{right:max(436px, calc(50vw - 300px));}
+body.drawer-open .dmod-prev{left:max(8px, calc(50vw - 850px));}
+body.drawer-open .dmod-next{right:max(436px, calc(50vw - 100px));}
 @media(max-width:660px){
   body.drawer-open .modal-bg{
     justify-content:center;
     padding-left:16px;
     padding-right:16px;
   }
-  body.drawer-open .dmod-prev{left:max(8px, calc(50% - 390px - 64px));}
-  body.drawer-open .dmod-next{right:max(8px, calc(50% - 390px - 64px));}
+  body.drawer-open .dmod-prev{left:max(8px, calc(50% - 704px));}
+  body.drawer-open .dmod-next{right:max(8px, calc(50% - 704px));}
 }
 .dmod-nav{position:fixed;top:50%;transform:translateY(-50%);width:56px;height:56px;border-radius:50%;border:none;background:rgba(255,255,255,.22);color:#fff;font-size:26px;cursor:pointer;transition:background .15s,opacity .15s;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);z-index:var(--z-modal);}
 .modal-bg.show .dmod-nav{display:flex;}
-.dmod-prev{left:max(8px, calc(50% - 390px - 64px));}
-.dmod-next{right:max(8px, calc(50% - 390px - 64px));}
+.dmod-prev{left:max(8px, calc(50% - 704px));}
+.dmod-next{right:max(8px, calc(50% - 704px));}
 .dmod-nav:hover:not(:disabled){background:rgba(255,255,255,.32);}
 .dmod-nav:disabled{opacity:.22;cursor:default;pointer-events:none;}
-@media(max-width:660px){.dmod-nav{display:none;}}
+@media(max-width:1408px){.dmod-nav{display:none;}.modal-bg.show .dmod-nav{display:none;}}
 @keyframes up{from{transform:translateY(16px);opacity:0}to{transform:none;opacity:1}}
-.dmodal{background:var(--white);border-radius:16px;width:100%;max-width:657px;height:800px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.25);margin:auto;animation:up .22s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;}
-.dimg-col{position:relative;background:#fff;order:1;width:100%;height:45%;flex-shrink:0;}
+.dmodal{background:var(--white);border-radius:16px;width:100%;max-width:1280px;height:780px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.25);margin:auto;animation:up .22s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:row;}
+.dimg-col{position:relative;background:#fff;order:0;width:50%;height:100%;flex-shrink:0;border-right:1px solid var(--border);}
 .dmain{width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;}
 .dmain img{width:95%;height:95%;object-fit:contain;}
 .det-photo-ref{position:absolute;bottom:10px;left:10px;z-index:5;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:.5px;color:#fff;background:rgba(0,0,0,.45);padding:6px 12px;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .15s;}
@@ -497,14 +497,14 @@ body.drawer-open .dmod-next{right:max(436px, calc(50vw - 300px));}
 .dclose{position:absolute;top:10px;right:10px;width:44px;height:44px;background:rgba(0,0,0,.5);border:none;border-radius:50%;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;transition:background .15s;}
 .dclose:hover{background:rgba(0,0,0,.8);}
 .dqbadge-wrap{position:absolute;top:12px;left:12px;z-index:2;}
-.dbody{padding:16px 22px 18px;display:flex;flex-direction:column;gap:0;overflow-y:auto;order:2;height:55%;flex-shrink:0;}
+.dbody{padding:20px 26px 22px;display:flex;flex-direction:column;gap:0;overflow-y:auto;order:1;width:50%;height:100%;flex-shrink:0;flex-grow:1;}
 .d-ref{font-size:10px;color:var(--gray2);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
-.d-name{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:.6px;color:var(--black);line-height:1.2;margin-bottom:6px;}
-.d-summary{font-size:14px;font-weight:500;color:var(--ink2);margin-bottom:14px;line-height:1.4;letter-spacing:.1px;}
-.dspecs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px;}
-.dspec-item{background:var(--off);border:1px solid var(--border);border-radius:8px;padding:8px 12px;}
-.dspec-lbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.9px;color:#888;margin-bottom:3px;}
-.dspec-val{font-size:19px;font-weight:700;color:#111;}
+.d-name{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:.7px;color:var(--black);line-height:1.15;margin-bottom:8px;}
+.d-summary{font-size:16px;font-weight:500;color:var(--ink2);margin-bottom:18px;line-height:1.4;letter-spacing:.1px;}
+.dspecs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;}
+.dspec-item{background:var(--off);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
+.dspec-lbl{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.9px;color:#888;margin-bottom:4px;}
+.dspec-val{font-size:22px;font-weight:700;color:#111;line-height:1.15;}
 .ddetails-txt{font-size:13px;color:#666;line-height:1.5;padding:8px 12px;background:var(--off);border-radius:8px;border-left:3px solid #ddd;margin-bottom:10px;}
 .dprice-row{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(254,0,0,.05);border:1px solid rgba(254,0,0,.12);border-radius:8px;margin-bottom:8px;}
 .dprice-val{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--red);letter-spacing:.5px;}
@@ -996,11 +996,11 @@ body.drawer-open .fab-contact{right:444px;}
   .da-action{height:42px;font-size:12px;padding:0 10px;gap:6px;}
 
   /* MODALE DÉTAIL PRODUIT */
-  .dmodal{height:auto;max-height:92vh;max-width:96vw;}
-  .dimg-col{height:auto;min-height:180px;max-height:38vh;}
-  .dmain img{max-height:32vh;}
+  .dmodal{flex-direction:column;height:auto;max-height:92vh;max-width:96vw;}
+  .dimg-col{width:100%;height:auto;min-height:240px;max-height:50vh;border-right:none;border-bottom:1px solid var(--border);}
+  .dmain img{max-height:46vh;}
   .d-name{font-size:22px;letter-spacing:.4px;}
-  .dbody{padding:14px 16px 16px;height:auto;}
+  .dbody{width:100%;padding:14px 16px 16px;height:auto;}
   .dspecs{grid-template-columns:1fr 1fr;gap:5px;}
   .btn-cart-det{padding:12px 16px;font-size:14px;}
   .dclose{width:38px;height:38px;top:8px;right:8px;}
