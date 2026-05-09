@@ -38,7 +38,7 @@
 <link rel="preconnect" href="https://bvcgpdoukhcatjibmvnb.supabase.co">
 <link rel="dns-prefetch" href="https://stock.prodi.net">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="catalogue.css?v=216">
+<link rel="stylesheet" href="catalogue.css?v=223">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4.4.1/dist/email.min.js" integrity="sha384-SALc35EccAf6RzGw4iNsyj7kTPr33K7RoGzYu+7heZhT8s0GZouafRiCg1qy44AS" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -98,7 +98,7 @@
   <div class="fbar-inner">
     <!-- Format -->
     <button class="fb-pill" id="fb-bobine" onclick="toggleFbPill('fb-bobine','bobine')">Bobine</button>
-    <button class="fb-pill" id="fb-palette" onclick="toggleFbPill('fb-palette','palette')">Palette</button>
+    <button class="fb-pill" id="fb-palette" onclick="toggleFbPill('fb-palette','palette')">Format</button>
 
     <div class="fbar-sep"></div>
     <!-- Type -->
@@ -229,14 +229,9 @@
         </div>
       </div>
       <div class="fg" id="sb-sec-mandrin">
-        <div class="msd" id="msd-mandrin-sidebar">
-          <button class="msd-btn" onclick="toggleMsd('msd-mandrin-sidebar')"><span class="msd-btn-label" data-i18n="t_mandrins_lbl">Mandrins</span><span class="msd-arrow">▾</span></button>
-          <div class="msd-panel">
-            <div class="msd-option" data-val="70" onclick="toggleMsdOption(this,'msd-mandrin')"><div class="msd-check"><svg width="9" height="7" fill="none" stroke="#fff" stroke-width="2.5"><polyline points="1,4 3.5,6.5 8,1"/></svg></div>70 mm</div>
-            <div class="msd-option" data-val="76" onclick="toggleMsdOption(this,'msd-mandrin')"><div class="msd-check"><svg width="9" height="7" fill="none" stroke="#fff" stroke-width="2.5"><polyline points="1,4 3.5,6.5 8,1"/></svg></div>76 mm</div>
-            <div class="msd-option" data-val="150" onclick="toggleMsdOption(this,'msd-mandrin')"><div class="msd-check"><svg width="9" height="7" fill="none" stroke="#fff" stroke-width="2.5"><polyline points="1,4 3.5,6.5 8,1"/></svg></div>150 mm</div>
-            <div class="msd-option" data-val="152" onclick="toggleMsdOption(this,'msd-mandrin')"><div class="msd-check"><svg width="9" height="7" fill="none" stroke="#fff" stroke-width="2.5"><polyline points="1,4 3.5,6.5 8,1"/></svg></div>152 mm</div>
-          </div>
+        <div class="msd" id="sb-msd-mandrin">
+          <button class="msd-btn" data-msd-id="msd-mandrin" onclick="toggleMsd('sb-msd-mandrin')"><span class="msd-btn-label" data-i18n="t_mandrins_lbl">Mandrins</span><span class="msd-arrow">▾</span></button>
+          <div class="msd-panel"></div>
         </div>
       </div>
       <div class="fg">
@@ -767,6 +762,6 @@
 </div>
 <div class="spin-bg" id="spinner"><div class="spin"></div></div>
 
-<script src="catalogue.js?v=239"></script>
+<script src="catalogue.js?v=245"></script>
 </body>
 </html>
