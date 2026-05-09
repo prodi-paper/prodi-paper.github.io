@@ -163,7 +163,7 @@ const _norm=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 // When the user types a filter category name (e.g. "format", "couleur"),
 // we detect it and guide them to the sidebar filter instead of text-searching.
 const FILTER_INTENTS=[
-  {keys:['format','formats','palette','palettes','feuille','feuilles'],label:'Format — Palette',
+  {keys:['format','formats','palette','palettes','feuille','feuilles'],label:'Format',
    highlight(){const el=document.querySelector('.fpill[data-format="Palette"]');if(el){if(!el.classList.contains('active'))el.click();el.scrollIntoView({behavior:'smooth',block:'center'});}}},
   {keys:['bobine','bobines'],label:'Format — Bobine',
    highlight(){const el=document.querySelector('.fpill[data-format="Bobine"]');if(el){if(!el.classList.contains('active'))el.click();el.scrollIntoView({behavior:'smooth',block:'center'});}}},
@@ -501,6 +501,7 @@ const ALIAS_MAP=(()=>{
   f('feuille','Palette'); f('feuilles','Palette'); f('palette','Palette');
   f('rame','Palette'); f('rames','Palette'); f('fardeau','Palette');
   f('en feuille','Palette'); f('en palette','Palette');
+  f('format','Palette'); f('formats','Palette');
 
   // ════════ USE-CASE THESAURUS — semantic-ish search ════════
   // ── Sacs / cornets / sachets ──
@@ -904,6 +905,7 @@ async function init(){
   buildMsdOptions('sb-msd-couleur',couleurVals,'Couleurs',undefined,'msd-couleur');
 
   buildMsdOptions('msd-mandrin',['70','76','150','152'],'Mandrins',v=>v+' mm');
+  buildMsdOptions('sb-msd-mandrin',['70','76','150','152'],'Mandrins',v=>v+' mm','msd-mandrin');
 
   // Also build mobile msd panels (msd-type-mob, msd-mandrin-mob, msd-couleur-mob)
   buildMsdOptions('msd-type-mob',QUALITE_CODES,'Tous',_typeLabel,'msd-type');
@@ -2381,7 +2383,7 @@ function updateFilterChips(){
   });
   if(_depotFilter)chips.push({label:_depotFilter==='our'?'Notre dépôt':'Hors dépôt',clear:()=>{_depotFilter='';syncFilterPills();filterProducts();}});
   if(_photoFilter)chips.push({label:_photoFilter==='with'?'Avec photo':'Sans photo',clear:()=>{_photoFilter='';syncFilterPills();filterProducts();}});
-  if(_activeFmts.length>0)chips.push({label:LT[lang].t_fmt+' : '+_activeFmts.map(f=>f==='Bobine'?LT[lang].t_bobine:f==='Palette'?LT[lang].t_palette:f).join(', '),clear:()=>{_formatFilter='';syncFilterPills();filterProducts();}});
+  if(_activeFmts.length>0)chips.push({label:_activeFmts.map(f=>f==='Bobine'?LT[lang].t_bobine:f==='Palette'?LT[lang].t_palette:f).join(', '),clear:()=>{_formatFilter='';syncFilterPills();filterProducts();}});
   ['msd-type','msd-mandrin','msd-couleur','msd-details'].forEach(id=>{
     const set=msdState[id];
     if(set.size>0){
@@ -2471,7 +2473,7 @@ function formatLabel(p){
   if(!p||!p.format)return null;
   if(p.format.toLowerCase().includes('palette')&&(p.largeur||p.longueur)){
     const dims=[p.largeur,p.longueur].filter(Boolean).map(v=>mmToCm(v)).join('×');
-    return `Palette ${dims}`;
+    return `Format ${dims}`;
   }
   return p.format;
 }
@@ -2540,13 +2542,13 @@ function renderCards(list){
       ?(p._grpMandrins.length>1?p._grpMandrins.join(' / '):`Ø${p._grpMandrins[0]} mm`)
       :(p.noyau?`Ø${p.noyau} mm`:'');
     const specRows=[
-      p.couleur?['Couleur',p.couleur]:null,
-      dimTag?['Laize',dimTag]:paletteDims?['Dimensions',paletteDims+' cm']:null,
-      p.grammage?['Grammage',`${p.grammage} g/m²`]:null,
-      _mandrinTxt?['Mandrin',_mandrinTxt]:null,
-      ['Zone',p.allee||'—'],
-    ].filter(Boolean).slice(0,6);
-    const specsHtml=`<div class="pcard-specs">${specRows.map(([l,v])=>`<div class="pcard-spec"><span class="pspec-lbl">${esc(l)}</span><span class="pspec-val">${esc(v)}</span></div>`).join('')}</div>`;
+      ['Grammage', p.grammage?`${p.grammage} g/m²`:'—'],
+      isPalette
+        ? ['Dimensions', paletteDims?paletteDims+' cm':'—']
+        : ['Laize', dimTag||'—'],
+      ['Couleur', p.couleur||'—'],
+    ];
+    const specsHtml=`<div class="pcard-specs">${specRows.map(([l,v])=>`<div class="pcard-spec" title="${esc(l)}"><span class="pspec-val">${esc(v)}</span></div>`).join('')}</div>`;
     const _sub=getProductDetailText(p);
     const subtitleHtml=_sub?`<div class="pcard-subtitle">${esc(_sub)}</div>`:'';
     // Bouton ajouter : groupé → sélecteur qté avec poids live; sinon → bouton classique
@@ -2554,35 +2556,38 @@ function renderCards(list){
     const _initialW=_isGroup?Math.round((p._grpUnitIds||[]).slice(0,_q).reduce((s,uid)=>{const u=(_groupsList.find(g=>g.gid===p._grpKey)?.units||[]).find(x=>x.id===uid);return s+(+(u?.poids_net||0));},0)).toLocaleString('fr-FR')+' kg':'';
     const _totalW=_isGroup?Math.round(p._grpTotalWeight).toLocaleString('fr-FR')+' kg':'';
     const _grpAllIn=_isGroup&&(p._grpUnitIds||[]).slice(0,_q).every(id=>cart.find(x=>x.id===+id))&&_q>0;
+    const _isInCart = _isGroup ? _grpAllIn : !!cart.find(x=>x.id===+p.id);
+    const _btnText = _isInCart
+      ? (_isGroup ? `✓ Ajouté ${_q}` : '✓ Ajouté')
+      : (_isGroup ? `+ Ajouter ${_q}` : '+ Ajouter');
+    const _btnAttrs = _isGroup
+      ? `onclick="addGroupToCart(${attrJs(p._grpKey)})"`
+      : `id="cadd-${numId(p.id)}" aria-label="${lang==='en'?'Add to selection':'Ajouter à la sélection'}" onclick="event.stopPropagation();addToCart(${numId(p.id)})"`;
+    const _initialWNum=_isGroup?_initialW.replace(' kg',''):'';
     const addCtrl=_isGroup
       ?`<div class="pcard-grp-add" onclick="event.stopPropagation();" data-gid="${esc(p._grpKey||'')}">
-          <div class="grp-info"><span class="grp-info-max">Max ${p._grpCount}</span><span class="grp-info-sep">·</span><span class="grp-info-tot">${esc(_totalW)} dispo</span></div>
-          <div class="grp-row">
-            <div class="grp-qty-wrap">
-              <button class="grp-qty-btn grp-qty-btn-minus" onclick="_grpQtyAdj(${attrJs(p._grpKey)},-1)" aria-label="−"${_q<=1?' disabled':''}>−</button>
-              <input type="number" class="grp-qty-input" min="1" max="${numId(p._grpCount)}" value="${_q}" onchange="_grpQtySet(${attrJs(p._grpKey)},this.value)" oninput="_grpQtySet(${attrJs(p._grpKey)},this.value)">
-              <button class="grp-qty-btn grp-qty-btn-plus" onclick="_grpQtyAdj(${attrJs(p._grpKey)},1)" aria-label="+"${_q>=p._grpCount?' disabled':''}>+</button>
-            </div>
-            <span class="grp-weight">${esc(_initialW)}</span>
+        <div class="pcard-foot-inline">
+          <div class="pton"><span class="grp-weight">${esc(_initialWNum)}</span><span class="pton-s"> KGS</span></div>
+          <div class="grp-compact">
+            <button class="grp-qty-btn grp-qty-btn-minus" onclick="event.stopPropagation();_grpQtyAdj(${attrJs(p._grpKey)},-1)" aria-label="−"${_q<=1?' disabled':''}>−</button>
+            <button class="btn-add-cart grp-add-btn pcard-btn-inline${_isInCart?' added':''}" ${_btnAttrs}>${_btnText}</button>
+            <button class="grp-qty-btn grp-qty-btn-plus" onclick="event.stopPropagation();_grpQtyAdj(${attrJs(p._grpKey)},1)" aria-label="+"${_q>=p._grpCount?' disabled':''}>+</button>
           </div>
-          <button class="btn-add-cart grp-add-btn${_grpAllIn?' added':''}" onclick="addGroupToCart(${attrJs(p._grpKey)})">${_grpAllIn?`✓ Ajouté ${_q}`:`+ Ajouter ${_q}`}</button>
-        </div>`
-      :`<button class="btn-add-cart${cart.find(x=>x.id===+p.id)?' added':''}" id="cadd-${numId(p.id)}" aria-label="${lang==='en'?'Add to selection':'Ajouter à la sélection'}" onclick="event.stopPropagation();addToCart(${numId(p.id)})"><span class="cart-icon">+</span><span class="cart-check">✓</span></button>`;
+        </div>
+      </div>`
+      :`<div class="pcard-grp-add">
+        <div class="pcard-foot-inline">
+          <div class="pton">${esc(poids)}<span class="pton-s"> KGS</span></div>
+          <button class="btn-add-cart grp-add-btn pcard-btn-inline${_isInCart?' added':''}" ${_btnAttrs}>${_btnText}</button>
+        </div>
+      </div>`;
     return`<div class="pcard" onclick="openDetail(${numId(p.id)})">
       <div class="pcard-img">${imgHtml}${typeOverlay}${refOverlay}${usineOverlay}${photoRef}</div>
       <div class="pcard-body">
         <div class="pcard-name">${esc(formatProductTitle(p.qualite,p.type))}</div>
         ${subtitleHtml}
         ${specsHtml}
-        ${_isGroup?`<div class="pcard-foot">
-          <div class="pton">${esc(poids)}<span class="pton-s"> KGS</span></div>
-          ${prixHtml}
-        </div>`:''}
         ${addCtrl}
-        ${_isGroup?'':`<div class="pcard-foot">
-          <div class="pton">${esc(poids)}<span class="pton-s"> KGS</span></div>
-          ${prixHtml}
-        </div>`}
       </div>
     </div>`;
   }).join('');
@@ -3034,7 +3039,7 @@ function _grpQtySet(gid,v){
   document.querySelectorAll(`${sel} input.grp-qty-input,${sel} input.plist-grp-val`).forEach(i=>{if(+i.value!==n)i.value=n;});
   // poids live = somme des N premières unités (priorisées photo)
   const w=_grpComputeWeight(gid,n);
-  const wTxt=Math.round(w).toLocaleString('fr-FR')+' kg';
+  const wTxt=Math.round(w).toLocaleString('fr-FR');
   document.querySelectorAll(`${sel} .grp-weight`).forEach(el=>el.textContent=wTxt);
   // libellé + état "added" en fonction de la nouvelle qty
   const grp=_groupsList.find(g=>g.gid===gid);
@@ -3117,7 +3122,7 @@ function addToCart(id){
     // Toggle OFF — remove from cart
     removeFromCart(id);
     const caddBtn=document.getElementById('cadd-'+id);
-    if(caddBtn){caddBtn.classList.remove('added');caddBtn.innerHTML=`<span class="cart-icon">+</span><span class="cart-check">✓</span> ${lang==='en'?'Add':'Ajouter'}`;}
+    if(caddBtn){caddBtn.classList.remove('added');caddBtn.textContent='+ Ajouter';}
     const laddBtn=document.getElementById('ladd-'+id);
     if(laddBtn){laddBtn.classList.remove('added');laddBtn.textContent='+';}
     if(mab){mab.classList.remove('added');mab.innerHTML=LT[lang].t_add_modal_btn||'+ Ajouter à la sélection';}
@@ -3128,7 +3133,7 @@ function addToCart(id){
   localStorage.setItem('prodi_cart',JSON.stringify(cart));
   updateCartBadge();
   const caddBtn=document.getElementById('cadd-'+id);
-  if(caddBtn){caddBtn.classList.add('added');caddBtn.innerHTML=`<span class="cart-check">✓</span>`;}
+  if(caddBtn){caddBtn.classList.add('added');caddBtn.textContent='✓ Ajouté';}
   const laddBtn=document.getElementById('ladd-'+id);
   if(laddBtn){laddBtn.classList.add('added');laddBtn.textContent='✓';}
   if(mab){mab.classList.add('added');mab.innerHTML='✓';}
@@ -3140,36 +3145,51 @@ function addPageToCart(){
   const g=document.getElementById('pgrid');
   const list=g&&g._lastList;
   if(!list||!list.length){toast('Aucun produit sur cette page');return;}
-  const allIn=list.every(p=>cart.find(x=>x.id===+p.id));
+  // Build target unit IDs: for grouped cards use selected qty of units, otherwise the single id
+  const targets=[];
+  list.forEach(p=>{
+    if(p._grpKey){
+      const grp=_groupsList.find(g=>g.gid===p._grpKey);
+      if(!grp)return;
+      const qty=Math.max(1,Math.min(p._grpCount,_groupQty[p._grpKey]||1));
+      grp.units.slice(0,qty).forEach(u=>targets.push(u));
+    } else {
+      targets.push(p);
+    }
+  });
+  if(!targets.length){toast('Aucun produit sur cette page');return;}
+  const allIn=targets.every(u=>cart.find(x=>x.id===+u.id));
   if(allIn){
-    const ids=new Set(list.map(p=>+p.id));
+    const ids=new Set(targets.map(u=>+u.id));
     const removed=ids.size;
     cart=cart.filter(x=>!ids.has(+x.id));
     localStorage.setItem('prodi_cart',JSON.stringify(cart));
     updateCartBadge();
     list.forEach(p=>{
       const c=document.getElementById('cadd-'+p.id);
-      if(c){c.classList.remove('added');c.innerHTML='<span class="cart-icon">+</span><span class="cart-check">✓</span>';}
+      if(c){c.classList.remove('added');c.textContent='+ Ajouter';}
       const l=document.getElementById('ladd-'+p.id);
       if(l){l.classList.remove('added');l.textContent='+';}
+      if(p._grpKey)_grpRefreshAddedState(p._grpKey,false);
     });
     toast(`${removed} produit${removed>1?'s':''} retiré${removed>1?'s':''} de la sélection`);
     renderDrawer();_updateAddPageBtn();
     return;
   }
   let added=0;
-  list.forEach(p=>{
-    if(cart.find(x=>x.id===+p.id))return;
-    cart.push({id:p.id,name:p.name,ref:p.ref,type:p.type,qualite:p.qualite||null,details:p.details||null,grammage:p.grammage,largeur:p.largeur,format:p.format,poids_net:p.poids_net,price:p.price||null,img:p.image_url||null,couleur:p.couleur||null,usine:p.usine||null,zone:p.zone||null,emplacement:p.emplacement||null,allee:p.allee||null});
+  targets.forEach(u=>{
+    if(cart.find(x=>x.id===+u.id))return;
+    cart.push({id:u.id,name:u.name,ref:u.ref,type:u.type,qualite:u.qualite||null,details:u.details||null,grammage:u.grammage,largeur:u.largeur,format:u.format,poids_net:u.poids_net,price:u.price||null,img:u.image_url||null,couleur:u.couleur||null,usine:u.usine||null,zone:u.zone||null,emplacement:u.emplacement||null,allee:u.allee||null});
     added++;
   });
   localStorage.setItem('prodi_cart',JSON.stringify(cart));
   updateCartBadge();
   list.forEach(p=>{
     const c=document.getElementById('cadd-'+p.id);
-    if(c){c.classList.add('added');c.innerHTML='<span class="cart-check">✓</span>';}
+    if(c){c.classList.add('added');c.textContent='✓ Ajouté';}
     const l=document.getElementById('ladd-'+p.id);
     if(l){l.classList.add('added');l.textContent='✓';}
+    if(p._grpKey)_grpRefreshAddedState(p._grpKey,true);
   });
   toast(`${added} produit${added>1?'s':''} ajouté${added>1?'s':''} à la sélection`);
   renderDrawer();_updateAddPageBtn();
@@ -3179,7 +3199,15 @@ function _updateAddPageBtn(){
   const g=document.getElementById('pgrid');
   const list=g&&g._lastList;
   document.querySelectorAll('.add-page-btn').forEach(btn=>{
-    const allIn=list&&list.length&&list.every(p=>cart.find(x=>x.id===+p.id));
+    const allIn=list&&list.length&&list.every(p=>{
+      if(p._grpKey){
+        const grp=_groupsList.find(g=>g.gid===p._grpKey);
+        if(!grp)return false;
+        const qty=Math.max(1,Math.min(p._grpCount,_groupQty[p._grpKey]||1));
+        return grp.units.slice(0,qty).every(u=>cart.find(x=>x.id===+u.id));
+      }
+      return cart.find(x=>x.id===+p.id);
+    });
     btn.classList.toggle('all-in',!!allIn);
     btn.title=allIn?'Retirer tous les produits de la page de la sélection':'Ajouter tous les produits de la page à la sélection';
   });
@@ -3423,23 +3451,11 @@ async function printSelection(opts){
   const num=v=>(v||0).toLocaleString('fr-FR',{maximumFractionDigits:0});
   const dec=(v,d=2)=>(v||0).toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d});
   const _detailRow=it=>`<tr><td class="ref">${esc(it.photoRef||'—')}</td><td class="ref">${esc(it.ref)}</td><td>${esc(it.titre||'')}</td><td>${esc(it.details||'—')}</td><td>${esc(it.couleur||'—')}</td><td class="num">${it.gsm?esc(it.gsm+' g/m²'):'—'}</td><td>${esc(it.dim||'—')}</td><td class="num">${esc(num(it.poidsKg)+' kg')}</td><td class="num">${esc(it.usine||'—')}</td><td class="num">${esc(num(it.priceT)+' €/T')}</td><td class="num">${esc(eur(it.montant)+' €')}</td></tr>`;
-  const _itemsThead=dimLbl=>`<thead><tr><th>N°</th><th>Réf.</th><th>Qualité</th><th>Détails</th><th>Couleur</th><th style="text-align:right;">GSM</th><th>${dimLbl}</th><th style="text-align:right;">PN (kg)</th><th style="text-align:right;">Usine</th><th style="text-align:right;">P/T (€)</th><th style="text-align:right;">Montant HT (€)</th></tr></thead>`;
-  const _itemsColgroup=`<colgroup><col class="c-pref"><col class="c-q"><col class="c-tit"><col class="c-det"><col class="c-col"><col class="c-gsm"><col class="c-dim"><col class="c-pn"><col class="c-us"><col class="c-pt"><col class="c-mt"></colgroup>`;
-  // html2pdf utilise html2canvas (screenshot unique) → le <thead> ne se répète pas naturellement sur les pages 2+.
-  // Workaround : on splitte le tableau en chunks, chacun avec son propre thead, séparés par page-break-before:always.
-  // CHUNK_FIRST plus petit pour laisser la place au header logo/adresse/TVA + au titre Bobines/Formats au-dessus.
-  const _chunk=(arr,size)=>{const out=[];for(let i=0;i<arr.length;i+=size)out.push(arr.slice(i,i+size));return out;};
-  const _detailTable=(rows,dimLbl)=>{
-    const CHUNK_FIRST=10, CHUNK_REST=14;
-    if(rows.length<=CHUNK_FIRST){
-      return `<table class="items view-detail">${_itemsColgroup}${_itemsThead(dimLbl)}<tbody>${rows.map(_detailRow).join('')}</tbody></table>`;
-    }
-    const chunks=[rows.slice(0,CHUNK_FIRST), ..._chunk(rows.slice(CHUNK_FIRST),CHUNK_REST)];
-    return chunks.map((chunk,idx)=>{
-      const _breakStyle=idx>0?' style="page-break-before:always;"':'';
-      return `<table class="items view-detail"${_breakStyle}>${_itemsColgroup}${_itemsThead(dimLbl)}<tbody>${chunk.map(_detailRow).join('')}</tbody></table>`;
-    }).join('');
-  };
+  const _detailTable=(rows,dimLbl)=>`<table class="items view-detail">
+      <colgroup><col class="c-pref"><col class="c-q"><col class="c-tit"><col class="c-det"><col class="c-col"><col class="c-gsm"><col class="c-dim"><col class="c-pn"><col class="c-us"><col class="c-pt"><col class="c-mt"></colgroup>
+      <thead><tr><th>N°</th><th>Réf.</th><th>Qualité</th><th>Détails</th><th>Couleur</th><th style="text-align:right;">GSM</th><th>${dimLbl}</th><th style="text-align:right;">PN (kg)</th><th style="text-align:right;">Usine</th><th style="text-align:right;">P/T (€)</th><th style="text-align:right;">Montant HT (€)</th></tr></thead>
+      <tbody>${rows.map(_detailRow).join('')}</tbody>
+    </table>`;
   const _detailHTML=(itemsBobine.length&&itemsFormat.length)
     ?`<div class="section-title">Bobines</div>${_detailTable(itemsBobine,'Laize')}<div class="section-title">Formats</div>${_detailTable(itemsFormat,'Dimensions')}`
     :itemsBobine.length
@@ -4353,7 +4369,7 @@ const LT={
     t_send:'ENVOYER',
     t_pf_btn:'DEMANDER UN DEVIS', t_clear_cart:'Vider la sélection',
     t_filtres:'FILTRES', t_effacer:'Réinitialiser', t_trier:'Trier :', t_poids_total:'Poids total',
-    t_fmt:'Format', t_bobine:'Bobine', t_palette:'Palette',
+    t_fmt:'Format', t_bobine:'Bobine', t_palette:'Format',
     t_type_lbl:'Type', t_couleur_lbl:'Couleur', t_couleurs_lbl:'Couleurs', t_mandrin_lbl:'Mandrin', t_gsm_lbl:'Grammage', t_laize_lbl:'Laize', t_longueur_lbl:'Longueur', t_prix_lbl:'Prix',
     t_my_container:'MA SÉLECTION', t_browse_cat:'← Voir le catalogue',
     t_tonnage_total:'TONNAGE TOTAL', t_total_estime:'TOTAL ESTIMÉ', t_depart_usine:'Départ usine HT',
