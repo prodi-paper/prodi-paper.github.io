@@ -883,6 +883,8 @@ body.drawer-open .fab-contact{right:444px;}
 .grp-weight{font-variant-numeric:tabular-nums;}
 .btn-add-cart.grp-add-btn{position:static;background:var(--ink);color:#fff;border:none;transition:background .15s;}
 .btn-add-cart.grp-add-btn:hover{background:#000;}
+.btn-add-cart.grp-add-btn.added{background:#059669;}
+.btn-add-cart.grp-add-btn.added:hover{background:#047857;}
 /* List view grouped controls — single 28px-tall capsule, preserves row rhythm */
 .plist-grp-cell{display:inline-flex;align-items:center;gap:5px;height:28px;line-height:1;}
 .plist-grp-stepper{display:inline-flex;align-items:stretch;height:28px;border:1.5px solid var(--ink);border-radius:14px;background:#fff;overflow:hidden;font-family:'DM Sans',sans-serif;}
