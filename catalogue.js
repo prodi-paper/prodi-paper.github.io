@@ -3292,8 +3292,12 @@ async function _doImportRefs(){
         added++;
       }
     }
+    localStorage.setItem('prodi_cart',JSON.stringify(cart));
     updateCartBadge();
     renderDrawer();
+    // Refresh grid + group "added" states so + Ajouter → ✓ Ajouté sur les cartes visibles
+    const _g=document.getElementById('pgrid');
+    if(_g&&_g._lastList)render(_g._lastList);
 
     // Show result
     let msg=`<span style="color:#1a9e5c;font-weight:600">✓ ${found.length} trouvé(s), ${added} ajouté(s)</span>`;
@@ -3426,8 +3430,14 @@ async function printSelection(opts){
     return{ref:qualite||'—',photoRef,qualite,titre,details:_detClean,couleur,gsm,dim,poidsKg,usine,priceKg,priceT,montant,format,hs,designation:_proformaDesignation(it)};
   });
   const _isPaletteIt=it=>!!(it.format&&/palette|feuille/i.test(it.format));
-  const itemsBobine=items.filter(it=>!_isPaletteIt(it));
-  const itemsFormat=items.filter(_isPaletteIt);
+  // Tri : qualité (regroupement par type de papier) puis grammage croissant
+  const _sortByQualGsm=(a,b)=>{
+    const qa=String(a.qualite||'').toUpperCase(),qb=String(b.qualite||'').toUpperCase();
+    if(qa!==qb)return qa<qb?-1:1;
+    return (Number(a.gsm)||0)-(Number(b.gsm)||0);
+  };
+  const itemsBobine=items.filter(it=>!_isPaletteIt(it)).sort(_sortByQualGsm);
+  const itemsFormat=items.filter(_isPaletteIt).sort(_sortByQualGsm);
   const totalPoids=items.reduce((s,i)=>s+i.poidsKg,0);
   const totalMontant=items.reduce((s,i)=>s+i.montant,0);
   // Grouped view (résumé) — by qualite code
