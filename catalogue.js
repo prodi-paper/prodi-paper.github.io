@@ -3475,7 +3475,8 @@ async function printSelection(opts){
     _greeting,'',
     'Veuillez trouver ci-dessous le lien vers les photos de notre sélection :',
     _shareUrl,'',
-    'Bien cordialement,','Prodiconseil'
+    'La liste détaillée est également disponible en pièce jointe (PDF).','',
+    'Bien à vous,'
   ].join('\n');
   const _mailSubject=clientName?`Notre sélection — ${clientName}`:'Notre sélection';
   const _mailtoUrl=`mailto:?subject=${encodeURIComponent(_mailSubject).replace(/'/g,'%27')}&body=${encodeURIComponent(_mailLines).replace(/'/g,'%27')}`;
@@ -3648,7 +3649,7 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
 .totals-block{padding:10px 14px;border:1.5px solid var(--line);border-top:none;background:#fafaf6;font-size:10.5px;line-height:1.8;font-weight:600;}
 .totals-block .row{display:flex;justify-content:space-between;}
 .totals-block .row b{color:var(--ink);}
-.totals-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1.1fr;border:1.5px solid var(--line);border-top:none;}
+.totals-grid{display:grid;grid-template-columns:1fr 1fr 1.1fr;border:1.5px solid var(--line);border-top:none;}
 .totals-grid > div{padding:7px 10px;border-right:1px solid var(--line);text-align:center;}
 .totals-grid > div:last-child{border-right:none;background:#fbf6e8;}
 .totals-grid .lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px;}
@@ -3661,7 +3662,8 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
 .toolbar .modes button{background:transparent;color:var(--ink);padding:6px 12px;font-size:11px;border-radius:3px;letter-spacing:.3px;}
 .toolbar .modes button.active{background:var(--ink);color:#fff;}
 .toolbar .btn-print{background:var(--red);color:#fff;}
-.toolbar .btn-save{background:var(--ink);color:#fff;}
+.toolbar .btn-save{background:var(--ink);color:#fff;padding:14px;display:inline-flex;align-items:center;justify-content:center;}
+.toolbar .btn-save svg{display:block;}
 .toolbar .btn-mail{background:#0a7d3d;color:#fff;}
 .toolbar .btn-close{background:#fff;color:var(--ink);border:1.5px solid var(--ink);}
 /* page-break-* hors @media print pour que html2pdf (mode css) les voit */
@@ -3678,8 +3680,8 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
 }
 </style></head><body>
 <div class="toolbar">
+  <button class="btn-save" onclick="savePdf()" title="Enregistrer le PDF" aria-label="Enregistrer le PDF"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12"/><path d="M6 11l6 6 6-6"/><path d="M5 20h14"/></svg></button>
   <button class="btn-print" onclick="window.print()">Imprimer</button>
-  <button class="btn-save" onclick="savePdf()">Enregistrer</button>
   <button class="btn-mail" onclick="sendByEmail(event)">Envoyer par mail</button>
 </div>
 <div class="page">
@@ -3728,7 +3730,6 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
 
   <div class="totals-grid">
     <div><div class="lbl">Total HT</div><div class="val">${eur(totalMontant)} €</div></div>
-    <div><div class="lbl">Total TTC</div><div class="val">${eur(totalMontant)} €</div></div>
     <div><div class="lbl">Poids Total</div><div class="val">${dec(totalPoids/1000,3)} T</div></div>
     <div class="net"><div class="lbl">Net à payer</div><div class="val">${eur(totalMontant+2800)} €</div></div>
   </div>
@@ -3763,9 +3764,9 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
   }
   function _withBtnState(btnSel,fn){
     const btn=document.querySelector(btnSel);
-    const orig=btn?btn.textContent:'';
-    if(btn){btn.textContent='Génération…';btn.disabled=true;}
-    const restore=()=>{if(btn){btn.textContent=orig;btn.disabled=false;}};
+    const orig=btn?btn.innerHTML:'';
+    if(btn){btn.innerHTML='Génération…';btn.disabled=true;}
+    const restore=()=>{if(btn){btn.innerHTML=orig;btn.disabled=false;}};
     return fn().finally(restore);
   }
   function savePdf(){
