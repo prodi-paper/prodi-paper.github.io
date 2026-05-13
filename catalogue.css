@@ -635,8 +635,8 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
   .btn-head-panier img{height:24px !important;width:auto;vertical-align:0 !important;margin:0 !important;}
   .lang-sep{display:none;}
   /* € price toggle in header — same square geometry as les autres boutons */
-  .hright .lang-btn{display:flex !important;width:38px;height:38px;padding:0;align-items:center;justify-content:center;border-radius:10px;background:var(--ink);color:#fff;font-size:16px;font-weight:700;border:1.5px solid var(--ink);transition:background .15s;}
-  .hright .lang-btn.on{background:var(--red);border-color:var(--red);}
+  .hright .lang-btn{display:flex !important;width:38px;height:38px;padding:0;align-items:center;justify-content:center;border-radius:10px;background:var(--off);color:var(--ink);font-size:16px;font-weight:700;border:1.5px solid var(--border);transition:background .15s,border-color .15s;}
+  .hright .lang-btn.on{background:var(--ink);color:#fff;border-color:var(--ink);}
   /* Sticky: header-inner 52px + trust-bar 22px = 74px */
   #results-bar{top:auto;}
   .rbar-sort-lbl{display:none;}
