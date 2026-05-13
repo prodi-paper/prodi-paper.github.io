@@ -38,7 +38,7 @@
 <link rel="preconnect" href="https://bvcgpdoukhcatjibmvnb.supabase.co">
 <link rel="dns-prefetch" href="https://stock.prodi.net">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="catalogue.css?v=226">
+<link rel="stylesheet" href="catalogue.css?v=321">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4.4.1/dist/email.min.js" integrity="sha384-SALc35EccAf6RzGw4iNsyj7kTPr33K7RoGzYu+7heZhT8s0GZouafRiCg1qy44AS" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -78,9 +78,9 @@
     </button>
     <div class="hright">
       <div class="cart-wrap">
-        <button class="btn-head btn-head-panier" onclick="openCartDrawer()" id="cart-btn" title="Ma Sélection">
-          <img src="img/truck2.png" alt="truck" style="height:30px;width:auto;vertical-align:-6px;"> <span class="btn-panier-txt">Ma Sélection</span>
-          <span class="cart-badge" id="cart-badge" aria-live="polite" aria-label="Produits dans la sélection" data-i18n-aria="t_cart_aria">0</span>
+        <button class="btn-head btn-head-panier" onclick="openCartDrawer()" id="cart-btn" title="Ma Liste">
+          <img src="img/truck2.png" alt="truck" style="height:30px;width:auto;vertical-align:-6px;"> <span class="btn-panier-txt">Ma Liste</span>
+          <span class="cart-badge" id="cart-badge" aria-live="polite" aria-label="Produits dans la liste" data-i18n-aria="t_cart_aria">0</span>
         </button>
       </div>
       <div class="lang-sep"></div>
@@ -293,7 +293,7 @@
           <button onclick="togglePriceMode(false)" id="lang-fr-m" class="lang-btn on">FR</button>
           <button onclick="togglePriceMode(true)" id="lang-en-m" class="lang-btn">EN</button>
         </div>
-        <button class="vt-toggle-btn add-page-btn" id="add-page-btn" onclick="addPageToCart()" title="Ajouter tous les produits de la page à la sélection">
+        <button class="vt-toggle-btn add-page-btn" id="add-page-btn" onclick="addPageToCart()" title="Ajouter tous les produits de la page à la liste">
           <svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="7" y1="2" x2="7" y2="12"/><line x1="2" y1="7" x2="12" y2="7"/></svg>
         </button>
         <button class="vt-toggle-btn grp-toggle-btn" id="grp-toggle" onclick="toggleGroupedMode()" title="Regrouper les produits identiques" style="display:none">
@@ -339,7 +339,7 @@
           <option value="grammage_asc" selected>Grammage ↑</option>
           <option value="grammage_desc">Grammage ↓</option>
         </select>
-        <button class="vt-toggle-btn add-page-btn" onclick="addPageToCart()" title="Ajouter tous les produits de la page à la sélection">
+        <button class="vt-toggle-btn add-page-btn" onclick="addPageToCart()" title="Ajouter tous les produits de la page à la liste">
           <svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="7" y1="2" x2="7" y2="12"/><line x1="2" y1="7" x2="12" y2="7"/></svg>
         </button>
         <button class="vt-toggle-btn" id="vt-toggle" onclick="toggleView()">
@@ -360,16 +360,15 @@
     <!-- Col gauche : image -->
     <div class="dimg-col">
       <div class="dmain" id="det-main"></div>
-      <button class="dclose" onclick="closeDetail()">✕</button>
       <div class="dqbadge-wrap" id="det-qbadge"></div>
       <div id="det-ref-badge" style="display:none;position:absolute;bottom:12px;left:12px;z-index:10;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;color:#fff;background:rgba(0,0,0,.5);padding:6px 12px;border-radius:6px;cursor:pointer;letter-spacing:.4px;" title="Copier la référence"></div>
       <div id="det-usine-badge" style="display:none;position:absolute;bottom:12px;right:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border-radius:8px;padding:5px 12px;align-items:baseline;gap:4px;backdrop-filter:blur(6px);"><span style="font-size:13px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:rgba(255,255,255,.75);">Usine</span><span style="font-family:'Bebas Neue',sans-serif;font-size:32px;line-height:1;letter-spacing:.5px;color:#fff;" id="det-usine-num"></span></div>
     </div>
     <!-- Col droite : infos -->
     <div class="dbody">
-      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
         <div class="d-name" id="det-name"></div>
-        <div id="det-weight" style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--ink);white-space:nowrap;"></div>
+        <button class="dclose" onclick="closeDetail()" aria-label="Fermer">✕</button>
       </div>
       <div class="d-summary" id="det-summary"></div>
       <div class="dspecs" id="det-specs"></div>
@@ -386,7 +385,7 @@
         </div>
       </div>
       <div class="d-actions">
-        <button class="btn-cart-det" id="modal-add-btn" data-i18n="t_add_modal_btn" onclick="addToCart(cur?.id)">+ Ajouter à la sélection</button>
+        <button class="btn-cart-det" id="modal-add-btn" data-i18n="t_add_modal_btn" onclick="addToCart(cur?.id)">+ Ajouter à la liste</button>
       </div>
     </div>
   </div>
@@ -398,14 +397,14 @@
 <div class="cart-drawer" id="cart-drawer">
   <div class="drawer-head">
     <div>
-      <div class="drawer-title" data-i18n="t_my_container">MA SÉLECTION</div>
+      <div class="drawer-title" data-i18n="t_my_container">MA LISTE</div>
       <div class="drawer-meta" id="drawer-meta">—</div>
     </div>
     <div class="drawer-head-actions">
       <button class="dh-icon-btn" onclick="openImportRefs()" title="Importer des références" aria-label="Importer des références">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
       </button>
-      <button class="dh-clear-btn" onclick="doClearCart()" data-i18n="t_clear_cart" title="Vider la sélection">Vider la sélection</button>
+      <button class="dh-clear-btn" onclick="doClearCart()" data-i18n="t_clear_cart" title="Vider la liste">Vider la liste</button>
       <button class="dh-close-btn" onclick="closeCartDrawer()" aria-label="Fermer">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
@@ -414,7 +413,7 @@
   <div class="drawer-items" id="drawer-items">
     <div class="drawer-empty">
       <div class="drawer-empty-ico">📦</div>
-      <div class="drawer-empty-t" data-i18n="t_container_empty">CONTAINER EMPTY</div>
+      <div class="drawer-empty-t" data-i18n="t_container_empty">LISTE VIDE</div>
       <div class="drawer-empty-s" data-i18n="t_add_from_cat">Ajoutez des produits depuis le catalogue</div>
       <button class="btn-drawer-browse" data-i18n="t_browse_cat" onclick="closeCartDrawer()">← Voir le catalogue</button>
     </div>
@@ -431,9 +430,9 @@
       </div>
     </div>
     <div class="drawer-actions">
-      <button class="da-action" id="btn-generate-list" onclick="printSelection({autoGenerate:false})" title="Générer la liste détaillée">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
-        <span>Générer liste</span>
+      <button class="da-action" id="btn-generate-list" onclick="printSelection({autoGenerate:false})" title="Partager la liste détaillée">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="11.49"/></svg>
+        <span>Partager liste</span>
       </button>
     </div>
   </div>
@@ -482,8 +481,8 @@
 <div class="confirm-bg" id="confirm-bg">
   <div class="confirm-box">
     <div class="confirm-ico">🗑️</div>
-    <div class="confirm-t" data-i18n="t_clear_confirm">Vider la sélection ?</div>
-    <div class="confirm-s" data-i18n="t_clear_confirm_msg">Cette action est irréversible. Tous les produits sélectionnés seront retirés.</div>
+    <div class="confirm-t" data-i18n="t_clear_confirm">Vider la liste ?</div>
+    <div class="confirm-s" data-i18n="t_clear_confirm_msg">Cette action est irréversible. Tous les produits de votre liste seront retirés.</div>
     <div class="confirm-acts">
       <button class="btn-confirm-cancel" data-i18n="t_cancel" onclick="document.getElementById('confirm-bg').classList.remove('show')">Annuler</button>
       <button class="btn-confirm-ok" data-i18n="t_vider" onclick="doClearCart()">VIDER</button>
@@ -762,6 +761,6 @@
 </div>
 <div class="spin-bg" id="spinner"><div class="spin"></div></div>
 
-<script src="catalogue.js?v=248"></script>
+<script src="catalogue.js?v=323"></script>
 </body>
 </html>

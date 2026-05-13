@@ -93,10 +93,11 @@ function _updateGroupedToggleBtn(){
   const lbl=btn.querySelector('.grp-toggle-lbl');
   if(lbl)lbl.textContent=_groupedMode?'Groupé':'Détaillé';
 }
-let _priceMode=false;
+let _priceMode=(()=>{try{return localStorage.getItem('prodi_price_mode')==='1';}catch(_){return false;}})();
 function togglePriceMode(on){
   _priceMode=on;
-  ['lang-fr','lang-fr-m'].forEach(id=>{const e=document.getElementById(id);if(e){e.classList.toggle('on',true);e.style.background=on?'var(--red)':'';e.style.borderColor=on?'var(--red)':'';e.style.color=on?'#fff':'';}});
+  try{localStorage.setItem('prodi_price_mode',on?'1':'0');}catch(_){}
+  ['lang-fr','lang-fr-m'].forEach(id=>{const e=document.getElementById(id);if(e){e.classList.toggle('on',on);e.style.background=on?'var(--red)':'';e.style.borderColor=on?'var(--red)':'';e.style.color=on?'#fff':'';}});
   const g=document.getElementById('pgrid');
   if(g&&g._lastList)render(g._lastList);
   // Re-render detail modal only if it's actually open
@@ -1508,6 +1509,15 @@ function _updateMsdFacetCounts(msdId){
       opt.style.display = visible ? '' : 'none';
       opt.style.opacity = (n===0 && sel.has(v)) ? '.45' : '';
     });
+    // Tri par count desc (les types les plus disponibles en haut)
+    if(msdId==='msd-type'){
+      const panel=cont.querySelector('.msd-panel');
+      if(panel){
+        const opts=[...panel.querySelectorAll('.msd-option')];
+        opts.sort((a,b)=>(counts[b.dataset.val]||0)-(counts[a.dataset.val]||0));
+        opts.forEach(o=>panel.appendChild(o));
+      }
+    }
   });
 }
 function _refreshAllFacets(){
@@ -1965,7 +1975,7 @@ async function _fetchAndRender(token){
   if(g){
     g.className=_viewMode==='list'?'pgrid plist':'pgrid';
     g.innerHTML=_viewMode==='list'
-      ?`<div style="overflow-x:auto"><table class="plist-table"><thead><tr><th class="plist-th-add"></th><th></th><th class="plist-col-ref">Référence</th><th>Qualité</th><th>Détails</th><th>Couleur</th><th>GSM</th><th>Laize</th><th>Diamètre</th><th class="plist-col-mandrin">Mandrin</th><th>Poids (kg)</th><th class="plist-col-usine">Usine</th><th class="plist-col-depot">Emplacement</th></tr></thead><tbody>${Array(10).fill(0).map(()=>`<tr><td colspan="13"><div class="skel-line" style="height:14px;margin:6px 0;border-radius:4px;"></div></td></tr>`).join('')}</tbody></table></div>`
+      ?`<div style="overflow-x:auto"><table class="plist-table"><thead><tr><th class="plist-th-add"></th><th></th><th class="plist-col-ref">Référence</th><th>Qualité</th><th>Détails</th><th>Couleur</th><th>GSM</th><th>Laize</th><th>Diamètre</th><th class="plist-col-mandrin">Mandrin</th><th>Poids (kg)</th><th class="plist-col-usine">Usine</th></tr></thead><tbody>${Array(10).fill(0).map(()=>`<tr><td colspan="12"><div class="skel-line" style="height:14px;margin:6px 0;border-radius:4px;"></div></td></tr>`).join('')}</tbody></table></div>`
       :Array(8).fill(0).map(()=>`<div class="skeleton"><div class="skel-img"></div><div class="skel-body"><div class="skel-line short"></div><div class="skel-line med"></div><div class="skel-line"></div></div></div>`).join('');
   }
 
@@ -2098,9 +2108,8 @@ async function _fetchAndRender(token){
   // Dépôt filter
   if(_depotFilter==='our')p.append('emplacement',`eq.OUR WAREHOUSE`);
   else if(_depotFilter==='ext')p.append('emplacement',`neq.OUR WAREHOUSE`);
-  // Stocklot/Fabrication server-side filter — uniquement quand 1 seule pill
-  // active. En multichoix (>=2), pas de filtre serveur, _stockMatch côté
-  // client gère la logique OR.
+  // Stocklot/Fabrication server-side filter
+  // 1 seule pill → filtre simple. 2+ pills → OR composite côté serveur.
   if(_stockFilter.size===1){
     const _sf=[..._stockFilter][0];
     if(_sf==='fab'){
@@ -2114,6 +2123,15 @@ async function _fetchAndRender(token){
       // SIDERUN = ref commence par Photo_DU
       p.append('ref','ilike.Photo_DU%');
     }
+  } else if(_stockFilter.size>=2){
+    // Multichoix : OR des conditions (au moins 1 doit matcher)
+    const _terms=[];
+    _stockFilter.forEach(_sf=>{
+      if(_sf==='fab')_terms.push('and(ref.ilike.Photo_FAB%,emplacement.neq."OUR WAREHOUSE")');
+      else if(_sf==='siderun')_terms.push('ref.ilike.Photo_DU%');
+      else if(_sf==='stocklot')_terms.push('and(or(ref.not.ilike.Photo_DU%,ref.is.null),or(ref.not.ilike.Photo_FAB%,ref.is.null))');
+    });
+    if(_terms.length)p.append('or',`(${_terms.join(',')})`);
   }
   // Photo filter — image_url is NULL pour les produits sans photo réelle (mis à jour par scripts/verify_photos.py)
   if(_photoFilter==='with')p.append('image_url','not.is.null');
@@ -2122,11 +2140,13 @@ async function _fetchAndRender(token){
     // Exclure uniquement les FAB purs (Photo_FAB hors dépôt) — ils n'ont jamais de photo par nature.
     p.append('or','(ref.not.ilike.Photo_FAB%,ref.is.null,emplacement.eq.OUR WAREHOUSE)');
   }
-  if(s==='gsm_asc'||s==='grammage_asc')p.set('order','gsm.asc.nullslast,id.asc');
-  else if(s==='gsm_desc'||s==='grammage_desc')p.set('order','gsm.desc.nullslast,id.asc');
-  else if(s==='price_asc'||s==='prix_asc')p.set('order','price.asc.nullslast,id.asc');
-  else if(s==='price_desc'||s==='prix_desc')p.set('order','price.desc.nullslast,id.asc');
-  else p.set('order','id.desc');
+  // Tri primaire : format (Bobine < Feuille < Palette) — bobines toujours globalement avant les formats.
+  // Tri secondaire : sélection user (gsm/price/id).
+  if(s==='gsm_asc'||s==='grammage_asc')p.set('order','format.asc.nullslast,gsm.asc.nullslast,id.asc');
+  else if(s==='gsm_desc'||s==='grammage_desc')p.set('order','format.asc.nullslast,gsm.desc.nullslast,id.asc');
+  else if(s==='price_asc'||s==='prix_asc')p.set('order','format.asc.nullslast,price.asc.nullslast,id.asc');
+  else if(s==='price_desc'||s==='prix_desc')p.set('order','format.asc.nullslast,price.desc.nullslast,id.asc');
+  else p.set('order','format.asc.nullslast,id.desc');
   const offset=(currentPage-1)*PAGE;
 
   const ctrl=new AbortController();
@@ -2215,19 +2235,26 @@ async function _fetchAndRender(token){
       }
       _groupsList=groupProducts(_allUi);
       _groupedTotalCount=_groupsList.length;
-      // Tri des groupes selon le sort sélectionné (cohérent avec serveur)
+      // Tri des groupes selon le sort sélectionné (cohérent avec serveur).
+      // Primaire : format (Bobine < Feuille < Palette) pour garder bobines globalement avant formats.
       const _sortKey=(()=>{const v=document.getElementById('sort-sel')?.value||'';
         if(v==='gsm_asc'||v==='grammage_asc')return['grammage','asc'];
         if(v==='gsm_desc'||v==='grammage_desc')return['grammage','desc'];
         if(v==='price_asc'||v==='prix_asc')return['price','asc'];
         if(v==='price_desc'||v==='prix_desc')return['price','desc'];
         return null;})();
-      if(_sortKey){
-        const[k,d]=_sortKey;
-        _groupsList.sort((a,b)=>{const av=a._proto[k],bv=b._proto[k];
+      const _fmtRank=p=>/palette|feuille/i.test(String(p?.format||''))?1:0;
+      _groupsList.sort((a,b)=>{
+        const fa=_fmtRank(a._proto),fb=_fmtRank(b._proto);
+        if(fa!==fb)return fa-fb;
+        if(_sortKey){
+          const[k,d]=_sortKey;
+          const av=a._proto[k],bv=b._proto[k];
           if(av==null&&bv==null)return 0;if(av==null)return 1;if(bv==null)return -1;
-          return d==='asc'?av-bv:bv-av;});
-      }
+          return d==='asc'?av-bv:bv-av;
+        }
+        return 0;
+      });
       // Slice page courante
       const _gOff=(currentPage-1)*PAGE;
       const _pageGroups=_groupsList.slice(_gOff,_gOff+PAGE);
@@ -2472,7 +2499,7 @@ function decodeQuality(raw){
 
 function formatLabel(p){
   if(!p||!p.format)return null;
-  if(p.format.toLowerCase().includes('palette')&&(p.largeur||p.longueur)){
+  if(/palette|feuille/i.test(p.format)&&(p.largeur||p.longueur)){
     const dims=[p.largeur,p.longueur].filter(Boolean).map(v=>mmToCm(v)).join('×');
     return `Format ${dims}`;
   }
@@ -2483,7 +2510,7 @@ function _productSummary(p){
   const parts=[];
   if(p.couleur)parts.push(p.couleur);
   if(p.grammage)parts.push(p.grammage+' g/m²');
-  const isPalette=p.format&&p.format.toLowerCase().includes('palette');
+  const isPalette=p.format&&/palette|feuille/i.test(p.format);
   if(isPalette&&(p.largeur||p.longueur)){
     parts.push([mmToCm(p.largeur),p.longueur?mmToCm(p.longueur):null].filter(Boolean).join(' × ')+' cm');
   }else if(p.largeur){
@@ -2507,7 +2534,7 @@ function renderCards(list){
   const g=document.getElementById('pgrid');
   if(!g)return;
   g.className='pgrid';
-  g.innerHTML=list.map(p=>{
+  const _renderCard=p=>{
     const initials=(p.type||'?').substring(0,2).toUpperCase();
     const _altTxt=[p.name,p.grammage?p.grammage+'g/m²':'',p.couleur].filter(Boolean).join(' — ')||'Produit';
     const _isFab=p.ref&&/^Photo_FAB/i.test(String(p.ref))&&p.emplacement!=='OUR WAREHOUSE';
@@ -2517,7 +2544,7 @@ function renderCards(list){
         ?`<img src="${safeUrl(p.image_url)}" alt="${esc(_altTxt)}" loading="lazy" onerror="this.src='${esc(_fallbackImg)}';this.className='pcard-nophoto'">`
         :`<img src="${esc(_fallbackImg)}" alt="Photo sur demande" class="pcard-nophoto">`;
     const {cls:badgeCls,txt:badgeTxt}=decodeQuality(p.type);
-    const isPalette=p.format&&p.format.toLowerCase().includes('palette');
+    const isPalette=p.format&&/palette|feuille/i.test(p.format);
     const dimTag=!isPalette&&p.largeur?`${mmToCm(p.largeur)} cm`:'';
     const fmtLabel=p.format?(isPalette?'Format':'Bobine'):null;
     const paletteDims=isPalette&&(p.largeur||p.longueur)?[p.largeur,p.longueur].filter(Boolean).map(v=>mmToCm(v)).join('×'):null;
@@ -2559,11 +2586,11 @@ function renderCards(list){
     const _grpAllIn=_isGroup&&(p._grpUnitIds||[]).slice(0,_q).every(id=>cart.find(x=>x.id===+id))&&_q>0;
     const _isInCart = _isGroup ? _grpAllIn : !!cart.find(x=>x.id===+p.id);
     const _btnText = _isInCart
-      ? (_isGroup ? `✓ Ajouté ${_q}` : '✓ Ajouté')
+      ? (_isGroup ? `${_ICO_TRASH} Retirer ${_q}` : `${_ICO_TRASH} Retirer`)
       : (_isGroup ? `+ Ajouter ${_q}` : '+ Ajouter');
     const _btnAttrs = _isGroup
       ? `onclick="addGroupToCart(${attrJs(p._grpKey)})"`
-      : `id="cadd-${numId(p.id)}" aria-label="${lang==='en'?'Add to selection':'Ajouter à la sélection'}" onclick="event.stopPropagation();addToCart(${numId(p.id)})"`;
+      : `id="cadd-${numId(p.id)}" aria-label="${lang==='en'?'Add to list':'Ajouter à la liste'}" onclick="event.stopPropagation();addToCart(${numId(p.id)})"`;
     const _initialWNum=_isGroup?_initialW.replace(' kg',''):'';
     const addCtrl=_isGroup
       ?`<div class="pcard-grp-add" onclick="event.stopPropagation();" data-gid="${esc(p._grpKey||'')}">
@@ -2583,7 +2610,7 @@ function renderCards(list){
         </div>
       </div>`;
     return`<div class="pcard" onclick="openDetail(${numId(p.id)})">
-      <div class="pcard-img">${imgHtml}${typeOverlay}${refOverlay}${usineOverlay}${photoRef}</div>
+      <div class="pcard-img">${imgHtml}${typeOverlay}${refOverlay}${usineOverlay}${prixHtml}${photoRef}</div>
       <div class="pcard-body">
         <div class="pcard-name">${esc(formatProductTitle(p.qualite,p.type))}</div>
         ${subtitleHtml}
@@ -2591,7 +2618,11 @@ function renderCards(list){
         ${addCtrl}
       </div>
     </div>`;
-  }).join('');
+  };
+  // Bobines d'abord, Formats après — pas de séparateur en grille
+  const _isPalCard=p=>p.format&&/palette|feuille/i.test(p.format);
+  const _sorted=[...list].sort((a,b)=>(_isPalCard(a)?1:0)-(_isPalCard(b)?1:0));
+  g.innerHTML=_sorted.map(_renderCard).join('');
   _updatePager();
   if(typeof _updateAddPageBtn==='function')_updateAddPageBtn();
 }
@@ -2599,6 +2630,7 @@ function renderCards(list){
 let _viewMode='grid';
 const _SVG_GRID='<svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="6" height="6" rx="1"/><rect x="8" y="0" width="6" height="6" rx="1"/><rect x="0" y="8" width="6" height="6" rx="1"/><rect x="8" y="8" width="6" height="6" rx="1"/></svg>';
 const _SVG_LIST='<svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="14" height="2.5" rx="1"/><rect x="0" y="5.5" width="14" height="2.5" rx="1"/><rect x="0" y="11" width="14" height="2.5" rx="1"/></svg>';
+const _ICO_TRASH='<svg class="ico-trash" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
 function _updateToggleBtn(){
   const html=_viewMode==='list'
     ?_SVG_GRID+'<span>Vue fiche</span>'
@@ -2619,7 +2651,7 @@ function renderList(list){
   const g=document.getElementById('pgrid');
   if(!g)return;
   g.className='pgrid plist';
-  const rows=list.map(p=>{
+  const _renderRow=p=>{
     const _isFabL=p.ref&&/^Photo_FAB/i.test(String(p.ref))&&p.emplacement!=='OUR WAREHOUSE';
     const title=formatProductTitle(p.qualite,p.name);
     const _isSiderunL=p.ref&&/^Photo_DU/i.test(String(p.ref));
@@ -2634,19 +2666,9 @@ function renderList(list){
     const _grpCur=_groupQty[p._grpKey]||1;
     const _grpAllInL=_isGroupL&&(p._grpUnitIds||[]).slice(0,_grpCur).every(id=>cart.find(x=>x.id===+id))&&_grpCur>0;
     const addBtn=_isGroupL
-      ?`<div class="plist-grp-cell" onclick="event.stopPropagation();" data-gid="${esc(p._grpKey||'')}">
-          <div class="plist-grp-stepper">
-            <button class="plist-grp-step" onclick="_grpQtyAdj(${attrJs(p._grpKey)},-1)"${_grpCur<=1?' disabled':''} aria-label="−1">−</button>
-            <span class="plist-grp-valwrap">
-              <input type="number" class="plist-grp-val" min="1" max="${numId(p._grpCount)}" value="${_grpCur}" onchange="_grpQtySet(${attrJs(p._grpKey)},this.value)" oninput="_grpQtySet(${attrJs(p._grpKey)},this.value)" aria-label="${lang==='en'?'Quantity':'Quantité'}">
-              <span class="plist-grp-max">/${numId(p._grpCount)}</span>
-            </span>
-            <button class="plist-grp-step" onclick="_grpQtyAdj(${attrJs(p._grpKey)},1)"${_grpCur>=p._grpCount?' disabled':''} aria-label="+1">+</button>
-          </div>
-          <button class="plist-grp-add${_grpAllInL?' added':''}" onclick="addGroupToCart(${attrJs(p._grpKey)})" title="${lang==='en'?'Add':'Ajouter'} ${_grpCur}" aria-label="${lang==='en'?'Add':'Ajouter'} ${_grpCur}">${_grpAllInL?'✓':'+'}</button>
-        </div>`
-      :`<button class="plist-add${inCart?' added':''}" id="ladd-${numId(p.id)}" aria-label="${lang==='en'?'Add to selection':'Ajouter à la sélection'}" onclick="event.stopPropagation();addToCart(${numId(p.id)})">${inCart?'✓':'+'}</button>`;
-    const isPalette=p.format&&p.format.toLowerCase().includes('palette');
+      ?`<button class="plist-add plist-grp-pop${_grpAllInL?' added':''}" data-gid="${esc(p._grpKey||'')}" onclick="event.stopPropagation();_openGrpPopover(${attrJs(p._grpKey)},this)" title="${_grpAllInL?(lang==='en'?'Remove':'Retirer'):(lang==='en'?'Configure':'Configurer')} ${_grpCur}/${numId(p._grpCount)}" aria-label="${_grpAllInL?(lang==='en'?'Remove':'Retirer'):(lang==='en'?'Configure quantity':'Configurer quantité')}">${_grpAllInL?_ICO_TRASH:'+'}<span class="plist-grp-badge">${_grpCur}/${numId(p._grpCount)}</span></button>`
+      :`<button class="plist-add${inCart?' added':''}" id="ladd-${numId(p.id)}" aria-label="${inCart?(lang==='en'?'Remove from list':'Retirer de la liste'):(lang==='en'?'Add to list':'Ajouter à la liste')}" onclick="event.stopPropagation();addToCart(${numId(p.id)})">${inCart?_ICO_TRASH:'+'}</button>`;
+    const isPalette=p.format&&/palette|feuille/i.test(p.format);
     // Dimensions: Bobine → Laize | Ø Diamètre | Mandrin / Palette → Dimensions (laize×long)
     const laize=p.largeur?`${mmToCm(p.largeur)} cm`:'—';
     const dim2=isPalette
@@ -2674,12 +2696,15 @@ function renderList(list){
       <td class="plist-td plist-td-num">${esc(_poidsTxt)}</td>
       ${_priceMode?`<td class="plist-td plist-td-num plist-price">${p.price?esc(p.price.toLocaleString('fr-FR')+' €/T'):'—'}</td>`:''}
       <td class="plist-td plist-td-usine plist-col-usine">${esc(_usineTxt)}</td>
-      <td class="plist-td plist-td-depot">${esc(_depotTxt)}</td>
-      <td class="plist-td plist-td-zone">${esc(p.allee||'—')}</td>
     </tr>`;
-  }).join('');
-  const _allPalette=list.length>0&&list.every(p=>p.format&&p.format.toLowerCase().includes('palette'));
-  g.innerHTML=`<div style="overflow-x:auto"><table class="plist-table">
+  };
+  const _isPalListItem=p=>p.format&&/palette|feuille/i.test(p.format);
+  const _bobs=list.filter(p=>!_isPalListItem(p));
+  const _pals=list.filter(_isPalListItem);
+  // Headers : Bobine → Laize | Diamètre | Mandrin / Palette → Dimensions (colspan 3)
+  const _bobHead=`<th>Laize</th><th>Diamètre</th><th class="plist-col-mandrin">Mandrin</th>`;
+  const _palHead=`<th colspan="3">Dimensions</th>`;
+  const _buildTable=(rowsHtml,head)=>`<table class="plist-table">
     <thead><tr>
       <th class="plist-th-add"></th>
       <th></th>
@@ -2688,17 +2713,25 @@ function renderList(list){
       <th>Détails</th>
       <th>Couleur</th>
       <th>GSM</th>
-      ${_allPalette?'<th colspan="3">Dimensions</th>':`<th>Laize</th>
-      <th>Diamètre</th>
-      <th class="plist-col-mandrin">Mandrin</th>`}
+      ${head}
       <th>Poids (kg)</th>
       ${_priceMode?'<th>Prix</th>':''}
       <th class="plist-col-usine">Réf. usine</th>
-      <th class="plist-col-depot">Emplacement</th>
-      <th>Zone</th>
     </tr></thead>
-    <tbody>${rows}</tbody>
-  </table></div>`;
+    <tbody>${rowsHtml}</tbody>
+  </table>`;
+  let html='<div style="overflow-x:auto">';
+  if(_bobs.length&&_pals.length){
+    html+=_buildTable(_bobs.map(_renderRow).join(''),_bobHead);
+    html+='<div class="plist-section-title">Formats</div>';
+    html+=_buildTable(_pals.map(_renderRow).join(''),_palHead);
+  } else if(_bobs.length){
+    html+=_buildTable(_bobs.map(_renderRow).join(''),_bobHead);
+  } else {
+    html+=_buildTable(_pals.map(_renderRow).join(''),_palHead);
+  }
+  html+='</div>';
+  g.innerHTML=html;
   _updatePager();
   if(typeof _updateAddPageBtn==='function')_updateAddPageBtn();
 }
@@ -2828,15 +2861,16 @@ async function openDetail(id){
   const specDefs=[
     {lbl: LT[lang].t_spec_couleur||'Couleur',   val: p.couleur},
     {lbl: 'Grammage',                             val: p.grammage?p.grammage+' g/m²':null},
-    {lbl: (p.format&&p.format.toLowerCase().includes('palette')&&p.largeur&&p.longueur)?'Dimensions':(LT[lang].t_spec_laize||'Laize'),
-     val: (p.format&&p.format.toLowerCase().includes('palette')&&p.largeur&&p.longueur)?mmToCm(p.largeur)+' × '+mmToCm(p.longueur)+' cm':(p.largeur?mmToCm(p.largeur)+' cm':null)},
-    {lbl: LT[lang].t_spec_longueur||'Longueur', val: p.format&&p.format.toLowerCase().includes('palette')&&p.largeur&&p.longueur?null:(p.format==='Palette'&&p.longueur?mmToCm(p.longueur)+' cm':null)},
+    {lbl: (p.format&&/palette|feuille/i.test(p.format)&&p.largeur&&p.longueur)?'Dimensions':(LT[lang].t_spec_laize||'Laize'),
+     val: (p.format&&/palette|feuille/i.test(p.format)&&p.largeur&&p.longueur)?mmToCm(p.largeur)+' × '+mmToCm(p.longueur)+' cm':(p.largeur?mmToCm(p.largeur)+' cm':null)},
+    {lbl: LT[lang].t_spec_longueur||'Longueur', val: p.format&&/palette|feuille/i.test(p.format)&&p.largeur&&p.longueur?null:(p.format==='Palette'&&p.longueur?mmToCm(p.longueur)+' cm':null)},
     {lbl: LT[lang].t_spec_mandrin||'Mandrin',   val: p.noyau?p.noyau+' mm':null},
-    {lbl: LT[lang].t_spec_format||'Dimensions',  val: p.qualite!=='UMAC'&&p.qualite!=='UMAN'&&!(p.format&&p.format.toLowerCase().includes('palette'))?formatLabel(p):null},
+    {lbl: LT[lang].t_spec_format||'Dimensions',  val: p.qualite!=='UMAC'&&p.qualite!=='UMAN'&&!(p.format&&/palette|feuille/i.test(p.format))?formatLabel(p):null},
     {lbl: LT[lang].t_spec_depot||'Emplacement',  val: p.zone||p.emplacement},
     {lbl: 'Zone',                                  val: p.allee||'—', always:true},
     {lbl: 'Type',                                 val: p.qualite||null},
     {lbl: 'Code douanier',                        val: _toCN8(getHsCode(p.qualite,p.grammage,p.format))},
+    {lbl: LT[lang].t_poids_lbl||'Poids',          val: p.poids_net?fmt(p.poids_net):null},
   ].filter(s=>s.val||s.always);
   document.getElementById('det-specs').innerHTML=specDefs.map(s=>
     `<div class="dspec-item"><div class="dspec-lbl">${esc(s.lbl)}</div><div class="dspec-val">${esc(s.val)}</div></div>`
@@ -2859,7 +2893,7 @@ async function openDetail(id){
   if(mab){
     const alreadyIn=cart.find(x=>x.id===+p.id);
     mab.classList.toggle('added',!!alreadyIn);
-    mab.innerHTML=alreadyIn?'✓ '+(lang==='en'?'Added':'Ajouté'):(LT[lang].t_add_modal_btn||'+ Ajouter à la sélection');
+    mab.innerHTML=alreadyIn?`${_ICO_TRASH} ${lang==='en'?'Remove':'Retirer'}`:(LT[lang].t_add_modal_btn||'+ Ajouter à la liste');
   }
   _updateDetNav();
   document.getElementById('detail-bg').classList.add('show');
@@ -3008,9 +3042,9 @@ function toggleSelectAll(btn){
       if(!cart.find(x=>x.id===+p.id)){
         cart.push({id:p.id,name:p.name,ref:p.ref,type:p.type,qualite:p.qualite||null,details:p.details||null,grammage:p.grammage,largeur:p.largeur,format:p.format,poids_net:p.poids_net,price:p.price||null,img:p.image_url||null,couleur:p.couleur||null,usine:p.usine||null,zone:p.zone||null,emplacement:p.emplacement||null,allee:p.allee||null});
         const lb=document.getElementById('ladd-'+p.id);
-        if(lb){lb.classList.add('added');lb.textContent='✓';}
+        if(lb){lb.classList.add('added');lb.innerHTML=_ICO_TRASH;}
         const cb=document.getElementById('cadd-'+p.id);
-        if(cb){cb.classList.add('added');cb.innerHTML=`<span class="cart-check">✓</span>`;}
+        if(cb){cb.classList.add('added');cb.innerHTML=`${_ICO_TRASH} Retirer`;}
       }
     });
     localStorage.setItem('prodi_cart',JSON.stringify(cart));
@@ -3038,6 +3072,7 @@ function _grpQtySet(gid,v){
   const sel=`[data-gid="${CSS.escape(gid)}"]`;
   // sync inputs (cards + lignes peuvent coexister si on switch view)
   document.querySelectorAll(`${sel} input.grp-qty-input,${sel} input.plist-grp-val`).forEach(i=>{if(+i.value!==n)i.value=n;});
+  document.querySelectorAll(`${sel} .plist-grp-badge`).forEach(el=>{const m=el.textContent.split('/')[1]||'';el.textContent=`${n}/${m}`;});
   // poids live = somme des N premières unités (priorisées photo)
   const w=_grpComputeWeight(gid,n);
   const wTxt=Math.round(w).toLocaleString('fr-FR');
@@ -3049,13 +3084,19 @@ function _grpQtySet(gid,v){
   document.querySelectorAll(`${sel} .grp-add-btn`).forEach(b=>{
     if(b.classList.contains('plist-grp-add'))return;
     b.classList.toggle('added',allIn);
-    b.textContent=allIn?`✓ Ajouté ${n}`:`+ Ajouter ${n}`;
+    b.innerHTML=allIn?`${_ICO_TRASH} Retirer ${n}`:`+ Ajouter ${n}`;
   });
   document.querySelectorAll(`${sel} .plist-grp-add`).forEach(b=>{
     b.classList.toggle('added',allIn);
-    b.textContent=allIn?'✓':'+';
-    const lbl=`${typeof lang!=='undefined'&&lang==='en'?'Add':'Ajouter'} ${n}`;
+    b.innerHTML=allIn?_ICO_TRASH:'+';
+    const lbl=`${allIn?(typeof lang!=='undefined'&&lang==='en'?'Remove':'Retirer'):(typeof lang!=='undefined'&&lang==='en'?'Add':'Ajouter')} ${n}`;
     b.title=lbl; b.setAttribute('aria-label',lbl);
+  });
+  document.querySelectorAll(`.plist-grp-pop${sel}`).forEach(b=>{
+    b.classList.toggle('added',allIn);
+    b.innerHTML=`${allIn?_ICO_TRASH:'+'}<span class="plist-grp-badge">${n}/${p._grpCount}</span>`;
+    const lbl=`${allIn?(typeof lang!=='undefined'&&lang==='en'?'Remove':'Retirer'):(typeof lang!=='undefined'&&lang==='en'?'Configure':'Configurer')} ${n}/${p._grpCount}`;
+    b.title=lbl;
   });
   // état des boutons − et + (grid + list)
   document.querySelectorAll(`${sel} .grp-qty-btn-minus`).forEach(b=>b.disabled=(n<=1));
@@ -3096,22 +3137,107 @@ function addGroupToCart(gid){
   localStorage.setItem('prodi_cart',JSON.stringify(cart));
   updateCartBadge();renderDrawer();
   _grpRefreshAddedState(gid,true);
-  if(added)toast(`${added} produit${added>1?'s':''} ajouté${added>1?'s':''} à la sélection`);
+  if(added)toast(`${added} produit${added>1?'s':''} ajouté${added>1?'s':''} à la liste`);
   else toast('Déjà ajoutés');
 }
 function _grpRefreshAddedState(gid,isAdded){
   const sel=`[data-gid="${CSS.escape(gid)}"]`;
-  // Bouton list view (compact pill +)
+  // Bouton list view legacy (plist-grp-add)
   document.querySelectorAll(`${sel} .plist-grp-add`).forEach(b=>{
     b.classList.toggle('added',isAdded);
-    b.textContent=isAdded?'✓':'+';
+    b.innerHTML=isAdded?_ICO_TRASH:'+';
+  });
+  // Bouton list view compact (popover trigger) — data-gid est sur le bouton lui-même
+  document.querySelectorAll(`.plist-grp-pop${sel}`).forEach(b=>{
+    b.classList.toggle('added',isAdded);
+    const n=_groupQty[gid]||1;
+    const grp=_groupsList.find(g=>g.gid===gid);
+    const max=grp?grp.units.length:1;
+    b.innerHTML=`${isAdded?_ICO_TRASH:'+'}<span class="plist-grp-badge">${n}/${max}</span>`;
   });
   // Bouton grid card view (avec texte "+ Ajouter N")
   document.querySelectorAll(`${sel} .grp-add-btn`).forEach(b=>{
     b.classList.toggle('added',isAdded);
     const n=_groupQty[gid]||1;
     if(b.classList.contains('plist-grp-add'))return;
-    b.textContent=isAdded?`✓ Ajouté ${n}`:`+ Ajouter ${n}`;
+    b.innerHTML=isAdded?`${_ICO_TRASH} Retirer ${n}`:`+ Ajouter ${n}`;
+  });
+}
+
+// ── Popover stepper pour produits groupés en vue liste ──
+function _closeGrpPopover(){
+  const p=document.getElementById('plist-grp-popover');
+  if(p)p.remove();
+  document.removeEventListener('click',_onGrpPopoverOutside,true);
+  document.removeEventListener('keydown',_onGrpPopoverKey,true);
+}
+function _onGrpPopoverOutside(e){
+  const pop=document.getElementById('plist-grp-popover');
+  if(pop&&!pop.contains(e.target))_closeGrpPopover();
+}
+function _onGrpPopoverKey(e){if(e.key==='Escape')_closeGrpPopover();}
+function _openGrpPopover(gid,anchor){
+  _closeGrpPopover();
+  const grp=_groupsList.find(g=>g.gid===gid);
+  if(!grp){toast('Groupe introuvable');return;}
+  const cur=Math.max(1,Math.min(grp.units.length,_groupQty[gid]||1));
+  const max=grp.units.length;
+  const targetIds=grp.units.slice(0,cur).map(u=>u.id);
+  const allIn=targetIds.length>0&&targetIds.every(id=>cart.find(x=>x.id===+id));
+  const w=_grpComputeWeight(gid,cur);
+  const wTxt=Math.round(w).toLocaleString('fr-FR');
+  const pop=document.createElement('div');
+  pop.id='plist-grp-popover';
+  pop.className='plist-grp-popover';
+  pop.setAttribute('data-gid',gid);
+  pop.onclick=e=>e.stopPropagation();
+  pop.innerHTML=`
+    <div class="plist-grp-popover-hd">Quantité — <span class="plist-grp-popover-w">${wTxt} kg</span></div>
+    <div class="plist-grp-popover-row">
+      <div class="plist-grp-stepper">
+        <button class="plist-grp-step" onclick="_grpQtyAdj(${attrJs(gid)},-1);_refreshGrpPopover(${attrJs(gid)})"${cur<=1?' disabled':''} aria-label="−1">−</button>
+        <span class="plist-grp-valwrap">
+          <input type="number" class="plist-grp-val" min="1" max="${numId(max)}" value="${cur}" oninput="_grpQtySet(${attrJs(gid)},this.value);_refreshGrpPopover(${attrJs(gid)})" aria-label="${lang==='en'?'Quantity':'Quantité'}">
+          <span class="plist-grp-max">/${numId(max)}</span>
+        </span>
+        <button class="plist-grp-step" onclick="_grpQtyAdj(${attrJs(gid)},1);_refreshGrpPopover(${attrJs(gid)})"${cur>=max?' disabled':''} aria-label="+1">+</button>
+      </div>
+      <button class="plist-grp-popover-add${allIn?' added':''}" onclick="addGroupToCart(${attrJs(gid)});_closeGrpPopover();">${allIn?`${_ICO_TRASH} Retirer`:'+ Ajouter'}</button>
+    </div>`;
+  document.body.appendChild(pop);
+  const r=anchor.getBoundingClientRect();
+  const popW=pop.offsetWidth;
+  const popH=pop.offsetHeight;
+  let left=r.left;
+  if(left+popW>window.innerWidth-8)left=window.innerWidth-popW-8;
+  let top=r.bottom+6;
+  if(top+popH>window.innerHeight-8)top=r.top-popH-6;
+  pop.style.left=Math.max(8,left)+'px';
+  pop.style.top=Math.max(8,top)+'px';
+  setTimeout(()=>{
+    document.addEventListener('click',_onGrpPopoverOutside,true);
+    document.addEventListener('keydown',_onGrpPopoverKey,true);
+  },0);
+}
+function _refreshGrpPopover(gid){
+  const pop=document.getElementById('plist-grp-popover');
+  if(!pop||pop.getAttribute('data-gid')!==gid)return;
+  const grp=_groupsList.find(g=>g.gid===gid);
+  if(!grp)return;
+  const cur=Math.max(1,Math.min(grp.units.length,_groupQty[gid]||1));
+  const max=grp.units.length;
+  const targetIds=grp.units.slice(0,cur).map(u=>u.id);
+  const allIn=targetIds.length>0&&targetIds.every(id=>cart.find(x=>x.id===+id));
+  const w=_grpComputeWeight(gid,cur);
+  const wEl=pop.querySelector('.plist-grp-popover-w');
+  if(wEl)wEl.textContent=Math.round(w).toLocaleString('fr-FR')+' kg';
+  const addBtn=pop.querySelector('.plist-grp-popover-add');
+  if(addBtn){
+    addBtn.classList.toggle('added',allIn);
+    addBtn.innerHTML=allIn?`${_ICO_TRASH} Retirer`:'+ Ajouter';
+  }
+  pop.querySelectorAll('.plist-grp-step').forEach((b,i)=>{
+    b.disabled=(i===0&&cur<=1)||(i===1&&cur>=max);
   });
 }
 
@@ -3126,7 +3252,7 @@ function addToCart(id){
     if(caddBtn){caddBtn.classList.remove('added');caddBtn.textContent='+ Ajouter';}
     const laddBtn=document.getElementById('ladd-'+id);
     if(laddBtn){laddBtn.classList.remove('added');laddBtn.textContent='+';}
-    if(mab){mab.classList.remove('added');mab.innerHTML=LT[lang].t_add_modal_btn||'+ Ajouter à la sélection';}
+    if(mab){mab.classList.remove('added');mab.innerHTML=LT[lang].t_add_modal_btn||'+ Ajouter à la liste';}
     toast(LT[lang].t_removed_sel);
     return;
   }
@@ -3134,10 +3260,10 @@ function addToCart(id){
   localStorage.setItem('prodi_cart',JSON.stringify(cart));
   updateCartBadge();
   const caddBtn=document.getElementById('cadd-'+id);
-  if(caddBtn){caddBtn.classList.add('added');caddBtn.textContent='✓ Ajouté';}
+  if(caddBtn){caddBtn.classList.add('added');caddBtn.innerHTML=`${_ICO_TRASH} Retirer`;}
   const laddBtn=document.getElementById('ladd-'+id);
-  if(laddBtn){laddBtn.classList.add('added');laddBtn.textContent='✓';}
-  if(mab){mab.classList.add('added');mab.innerHTML='✓';}
+  if(laddBtn){laddBtn.classList.add('added');laddBtn.innerHTML=_ICO_TRASH;}
+  if(mab){mab.classList.add('added');mab.innerHTML=`${_ICO_TRASH} ${lang==='en'?'Remove':'Retirer'}`;}
   toast(LT[lang].t_added_sel);
   renderDrawer();
 }
@@ -3173,7 +3299,7 @@ function addPageToCart(){
       if(l){l.classList.remove('added');l.textContent='+';}
       if(p._grpKey)_grpRefreshAddedState(p._grpKey,false);
     });
-    toast(`${removed} produit${removed>1?'s':''} retiré${removed>1?'s':''} de la sélection`);
+    toast(`${removed} produit${removed>1?'s':''} retiré${removed>1?'s':''} de la liste`);
     renderDrawer();_updateAddPageBtn();
     return;
   }
@@ -3187,12 +3313,12 @@ function addPageToCart(){
   updateCartBadge();
   list.forEach(p=>{
     const c=document.getElementById('cadd-'+p.id);
-    if(c){c.classList.add('added');c.textContent='✓ Ajouté';}
+    if(c){c.classList.add('added');c.innerHTML=`${_ICO_TRASH} Retirer`;}
     const l=document.getElementById('ladd-'+p.id);
-    if(l){l.classList.add('added');l.textContent='✓';}
+    if(l){l.classList.add('added');l.innerHTML=_ICO_TRASH;}
     if(p._grpKey)_grpRefreshAddedState(p._grpKey,true);
   });
-  toast(`${added} produit${added>1?'s':''} ajouté${added>1?'s':''} à la sélection`);
+  toast(`${added} produit${added>1?'s':''} ajouté${added>1?'s':''} à la liste`);
   renderDrawer();_updateAddPageBtn();
 }
 
@@ -3210,7 +3336,7 @@ function _updateAddPageBtn(){
       return cart.find(x=>x.id===+p.id);
     });
     btn.classList.toggle('all-in',!!allIn);
-    btn.title=allIn?'Retirer tous les produits de la page de la sélection':'Ajouter tous les produits de la page à la sélection';
+    btn.title=allIn?'Retirer tous les produits de la page de la liste':'Ajouter tous les produits de la page à la liste';
   });
 }
 
@@ -3220,9 +3346,14 @@ function removeFromCart(id){
   updateCartBadge();renderDrawer();
   // Désélectionner le bouton dans la grille
   const cb=document.getElementById('cadd-'+id);
-  if(cb){cb.classList.remove('added');cb.innerHTML=`<span class="cart-icon">+</span><span class="cart-check">✓</span> ${lang==='en'?'Add':'Ajouter'}`;}
+  if(cb){cb.classList.remove('added');cb.textContent='+ Ajouter';}
   const lb=document.getElementById('ladd-'+id);
   if(lb){lb.classList.remove('added');lb.textContent='+';}
+  const mab=document.getElementById('modal-add-btn');
+  if(mab&&_detIdx>=0&&all[_detIdx]&&+all[_detIdx].id===+id){
+    mab.classList.remove('added');
+    mab.innerHTML=LT[lang].t_add_modal_btn||'+ Ajouter à la liste';
+  }
 }
 
 // ── SHARE CART ──
@@ -3243,7 +3374,7 @@ function openImportRefs(){
     <textarea id="import-refs-input" style="width:100%;min-height:120px;padding:12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;resize:vertical;box-sizing:border-box;" placeholder="917643&#10;985042&#10;DU5517&#10;774533"></textarea>
     <div id="import-refs-result" style="font-size:13px;margin-top:8px;min-height:20px;"></div>
     <div style="display:flex;gap:8px;margin-top:12px;">
-      <button onclick="_doImportRefs()" style="flex:2;padding:12px;background:#FE0000;color:#fff;border:none;border-radius:8px;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;cursor:pointer;" id="import-refs-btn">AJOUTER À LA SÉLECTION</button>
+      <button onclick="_doImportRefs()" style="flex:2;padding:12px;background:#FE0000;color:#fff;border:none;border-radius:8px;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;cursor:pointer;" id="import-refs-btn">AJOUTER À LA LISTE</button>
       <button onclick="document.getElementById('import-refs-bg').remove();" style="padding:12px 16px;background:transparent;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;cursor:pointer;">Fermer</button>
     </div>
   </div>`;
@@ -3304,11 +3435,11 @@ async function _doImportRefs(){
     let msg=`<span style="color:#1a9e5c;font-weight:600">✓ ${found.length} trouvé(s), ${added} ajouté(s)</span>`;
     if(notFound.length)msg+=`<br><span style="color:#e53e3e">✗ ${notFound.length} introuvable(s) : ${esc(notFound.join(', '))}</span>`;
     result.innerHTML=msg;
-    btn.disabled=false;btn.textContent='AJOUTER À LA SÉLECTION';
+    btn.disabled=false;btn.textContent='AJOUTER À LA LISTE';
   }catch(e){
     console.error('Import refs error:',e);
     result.innerHTML='<span style="color:#e53e3e">Erreur lors de la recherche</span>';
-    btn.disabled=false;btn.textContent='AJOUTER À LA SÉLECTION';
+    btn.disabled=false;btn.textContent='AJOUTER À LA LISTE';
   }
 }
 
@@ -3378,12 +3509,12 @@ async function printSelection(opts){
   const headless=autoGenerate;
   // Onglet PDF réservé dans le user gesture du clic OK / Enter.
   let pdfWin=null;
-  if(!cart.length){toast('Sélection vide !');return;}
+  if(!cart.length){toast('Liste vide !');return;}
   const clientName=await askText(autoGenerate?{
-    title:'Générer la liste',
+    title:'Partager la liste',
     sub:'Nom du client (utilisé dans le PDF).',
     placeholder:'Ex : Société Dupont',
-    okLabel:'Générer',
+    okLabel:'Partager',
     onConfirm:()=>{
       try{
         pdfWin=window.open('about:blank','_blank');
@@ -3395,10 +3526,10 @@ async function printSelection(opts){
       }catch(_){}
     }
   }:{
-    title:'Générer la liste',
-    sub:'Donne un nom à cette sélection (le nom du client par exemple).',
+    title:'Partager la liste',
+    sub:'Donne un nom à cette liste (le nom du client par exemple).',
     placeholder:'Ex : Société Dupont',
-    okLabel:'Générer'
+    okLabel:'Partager'
   });
   // null = cancel (Annuler / Escape / clic hors-modal). '' = Générer sans nom.
   if(clientName===null){if(pdfWin){try{pdfWin.close();}catch(_){}}return;}
@@ -3412,7 +3543,7 @@ async function printSelection(opts){
     const longueur=p.longueur||_f.longueur||0;
     const largeurCm=largeur?mmToCm(largeur):'';
     const format=p.format||_f.format||'';
-    const isPalette=format&&format.toLowerCase().includes('palette');
+    const isPalette=format&&/palette|feuille/i.test(format);
     const dim=isPalette&&largeur&&longueur
       ?`${mmToCm(largeur)} × ${mmToCm(longueur)} cm`
       :largeur&&longueur
@@ -3484,12 +3615,12 @@ async function printSelection(opts){
   const _greeting=clientName?`Bonjour M. ${clientName},`:'Bonjour,';
   const _mailLines=[
     _greeting,'',
-    'Veuillez trouver ci-dessous le lien vers les photos de notre sélection :',
+    'Veuillez trouver ci-dessous le lien vers les photos de notre liste :',
     _shareUrl,'',
     'La liste détaillée est également disponible en pièce jointe (PDF).','',
     'Bien à vous,'
   ].join('\n');
-  const _mailSubject=clientName?`Notre sélection — ${clientName}`:'Notre sélection';
+  const _mailSubject=clientName?`Notre liste — ${clientName}`:'Notre liste';
   const _mailtoUrl=`mailto:?subject=${encodeURIComponent(_mailSubject).replace(/'/g,'%27')}&body=${encodeURIComponent(_mailLines).replace(/'/g,'%27')}`;
   let w, _shareIframe;
   if(headless){
@@ -3660,8 +3791,8 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
 .totals-block{padding:10px 14px;border:1.5px solid var(--line);border-top:none;background:#fafaf6;font-size:10.5px;line-height:1.8;font-weight:600;}
 .totals-block .row{display:flex;justify-content:space-between;}
 .totals-block .row b{color:var(--ink);}
-.totals-grid{display:grid;grid-template-columns:1fr 1fr 1.1fr;border:1.5px solid var(--line);border-top:none;}
-.totals-grid > div{padding:7px 10px;border-right:1px solid var(--line);text-align:center;}
+.totals-grid{display:grid;grid-template-columns:1fr 1fr;border:1.5px solid var(--line);border-top:none;}
+.totals-grid > div{padding:9px 12px;border-right:1px solid var(--line);text-align:center;}
 .totals-grid > div:last-child{border-right:none;background:#fbf6e8;}
 .totals-grid .lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px;}
 .totals-grid .val{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;}
@@ -3736,13 +3867,11 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
   <div class="totals-block">
     <div class="row"><b>MONTANT FOB :</b><span contenteditable="true">${eur(totalMontant)} €</span></div>
     <div class="row"><b>MONTANT DU FRET :</b><span contenteditable="true">${eur(2800)} €</span></div>
-    <div class="row"><b>MONTANT COÛT ET FRET :</b><span contenteditable="true">${eur(totalMontant+2800)} €</span></div>
   </div>
 
   <div class="totals-grid">
-    <div><div class="lbl">Total HT</div><div class="val">${eur(totalMontant)} €</div></div>
     <div><div class="lbl">Poids Total</div><div class="val">${dec(totalPoids/1000,3)} T</div></div>
-    <div class="net"><div class="lbl">Net à payer</div><div class="val">${eur(totalMontant+2800)} €</div></div>
+    <div class="net"><div class="lbl">Total HT</div><div class="val">${eur(totalMontant)} €</div></div>
   </div>
 
   </div>
@@ -3876,11 +4005,12 @@ const _shareCode=new URLSearchParams(window.location.search).get('s');
 let _sharedMode=!!_shareParam||!!_shareCode;
 let _sharedAll=[];
 if(new URLSearchParams(window.location.search).get('p')==='1')togglePriceMode(true);
+else if(_priceMode)togglePriceMode(true);
 
 async function loadSharedQuote(idsOverride){
   const rawIds=idsOverride||_shareParam;
   if(!rawIds)return;
-  document.title='Prodiconseil — Sélection produit client';
+  document.title='Prodiconseil — Liste produit client';
   const idList=rawIds.split(',').map(Number).filter(Boolean);
   if(!idList.length)return;
   const r=await sbQ('products?id=in.('+idList.join(',')+')'+'&select=*&limit=200&order=gsm.asc');
@@ -3905,18 +4035,18 @@ async function loadSharedQuote(idsOverride){
   if(sqb){
     const _sqTon=(totalKg/1000).toFixed(1);
     const _sqPrix=_priceMode?all.reduce((s,p)=>s+((p.poids_net||0)/1000)*(p.price||0),0):0;
-    sqb.innerHTML=`<div class="sq-inner sq-slim"><span class="sq-slim-label">⭐ Sélection exclusive client · ${all.length} produit${all.length>1?'s':''} · ${_sqTon} T${_priceMode&&_sqPrix?' · <strong style="color:var(--red)">'+_sqPrix.toLocaleString('fr-FR',{maximumFractionDigits:0})+' €</strong>':''}</span><div style="display:flex;gap:8px;align-items:center"><button class="sq-btn-devis" onclick="_loadSharedIntoCart()">Demander un devis</button></div></div>`;
+    sqb.innerHTML=`<div class="sq-inner sq-slim"><span class="sq-slim-label">⭐ Liste exclusive client · ${all.length} produit${all.length>1?'s':''} · ${_sqTon} T${_priceMode&&_sqPrix?' · <strong style="color:var(--red)">'+_sqPrix.toLocaleString('fr-FR',{maximumFractionDigits:0})+' €</strong>':''}</span><span class="sq-slim-hint">Retirez les produits qui ne vous intéressent pas et renvoyez-nous la liste.</span></div>`;
     sqb.style.display='block';
   }
 
-  render(all.slice(0,PAGE));
-  _updatePager();
   window._sharedProducts=products;
-  // Don't auto-load shared products into cart — let client choose
-  cart=[];
-  localStorage.removeItem('prodi_cart');
+  // Auto-populate client's selection with shared products
+  cart=all.map(p=>({id:p.id,name:p.name,ref:p.ref,type:p.type,qualite:p.qualite||null,details:p.details||null,grammage:p.grammage,largeur:p.largeur,format:p.format,poids_net:p.poids_net,price:p.price||null,img:p.image_url||null,couleur:p.couleur||null,usine:p.usine||null,zone:p.zone||null,emplacement:p.emplacement||null,allee:p.allee||null}));
+  localStorage.setItem('prodi_cart',JSON.stringify(cart));
   updateCartBadge();
   renderDrawer();
+  render(all.slice(0,PAGE));
+  _updatePager();
 
   // Lock shared mode — filters & search work only within the selection
 }
@@ -3929,7 +4059,7 @@ function _showSharedQuoteBanner(products){
     <div class="sq-left">
       <span class="sq-ico">📋</span>
       <div class="sq-text">
-        <strong>Sélection Prodiconseil</strong>
+        <strong>Liste Prodiconseil</strong>
         <span>${products.length} produits · ${totalT} t</span>
       </div>
     </div>
@@ -3969,7 +4099,7 @@ function _openSharedQuoteModal(){
   d.innerHTML=`<div style="background:#fff;border-radius:12px;max-width:700px;width:100%;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.25);">
     <div style="padding:20px 24px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
       <div>
-        <div style="font-family:\'Bebas Neue\',sans-serif;font-size:20px;letter-spacing:2px;">SÉLECTION PRODICONSEIL</div>
+        <div style="font-family:\'Bebas Neue\',sans-serif;font-size:20px;letter-spacing:2px;">LISTE PRODICONSEIL</div>
         <div style="font-size:11px;color:#999;margin-top:2px;">${products.length} produits · ${(totalKg/1000).toFixed(1)} t</div>
       </div>
       <button onclick="document.getElementById(\'sq-modal-bg\').remove();" style="width:32px;height:32px;border:1.5px solid #e0e0e0;border-radius:50%;background:#fff;cursor:pointer;font-size:14px;">✕</button>
@@ -4004,9 +4134,19 @@ function doClearCart(){
   document.getElementById('confirm-bg').classList.remove('show');
   updateCartBadge();renderDrawer();
   // Reset all "Ajouté" buttons in current view
-  document.querySelectorAll('.btn-add-cart.added').forEach(b=>{b.classList.remove('added');});
-  document.querySelectorAll('.plist-add.added').forEach(b=>{b.classList.remove('added');b.textContent='+';})
-  toast(lang==='en'?'🗑️ Selection cleared':'🗑️ Sélection vidée');
+  document.querySelectorAll('.btn-add-cart.added').forEach(b=>{
+    b.classList.remove('added');
+    if(b.classList.contains('grp-add-btn')){
+      const gid=b.closest('[data-gid]')?.dataset.gid;
+      const n=gid?(_groupQty[gid]||1):1;
+      b.textContent=`+ Ajouter ${n}`;
+    } else {
+      b.textContent='+ Ajouter';
+    }
+  });
+  document.querySelectorAll('.plist-add.added').forEach(b=>{b.classList.remove('added');b.textContent='+';});
+  document.querySelectorAll('.plist-grp-add.added').forEach(b=>{b.classList.remove('added');b.textContent='+';});
+  toast(lang==='en'?'🗑️ List cleared':'🗑️ Liste vidée');
 }
 
 function openCartDrawer(){
@@ -4372,18 +4512,18 @@ const LT={
     t_quality:'Recyclé & Fabrication',
     t_refs:'produits',
     t_sort_new:'Plus récents', t_sort_gsm_asc:'Grammage ↑', t_sort_gsm_desc:'Grammage ↓',
-    t_container_empty:'SÉLECTION VIDE', t_add_from_cat:'Ajoutez des produits depuis le catalogue',
+    t_container_empty:'LISTE VIDE', t_add_from_cat:'Ajoutez des produits depuis le catalogue',
     t_pf_title:'DEMANDE DE DEVIS', t_cart_pf_title:'DEVIS PANIER',
     t_f_name:'Nom *', t_f_name_err:'Nom requis',
     t_f_company:'Société *', t_f_company_err:'Société requise',
     t_f_email:'Email *', t_f_email_err:'Email invalide',
     t_f_phone:'Téléphone', t_f_qty:'Quantité souhaitée', t_f_msg:'Message',
     t_send:'ENVOYER',
-    t_pf_btn:'DEMANDER UN DEVIS', t_clear_cart:'Vider la sélection',
+    t_pf_btn:'DEMANDER UN DEVIS', t_clear_cart:'Vider la liste',
     t_filtres:'FILTRES', t_effacer:'Réinitialiser', t_trier:'Trier :', t_poids_total:'Poids total',
     t_fmt:'Format', t_bobine:'Bobine', t_palette:'Format',
     t_type_lbl:'Type', t_couleur_lbl:'Couleur', t_couleurs_lbl:'Couleurs', t_mandrin_lbl:'Mandrin', t_gsm_lbl:'Grammage', t_laize_lbl:'Laize', t_longueur_lbl:'Longueur', t_prix_lbl:'Prix',
-    t_my_container:'MA SÉLECTION', t_browse_cat:'← Voir le catalogue',
+    t_my_container:'MA LISTE', t_browse_cat:'← Voir le catalogue',
     t_tonnage_total:'TONNAGE TOTAL', t_total_estime:'TOTAL ESTIMÉ', t_depart_usine:'Départ usine HT',
     t_pf_microcopy:'Réponse sous 24h ouvrées · Origine UE · Documents disponibles',
     t_prix_depart:'Prix départ usine', t_poids_lbl:'Poids',
@@ -4393,7 +4533,7 @@ const LT={
     t_reset:'↺ Réinitialiser', t_retry:'↺ Réessayer',
     t_err_net:'ERREUR RÉSEAU', t_err_timeout:'Délai dépassé — vérifiez votre connexion.', t_err_server:'Impossible de joindre le serveur.',
     t_err_load:'Impossible de charger les produits.', t_err_title:'ERREUR',
-    t_clear_confirm:'Vider la sélection ?', t_clear_confirm_msg:'Cette action est irréversible. Tous les produits sélectionnés seront retirés.',
+    t_clear_confirm:'Vider la liste ?', t_clear_confirm_msg:'Cette action est irréversible. Tous les produits de votre liste seront retirés.',
     t_sur_demande:'Sur demande', t_search_ph:'Kraft 80g, SBS blanc, Testliner...', t_mob_search_ph:'Rechercher un produit...',
     t_produits:'produit(s)', t_sent_ok:'DEMANDE ENVOYÉE', t_sent_sub:'Nous vous répondrons sous 48h',
     t_wa:'WhatsApp', t_mandrins_lbl:'Mandrins',
@@ -4401,19 +4541,19 @@ const LT={
     t_spec_couleur:'Couleur', t_spec_gsm:'Grammage', t_spec_laize:'Laize', t_spec_longueur:'Longueur', t_spec_mandrin:'Mandrin', t_spec_format:'Condit.', t_spec_depot:'Dépôt',
     t_chip_gram:'Gram.', t_chip_laize:'Laize', t_chip_longueur:'Longueur', t_chip_prix:'Prix', t_chip_recherche:'Recherche',
     t_rechercher:'Rechercher',
-    t_add_modal_btn:'+ Ajouter à la sélection', t_added_modal_btn:'✓ Ajouté',
+    t_add_modal_btn:'+ Ajouter à la liste', t_added_modal_btn:'✓ Ajouté',
     t_cancel:'Annuler', t_vider:'VIDER',
     t_slow_title:'⏳ Chargement en cours…',
     t_slow_msg:'Le stock met plus de temps à charger que prévu. Vérifiez votre connexion ou contactez-nous directement.',
     t_slow_refresh:'↺ Rafraîchir',
-    t_cart_aria:'Produits dans la sélection',
+    t_cart_aria:'Produits dans la liste',
     t_loading_lbl:'Chargement',
     t_pf_qty_ph:'ex: 10 tonnes, 5 bobines…',
     t_pf_msg_ph:'Précisez vos besoins…',
     t_pfc_msg_ph:'Délai, conditionnement…',
     t_cmp_pre:'Comparer', t_cmp_suf:'produits →',
     t_cmp_max3:'Maximum 3 produits à comparer', t_cmp_min2:'Sélectionnez au moins 2 produits',
-    t_added_sel:'✅ Ajouté à la sélection !', t_removed_sel:'🗑️ Retiré de la sélection',
+    t_added_sel:'✅ Ajouté à la liste !', t_removed_sel:'🗑️ Retiré de la liste',
     t_added_all:'✅ Tout ajouté', t_removed_all:'🗑️ Tout retiré',
     t_vider_title:'Vider',
     t_browse_type:'Parcourir par type',
@@ -4433,18 +4573,18 @@ const LT={
     t_quality:'Virgin & Recycled',
     t_refs:'products',
     t_sort_new:'Most recent', t_sort_gsm_asc:'Grammage ↑', t_sort_gsm_desc:'Grammage ↓',
-    t_container_empty:'EMPTY SELECTION', t_add_from_cat:'Add products from the catalogue',
+    t_container_empty:'EMPTY LIST', t_add_from_cat:'Add products from the catalogue',
     t_pf_title:'REQUEST A QUOTE', t_cart_pf_title:'CART QUOTE',
     t_f_name:'Name *', t_f_name_err:'Name required',
     t_f_company:'Company *', t_f_company_err:'Company required',
     t_f_email:'Email *', t_f_email_err:'Invalid email',
     t_f_phone:'Phone', t_f_qty:'Desired quantity', t_f_msg:'Message',
     t_send:'SEND',
-    t_pf_btn:'REQUEST A QUOTE', t_clear_cart:'Clear selection',
+    t_pf_btn:'REQUEST A QUOTE', t_clear_cart:'Clear list',
     t_filtres:'FILTERS', t_effacer:'Reset', t_trier:'Sort:', t_poids_total:'Total weight',
     t_fmt:'Format', t_bobine:'Reel', t_palette:'Sheet',
     t_type_lbl:'Type', t_couleur_lbl:'Colour', t_couleurs_lbl:'Colours', t_mandrin_lbl:'Core', t_gsm_lbl:'Grammage', t_laize_lbl:'Width', t_longueur_lbl:'Length', t_prix_lbl:'Price',
-    t_my_container:'MA SÉLECTION', t_browse_cat:'← Browse catalogue',
+    t_my_container:'MY LIST', t_browse_cat:'← Browse catalogue',
     t_tonnage_total:'TOTAL TONNAGE', t_total_estime:'ESTIMATED TOTAL', t_depart_usine:'Ex-works excl. VAT',
     t_pf_microcopy:'Reply within 24h · EU origin · Documents available',
     t_prix_depart:'Ex-works price', t_poids_lbl:'Weight',
@@ -4454,7 +4594,7 @@ const LT={
     t_reset:'↺ Reset', t_retry:'↺ Retry',
     t_err_net:'NETWORK ERROR', t_err_timeout:'Timeout — check your connection.', t_err_server:'Unable to reach the server.',
     t_err_load:'Unable to load products.', t_err_title:'ERROR',
-    t_clear_confirm:'Clear selection?', t_clear_confirm_msg:'This action cannot be undone. All selected products will be removed.',
+    t_clear_confirm:'Clear list?', t_clear_confirm_msg:'This action cannot be undone. All products in your list will be removed.',
     t_sur_demande:'On request', t_search_ph:'Kraft 80gsm, White SBS, Testliner...', t_mob_search_ph:'Search a product...',
     t_produits:'product(s)', t_sent_ok:'REQUEST SENT', t_sent_sub:'We will reply within 48h',
     t_wa:'WhatsApp', t_mandrins_lbl:'Cores',
@@ -4462,19 +4602,19 @@ const LT={
     t_spec_couleur:'Colour', t_spec_gsm:'Grammage', t_spec_laize:'Width', t_spec_longueur:'Length', t_spec_mandrin:'Core', t_spec_format:'Condit.', t_spec_depot:'Depot',
     t_chip_gram:'GSM', t_chip_laize:'Width', t_chip_longueur:'Length', t_chip_prix:'Price', t_chip_recherche:'Search',
     t_rechercher:'Search',
-    t_add_modal_btn:'+ Add to selection', t_added_modal_btn:'✓ Added to selection',
+    t_add_modal_btn:'+ Add to list', t_added_modal_btn:'✓ Added to list',
     t_cancel:'Cancel', t_vider:'CLEAR',
     t_slow_title:'⏳ Loading catalogue…',
     t_slow_msg:'The catalogue is taking longer than expected. Check your connection or contact us directly.',
     t_slow_refresh:'↺ Refresh',
-    t_cart_aria:'Products in selection',
+    t_cart_aria:'Products in list',
     t_loading_lbl:'Lead time',
     t_pf_qty_ph:'e.g. 10 tonnes, 5 reels…',
     t_pf_msg_ph:'Describe your needs…',
     t_pfc_msg_ph:'Lead time, packaging…',
     t_cmp_pre:'Compare', t_cmp_suf:'products →',
     t_cmp_max3:'Maximum 3 products to compare', t_cmp_min2:'Select at least 2 products',
-    t_added_sel:'✅ Added to selection!', t_removed_sel:'🗑️ Removed from selection',
+    t_added_sel:'✅ Added to list!', t_removed_sel:'🗑️ Removed from list',
     t_added_all:'✅ All added', t_removed_all:'🗑️ All removed',
     t_vider_title:'Clear',
     t_ft_tagline:'Paper & board trading B2B',
