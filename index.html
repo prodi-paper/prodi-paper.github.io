@@ -206,8 +206,8 @@
           <button class="fpill fpill-stock fpill-yellow" data-stock="fab" onclick="toggleStockPill(this)" style="justify-content:center;width:100%;box-sizing:border-box;">Fabrication</button>
           <button class="fpill fpill-stock fpill-blue" data-stock="siderun" onclick="toggleStockPill(this)" style="justify-content:center;width:100%;box-sizing:border-box;">Siderun</button>
           <div style="grid-column:1/-1;border-top:1.5px dashed var(--border);margin:4px 0;"></div>
-          <button class="fpill fpill-dark" data-format="Bobine" data-i18n="t_bobine" onclick="toggleFormatPill(this)" style="justify-content:center;">Bobine</button>
-          <button class="fpill fpill-dark" data-format="Palette" onclick="toggleFormatPill(this)" style="justify-content:center;">Format</button>
+          <button class="fpill fpill-dark" data-format="Bobine" data-i18n="t_bobine" onclick="toggleFormatPill(this)" style="justify-content:center;width:100%;box-sizing:border-box;">Bobine</button>
+          <button class="fpill fpill-dark" data-format="Palette" onclick="toggleFormatPill(this)" style="justify-content:center;width:100%;box-sizing:border-box;">Format</button>
         </div>
       </div>
 
@@ -549,9 +549,9 @@
         <span class="fd-section-title">Format</span><span class="fd-section-arrow">▾</span>
       </div>
       <div class="fd-section-body">
-        <div class="format-pills">
-          <button class="fpill" id="pill-bobine" data-format="Bobine" onclick="toggleFormatPill(this)">Bobine</button>
-          <button class="fpill" id="pill-palette" data-format="Palette" onclick="toggleFormatPill(this)">Format</button>
+        <div class="format-pills" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <button class="fpill" id="pill-bobine" data-format="Bobine" onclick="toggleFormatPill(this)" style="justify-content:center;width:100%;box-sizing:border-box;">Bobine</button>
+          <button class="fpill" id="pill-palette" data-format="Palette" onclick="toggleFormatPill(this)" style="justify-content:center;width:100%;box-sizing:border-box;">Format</button>
         </div>
       </div>
     </div>
