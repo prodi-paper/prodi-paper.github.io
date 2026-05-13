@@ -644,7 +644,7 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
   /* Results bar mobile : grid 2 rangs déterministe (pas de flex/order qui se chevauchent)
      Rang 1 : [+]  COMPTEUR (centré)  [≡]
      Rang 2 : pager centré */
-  .rbar-inner{display:grid !important;grid-template-columns:42px 1fr 42px !important;grid-auto-rows:auto;column-gap:10px;row-gap:8px;align-items:center;padding:10px 14px;flex-wrap:initial !important;}
+  .rbar-inner{display:grid !important;grid-template-columns:42px 1fr 42px !important;grid-auto-rows:auto;column-gap:12px;row-gap:8px;align-items:center;padding:10px 22px;flex-wrap:initial !important;}
   .rbar-inner > *{margin:0 !important;}
   .rbar-inner .vt-toggle-btn.add-page-btn{grid-column:1;grid-row:1;padding:0;width:42px;height:42px;display:flex;align-items:center;justify-content:center;border-radius:10px;flex-shrink:0;gap:0;order:initial;margin:0 !important;}
   .rbar-inner .vt-toggle-btn.add-page-btn svg{width:18px;height:18px;}
