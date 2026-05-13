@@ -2585,9 +2585,11 @@ function renderCards(list){
     const _totalW=_isGroup?Math.round(p._grpTotalWeight).toLocaleString('fr-FR')+' kg':'';
     const _grpAllIn=_isGroup&&(p._grpUnitIds||[]).slice(0,_q).every(id=>cart.find(x=>x.id===+id))&&_q>0;
     const _isInCart = _isGroup ? _grpAllIn : !!cart.find(x=>x.id===+p.id);
+    // Mobile-friendly : en mode groupé in-cart le texte "Retirer N" pousse le bouton [+]
+    // hors de la carte (2 cards par ligne sur mobile). Garde juste icône + count.
     const _btnText = _isInCart
-      ? (_isGroup ? `${_ICO_TRASH} Retirer ${_q}` : `${_ICO_TRASH} Retirer`)
-      : (_isGroup ? `+ Ajouter ${_q}` : '+ Ajouter');
+      ? (_isGroup ? `${_ICO_TRASH} ${_q}` : `${_ICO_TRASH} Retirer`)
+      : (_isGroup ? `+ ${_q}` : '+ Ajouter');
     const _btnAttrs = _isGroup
       ? `onclick="addGroupToCart(${attrJs(p._grpKey)})"`
       : `id="cadd-${numId(p.id)}" aria-label="${lang==='en'?'Add to list':'Ajouter à la liste'}" onclick="event.stopPropagation();addToCart(${numId(p.id)})"`;
