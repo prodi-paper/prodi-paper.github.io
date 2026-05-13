@@ -2817,7 +2817,7 @@ async function openDetail(id){
   const _isSiderunD=p.ref&&/^Photo_DU/i.test(String(p.ref));
   const _DET_SIDERUN_PHOTO=`<img src="img/siderun-sur-demande.png" alt="Siderun" style="width:100%;height:100%;object-fit:contain;">`;
   const _detFallback=_isSiderunD?_DET_SIDERUN_PHOTO:_isFab?_DET_FAB_PHOTO:_DET_NO_PHOTO;
-  mi.innerHTML=p.image_url?`<img src="${safeUrl(p.image_url)}" loading="lazy" alt="${esc(_detAlt)}" onerror="this.onerror=null;this.parentNode.innerHTML=document.getElementById('det-fallback').innerHTML;">`
+  mi.innerHTML=p.image_url?`<img src="${safeUrl(p.image_url)}" loading="lazy" alt="${esc(_detAlt)}" style="cursor:zoom-in;" onclick="event.stopPropagation();openImageLightbox(this.src,this.alt)" onerror="this.onerror=null;this.parentNode.innerHTML=document.getElementById('det-fallback').innerHTML;">`
     :_detFallback;
   // Store fallback for onerror
   let _dfEl=document.getElementById('det-fallback');if(!_dfEl){_dfEl=document.createElement('div');_dfEl.id='det-fallback';_dfEl.style.display='none';document.body.appendChild(_dfEl);}_dfEl.innerHTML=_detFallback;
@@ -2908,6 +2908,32 @@ function closeDetail(){
   _detSource='list'; // reset pour la prochaine ouverture
 }
 function swImg(el,url){document.getElementById('det-main').innerHTML=`<img src="${safeUrl(url)}">`;document.querySelectorAll('.dthumb').forEach(t=>t.classList.remove('active'));el.classList.add('active');}
+function openImageLightbox(src,alt){
+  if(!src)return;
+  let lb=document.getElementById('img-lightbox');
+  if(!lb){
+    lb=document.createElement('div');
+    lb.id='img-lightbox';
+    lb.className='img-lightbox';
+    lb.innerHTML=`<button class="ilb-close" aria-label="Fermer">✕</button><img id="ilb-img" alt="">`;
+    lb.addEventListener('click',e=>{if(e.target===lb||e.target.classList.contains('ilb-close'))closeImageLightbox();});
+    document.body.appendChild(lb);
+  }
+  document.getElementById('ilb-img').src=src;
+  document.getElementById('ilb-img').alt=alt||'';
+  lb.classList.add('show');
+  document.body.style.overflow='hidden';
+  document.addEventListener('keydown',_ilbKey);
+}
+function closeImageLightbox(){
+  const lb=document.getElementById('img-lightbox');
+  if(!lb)return;
+  lb.classList.remove('show');
+  // Si la modale détail est ouverte, ne pas réactiver le scroll body
+  if(!document.getElementById('detail-bg')?.classList.contains('show'))document.body.style.overflow='';
+  document.removeEventListener('keydown',_ilbKey);
+}
+function _ilbKey(e){if(e.key==='Escape')closeImageLightbox();}
 function openProforma(){if(!cur)return;const _proTitle=formatProductTitle(cur.qualite,cur.name||'Produit');document.getElementById('pf-prod-name').textContent=_proTitle+(cur.ref&&!String(cur.ref).startsWith('Photo_')?' — '+cur.ref:'');document.getElementById('proforma-bg').classList.add('show');}
 function closeProforma(){document.getElementById('proforma-bg').classList.remove('show');}
 const emailRx=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
