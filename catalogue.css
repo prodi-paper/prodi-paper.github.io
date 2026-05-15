@@ -138,8 +138,6 @@ header{background:rgba(255,255,255,.92);position:sticky;top:0;z-index:100;border
 .trust-item::before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--red);flex-shrink:0;}
 /* Mobile lang bar — hidden always (lang now in results-bar on mobile) */
 .mob-hbar{display:none;}
-/* Lang in results-bar — desktop hidden */
-.rbar-lang{display:none;}
 /* Timeout / slow loading overlay */
 .slow-overlay{display:none;position:fixed;inset:0;background:rgba(255,255,255,.95);z-index:900;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;text-align:center;}
 .slow-overlay.show{display:flex;}
@@ -419,15 +417,6 @@ body.drawer-open{margin-right:420px;overflow-x:hidden;}
 /* ── SHARED QUOTE BANNER ── */
 #shared-quote-banner{position:relative;background:#fafaf6;border-bottom:1px solid var(--border);padding:0;}
 .sq-inner{max-width:1320px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
-.sq-left{display:flex;align-items:center;gap:12px;}
-.sq-ico{font-size:20px;}
-.sq-text strong{display:block;font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1.5px;color:#fff;}
-.sq-text span{font-size:11px;color:rgba(255,255,255,.55);font-weight:500;}
-.sq-actions{display:flex;gap:8px;flex-shrink:0;}
-.sq-btn-view{padding:8px 16px;background:transparent;color:var(--ink2);border:1.5px solid var(--border);border-radius:20px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;}
-.sq-btn-view:hover{border-color:var(--ink);color:var(--ink);}
-.sq-btn-devis{padding:8px 18px;background:var(--red);color:#fff;border:none;border-radius:20px;font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;cursor:pointer;transition:background .15s;}
-.sq-btn-devis:hover{background:var(--red2);}
 .sq-slim{justify-content:space-between;padding:10px 24px;gap:24px;flex-wrap:wrap;}
 .sq-slim-label{font-size:15px;font-weight:800;color:var(--ink);letter-spacing:.3px;}
 .sq-slim-hint{font-size:13px;font-weight:500;color:var(--gray);font-style:italic;}
@@ -624,8 +613,6 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
   /* Logo */
   .logo-full{display:none;}
   .logo-mob{display:block;height:34px;}
-  /* Hide FR/EN lang switcher on mobile (user doesn't need it) */
-  .rbar-lang{display:none !important;}
   /* Header right group: icons only, no text */
   .hright{gap:8px;margin-left:auto;}
   .live-pill-hright{display:none;}
@@ -987,8 +974,7 @@ body.drawer-open .fab-contact{right:444px;}
 
   /* RBAR (compteur produits + tri) — taille réduite sur très petit écran */
   .rbar-count{font-size:14px !important;line-height:1.15;}
-  /* Masquer FR/EN, texte "Vue liste détaillée" et texte du select tri */
-  .rbar-lang,.rbar-lang .lang-btn,.rbar-lang .lang-sep{display:none !important;}
+  /* Masquer texte "Vue liste détaillée" et texte du select tri */
   #vt-toggle span,.grp-toggle-lbl{display:none;}
   #vt-toggle{padding:6px 10px;}
   .rbar-sel{width:46px;font-size:0;padding:7px 4px;}
