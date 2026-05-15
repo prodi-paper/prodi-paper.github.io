@@ -2593,7 +2593,10 @@ function renderCards(list){
       ['Couleur', p.couleur||'—'],
     ];
     const specsHtml=`<div class="pcard-specs">${specRows.map(([l,v])=>`<div class="pcard-spec" title="${esc(l)}"><span class="pspec-val">${esc(v)}</span></div>`).join('')}</div>`;
-    const _sub=getProductDetailText(p);
+    // Pas d'auto-summary (couleur/gsm/laize) dans la card : ces infos sont déjà
+    // dans les spec rows juste en dessous. On n'affiche le sous-titre que si
+    // un vrai `details` est présent dans la fiche produit.
+    const _sub=_detClean.length>2?_detClean:'';
     const subtitleHtml=_sub?`<div class="pcard-subtitle">${esc(_sub)}</div>`:'';
     // Bouton ajouter : groupé → sélecteur qté avec poids live; sinon → bouton classique
     const _q=_groupQty[p._grpKey]||1;
@@ -3556,7 +3559,7 @@ async function printSelection(opts){
     title:'Partager la liste',
     sub:'Nom du client (utilisé dans le PDF).',
     placeholder:'Ex : Société Dupont',
-    okLabel:'Partager',
+    okLabel:'Créer',
     onConfirm:()=>{
       try{
         pdfWin=window.open('about:blank','_blank');
@@ -3571,7 +3574,7 @@ async function printSelection(opts){
     title:'Partager la liste',
     sub:'Donne un nom à cette liste (le nom du client par exemple).',
     placeholder:'Ex : Société Dupont',
-    okLabel:'Partager'
+    okLabel:'Créer'
   });
   // null = cancel (Annuler / Escape / clic hors-modal). '' = Générer sans nom.
   if(clientName===null){if(pdfWin){try{pdfWin.close();}catch(_){}}return;}

@@ -415,6 +415,12 @@
     </div>
   </div>
   <div class="drawer-footer" id="drawer-footer" style="display:none">
+    <div class="drawer-actions">
+      <button class="da-action" id="btn-generate-list" onclick="printSelection({autoGenerate:false})" title="Générer la liste détaillée">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        <span>Liste</span>
+      </button>
+    </div>
     <div class="drawer-totals">
       <div class="dt-row">
         <span class="dt-lbl">TONNAGE TOTAL</span>
@@ -424,12 +430,6 @@
         <span class="dt-lbl">TOTAL ESTIMÉ</span>
         <span class="dt-val" id="drawer-price-val">—</span>
       </div>
-    </div>
-    <div class="drawer-actions">
-      <button class="da-action" id="btn-generate-list" onclick="printSelection({autoGenerate:false})" title="Générer la liste détaillée">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-        <span>Liste</span>
-      </button>
     </div>
   </div>
 </div>
@@ -523,14 +523,12 @@
   <div class="fd-handle"></div>
   <div class="fd-head">
     <div class="fd-title">FILTRES</div>
+    <button class="fd-reset" onclick="resetFilters()">↺ Réinitialiser</button>
     <button class="fd-close" onclick="closeFilterDrawer()">✕</button>
   </div>
   <div class="fd-body">
     <!-- Stock -->
     <div class="fd-section open">
-      <div class="fd-section-head" onclick="toggleFdSection(this)">
-        <span class="fd-section-title">Stock</span><span class="fd-section-arrow">▾</span>
-      </div>
       <div class="fd-section-body">
         <div class="format-pills" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
           <button class="fpill fpill-stock fpill-dark" data-stock="stocklot" onclick="toggleStockPill(this)" style="justify-content:center;grid-column:1/-1;">Stocklots</button>
@@ -541,9 +539,6 @@
     </div>
     <!-- Format -->
     <div class="fd-section open">
-      <div class="fd-section-head" onclick="toggleFdSection(this)">
-        <span class="fd-section-title">Format</span><span class="fd-section-arrow">▾</span>
-      </div>
       <div class="fd-section-body">
         <div class="format-pills" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
           <button class="fpill" id="pill-bobine" data-format="Bobine" onclick="toggleFormatPill(this)" style="justify-content:center;width:100%;box-sizing:border-box;">Bobine</button>
@@ -553,9 +548,6 @@
     </div>
     <!-- Type -->
     <div class="fd-section open">
-      <div class="fd-section-head" onclick="toggleFdSection(this)">
-        <span class="fd-section-title">Type</span><span class="fd-section-arrow">▾</span>
-      </div>
       <div class="fd-section-body">
         <div class="msd" id="msd-type-mob" style="margin-top:6px;">
           <button class="msd-btn" id="fd-msd-type-btn" data-msd-id="msd-type" onclick="toggleMsd('msd-type-mob')">
@@ -569,9 +561,6 @@
     </div>
     <!-- Couleur -->
     <div class="fd-section open">
-      <div class="fd-section-head" onclick="toggleFdSection(this)">
-        <span class="fd-section-title">Couleur</span><span class="fd-section-arrow">▾</span>
-      </div>
       <div class="fd-section-body" style="margin-top:6px;">
         <div class="msd" id="msd-couleur-mob">
           <button class="msd-btn" data-msd-id="msd-couleur" onclick="toggleMsd('msd-couleur-mob')">
@@ -584,9 +573,6 @@
     </div>
     <!-- Mandrin -->
     <div class="fd-section open" id="mob-sec-mandrin">
-      <div class="fd-section-head" onclick="toggleFdSection(this)">
-        <span class="fd-section-title">Mandrin (mm)</span><span class="fd-section-arrow">▾</span>
-      </div>
       <div class="fd-section-body" style="margin-top:6px;">
         <div class="msd" id="msd-mandrin-mob">
           <button class="msd-btn" data-msd-id="msd-mandrin" onclick="toggleMsd('msd-mandrin-mob')">
@@ -599,9 +585,6 @@
     </div>
     <!-- Détails -->
     <div class="fd-section open">
-      <div class="fd-section-head" onclick="toggleFdSection(this)">
-        <span class="fd-section-title">Détails</span><span class="fd-section-arrow">▾</span>
-      </div>
       <div class="fd-section-body" style="margin-top:6px;">
         <div class="msd" id="msd-details-mob">
           <button class="msd-btn" data-msd-id="msd-details" onclick="toggleMsd('msd-details-mob')">
@@ -662,9 +645,6 @@
     </div>
     <!-- Dépôt -->
     <div class="fd-section open">
-      <div class="fd-section-head" onclick="toggleFdSection(this)">
-        <span class="fd-section-title">Dépôt</span><span class="fd-section-arrow">▾</span>
-      </div>
       <div class="fd-section-body" style="padding-top:6px;">
         <div class="format-pills" style="display:flex;gap:8px;">
           <button class="fpill fpill-dark fpill-depot" data-depot="our" onclick="toggleDepotPill(this)" style="flex:1;justify-content:center;">Notre dépôt</button>
@@ -674,9 +654,6 @@
     </div>
     <!-- Zone & Allée -->
     <div class="fd-section open" id="mob-sec-zone">
-      <div class="fd-section-head" onclick="toggleFdSection(this)">
-        <span class="fd-section-title">Zone & Allée</span><span class="fd-section-arrow">▾</span>
-      </div>
       <div class="fd-section-body" style="padding-top:6px;">
         <div class="frow">
           <input class="fi" type="number" id="f-zone-num-mob" placeholder="Zone (n°)" oninput="syncMobFilter('f-zone-num','f-zone-num-mob')">
@@ -686,18 +663,12 @@
     </div>
     <!-- Référence usine -->
     <div class="fd-section open">
-      <div class="fd-section-head" onclick="toggleFdSection(this)">
-        <span class="fd-section-title">Référence usine</span><span class="fd-section-arrow">▾</span>
-      </div>
       <div class="fd-section-body" style="padding-top:6px;">
         <input class="fi" type="number" id="f-usine-mob" placeholder="N° usine" oninput="syncMobFilter('f-usine','f-usine-mob')">
       </div>
     </div>
     <!-- Photo -->
     <div class="fd-section open">
-      <div class="fd-section-head" onclick="toggleFdSection(this)">
-        <span class="fd-section-title">Photo</span><span class="fd-section-arrow">▾</span>
-      </div>
       <div class="fd-section-body" style="padding-top:6px;">
         <div class="format-pills" style="display:flex;gap:8px;">
           <button class="fpill fpill-photo" data-photo="with" onclick="togglePhotoPill(this)" style="flex:1;justify-content:center;gap:6px;">
