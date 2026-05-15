@@ -91,16 +91,12 @@
   <div class="hd-inner">
     <div class="hd-logo" onclick="showPage('home')"><img src="img/logo.png" alt="Prodiconseil" width="196" height="32"></div>
     <nav class="hd-nav">
-      <a href="vitrine.html" onclick="showPage('home');return false;" id="nav-home" class="active" data-i18n="nav_home">Accueil</a>
-      <a href="#about-section" onclick="showPage('about');return false;" id="nav-about" data-i18n="nav_about">À propos</a>
-      <a href="#contact" onclick="showPage('contact');return false;" id="nav-contact" data-i18n="nav_contact">Contact</a>
+      <a href="vitrine.html" onclick="showPage('home');return false;" id="nav-home" class="active">Accueil</a>
+      <a href="#about-section" onclick="showPage('about');return false;" id="nav-about">À propos</a>
+      <a href="#contact" onclick="showPage('contact');return false;" id="nav-contact">Contact</a>
     </nav>
     <div class="hd-divider"></div>
-    <a href="./index.html" class="btn-cat" data-i18n="nav_catalogue">Voir le stock →</a>
-    <div class="hd-lang">
-      <button onclick="setLang('fr')" id="lang-fr" class="on">FR</button>
-      <button onclick="setLang('en')" id="lang-en">EN</button>
-    </div>
+    <a href="./index.html" class="btn-cat">Voir le stock →</a>
     <div class="hd-burger" onclick="toggleMob()" id="burger">
       <span></span><span></span><span></span>
     </div>
@@ -109,16 +105,11 @@
 
 <!-- ══════════ MOBILE MENU ══════════ -->
 <div class="mob-menu" id="mob-menu">
-  <a href="vitrine.html" onclick="showPage('home');toggleMob();return false;" data-i18n="nav_home">Accueil</a>
-  <a href="#about-section" onclick="showPage('about');toggleMob();return false;" data-i18n="nav_about">À propos</a>
-  <a href="#contact" onclick="showPage('contact');toggleMob();return false;" data-i18n="nav_contact">Contact</a>
+  <a href="vitrine.html" onclick="showPage('home');toggleMob();return false;">Accueil</a>
+  <a href="#about-section" onclick="showPage('about');toggleMob();return false;">À propos</a>
+  <a href="#contact" onclick="showPage('contact');toggleMob();return false;">Contact</a>
   <div class="mob-sep"></div>
-  <a href="./index.html" class="btn-cat" data-i18n="nav_catalogue">Voir le stock →</a>
-  <div class="mob-sep"></div>
-  <div class="mob-lang">
-    <button onclick="setLang('fr')" id="mob-lang-fr" class="on">FR</button>
-    <button onclick="setLang('en')" id="mob-lang-en">EN</button>
-  </div>
+  <a href="./index.html" class="btn-cat">Voir le stock →</a>
 </div>
 
 <!-- ══════════ PAGE ACCUEIL ══════════ -->
@@ -130,11 +121,11 @@
     <div class="hero-inner">
       <div class="hero-split">
         <div class="hero-text">
-          <h1 data-i18n-h="hero_title">VOTRE FOURNISSEUR<br>PAPIER &amp; CARTON<br><em>DEPUIS 1991</em></h1>
-          <p class="hero-tagline" data-i18n="hero_tagline">LOTS ET FABRICATION</p>
+          <h1>VOTRE FOURNISSEUR<br>PAPIER &amp; CARTON<br><em>DEPUIS 1991</em></h1>
+          <p class="hero-tagline">LOTS ET FABRICATION</p>
           <div class="hero-btns">
-            <a href="./index.html" class="btn-hero" data-i18n="hero_btn1">NOS PRODUITS</a>
-            <a href="#contact" onclick="showPage('contact');return false;" class="btn-hero-outline" data-i18n="hero_btn2">NOUS CONTACTER</a>
+            <a href="./index.html" class="btn-hero">NOS PRODUITS</a>
+            <a href="#contact" onclick="showPage('contact');return false;" class="btn-hero-outline">NOUS CONTACTER</a>
           </div>
         </div>
         <div class="hero-video-col">
@@ -142,7 +133,7 @@
             <video id="hero-vid" autoplay muted loop playsinline preload="none">
               <source src="assets/prodi2026.mp4" type="video/mp4">
             </video>
-            <button class="vid-sound" id="vid-sound" onclick="toggleSound()" aria-label="Activer le son" data-i18n-aria="aria_sound">
+            <button class="vid-sound" id="vid-sound" onclick="toggleSound()" aria-label="Activer le son">
               <svg id="vid-icon-mute" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
               <svg id="vid-icon-sound" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" style="display:none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
               <span id="vid-txt">SON</span>
@@ -159,12 +150,12 @@
 
       <form class="sc-search" data-reveal data-d="2" onsubmit="goSearch(event)">
         <svg class="sc-search-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="5.5"/><line x1="13.5" y1="13.5" x2="18" y2="18"/></svg>
-        <input type="text" id="sc-search-input" class="sc-search-input" data-i18n-placeholder="sc_search_ph" placeholder="Kraft 80g, SBS blanc, Testliner..." autocomplete="off">
-        <button type="submit" class="sc-search-btn" data-i18n="sc_search_btn">Rechercher →</button>
+        <input type="text" id="sc-search-input" class="sc-search-input" placeholder="Kraft 80g, SBS blanc, Testliner..." autocomplete="off">
+        <button type="submit" class="sc-search-btn">Rechercher →</button>
       </form>
       <div class="sc-stat">
         <span class="sc-stat-num">+10 000</span>
-        <span class="sc-stat-label" data-i18n="t_sc_stat">TONNES DISPONIBLES EN STOCK</span>
+        <span class="sc-stat-label">TONNES DISPONIBLES EN STOCK</span>
       </div>
 
       <!-- CAROUSEL (dynamic from Supabase) -->
@@ -178,7 +169,7 @@
       </div>
 
       <div class="showcase-cta">
-        <a href="./index.html" class="btn-hero" data-i18n="sc_cta">Voir tout le stock →</a>
+        <a href="./index.html" class="btn-hero">Voir tout le stock →</a>
       </div>
     </div>
   </section>
@@ -188,9 +179,9 @@
   <!-- GEO MAP -->
   <section class="geo-sec">
     <div class="sec-inner">
-      <div class="sec-tag" data-reveal data-d="1" data-i18n="geo_tag">Export mondial</div>
-      <h2 class="sec-h" data-reveal data-d="2" data-i18n="geo_h">NOTRE PRÉSENCE À L'INTERNATIONAL</h2>
-      <p class="sec-sub" data-i18n="geo_sub">Présents sur 5 continents. Expédition depuis nos entrepôts en France et en Europe vers le monde entier.</p>
+      <div class="sec-tag" data-reveal data-d="1">Export mondial</div>
+      <h2 class="sec-h" data-reveal data-d="2">NOTRE PRÉSENCE À L'INTERNATIONAL</h2>
+      <p class="sec-sub">Présents sur 5 continents. Expédition depuis nos entrepôts en France et en Europe vers le monde entier.</p>
       <div class="geo-wrap">
         <svg id="geo-svg" viewBox="0 0 1000 360" xmlns="http://www.w3.org/2000/svg" class="geo-svg">
           <rect width="1000" height="360" fill="#E2E3EA"/>
@@ -226,138 +217,138 @@
     <div class="marquee-track">
         <div class="marquee-inner">
           <div class="mq-item"><span class="mq-flag">🇫🇷</span><span class="mq-name">France</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇩🇪</span><span class="mq-name" data-i18n="c_de">Allemagne</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇪🇸</span><span class="mq-name" data-i18n="c_es">Espagne</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇮🇹</span><span class="mq-name" data-i18n="c_it">Italie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇧🇪</span><span class="mq-name" data-i18n="c_be">Belgique</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇳🇱</span><span class="mq-name" data-i18n="c_nl">Pays-Bas</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇵🇱</span><span class="mq-name" data-i18n="c_pl">Pologne</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇩🇪</span><span class="mq-name">Allemagne</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇪🇸</span><span class="mq-name">Espagne</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇮🇹</span><span class="mq-name">Italie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇧🇪</span><span class="mq-name">Belgique</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇳🇱</span><span class="mq-name">Pays-Bas</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇵🇱</span><span class="mq-name">Pologne</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇵🇹</span><span class="mq-name">Portugal</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇬🇧</span><span class="mq-name" data-i18n="c_gb">Royaume-Uni</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇸🇪</span><span class="mq-name" data-i18n="c_se">Suède</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇭</span><span class="mq-name" data-i18n="c_ch">Suisse</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇦🇹</span><span class="mq-name" data-i18n="c_at">Autriche</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇬🇷</span><span class="mq-name" data-i18n="c_gr">Grèce</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇷🇴</span><span class="mq-name" data-i18n="c_ro">Roumanie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇹🇷</span><span class="mq-name" data-i18n="c_tr">Turquie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇩🇰</span><span class="mq-name" data-i18n="c_dk">Danemark</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇳🇴</span><span class="mq-name" data-i18n="c_no">Norvège</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇫🇮</span><span class="mq-name" data-i18n="c_fi">Finlande</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇿</span><span class="mq-name" data-i18n="c_cz">Tchéquie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇭🇺</span><span class="mq-name" data-i18n="c_hu">Hongrie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇬🇧</span><span class="mq-name">Royaume-Uni</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇸🇪</span><span class="mq-name">Suède</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇨🇭</span><span class="mq-name">Suisse</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇦🇹</span><span class="mq-name">Autriche</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇬🇷</span><span class="mq-name">Grèce</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇷🇴</span><span class="mq-name">Roumanie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇹🇷</span><span class="mq-name">Turquie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇩🇰</span><span class="mq-name">Danemark</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇳🇴</span><span class="mq-name">Norvège</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇫🇮</span><span class="mq-name">Finlande</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇨🇿</span><span class="mq-name">Tchéquie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇭🇺</span><span class="mq-name">Hongrie</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇺🇦</span><span class="mq-name">Ukraine</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇲🇦</span><span class="mq-name" data-i18n="c_ma">Maroc</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇩🇿</span><span class="mq-name" data-i18n="c_dz">Algérie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇹🇳</span><span class="mq-name" data-i18n="c_tn">Tunisie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇱🇾</span><span class="mq-name" data-i18n="c_ly">Libye</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇲🇷</span><span class="mq-name" data-i18n="c_mr">Mauritanie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇲🇦</span><span class="mq-name">Maroc</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇩🇿</span><span class="mq-name">Algérie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇹🇳</span><span class="mq-name">Tunisie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇱🇾</span><span class="mq-name">Libye</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇲🇷</span><span class="mq-name">Mauritanie</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇲🇱</span><span class="mq-name">Mali</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇳🇪</span><span class="mq-name">Niger</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇹🇩</span><span class="mq-name" data-i18n="c_td">Tchad</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇹🇩</span><span class="mq-name">Tchad</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇬🇭</span><span class="mq-name">Ghana</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇲</span><span class="mq-name" data-i18n="c_cm">Cameroun</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇸🇳</span><span class="mq-name" data-i18n="c_sn">Sénégal</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇮</span><span class="mq-name" data-i18n="c_ci">Côte d'Ivoire</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇨🇲</span><span class="mq-name">Cameroun</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇸🇳</span><span class="mq-name">Sénégal</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇨🇮</span><span class="mq-name">Côte d'Ivoire</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇳🇬</span><span class="mq-name">Nigeria</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇪🇬</span><span class="mq-name" data-i18n="c_eg">Égypte</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇪🇬</span><span class="mq-name">Égypte</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇰🇪</span><span class="mq-name">Kenya</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇿🇦</span><span class="mq-name" data-i18n="c_za">Afrique du Sud</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇦🇪</span><span class="mq-name" data-i18n="c_ae">Émirats arabes</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇸🇦</span><span class="mq-name" data-i18n="c_sa">Arabie Saoudite</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇮🇱</span><span class="mq-name" data-i18n="c_il">Israël</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇿🇦</span><span class="mq-name">Afrique du Sud</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇦🇪</span><span class="mq-name">Émirats arabes</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇸🇦</span><span class="mq-name">Arabie Saoudite</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇮🇱</span><span class="mq-name">Israël</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇵🇰</span><span class="mq-name">Pakistan</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇮🇳</span><span class="mq-name" data-i18n="c_in">Inde</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇹🇭</span><span class="mq-name" data-i18n="c_th">Thaïlande</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇮🇩</span><span class="mq-name" data-i18n="c_id">Indonésie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇳</span><span class="mq-name" data-i18n="c_cn">Chine</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇰🇷</span><span class="mq-name" data-i18n="c_kr">Corée du Sud</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇯🇵</span><span class="mq-name" data-i18n="c_jp">Japon</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇦🇺</span><span class="mq-name" data-i18n="c_au">Australie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇺🇸</span><span class="mq-name" data-i18n="c_us">États-Unis</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇮🇳</span><span class="mq-name">Inde</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇹🇭</span><span class="mq-name">Thaïlande</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇮🇩</span><span class="mq-name">Indonésie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇨🇳</span><span class="mq-name">Chine</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇰🇷</span><span class="mq-name">Corée du Sud</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇯🇵</span><span class="mq-name">Japon</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇦🇺</span><span class="mq-name">Australie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇺🇸</span><span class="mq-name">États-Unis</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇨🇦</span><span class="mq-name">Canada</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇲🇽</span><span class="mq-name" data-i18n="c_mx">Mexique</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇴</span><span class="mq-name" data-i18n="c_co">Colombie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇧🇷</span><span class="mq-name" data-i18n="c_br">Brésil</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇵🇪</span><span class="mq-name" data-i18n="c_pe">Pérou</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇦🇷</span><span class="mq-name" data-i18n="c_ar">Argentine</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇱</span><span class="mq-name" data-i18n="c_cl">Chili</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇲🇽</span><span class="mq-name">Mexique</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇨🇴</span><span class="mq-name">Colombie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇧🇷</span><span class="mq-name">Brésil</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇵🇪</span><span class="mq-name">Pérou</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇦🇷</span><span class="mq-name">Argentine</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇨🇱</span><span class="mq-name">Chili</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇻🇪</span><span class="mq-name">Venezuela</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇪🇨</span><span class="mq-name" data-i18n="c_ec">Équateur</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇧🇴</span><span class="mq-name" data-i18n="c_bo">Bolivie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇪🇨</span><span class="mq-name">Équateur</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇧🇴</span><span class="mq-name">Bolivie</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇵🇾</span><span class="mq-name">Paraguay</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇺🇾</span><span class="mq-name">Uruguay</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇬🇾</span><span class="mq-name">Guyana</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇨🇺</span><span class="mq-name">Cuba</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇩🇴</span><span class="mq-name" data-i18n="c_do">Rép. Dominicaine</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇩🇴</span><span class="mq-name">Rép. Dominicaine</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇵🇦</span><span class="mq-name">Panama</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇬🇹</span><span class="mq-name">Guatemala</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇭🇳</span><span class="mq-name">Honduras</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇨🇷</span><span class="mq-name">Costa Rica</span></div><div class="mq-dot"></div>
           <!-- Duplicate for loop -->
           <div class="mq-item"><span class="mq-flag">🇫🇷</span><span class="mq-name">France</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇩🇪</span><span class="mq-name" data-i18n="c_de">Allemagne</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇪🇸</span><span class="mq-name" data-i18n="c_es">Espagne</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇮🇹</span><span class="mq-name" data-i18n="c_it">Italie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇧🇪</span><span class="mq-name" data-i18n="c_be">Belgique</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇳🇱</span><span class="mq-name" data-i18n="c_nl">Pays-Bas</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇵🇱</span><span class="mq-name" data-i18n="c_pl">Pologne</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇩🇪</span><span class="mq-name">Allemagne</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇪🇸</span><span class="mq-name">Espagne</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇮🇹</span><span class="mq-name">Italie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇧🇪</span><span class="mq-name">Belgique</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇳🇱</span><span class="mq-name">Pays-Bas</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇵🇱</span><span class="mq-name">Pologne</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇵🇹</span><span class="mq-name">Portugal</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇬🇧</span><span class="mq-name" data-i18n="c_gb">Royaume-Uni</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇸🇪</span><span class="mq-name" data-i18n="c_se">Suède</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇭</span><span class="mq-name" data-i18n="c_ch">Suisse</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇦🇹</span><span class="mq-name" data-i18n="c_at">Autriche</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇬🇷</span><span class="mq-name" data-i18n="c_gr">Grèce</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇷🇴</span><span class="mq-name" data-i18n="c_ro">Roumanie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇹🇷</span><span class="mq-name" data-i18n="c_tr">Turquie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇩🇰</span><span class="mq-name" data-i18n="c_dk">Danemark</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇳🇴</span><span class="mq-name" data-i18n="c_no">Norvège</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇫🇮</span><span class="mq-name" data-i18n="c_fi">Finlande</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇿</span><span class="mq-name" data-i18n="c_cz">Tchéquie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇭🇺</span><span class="mq-name" data-i18n="c_hu">Hongrie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇬🇧</span><span class="mq-name">Royaume-Uni</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇸🇪</span><span class="mq-name">Suède</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇨🇭</span><span class="mq-name">Suisse</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇦🇹</span><span class="mq-name">Autriche</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇬🇷</span><span class="mq-name">Grèce</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇷🇴</span><span class="mq-name">Roumanie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇹🇷</span><span class="mq-name">Turquie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇩🇰</span><span class="mq-name">Danemark</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇳🇴</span><span class="mq-name">Norvège</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇫🇮</span><span class="mq-name">Finlande</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇨🇿</span><span class="mq-name">Tchéquie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇭🇺</span><span class="mq-name">Hongrie</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇺🇦</span><span class="mq-name">Ukraine</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇲🇦</span><span class="mq-name" data-i18n="c_ma">Maroc</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇩🇿</span><span class="mq-name" data-i18n="c_dz">Algérie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇹🇳</span><span class="mq-name" data-i18n="c_tn">Tunisie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇱🇾</span><span class="mq-name" data-i18n="c_ly">Libye</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇲🇷</span><span class="mq-name" data-i18n="c_mr">Mauritanie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇲🇦</span><span class="mq-name">Maroc</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇩🇿</span><span class="mq-name">Algérie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇹🇳</span><span class="mq-name">Tunisie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇱🇾</span><span class="mq-name">Libye</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇲🇷</span><span class="mq-name">Mauritanie</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇲🇱</span><span class="mq-name">Mali</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇳🇪</span><span class="mq-name">Niger</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇹🇩</span><span class="mq-name" data-i18n="c_td">Tchad</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇹🇩</span><span class="mq-name">Tchad</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇬🇭</span><span class="mq-name">Ghana</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇲</span><span class="mq-name" data-i18n="c_cm">Cameroun</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇸🇳</span><span class="mq-name" data-i18n="c_sn">Sénégal</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇮</span><span class="mq-name" data-i18n="c_ci">Côte d'Ivoire</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇨🇲</span><span class="mq-name">Cameroun</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇸🇳</span><span class="mq-name">Sénégal</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇨🇮</span><span class="mq-name">Côte d'Ivoire</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇳🇬</span><span class="mq-name">Nigeria</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇪🇬</span><span class="mq-name" data-i18n="c_eg">Égypte</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇪🇬</span><span class="mq-name">Égypte</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇰🇪</span><span class="mq-name">Kenya</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇿🇦</span><span class="mq-name" data-i18n="c_za">Afrique du Sud</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇦🇪</span><span class="mq-name" data-i18n="c_ae">Émirats arabes</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇸🇦</span><span class="mq-name" data-i18n="c_sa">Arabie Saoudite</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇮🇱</span><span class="mq-name" data-i18n="c_il">Israël</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇿🇦</span><span class="mq-name">Afrique du Sud</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇦🇪</span><span class="mq-name">Émirats arabes</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇸🇦</span><span class="mq-name">Arabie Saoudite</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇮🇱</span><span class="mq-name">Israël</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇵🇰</span><span class="mq-name">Pakistan</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇮🇳</span><span class="mq-name" data-i18n="c_in">Inde</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇹🇭</span><span class="mq-name" data-i18n="c_th">Thaïlande</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇮🇩</span><span class="mq-name" data-i18n="c_id">Indonésie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇳</span><span class="mq-name" data-i18n="c_cn">Chine</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇰🇷</span><span class="mq-name" data-i18n="c_kr">Corée du Sud</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇯🇵</span><span class="mq-name" data-i18n="c_jp">Japon</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇦🇺</span><span class="mq-name" data-i18n="c_au">Australie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇺🇸</span><span class="mq-name" data-i18n="c_us">États-Unis</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇮🇳</span><span class="mq-name">Inde</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇹🇭</span><span class="mq-name">Thaïlande</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇮🇩</span><span class="mq-name">Indonésie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇨🇳</span><span class="mq-name">Chine</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇰🇷</span><span class="mq-name">Corée du Sud</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇯🇵</span><span class="mq-name">Japon</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇦🇺</span><span class="mq-name">Australie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇺🇸</span><span class="mq-name">États-Unis</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇨🇦</span><span class="mq-name">Canada</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇲🇽</span><span class="mq-name" data-i18n="c_mx">Mexique</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇴</span><span class="mq-name" data-i18n="c_co">Colombie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇧🇷</span><span class="mq-name" data-i18n="c_br">Brésil</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇵🇪</span><span class="mq-name" data-i18n="c_pe">Pérou</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇦🇷</span><span class="mq-name" data-i18n="c_ar">Argentine</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇱</span><span class="mq-name" data-i18n="c_cl">Chili</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇲🇽</span><span class="mq-name">Mexique</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇨🇴</span><span class="mq-name">Colombie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇧🇷</span><span class="mq-name">Brésil</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇵🇪</span><span class="mq-name">Pérou</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇦🇷</span><span class="mq-name">Argentine</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇨🇱</span><span class="mq-name">Chili</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇻🇪</span><span class="mq-name">Venezuela</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇪🇨</span><span class="mq-name" data-i18n="c_ec">Équateur</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇧🇴</span><span class="mq-name" data-i18n="c_bo">Bolivie</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇪🇨</span><span class="mq-name">Équateur</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇧🇴</span><span class="mq-name">Bolivie</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇵🇾</span><span class="mq-name">Paraguay</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇺🇾</span><span class="mq-name">Uruguay</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇬🇾</span><span class="mq-name">Guyana</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇨🇺</span><span class="mq-name">Cuba</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇩🇴</span><span class="mq-name" data-i18n="c_do">Rép. Dominicaine</span></div><div class="mq-dot"></div>
+          <div class="mq-item"><span class="mq-flag">🇩🇴</span><span class="mq-name">Rép. Dominicaine</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇵🇦</span><span class="mq-name">Panama</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇬🇹</span><span class="mq-name">Guatemala</span></div><div class="mq-dot"></div>
           <div class="mq-item"><span class="mq-flag">🇭🇳</span><span class="mq-name">Honduras</span></div><div class="mq-dot"></div>
@@ -371,15 +362,15 @@
     <div class="sec-inner">
       <div class="habt-grid">
         <div class="habt-content">
-          <div class="sec-tag" data-i18n="act_tag">À propos de nous</div>
-          <h2 class="sec-h" data-i18n="act_h">Négociant international en papier &amp; carton</h2>
-          <p class="habt-p" data-i18n="habt_intro">Prodiconseil est une société française fondée en 1991, basée à Ivry-sur-Seine (Île-de-France). Spécialisée dans le négoce international de papier et carton, stocks issus de grandes papeteries européennes.</p>
+          <div class="sec-tag">À propos de nous</div>
+          <h2 class="sec-h">Négociant international en papier &amp; carton</h2>
+          <p class="habt-p">Prodiconseil est une société française fondée en 1991, basée à Ivry-sur-Seine (Île-de-France). Spécialisée dans le négoce international de papier et carton, stocks issus de grandes papeteries européennes.</p>
           <div class="habt-range">
-            <span class="habt-range-label" data-i18n="range_label">Gamme</span>
-            <span class="habt-range-items" data-i18n="habt_range">Offset · Couché mat &amp; brillant · Kraft · Emballage · SBS · Duplex · FBB · Testliner · Fluting · Thermique · Adhésif · Autocopiant</span>
+            <span class="habt-range-label">Gamme</span>
+            <span class="habt-range-items">Offset · Couché mat &amp; brillant · Kraft · Emballage · SBS · Duplex · FBB · Testliner · Fluting · Thermique · Adhésif · Autocopiant</span>
           </div>
           <div class="habt-mills">
-            <span class="habt-range-label" data-i18n="mills_label">Papeteries</span>
+            <span class="habt-range-label">Papeteries</span>
             <span class="habt-mills-names">
               <span class="mills-mill">Mondi</span><span class="mills-sep">·</span>
               <span class="mills-mill">Smurfit Kappa</span><span class="mills-sep">·</span>
@@ -403,9 +394,9 @@
   <!-- ── CONTACT ── -->
   <section id="contact-section">
     <div class="ct-header">
-      <div class="sec-tag" data-i18n="ct_tag">Contact</div>
-      <h2 data-i18n="ct_h">ENVOYEZ-NOUS UN MESSAGE</h2>
-      <p data-i18n="ct_sub">Remplissez le formulaire ci-dessous. Nous vous répondrons sous 24h.</p>
+      <div class="sec-tag">Contact</div>
+      <h2>ENVOYEZ-NOUS UN MESSAGE</h2>
+      <p>Remplissez le formulaire ci-dessous. Nous vous répondrons sous 24h.</p>
     </div>
     <div class="ct-wrap">
       <div>
@@ -413,53 +404,53 @@
           <form id="contact-form" onsubmit="submitContact(event)">
             <div class="form-row">
               <div class="fg">
-                <label data-i18n="f_nom">Nom</label>
-                <input type="text" id="f-nom" placeholder="Jean Dupont" data-i18n-placeholder="ph_nom" required>
+                <label>Nom</label>
+                <input type="text" id="f-nom" placeholder="Jean Dupont" required>
                 <div class="fg-msg" id="fg-msg-nom"></div>
               </div>
               <div class="fg">
-                <label data-i18n="f_soc">Entreprise</label>
-                <input type="text" id="f-soc" placeholder="Entreprise SA" data-i18n-placeholder="ph_soc" required>
+                <label>Entreprise</label>
+                <input type="text" id="f-soc" placeholder="Entreprise SA" required>
                 <div class="fg-msg" id="fg-msg-soc"></div>
               </div>
             </div>
             <div class="form-row">
               <div class="fg">
-                <label data-i18n="f_email">Email</label>
-                <input type="email" id="f-email" placeholder="nom@entreprise.com" data-i18n-placeholder="ph_email" required>
+                <label>Email</label>
+                <input type="email" id="f-email" placeholder="nom@entreprise.com" required>
                 <div class="fg-msg" id="fg-msg-email"></div>
               </div>
               <div class="fg">
-                <label data-i18n="f_tel">Téléphone</label>
-                <input type="tel" id="f-tel" placeholder="+33 6 00 00 00 00" data-i18n-placeholder="ph_tel">
+                <label>Téléphone</label>
+                <input type="tel" id="f-tel" placeholder="+33 6 00 00 00 00">
                 <div class="fg-msg" id="fg-msg-tel"></div>
               </div>
             </div>
             <div class="fg">
-              <label data-i18n="f_msg">Message</label>
-              <textarea id="f-msg" placeholder="" required></textarea>
+              <label>Message</label>
+              <textarea id="f-msg" placeholder="Votre message…" required></textarea>
               <div class="fg-msg" id="fg-msg-msg"></div>
             </div>
             <input type="text" id="f-hp" name="website" autocomplete="off" tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px;opacity:0;height:0;width:0;pointer-events:none;">
-            <button type="submit" class="btn-submit" id="f-submit" data-i18n="f_send">Envoyer le message</button>
+            <button type="submit" class="btn-submit" id="f-submit">Envoyer le message</button>
           </form>
           <div id="form-ok" class="form-ok">
             <div class="form-ok-ico">✅</div>
-            <h3 data-i18n="ok_h">Message envoyé !</h3>
-            <p data-i18n="ok_p">Nous vous répondrons dans les 24 heures.</p>
+            <h3>Message envoyé !</h3>
+            <p>Nous vous répondrons dans les 24 heures.</p>
           </div>
         </div>
       </div>
       <div class="ct-aside">
-        <h3 data-i18n="aside_h">COORDONNÉES</h3>
+        <h3>COORDONNÉES</h3>
         <div class="ci-btns">
           <a href="https://wa.me/33649754915" target="_blank" rel="noopener noreferrer" class="btn-wa2">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
-            <span data-i18n="wa_btn">Écrire sur WhatsApp</span>
+            <span>Écrire sur WhatsApp</span>
           </a>
           <a href="mailto:eelbilia@gmail.com" class="btn-mail">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 7 10-7"/></svg>
-            <span data-i18n="mail_btn">Envoyer un email</span>
+            <span>Envoyer un email</span>
           </a>
         </div>
       </div>
@@ -472,71 +463,71 @@
 <div id="page-about" class="page">
   <div class="ab-hero">
     <div class="ab-hero-in">
-      <div class="sec-tag" style="color:rgba(254,0,0,.8);margin-bottom:16px" data-i18n="about_tag">À propos</div>
-      <h1 data-i18n-h="about_h1">NÉGOCIANT EUROPÉEN<br>EN PAPIER <em>&</em> CARTON</h1>
-      <p data-i18n="about_intro">Prodiconseil est spécialisé dans la commercialisation de stocklots de papier et carton issus de grandes papeteries européennes.</p>
+      <div class="sec-tag" style="color:rgba(254,0,0,.8);margin-bottom:16px">À propos</div>
+      <h1>NÉGOCIANT EUROPÉEN<br>EN PAPIER <em>&</em> CARTON</h1>
+      <p>Prodiconseil est spécialisé dans la commercialisation de stocklots de papier et carton issus de grandes papeteries européennes.</p>
     </div>
   </div>
   <div class="ab-body">
     <div class="ab-in">
       <div class="ab-grid">
         <div class="ab-col">
-          <h2 data-i18n="ab_h1">L'ENTREPRISE</h2>
-          <p data-i18n="ab_p1">Prodiconseil est un négociant européen spécialisé dans les stocklots de papier et carton. Nous travaillons avec des papeteries de premier rang pour proposer des lots à prix compétitifs.</p>
-          <p data-i18n="ab_p2">Notre activité repose sur une connaissance approfondie du marché du papier et sur un réseau de partenaires industriels en Europe.</p>
-          <p data-i18n="ab_p3">Nous fournissons des transformateurs, des imprimeurs et des négociants dans de nombreux pays, avec des solutions logistiques adaptées à chaque marché.</p>
+          <h2>L'ENTREPRISE</h2>
+          <p>Prodiconseil est un négociant européen spécialisé dans les stocklots de papier et carton. Nous travaillons avec des papeteries de premier rang pour proposer des lots à prix compétitifs.</p>
+          <p>Notre activité repose sur une connaissance approfondie du marché du papier et sur un réseau de partenaires industriels en Europe.</p>
+          <p>Nous fournissons des transformateurs, des imprimeurs et des négociants dans de nombreux pays, avec des solutions logistiques adaptées à chaque marché.</p>
         </div>
         <div class="ab-col">
-          <h2 data-i18n="ab_h2">NOS PRODUITS</h2>
-          <p data-i18n="ab_p4">Notre catalogue comprend des bobines et des formats dans de nombreuses qualités : papier couché, kraft, offset, carton SBS, FBB, testliner, fluting et bien d'autres.</p>
-          <p data-i18n="ab_p5">Chaque lot est documenté avec ses caractéristiques techniques (grammage, laize, poids, mandrin) et une photo du produit pour faciliter l'identification.</p>
-          <p data-i18n="ab_p6">Les stocks proviennent de surproductions et de commandes annulées, ce qui permet des prix très compétitifs par rapport au marché primaire.</p>
+          <h2>NOS PRODUITS</h2>
+          <p>Notre catalogue comprend des bobines et des formats dans de nombreuses qualités : papier couché, kraft, offset, carton SBS, FBB, testliner, fluting et bien d'autres.</p>
+          <p>Chaque lot est documenté avec ses caractéristiques techniques (grammage, laize, poids, mandrin) et une photo du produit pour faciliter l'identification.</p>
+          <p>Les stocks proviennent de surproductions et de commandes annulées, ce qui permet des prix très compétitifs par rapport au marché primaire.</p>
         </div>
       </div>
       <div class="ab-nums">
         <div class="ab-num">
           <div class="ab-num-v">5 800<span style="font-size:28px">+</span></div>
-          <div class="ab-num-l" data-i18n="num1">Références disponibles en stock</div>
+          <div class="ab-num-l">Références disponibles en stock</div>
         </div>
         <div class="ab-num">
           <div class="ab-num-v">100<span style="font-size:28px">%</span></div>
-          <div class="ab-num-l" data-i18n="num2">Stocks d'origine européenne</div>
+          <div class="ab-num-l">Stocks d'origine européenne</div>
         </div>
         <div class="ab-num">
           <div class="ab-num-v">EU</div>
-          <div class="ab-num-l" data-i18n="num3">Papeteries européennes de référence</div>
+          <div class="ab-num-l">Papeteries européennes de référence</div>
         </div>
         <div class="ab-num">
           <div class="ab-num-v">24H</div>
-          <div class="ab-num-l" data-i18n="num4">Délai de chargement typique</div>
+          <div class="ab-num-l">Délai de chargement typique</div>
         </div>
       </div>
       <div class="ab-process">
-        <h2 data-i18n="ab_proc_h">COMMENT ÇA MARCHE</h2>
+        <h2>COMMENT ÇA MARCHE</h2>
         <div class="ab-steps">
           <div class="ab-step">
             <div class="ab-step-n">01</div>
             <div class="ab-step-ico">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
             </div>
-            <h4 data-i18n="step1_h">Consultez le catalogue</h4>
-            <p data-i18n="step1_p">Parcourez nos 5 800+ références avec filtres par qualité, grammage, laize et format.</p>
+            <h4>Consultez le catalogue</h4>
+            <p>Parcourez nos 5 800+ références avec filtres par qualité, grammage, laize et format.</p>
           </div>
           <div class="ab-step">
             <div class="ab-step-n">02</div>
             <div class="ab-step-ico">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             </div>
-            <h4 data-i18n="step2_h">Demandez un proforma</h4>
-            <p data-i18n="step2_p">Sélectionnez vos produits et envoyez une demande de proforma directement depuis le catalogue.</p>
+            <h4>Demandez un proforma</h4>
+            <p>Sélectionnez vos produits et envoyez une demande de proforma directement depuis le catalogue.</p>
           </div>
           <div class="ab-step">
             <div class="ab-step-n">03</div>
             <div class="ab-step-ico">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
             </div>
-            <h4 data-i18n="step3_h">Confirmation & livraison</h4>
-            <p data-i18n="step3_p">Nous préparons votre commande et organisons l'expédition vers votre port de destination.</p>
+            <h4>Confirmation & livraison</h4>
+            <p>Nous préparons votre commande et organisons l'expédition vers votre port de destination.</p>
           </div>
         </div>
       </div>
@@ -545,12 +536,12 @@
   <div class="cta-wrap">
     <div class="cta-inner">
       <div class="cta-text">
-        <h2 data-i18n="cta_h">INTÉRESSÉ PAR NOS STOCKS ?</h2>
-        <p data-i18n="cta_sub">Consultez notre catalogue ou contactez-nous directement.</p>
+        <h2>INTÉRESSÉ PAR NOS STOCKS ?</h2>
+        <p>Consultez notre catalogue ou contactez-nous directement.</p>
       </div>
       <div class="cta-btns">
-        <a href="./index.html" class="btn-white"><span data-i18n="cta_btn1">Voir le catalogue</span></a>
-        <a href="#contact" onclick="showPage(\'contact\');return false;" class="btn-wa" style="cursor:pointer"><span data-i18n="cta_btn2b">Nous contacter</span></a>
+        <a href="./index.html" class="btn-white"><span>Voir le catalogue</span></a>
+        <a href="#contact" onclick="showPage(\'contact\');return false;" class="btn-wa" style="cursor:pointer"><span>Nous contacter</span></a>
       </div>
     </div>
   </div>
@@ -567,9 +558,9 @@
       <div class="foot-addr">9 Promenée Jeanne Hachette · 94200 Ivry-sur-Seine · France</div>
     </div>
     <div class="foot-nav">
-      <a href="vitrine.html" onclick="showPage('home');return false;" data-i18n="nav_home">Accueil</a>
-      <a href="#contact" onclick="showPage('contact');return false;" data-i18n="nav_contact">Contact</a>
-      <a href="./index.html" data-i18n="nav_catalogue">Catalogue</a>
+      <a href="vitrine.html" onclick="showPage('home');return false;">Accueil</a>
+      <a href="#contact" onclick="showPage('contact');return false;">Contact</a>
+      <a href="./index.html">Catalogue</a>
     </div>
   </div>
 </main>

@@ -45,10 +45,10 @@
 
 <div class="load-bar-wrap" id="load-bar-wrap" style="display:none"><div class="load-bar" id="load-bar"></div></div>
 <div class="slow-overlay" id="slow-overlay">
-  <div class="slow-title" data-i18n="t_slow_title">⏳ Chargement en cours…</div>
-  <div class="slow-sub" data-i18n="t_slow_msg">Le stock met plus de temps à charger que prévu. Vérifiez votre connexion ou contactez-nous directement.</div>
+  <div class="slow-title">⏳ Chargement en cours…</div>
+  <div class="slow-sub">Le stock met plus de temps à charger que prévu. Vérifiez votre connexion ou contactez-nous directement.</div>
   <div class="slow-btns">
-    <button class="btn-reload" onclick="location.reload()" data-i18n="t_slow_refresh">↺ Rafraîchir</button>
+    <button class="btn-reload" onclick="location.reload()">↺ Rafraîchir</button>
     <button class="btn-wa" onclick="window.open('https://wa.me/33649754915','_blank')">💬 WhatsApp</button>
   </div>
 </div>
@@ -80,7 +80,7 @@
       <div class="cart-wrap">
         <button class="btn-head btn-head-panier" onclick="openCartDrawer()" id="cart-btn" title="Ma Liste">
           <img src="img/truck2.png" alt="truck" style="height:30px;width:auto;vertical-align:-6px;"> <span class="btn-panier-txt">Ma Liste</span>
-          <span class="cart-badge" id="cart-badge" aria-live="polite" aria-label="Produits dans la liste" data-i18n-aria="t_cart_aria">0</span>
+          <span class="cart-badge" id="cart-badge" aria-live="polite" aria-label="Produits dans la liste">0</span>
         </button>
       </div>
       <div class="lang-sep"></div>
@@ -104,7 +104,7 @@
     <!-- Type -->
     <div class="fb-msd" id="msd-type" style="position:relative;flex-shrink:0;">
       <button class="fb-msd-btn" id="fb-type-btn" onclick="toggleFbMsd('msd-type')">
-        <span id="fb-type-label" data-i18n="t_type_lbl">Type de papier</span>
+        <span id="fb-type-label">Type de papier</span>
         <span class="msd-count" id="fb-type-count" style="display:none"></span>
         <span class="fb-msd-arrow">▾</span>
       </button>
@@ -113,7 +113,7 @@
     <div class="fbar-sep"></div>
     <!-- Grammage -->
     <div class="fb-range">
-      <span class="fb-range-lbl" data-i18n="t_gsm_lbl">Grammage</span>
+      <span class="fb-range-lbl">Grammage</span>
       <input class="fb-inp" type="number" id="f-gmin-fb" placeholder="min" oninput="scheduleFilter()">
       <span style="color:var(--gray);font-size:11px">–</span>
       <input class="fb-inp" type="number" id="f-gmax-fb" placeholder="max" oninput="scheduleFilter()">
@@ -121,7 +121,7 @@
     <div class="fbar-sep"></div>
     <!-- Laize -->
     <div class="fb-range" id="fb-sec-laize">
-      <span class="fb-range-lbl" id="fb-laize-lbl" data-i18n="t_laize_lbl">Laize</span>
+      <span class="fb-range-lbl" id="fb-laize-lbl">Laize</span>
       <input class="fb-inp fb-inp-wide" type="number" id="f-lmin-fb" placeholder="cm" oninput="scheduleFilter()">
       <span style="color:var(--gray);font-size:11px">–</span>
       <input class="fb-inp fb-inp-wide" type="number" id="f-lmax-fb" placeholder="cm" oninput="scheduleFilter()">
@@ -129,7 +129,7 @@
     <div class="fbar-sep" id="fb-sep-longueur"></div>
     <!-- Longueur -->
     <div class="fb-range" id="fb-sec-longueur">
-      <span class="fb-range-lbl" data-i18n="t_longueur_lbl">Longueur</span>
+      <span class="fb-range-lbl">Longueur</span>
       <input class="fb-inp fb-inp-wide" type="number" id="f-longmin" placeholder="cm" oninput="scheduleFilter()">
       <span style="color:var(--gray);font-size:11px">–</span>
       <input class="fb-inp fb-inp-wide" type="number" id="f-longmax" placeholder="cm" oninput="scheduleFilter()">
@@ -138,7 +138,7 @@
     <!-- Mandrin -->
     <div class="fb-msd" id="msd-mandrin" style="position:relative;flex-shrink:0;">
       <button class="fb-msd-btn" id="fb-mandrin-btn" onclick="toggleFbMsd('msd-mandrin')">
-        <span id="fb-mandrin-label" data-i18n="t_mandrin_lbl">Mandrin</span>
+        <span id="fb-mandrin-label">Mandrin</span>
         <span class="msd-count" id="fb-mandrin-count" style="display:none"></span>
         <span class="fb-msd-arrow">▾</span>
       </button>
@@ -148,7 +148,7 @@
     <!-- Couleur -->
     <div class="fb-msd" id="msd-couleur" style="position:relative;flex-shrink:0;">
       <button class="fb-msd-btn" id="fb-couleur-btn" onclick="toggleFbMsd('msd-couleur')">
-        <span id="fb-couleur-label" data-i18n="t_couleur_lbl">Couleur</span>
+        <span id="fb-couleur-label">Couleur</span>
         <span class="msd-count" id="fb-couleur-count" style="display:none"></span>
         <span class="fb-msd-arrow">▾</span>
       </button>
@@ -157,7 +157,7 @@
     <div class="fbar-sep"></div>
     <!-- PRIX_MASQUÉ: filtre prix barre haute masqué -->
     <div class="fb-range" style="display:none">
-      <span class="fb-range-lbl" data-i18n="t_prix_lbl">Prix</span>
+      <span class="fb-range-lbl">Prix</span>
       <input class="fb-inp" type="number" id="f-pmin-fb" placeholder="min" oninput="scheduleFilter()">
       <span style="color:var(--gray);font-size:11px">–</span>
       <input class="fb-inp" type="number" id="f-pmax-fb" placeholder="max" oninput="scheduleFilter()">
@@ -180,8 +180,8 @@
 
 <div class="stats-bar">
   <div class="stats-inner">
-    <div class="stat"><div class="stat-ico">📊</div><div><div class="stat-val" id="s-ton"><div class="stat-shimmer"></div></div><div class="stat-lbl" data-i18n="t_poids_total">Poids total</div></div></div>
-    <div class="stat" style="border-right:none"><div class="stat-ico">🚚</div><div><div class="stat-val">24-48H</div><div class="stat-lbl" data-i18n="t_loading_lbl">Chargement</div></div></div>
+    <div class="stat"><div class="stat-ico">📊</div><div><div class="stat-val" id="s-ton"><div class="stat-shimmer"></div></div><div class="stat-lbl">Poids total</div></div></div>
+    <div class="stat" style="border-right:none"><div class="stat-ico">🚚</div><div><div class="stat-val">24-48H</div><div class="stat-lbl">Chargement</div></div></div>
   </div>
 </div>
 
@@ -197,7 +197,7 @@
     </button>
     <div class="filters-panel" id="filters-panel">
       <div class="fp-head">
-        <div class="fp-title" data-i18n="t_filtres">FILTRES</div>
+        <div class="fp-title">FILTRES</div>
         <button class="fp-reset" onclick="resetFilters()" style="background:none;border:none;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;color:var(--ink);cursor:pointer;text-transform:uppercase;letter-spacing:.5px;">Réinitialiser</button>
       </div>
       <div class="fg" style="border-bottom:2px solid var(--border);margin-bottom:14px;padding-bottom:14px;">
@@ -206,7 +206,7 @@
           <button class="fpill fpill-stock fpill-yellow" data-stock="fab" onclick="toggleStockPill(this)" style="justify-content:center;width:100%;box-sizing:border-box;">Fabrication</button>
           <button class="fpill fpill-stock fpill-blue" data-stock="siderun" onclick="toggleStockPill(this)" style="justify-content:center;width:100%;box-sizing:border-box;">Siderun</button>
           <div style="grid-column:1/-1;border-top:1.5px dashed var(--border);margin:4px 0;"></div>
-          <button class="fpill fpill-dark" data-format="Bobine" data-i18n="t_bobine" onclick="toggleFormatPill(this)" style="justify-content:center;width:100%;box-sizing:border-box;">Bobine</button>
+          <button class="fpill fpill-dark" data-format="Bobine" onclick="toggleFormatPill(this)" style="justify-content:center;width:100%;box-sizing:border-box;">Bobine</button>
           <button class="fpill fpill-dark" data-format="Palette" onclick="toggleFormatPill(this)" style="justify-content:center;width:100%;box-sizing:border-box;">Format</button>
         </div>
       </div>
@@ -223,14 +223,14 @@
       <div class="fg">
         <div class="msd" id="sb-msd-couleur">
           <button class="msd-btn" data-msd-id="msd-couleur" onclick="toggleMsd('sb-msd-couleur')">
-            <span class="msd-btn-label" data-i18n="t_couleurs_lbl">Couleurs</span><span class="msd-arrow">▾</span>
+            <span class="msd-btn-label">Couleurs</span><span class="msd-arrow">▾</span>
           </button>
           <div class="msd-panel"></div>
         </div>
       </div>
       <div class="fg" id="sb-sec-mandrin">
         <div class="msd" id="sb-msd-mandrin">
-          <button class="msd-btn" data-msd-id="msd-mandrin" onclick="toggleMsd('sb-msd-mandrin')"><span class="msd-btn-label" data-i18n="t_mandrins_lbl">Mandrins</span><span class="msd-arrow">▾</span></button>
+          <button class="msd-btn" data-msd-id="msd-mandrin" onclick="toggleMsd('sb-msd-mandrin')"><span class="msd-btn-label">Mandrins</span><span class="msd-arrow">▾</span></button>
           <div class="msd-panel"></div>
         </div>
       </div>
@@ -243,24 +243,24 @@
         </div>
       </div>
       <div class="fg">
-        <div class="nmr-row"><label class="fl"><span data-i18n="t_gsm_lbl">Grammage</span> <span class="nmr-unit">(g/m²)</span></label></div>
+        <div class="nmr-row"><label class="fl"><span>Grammage</span> <span class="nmr-unit">(g/m²)</span></label></div>
         <div class="nmr-wrap"><input type="number" class="nmr-in" id="f-gmin" placeholder="Min" min="0" oninput="filterProducts()"><span class="nmr-sep">—</span><input type="number" class="nmr-in" id="f-gmax" placeholder="Max" min="0" oninput="filterProducts()"></div>
       </div>
       <div class="fg" id="sb-sec-laize">
-        <div class="nmr-row"><label class="fl" id="sb-laize-lbl"><span data-i18n="t_laize_lbl">Laize</span> <span class="nmr-unit">(cm)</span></label></div>
+        <div class="nmr-row"><label class="fl" id="sb-laize-lbl"><span>Laize</span> <span class="nmr-unit">(cm)</span></label></div>
         <div class="nmr-wrap"><input type="number" class="nmr-in" id="f-lmin" placeholder="Min" min="0" oninput="filterProducts()"><span class="nmr-sep">—</span><input type="number" class="nmr-in" id="f-lmax" placeholder="Max" min="0" oninput="filterProducts()"></div>
       </div>
       <div class="fg" id="sb-sec-longueur">
-        <div class="nmr-row"><label class="fl"><span data-i18n="t_longueur_lbl">Longueur</span> <span class="nmr-unit">(mm)</span></label></div>
+        <div class="nmr-row"><label class="fl"><span>Longueur</span> <span class="nmr-unit">(mm)</span></label></div>
         <div class="nmr-wrap"><input type="number" class="nmr-in" id="f-longmin" placeholder="Min" min="0" oninput="filterProducts()"><span class="nmr-sep">—</span><input type="number" class="nmr-in" id="f-longmax" placeholder="Max" min="0" oninput="filterProducts()"></div>
       </div>
       <div class="fg">
-        <div class="nmr-row"><label class="fl"><span data-i18n="t_poids_lbl">Poids</span> <span class="nmr-unit">(KG)</span></label></div>
+        <div class="nmr-row"><label class="fl"><span>Poids</span> <span class="nmr-unit">(KG)</span></label></div>
         <div class="nmr-wrap"><input type="number" class="nmr-in" id="f-wmin" placeholder="Min" min="0" oninput="filterProducts()"><span class="nmr-sep">—</span><input type="number" class="nmr-in" id="f-wmax" placeholder="Max" min="0" oninput="filterProducts()"></div>
       </div>
       <!-- PRIX_MASQUÉ: filtre prix sidebar masqué -->
       <div class="fg" style="display:none">
-        <div class="nmr-row"><label class="fl"><span data-i18n="t_prix_lbl">Prix</span> <span class="nmr-unit">(€/T)</span></label></div>
+        <div class="nmr-row"><label class="fl"><span>Prix</span> <span class="nmr-unit">(€/T)</span></label></div>
         <div class="nmr-wrap"><input type="number" class="nmr-in" id="f-pmin" placeholder="Min" min="0" oninput="filterProducts()"><span class="nmr-sep">—</span><input type="number" class="nmr-in" id="f-pmax" placeholder="Max" min="0" oninput="filterProducts()"></div>
       </div>
       <div class="fg" style="margin-top:6px;">
@@ -289,10 +289,6 @@
     <div id="shared-quote-banner" style="display:none"></div>
     <div id="results-bar">
       <div class="rbar-inner">
-        <div class="rbar-lang">
-          <button onclick="togglePriceMode(false)" id="lang-fr-m" class="lang-btn on">FR</button>
-          <button onclick="togglePriceMode(true)" id="lang-en-m" class="lang-btn">EN</button>
-        </div>
         <button class="vt-toggle-btn add-page-btn" id="add-page-btn" onclick="addPageToCart()" title="Ajouter tous les produits de la page à la liste">
           <svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="7" y1="2" x2="7" y2="12"/><line x1="2" y1="7" x2="12" y2="7"/></svg>
         </button>
@@ -305,7 +301,7 @@
           <span>Vue liste détaillée</span>
         </button>
         <div class="rbar-count" id="rbar-count" role="status" aria-live="polite">
-          <span id="rbar-refs">—</span>&nbsp;<span id="rbar-refs-lbl" data-i18n="t_refs">produits</span> • <span style="white-space:nowrap"><span id="rbar-tons">—</span>&nbsp;t</span>
+          <span id="rbar-refs">—</span>&nbsp;<span id="rbar-refs-lbl">produits</span> • <span style="white-space:nowrap"><span id="rbar-tons">—</span>&nbsp;t</span>
           <span id="correction-note"></span>
         </div>
         <div class="pager pager-top" id="pager-top"></div>
@@ -318,12 +314,12 @@
           </button>
         </div>
         <div class="rbar-sort">
-          <span class="rbar-sort-lbl" data-i18n="t_trier">Trier :</span>
+          <span class="rbar-sort-lbl">Trier :</span>
           <select class="rbar-sel" id="sort-sel" onchange="_doFilter()">
             <option value="price_asc">Prix ↑</option>
             <option value="price_desc">Prix ↓</option>
-            <option value="gsm_asc" selected data-i18n-opt="t_sort_gsm_asc">Grammage ↑</option>
-            <option value="gsm_desc" data-i18n-opt="t_sort_gsm_desc">Grammage ↓</option>
+            <option value="gsm_asc" selected>Grammage ↑</option>
+            <option value="gsm_desc">Grammage ↓</option>
           </select>
         </div>
         <button class="rbar-reset" id="rbar-reset" onclick="resetFilters()" style="display:none">Réinitialiser</button>
@@ -332,7 +328,7 @@
     <div class="prod-head">
       <div><div class="prod-count" id="prod-count"></div><div class="pcount-tons" id="pcount-tons"></div></div>
       <div class="sort-wrap">
-        <span class="sort-lbl" data-i18n="t_trier">Trier :</span>
+        <span class="sort-lbl">Trier :</span>
         <select class="sort-sel" id="sort-select" onchange="filterProducts()">
           <option value="prix_asc">Prix ↑</option>
           <option value="prix_desc">Prix ↓</option>
@@ -376,16 +372,16 @@
       <!-- PRIX_MASQUÉ: dprice-row masqué -->
       <div class="dprice-row" id="det-price-row" style="display:none">
         <div>
-          <div class="dprice-lbl" data-i18n="t_prix_depart" style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--gray);margin-bottom:2px;">Prix départ usine</div>
+          <div class="dprice-lbl" style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--gray);margin-bottom:2px;">Prix départ usine</div>
           <div class="dprice-val" id="det-price-val">—</div>
         </div>
         <div style="text-align:right">
-          <div class="dpoids-lbl" data-i18n="t_poids_lbl">Poids</div>
+          <div class="dpoids-lbl">Poids</div>
           <div class="dpoids-val" id="det-poids-val">—</div>
         </div>
       </div>
       <div class="d-actions">
-        <button class="btn-cart-det" id="modal-add-btn" data-i18n="t_add_modal_btn" onclick="addToCart(cur?.id)">+ Ajouter à la liste</button>
+        <button class="btn-cart-det" id="modal-add-btn" onclick="addToCart(cur?.id)">+ Ajouter à la liste</button>
       </div>
     </div>
   </div>
@@ -397,14 +393,14 @@
 <div class="cart-drawer" id="cart-drawer">
   <div class="drawer-head">
     <div>
-      <div class="drawer-title" data-i18n="t_my_container">MA LISTE</div>
+      <div class="drawer-title">MA LISTE</div>
       <div class="drawer-meta" id="drawer-meta">—</div>
     </div>
     <div class="drawer-head-actions">
       <button class="dh-icon-btn" onclick="openImportRefs()" title="Importer des références" aria-label="Importer des références">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
       </button>
-      <button class="dh-clear-btn" onclick="doClearCart()" data-i18n="t_clear_cart" title="Vider la liste">Vider la liste</button>
+      <button class="dh-clear-btn" onclick="doClearCart()" title="Vider la liste">Vider la liste</button>
       <button class="dh-close-btn" onclick="closeCartDrawer()" aria-label="Fermer">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
@@ -413,26 +409,26 @@
   <div class="drawer-items" id="drawer-items">
     <div class="drawer-empty">
       <div class="drawer-empty-ico">📦</div>
-      <div class="drawer-empty-t" data-i18n="t_container_empty">LISTE VIDE</div>
-      <div class="drawer-empty-s" data-i18n="t_add_from_cat">Ajoutez des produits depuis le catalogue</div>
-      <button class="btn-drawer-browse" data-i18n="t_browse_cat" onclick="closeCartDrawer()">← Voir le catalogue</button>
+      <div class="drawer-empty-t">LISTE VIDE</div>
+      <div class="drawer-empty-s">Ajoutez des produits depuis le catalogue</div>
+      <button class="btn-drawer-browse" onclick="closeCartDrawer()">← Voir le catalogue</button>
     </div>
   </div>
   <div class="drawer-footer" id="drawer-footer" style="display:none">
     <div class="drawer-totals">
       <div class="dt-row">
-        <span class="dt-lbl" data-i18n="t_tonnage_total">TONNAGE TOTAL</span>
+        <span class="dt-lbl">TONNAGE TOTAL</span>
         <span class="dt-val" id="drawer-total">—</span>
       </div>
       <div class="dt-row" id="drawer-price-row" style="display:none">
-        <span class="dt-lbl" data-i18n="t_total_estime">TOTAL ESTIMÉ</span>
+        <span class="dt-lbl">TOTAL ESTIMÉ</span>
         <span class="dt-val" id="drawer-price-val">—</span>
       </div>
     </div>
     <div class="drawer-actions">
-      <button class="da-action" id="btn-generate-list" onclick="printSelection({autoGenerate:false})" title="Partager la liste détaillée">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="11.49"/></svg>
-        <span>Partager liste</span>
+      <button class="da-action" id="btn-generate-list" onclick="printSelection({autoGenerate:false})" title="Générer la liste détaillée">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        <span>Liste</span>
       </button>
     </div>
   </div>
@@ -442,7 +438,7 @@
 <div class="pf-bg" id="proforma-bg" onclick="if(event.target===this)closeProforma()">
   <div class="pf-box">
     <div class="pf-stripe"></div>
-    <div class="pf-title" data-i18n="t_pf_title">DEMANDE DE DEVIS</div>
+    <div class="pf-title">DEMANDE DE DEVIS</div>
     <div class="pf-sub" id="pf-prod-name">—</div>
     <div class="grid2">
       <div class="form-fg" id="fg-pf-nom"><label class="form-fl">Nom / Société *</label><input class="form-fi" id="pf-nom" placeholder="Jean Dupont — Dupont SA"><span class="form-err">Champ requis</span></div>
@@ -451,8 +447,8 @@
     <div class="form-fg"><label class="form-fl">Message</label><textarea class="form-fi" id="pf-msg" rows="2" placeholder="Délai, conditionnement..."></textarea></div>
     <input type="text" id="pf-hp" name="website" autocomplete="off" tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px;opacity:0;height:0;width:0;pointer-events:none;">
     <div class="form-actions">
-      <button class="btn-cancel" data-i18n="t_cancel" onclick="closeProforma()">Annuler</button>
-      <button class="btn-send" id="pf-btn" onclick="sendProforma()" data-i18n="t_send">ENVOYER</button>
+      <button class="btn-cancel" onclick="closeProforma()">Annuler</button>
+      <button class="btn-send" id="pf-btn" onclick="sendProforma()">ENVOYER</button>
     </div>
   </div>
 </div>
@@ -461,7 +457,7 @@
 <div class="pf-bg" id="proforma-cart-bg" onclick="if(event.target===this)closeCartProforma()">
   <div class="pf-box">
     <div class="pf-stripe"></div>
-    <div class="pf-title" data-i18n="t_cart_pf_title">DEVIS PANIER</div>
+    <div class="pf-title">DEVIS PANIER</div>
     <div class="pf-sub" id="pf-cart-sub">Demande groupée — <span id="pf-cart-count">—</span> produit(s)</div>
     <div class="pf-items-list" id="pf-cart-items"></div>
     <div class="grid2">
@@ -471,8 +467,8 @@
     <div class="form-fg"><label class="form-fl">Message</label><textarea class="form-fi" id="pfc-msg" rows="2" placeholder="Délai, conditionnement..."></textarea></div>
     <input type="text" id="pfc-hp" name="website" autocomplete="off" tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px;opacity:0;height:0;width:0;pointer-events:none;">
     <div class="form-actions">
-      <button class="btn-cancel" data-i18n="t_cancel" onclick="closeCartProforma()">Annuler</button>
-      <button class="btn-send" id="pfc-btn" onclick="sendCartProforma()" data-i18n="t_send">ENVOYER</button>
+      <button class="btn-cancel" onclick="closeCartProforma()">Annuler</button>
+      <button class="btn-send" id="pfc-btn" onclick="sendCartProforma()">ENVOYER</button>
     </div>
   </div>
 </div>
@@ -481,11 +477,11 @@
 <div class="confirm-bg" id="confirm-bg">
   <div class="confirm-box">
     <div class="confirm-ico">🗑️</div>
-    <div class="confirm-t" data-i18n="t_clear_confirm">Vider la liste ?</div>
-    <div class="confirm-s" data-i18n="t_clear_confirm_msg">Cette action est irréversible. Tous les produits de votre liste seront retirés.</div>
+    <div class="confirm-t">Vider la liste ?</div>
+    <div class="confirm-s">Cette action est irréversible. Tous les produits de votre liste seront retirés.</div>
     <div class="confirm-acts">
-      <button class="btn-confirm-cancel" data-i18n="t_cancel" onclick="document.getElementById('confirm-bg').classList.remove('show')">Annuler</button>
-      <button class="btn-confirm-ok" data-i18n="t_vider" onclick="doClearCart()">VIDER</button>
+      <button class="btn-confirm-cancel" onclick="document.getElementById('confirm-bg').classList.remove('show')">Annuler</button>
+      <button class="btn-confirm-ok" onclick="doClearCart()">VIDER</button>
     </div>
   </div>
 </div>
@@ -495,28 +491,28 @@
     <div class="footer-grid">
       <div class="footer-col">
         <a href="vitrine.html" class="footer-col-title" style="text-decoration:none;color:inherit;">PRODICONSEIL</a>
-        <span data-i18n="t_ft_tagline">Négoce papier &amp; carton B2B</span>
-        <span data-i18n="t_ft_stock">Stock Europe</span>
+        <span>Négoce papier &amp; carton B2B</span>
+        <span>Stock Europe</span>
         <span>Stocklots, Side runs</span>
         <span>Fabrication</span>
-        <span data-i18n="t_ft_update">Bobines &amp; formats</span>
+        <span>Bobines &amp; formats</span>
       </div>
       <div class="footer-col">
         <div class="footer-col-title">Contact</div>
         <a href="mailto:contact@prodi.com">contact@prodi.com</a>
         <a href="https://wa.me/33649754915" target="_blank" rel="noopener noreferrer">+33 6 49 75 49 15</a>
-        <span data-i18n="t_ft_hours">Lun – Ven · 9h – 18h</span>
+        <span>Lun – Ven · 9h – 18h</span>
       </div>
       <div class="footer-col">
         <div class="footer-col-title">Documents</div>
-        <span data-i18n="t_ft_docs">EUR1, COO sur demande</span>
-        <span data-i18n="t_ft_quote">Devis sous 24h ouvrées</span>
-        <span data-i18n="t_ft_loading">Chargement Europe 24–48h</span>
+        <span>EUR1, COO sur demande</span>
+        <span>Devis sous 24h ouvrées</span>
+        <span>Chargement Europe 24–48h</span>
       </div>
     </div>
     <div class="footer-bottom">
       <a href="vitrine.html" style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:#fff;text-decoration:none;">PRODICONSEIL</a>
-      <div class="f-sub" data-i18n="t_ft_copy">© 2026 Prodiconseil · Stock papier &amp; carton B2B</div>
+      <div class="f-sub">© 2026 Prodiconseil · Stock papier &amp; carton B2B</div>
     </div>
   </div>
 </footer>
@@ -743,8 +739,8 @@
 <!-- FLOATING COMPARE BAR -->
 <div class="cmp-bar" id="cmp-bar">
   <div class="cmp-bar-items" id="cmp-bar-items"></div>
-  <button class="btn-cmp-go" onclick="openCmpModal()"><span data-i18n="t_cmp_pre">Comparer</span> <span id="cmp-bar-count">0</span> <span data-i18n="t_cmp_suf">produits →</span></button>
-  <button class="btn-cmp-clear" onclick="clearCompare()" title="Vider" data-i18n-title="t_vider_title">✕</button>
+  <button class="btn-cmp-go" onclick="openCmpModal()"><span>Comparer</span> <span id="cmp-bar-count">0</span> <span>produits →</span></button>
+  <button class="btn-cmp-clear" onclick="clearCompare()" title="Vider">✕</button>
 </div>
 
 <!-- COMPARE MODAL -->

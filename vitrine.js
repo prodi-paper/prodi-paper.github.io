@@ -6,198 +6,6 @@ const safeUrl = u => {
   return esc(s);
 };
 
-// ─── TRANSLATIONS ───
-const T = {
-  fr: {
-    nav_home:'Accueil', nav_about:'À propos', nav_contact:'Contact', nav_catalogue:'Voir le stock →',
-    hero_badge:'Négociant européen depuis 1991',
-    hero_title:'VOTRE FOURNISSEUR<br>PAPIER &amp; CARTON<br><em>DEPUIS 1991</em>',
-    hero_sub:'Bobines · Formats · Kraft · Offset · Couché · SBS · Tous grammages — Expédition mondiale depuis la France 🇫🇷',
-    qd_h:'DEMANDEZ UN PROFORMA', qd_sub:'Décrivez votre besoin. Nous vous répondons sous 2H ouvrées avec disponibilités et prix.',
-    qd_nom:'Nom / Société', qd_besoin:'Type de papier · Grammage · Quantité', qd_send:'ENVOYER →', qd_ok:'✓ Message envoyé — réponse sous 2H ouvrées.',
-    hero_tagline:'LOTS ET FABRICATION', hero_btn1:'NOS PRODUITS', hero_btn2:'NOUS CONTACTER',
-    stat1:'Fondés en', stat2:'Références en stock', stat3:'Tonnes disponibles', stat4:'Délai de chargement',
-    mq_label:'Présents dans 30+ pays à travers le monde',
-    geo_tag:'Export mondial', geo_h:'NOTRE PRÉSENCE À L\'INTERNATIONAL', geo_sub:'Présents sur 5 continents. Expédition depuis nos entrepôts en France et en Europe vers le monde entier — FCL, LCL, tous incoterms.',
-    sc_tag:'Nos produits', sc_h:'APERÇU DE NOS STOCKS', sc_sub:'Plusieurs milliers de références en stock immédiat, issues de papeteries européennes de premier rang.', sc_cta:'Voir tout le stock →',
-    sc_search_ph:'Kraft 80g, SBS blanc, Testliner...', sc_search_btn:'Rechercher →', sc_type_default:'Quel type de papier cherchez-vous ?',
-    step4_h:'Expédition rapide', step4_p:'Départ depuis nos entrepôts en France sous 24–48H. Livraison FCL ou LCL dans le monde entier.',
-    mills_label:'Stocks issus des plus grandes papeteries européennes',
-    act_tag:'À propos de nous', act_h:'Négociant international en papier & carton',
-    range_label:'Gamme',
-    card1_h:'Fondée en 1991', card1_p:'SARL française, siège à Ivry-sur-Seine (Île-de-France). Plus de 30 ans d\'expertise dans le négoce de papier & carton à l\'international.',
-    card2_h:'+10 000 tonnes', card2_p:'Stock disponible en permanence. Livraison rapide en quelques jours après paiement. Des dizaines de milliers de tonnes vendues par an.',
-    card3_h:'68 pays · 99% export', card3_p:'Présents sur 5 continents : Afrique, Moyen-Orient, Asie, Amérique du Sud et Europe.',
-    stat1_l:'Fondée', stat2_l:'En stock', stat3_l:'Pays clients', stat4_l:'À l\'export', stat5_l:'Exclusivement',
-    prod_tag:'Catalogue', prod_h:'NOS CATÉGORIES DE PRODUITS',
-    prod_sub:'Bobines et formats disponibles en stock, issus de papeteries européennes de premier rang.',
-    p_kraft:'Brun & blanc, bobines', p_sbs:'Carton couché blanc', p_fbb:'Folding box board',
-    p_test:'Papier d\'emballage', p_flut:'Papier ondulé', p_coat:'1 & 2 faces', p_off:'Sans bois & newsprint',
-    prod_cta1:'Voir le catalogue complet',
-    logi_tag:'Logistique', logi_h:'EXPÉDITION DEPUIS L\'EUROPE',
-    logi_sub:'Nos stocks sont disponibles en entrepôts européens, prêts à être expédiés dans le monde entier.',
-    logi1_h:'Entrepôts européens', logi1_p:'Stocks physiques disponibles en France (Ivry-sur-Seine, Amiens) et dans plusieurs pays européens. Délai de chargement rapide.',
-    logi2_h:'Export mondial', logi2_p:'Livraison dans tous les pays. Expérience dans les procédures douanières internationales.',
-    logi3_h:'Conteneurs complets', logi3_p:'Livraison en FCL. Lots à partir de quelques tonnes, adaptables selon les besoins de l\'acheteur.',
-    cta_h:'INTÉRESSÉ PAR NOS STOCKS ?', cta_sub:'Consultez notre catalogue ou contactez-nous directement.',
-    cta_btn1:'Voir le catalogue', cta_btn2:'WhatsApp', cta_btn2b:'Nous contacter',
-    about_tag:'À propos', about_h1:'NÉGOCIANT EUROPÉEN<br>EN PAPIER <em>&amp;</em> CARTON',
-    about_intro:'Prodiconseil est spécialisé dans la commercialisation de stocklots de papier et carton issus de grandes papeteries européennes.',
-    ab_h1:'L\'ENTREPRISE',
-    ab_p1:'Prodiconseil est un négociant européen fondé en 1991, spécialisé dans les stocklots de papier et carton. Depuis plus de 30 ans, nous travaillons avec des papeteries de premier rang pour proposer des lots à prix compétitifs.',
-    ab_p2:'Notre activité repose sur une connaissance approfondie du marché du papier et sur un réseau de partenaires industriels en Europe.',
-    ab_p3:'Nous fournissons des transformateurs, des imprimeurs et des négociants dans de nombreux pays, avec des solutions logistiques adaptées à chaque marché.',
-    ab_h2:'NOS PRODUITS',
-    ab_p4:'Notre catalogue comprend des bobines et des formats dans de nombreuses qualités : papier couché, kraft, offset, carton SBS, FBB, testliner, fluting et bien d\'autres.',
-    ab_p5:'Chaque lot est documenté avec ses caractéristiques techniques (grammage, laize, poids, mandrin) et une photo du produit.',
-    ab_p6:'Les stocks proviennent de surproductions et de commandes annulées, ce qui permet des prix très compétitifs par rapport au marché primaire.',
-    num1:'Références disponibles en stock', num2:'Stocks d\'origine européenne',
-    num3:'Papeteries européennes de référence', num4:'Délai de chargement typique',
-    ab_proc_h:'COMMENT ÇA MARCHE',
-    step1_h:'Consultez le catalogue', step1_p:'Parcourez nos 5 800+ références avec filtres par qualité, grammage, laize et format.',
-    step2_h:'Demandez un proforma', step2_p:'Sélectionnez vos produits et envoyez une demande de proforma directement depuis le catalogue.',
-    step3_h:'Confirmation & livraison', step3_p:'Nous préparons votre commande et organisons l\'expédition vers votre port de destination.',
-    ct_tag:'Contact', ct_h:'ENVOYEZ-NOUS UN MESSAGE',
-    ct_sub:'Remplissez le formulaire ci-dessous. Nous vous répondrons sous 24h.',
-    f_nom:'Nom', f_soc:'Entreprise', f_email:'Email', f_tel:'Téléphone', f_msg:'Message', f_send:'Envoyer le message',
-    ok_h:'Message envoyé !', ok_p:'Nous vous répondrons dans les 24 heures.',
-    aside_h:'COORDONNÉES', ci_addr:'Adresse', ci_web:'Site catalogue', wa_btn:'Écrire sur WhatsApp', mail_btn:'Envoyer un email',
-    err_nom:'Nom requis (min. 2 car.)', err_soc:'Entreprise requise', err_email:'Email invalide', err_msg:'Message trop court (min. 10 car.)',
-    err_server:'Erreur — veuillez réessayer ou écrire à eelbilia@gmail.com',
-    snd_on:'SON', snd_off:'SON',
-    ph_nom:'Jean Dupont', ph_soc:'Entreprise SA', ph_email:'nom@entreprise.com', ph_tel:'+33 6 00 00 00 00',
-    aria_sound:'Activer le son',
-    sc_prev:'Précédent', sc_next:'Suivant',
-    c_de:'Allemagne', c_es:'Espagne', c_it:'Italie', c_be:'Belgique', c_nl:'Pays-Bas',
-    c_pl:'Pologne', c_gb:'Royaume-Uni', c_se:'Suède', c_ch:'Suisse', c_at:'Autriche',
-    c_gr:'Grèce', c_ro:'Roumanie', c_tr:'Turquie', c_dk:'Danemark', c_no:'Norvège',
-    c_fi:'Finlande', c_cz:'Tchéquie', c_hu:'Hongrie', c_ma:'Maroc', c_dz:'Algérie',
-    c_tn:'Tunisie', c_ly:'Libye', c_mr:'Mauritanie', c_cm:'Cameroun', c_sn:'Sénégal',
-    c_ci:"Côte d'Ivoire", c_eg:'Égypte', c_za:'Afrique du Sud', c_ae:'Émirats arabes',
-    c_sa:'Arabie Saoudite', c_in:'Inde', c_th:'Thaïlande', c_id:'Indonésie',
-    c_cn:'Chine', c_kr:'Corée du Sud', c_jp:'Japon',
-    c_td:'Tchad', c_il:'Israël', c_au:'Australie', c_us:'États-Unis',
-    c_mx:'Mexique', c_co:'Colombie', c_br:'Brésil', c_pe:'Pérou',
-    c_ar:'Argentine', c_cl:'Chili', c_ec:'Équateur', c_bo:'Bolivie', c_do:'Rép. Dominicaine',
-    t_sc_stat:'TONNES DISPONIBLES EN STOCK',
-    habt_intro:'Prodiconseil est une société française fondée en 1991, basée à Ivry-sur-Seine (Île-de-France). Spécialisée dans le négoce international de papier et carton, stocks issus de grandes papeteries européennes.',
-    habt_range:'Offset · Couché mat & brillant · Kraft · Emballage · SBS · Duplex · FBB · Testliner · Fluting · Thermique · Adhésif · Autocopiant',
-    spt_sbs:'Carton SBS', spt_couche:'Couché', spt_lwc:'LWC Couché',
-    spt_off_sat:'Offset Satiné', spt_emball:'Emballage', spt_silicone:'Siliconé',
-    spt_nontisse:'Non-tissé', spt_couche_mat:'Couché Mat', spt_etiquette:'Papier Étiquette',
-    spec_bobine:'Bobine', spec_palette:'Format',
-    stock_title:'+10\u202f000 TONNES DISPONIBLES', stock_sub:'lots et fabrication',
-  },
-  en: {
-    nav_home:'Home', nav_about:'About', nav_contact:'Contact', nav_catalogue:'View stock →',
-    hero_badge:'European paper trader since 1991',
-    hero_title:'YOUR PAPER &amp; BOARD<br>SUPPLIER<br><em>SINCE 1991</em>',
-    hero_sub:'Reels · Sheet pallets · Kraft · Offset · Coated · SBS · All grammages — Worldwide shipping from France 🇫🇷',
-    qd_h:'REQUEST A PROFORMA', qd_sub:'Describe your need. We reply within 2 business hours with availability and pricing.',
-    qd_nom:'Name / Company', qd_besoin:'Paper type · Grammage · Quantity', qd_send:'SEND →', qd_ok:'✓ Message sent — reply within 2 business hours.',
-    hero_tagline:'STOCKLOTS & SOURCING', hero_btn1:'OUR PRODUCTS', hero_btn2:'CONTACT US',
-    stat1:'Founded in', stat2:'References in stock', stat3:'Tonnes available', stat4:'Loading lead time',
-    mq_label:'Active in 30+ countries worldwide',
-    geo_tag:'Global reach', geo_h:'OUR INTERNATIONAL PRESENCE', geo_sub:'Active on 5 continents. Shipping from our warehouses in France and Europe — FCL, LCL, all incoterms.',
-    sc_tag:'Our products', sc_h:'STOCK OVERVIEW', sc_sub:'Thousands of references in immediate stock, from major European paper mills.', sc_cta:'View full stock →',
-    sc_search_ph:'Kraft 80g, White SBS, Testliner...', sc_search_btn:'Search →', sc_type_default:'What type of paper are you looking for?',
-    step4_h:'Fast shipping', step4_p:'Dispatch from our French warehouses within 24–48H. FCL or LCL delivery worldwide.',
-    mills_label:'Stocks sourced from Europe\'s leading paper mills',
-    act_tag:'About us', act_h:'International paper & board trader',
-    range_label:'Range',
-    card1_h:'Founded in 1991', card1_p:'French SARL, headquartered in Ivry-sur-Seine, Île-de-France. Over 30 years of expertise in international paper & board trading.',
-    card2_h:'+10,000 tonnes', card2_p:'Permanently available stock. Fast delivery within a few days of payment. Tens of thousands of tonnes sold per year.',
-    card3_h:'68 countries · 99% export', card3_p:'Active on 5 continents: Africa, Middle East, Asia, South America and Europe.',
-    stat1_l:'Founded', stat2_l:'In stock', stat3_l:'Client countries', stat4_l:'Export', stat5_l:'B2B only',
-    prod_tag:'Catalogue', prod_h:'OUR PRODUCT CATEGORIES',
-    prod_sub:'Reels and sheet formats available in stock, from top-tier European paper mills.',
-    p_kraft:'Brown & white, reels', p_sbs:'White coated board', p_fbb:'Folding box board',
-    p_test:'Packaging paper', p_flut:'Corrugating medium', p_coat:'1 & 2 sides', p_off:'Woodfree & newsprint',
-    prod_cta1:'View full catalogue',
-    logi_tag:'Logistics', logi_h:'SHIPPING FROM EUROPE',
-    logi_sub:'Our stocks are available in European warehouses, ready to be shipped worldwide.',
-    logi1_h:'European warehouses', logi1_p:'Physical stocks available in France (Ivry-sur-Seine, Amiens) and several European countries. Fast loading lead times.',
-    logi2_h:'Worldwide export', logi2_p:'Delivery to all countries. Experience with international customs procedures.',
-    logi3_h:'Full container loads', logi3_p:'FCL delivery. Lots from a few tonnes, adaptable to the buyer\'s requirements.',
-    cta_h:'INTERESTED IN OUR STOCKS?', cta_sub:'Browse our catalogue or contact us directly.',
-    cta_btn1:'View catalogue', cta_btn2:'WhatsApp', cta_btn2b:'Contact us',
-    about_tag:'About', about_h1:'EUROPEAN TRADER<br>IN PAPER <em>&amp;</em> BOARD',
-    about_intro:'Prodiconseil specialises in the sale of paper and board stocklots from major European paper mills.',
-    ab_h1:'THE COMPANY',
-    ab_p1:'Prodiconseil is a European trader founded in 1991, specialising in paper and board stocklots. For over 30 years, we have worked with top-tier paper mills to offer competitive lots.',
-    ab_p2:'Our business is built on deep knowledge of the paper market and an industrial partner network across Europe.',
-    ab_p3:'We supply converters, printers and traders in many countries, with logistics solutions tailored to each market.',
-    ab_h2:'OUR PRODUCTS',
-    ab_p4:'Our catalogue includes reels and sheet formats in many grades: coated paper, kraft, offset, SBS board, FBB, testliner, fluting and more.',
-    ab_p5:'Each lot is documented with its technical specifications (grammage, width, weight, core) and a product photo.',
-    ab_p6:'Stocks come from overproductions and cancelled orders, enabling very competitive prices vs. the primary market.',
-    num1:'References available in stock', num2:'European-origin stocks',
-    num3:'Reference European paper mills', num4:'Typical loading lead time',
-    ab_proc_h:'HOW IT WORKS',
-    step1_h:'Browse the catalogue', step1_p:'Search our 5,800+ references with filters by grade, grammage, width and format.',
-    step2_h:'Request a proforma', step2_p:'Select your products and send a proforma request directly from the catalogue.',
-    step3_h:'Confirmation & delivery', step3_p:'We prepare your order and arrange shipment to your destination port.',
-    ct_tag:'Contact', ct_h:'SEND US A MESSAGE',
-    ct_sub:'Fill in the form below. We will reply within 24 hours.',
-    f_nom:'Name', f_soc:'Company', f_email:'Email', f_tel:'Phone', f_msg:'Message', f_send:'Send message',
-    ok_h:'Message sent!', ok_p:'We will reply within 24 hours.',
-    aside_h:'CONTACT INFO', ci_addr:'Address', ci_web:'Catalogue site', wa_btn:'Chat on WhatsApp', mail_btn:'Send an email',
-    err_nom:'Name required (min. 2 chars.)', err_soc:'Company required', err_email:'Invalid email', err_msg:'Message too short (min. 10 chars.)',
-    err_server:'Error — please retry or email eelbilia@gmail.com',
-    snd_on:'SOUND', snd_off:'SOUND',
-    ph_nom:'John Smith', ph_soc:'Company Ltd', ph_email:'name@company.com', ph_tel:'+1 555 000 0000',
-    aria_sound:'Toggle sound',
-    sc_prev:'Previous', sc_next:'Next',
-    c_de:'Germany', c_es:'Spain', c_it:'Italy', c_be:'Belgium', c_nl:'Netherlands',
-    c_pl:'Poland', c_gb:'United Kingdom', c_se:'Sweden', c_ch:'Switzerland', c_at:'Austria',
-    c_gr:'Greece', c_ro:'Romania', c_tr:'Turkey', c_dk:'Denmark', c_no:'Norway',
-    c_fi:'Finland', c_cz:'Czech Republic', c_hu:'Hungary', c_ma:'Morocco', c_dz:'Algeria',
-    c_tn:'Tunisia', c_ly:'Libya', c_mr:'Mauritania', c_cm:'Cameroon', c_sn:'Senegal',
-    c_ci:'Ivory Coast', c_eg:'Egypt', c_za:'South Africa', c_ae:'UAE',
-    c_sa:'Saudi Arabia', c_in:'India', c_th:'Thailand', c_id:'Indonesia',
-    c_cn:'China', c_kr:'South Korea', c_jp:'Japan',
-    c_td:'Chad', c_il:'Israel', c_au:'Australia', c_us:'United States',
-    c_mx:'Mexico', c_co:'Colombia', c_br:'Brazil', c_pe:'Peru',
-    c_ar:'Argentina', c_cl:'Chile', c_ec:'Ecuador', c_bo:'Bolivia', c_do:'Dominican Rep.',
-    t_sc_stat:'TONNES AVAILABLE IN STOCK',
-    habt_intro:'Prodiconseil is a French company founded in 1991, based in Ivry-sur-Seine (Île-de-France). Specialised in international paper and board trading, sourcing stocklots from major European paper mills.',
-    habt_range:'Offset · Matt & Gloss Coated · Kraft · Packaging · SBS · Duplex · FBB · Testliner · Fluting · Thermal · Self-adhesive · NCR',
-    spt_sbs:'SBS Board', spt_couche:'Coated', spt_lwc:'LWC Coated',
-    spt_off_sat:'Satin Offset', spt_emball:'Packaging', spt_silicone:'Silicone',
-    spt_nontisse:'Non-woven', spt_couche_mat:'Matt Coated', spt_etiquette:'Label Paper',
-    spec_bobine:'Reel', spec_palette:'Pallet',
-    stock_title:'+10,000 TONNES AVAILABLE', stock_sub:'lots & manufacturing',
-  }
-};
-
-let lang = (['fr','en'].includes(localStorage.getItem('prodi_lang'))?localStorage.getItem('prodi_lang'):'fr');
-
-function setLang(l) {
-  lang = l;
-  localStorage.setItem('prodi_lang', l);
-  document.documentElement.lang = l;
-  document.documentElement.dataset.lang = l;
-  ['fr','en'].forEach(x => {
-    document.getElementById('lang-'+x)?.classList.toggle('on', x===l);
-    document.getElementById('mob-lang-'+x)?.classList.toggle('on', x===l);
-  });
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    const k = el.dataset.i18n;
-    if (T[l][k] !== undefined) el.textContent = T[l][k];
-  });
-  document.querySelectorAll('[data-i18n-h]').forEach(el => {
-    const k = el.dataset.i18nH;
-    if (T[l][k] !== undefined) el.innerHTML = T[l][k];
-  });
-  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-    const k = el.dataset.i18nPlaceholder;
-    if (T[l][k] !== undefined) el.placeholder = T[l][k];
-  });
-  document.querySelectorAll('[data-i18n-aria]').forEach(el => {
-    const k = el.dataset.i18nAria;
-    if (T[l][k] !== undefined) el.setAttribute('aria-label', T[l][k]);
-  });
-}
 
 // ─── PAGE NAVIGATION ───
 function showPage(id) {
@@ -263,38 +71,10 @@ async function submitContact(e) {
     document.getElementById('form-ok').style.display = 'block';
   } catch(err) {
     btn.disabled = false;
-    btn.textContent = T[lang].f_send;
-    alert(T[lang].err_server);
+    btn.textContent = 'Envoyer le message';
+    alert('Erreur — veuillez réessayer ou écrire à eelbilia@gmail.com');
   }
 }
-
-// ─── QUICK DEVIS ───
-// Note: this handler has no corresponding form in vitrine.html (dead code).
-// Kept for compatibility; honeypot guard added so it cannot be abused via the
-// browser console as a unauthenticated POST endpoint to proforma_requests.
-async function submitQuickDevis(e){
-  if (e && e.preventDefault) e.preventDefault();
-  if (document.getElementById('qd-hp')?.value) {
-    const f=document.getElementById('qd-form'); if (f) f.style.display='none';
-    const ok=document.getElementById('qd-ok'); if (ok) ok.style.display='block';
-    return;
-  }
-  const btn=e?.target?.querySelector?.('button[type=submit]');
-  const nom=document.getElementById('qd-nom')?.value?.trim()||'';
-  const email=document.getElementById('qd-email')?.value?.trim()||'';
-  const besoin=document.getElementById('qd-besoin')?.value?.trim()||'';
-  if (btn) btn.disabled=true;
-  try{
-    await fetch(SURL+'/rest/v1/proforma_requests',{
-      method:'POST',
-      headers:{'apikey':SKEY,'Authorization':'Bearer '+SKEY,'Content-Type':'application/json','Prefer':'return=minimal'},
-      body:JSON.stringify({nom,email,message:besoin,quantite_souhaitee:'Quick devis vitrine',statut:'quick_devis'})
-    });
-  }catch(_){}
-  const f=document.getElementById('qd-form'); if (f) f.style.display='none';
-  const ok=document.getElementById('qd-ok'); if (ok) ok.style.display='block';
-}
-
 
 // ─── SCROLL REVEAL ───
 (function(){
@@ -325,11 +105,11 @@ async function submitQuickDevis(e){
 // ─── FORM VALIDATION ───
 (function(){
   const RULES = {
-    'f-nom':   {required:true, min:2, errKey:'err_nom'},
-    'f-soc':   {required:true, min:2, errKey:'err_soc'},
-    'f-email': {required:true, email:true, errKey:'err_email'},
-    'f-tel':   {required:false, errKey:''},
-    'f-msg':   {required:true, min:10, errKey:'err_msg'},
+    'f-nom':   {required:true, min:2, errMsg:'Nom requis (min. 2 car.)'},
+    'f-soc':   {required:true, min:2, errMsg:'Entreprise requise'},
+    'f-email': {required:true, email:true, errMsg:'Email invalide'},
+    'f-tel':   {required:false, errMsg:''},
+    'f-msg':   {required:true, min:10, errMsg:'Message trop court (min. 10 car.)'},
   };
   function validate(id){
     const input = document.getElementById(id);
@@ -345,7 +125,7 @@ async function submitQuickDevis(e){
     if(ok && rule.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) ok = false;
     fg.classList.toggle('fv-valid', ok);
     fg.classList.toggle('fv-invalid', !ok);
-    if(msgEl) msgEl.textContent = ok ? '' : (T[lang][rule.errKey] || '');
+    if(msgEl) msgEl.textContent = ok ? '' : (rule.errMsg || '');
     return ok;
   }
   Object.keys(RULES).forEach(id => {
@@ -602,11 +382,10 @@ function toggleSound(){
   const icoSound=document.getElementById('vid-icon-sound');
   v.muted=!v.muted;
   if(v.muted){
-    icoMute.style.display='';icoSound.style.display='none';btnTxt.textContent=T[lang].snd_on;
+    icoMute.style.display='';icoSound.style.display='none';btnTxt.textContent='SON';
   } else {
-    icoMute.style.display='none';icoSound.style.display='';btnTxt.textContent=T[lang].snd_off;
+    icoMute.style.display='none';icoSound.style.display='';btnTxt.textContent='SON';
   }
 }
 
 // Appliquer la langue sauvegardée au chargement
-setLang(lang);
