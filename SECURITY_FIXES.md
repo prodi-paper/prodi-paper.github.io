@@ -58,9 +58,8 @@ Dernière révision : 2026-05-01 14h30 CEST (RLS appliquées en live, audit comp
 
 ## Faille #2 — admin.html sans auth + RLS ✅ (Option B + RLS appliquées en live)
 
-- ✅ `admin.html` → renommé `admin.local.html` (gitignored, retiré du déploiement public)
+- ✅ `admin.html` retiré du déploiement public, puis page locale supprimée (2026-05-18) — pour les modifs ponctuelles passer par le dashboard Supabase (Table Editor)
 - ✅ `paper.prodi.com/admin.html` → 404 après deploy
-- ✅ Pour usage admin : ouvrir `admin.local.html` via `python3 -m http.server 8000` localement
 - ✅ **RLS appliquées sur les 3 tables le 2026-05-01** via management API :
   - `products` : RLS ON, `products_anon_select` (SELECT anon) + `products_auth_write` (ALL authenticated). État avant : RLS désactivé → n'importe qui pouvait écrire (test curl confirmé sur ligne id=183799 que j'ai créée puis supprimée).
   - `proforma_requests` : **table créée** (n'existait pas avant !), RLS ON, INSERT borné en longueur, SELECT/UPDATE pour `authenticated`.
@@ -84,7 +83,7 @@ Dernière révision : 2026-05-01 14h30 CEST (RLS appliquées en live, audit comp
 La table `proforma_requests` **n'existait pas** avant le 2026-05-01. Conséquence : depuis la mise en service du site, toutes les demandes de devis envoyées par le formulaire de **contact en bas de vitrine** (`submitContact` dans vitrine.js) étaient **silencieusement perdues** — le code a un `.catch(()=>{})` qui masque l'erreur, et ce flow n'a pas de fallback EmailJS contrairement aux flows du catalogue. Les leads venant de cette voie sont définitivement perdus pour la période d'avant le 2026-05-01.
 
 ### Note d'usage admin
-`admin.local.html` ne pourra plus écrire en base depuis la clé anon (RLS bloque). Pour les modifs ponctuelles : **dashboard Supabase web** (Table Editor). Si besoin d'un admin web protégé plus tard → Option A (auth Supabase email/password) à implémenter.
+Pour les modifs ponctuelles en base : **dashboard Supabase web** (Table Editor). Si besoin d'un admin web protégé plus tard → Option A (auth Supabase email/password) à implémenter.
 
 ---
 
@@ -230,7 +229,6 @@ Vérification côté JS (rejet silencieux si rempli, faux écran de succès pour
 - [ ] `git log -p --all | grep "sbp_8bbc"` → 0 résultat (post filter-repo)
 - [ ] Insert produit avec `<script>alert('XSS')</script>` dans `details` → s'affiche en texte brut, pas d'exécution
 - [ ] INSERT direct sur `products` via clé anon (curl) → 403 (après harden)
-- [ ] admin.html sans auth → écran login (Option A) ou 404 (Option B)
 - [ ] `securityheaders.com` ≥ B
 - [ ] Modifier 1 char d'un hash SRI → script bloqué
 

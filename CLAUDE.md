@@ -15,7 +15,6 @@ Site statique de catalogue papier/carton B2B. Déployé sur GitHub Pages.
 | `catalogue.js` | Logique JS du catalogue (~3760 lignes) |
 | `catalogue.css` | Styles du catalogue |
 | `vitrine.html/js/css` | Page d'accueil commerciale |
-| `admin.local.html` | Mini-CRUD interne **gitignored, local-only** (pas servie par GitHub Pages) |
 | `img/` | Images statiques |
 | `assets/prodi2026.mp4` | Vidéo vitrine |
 | `scripts/` | Robot d'import quotidien + utilitaires (Python, exécutés par CI) |

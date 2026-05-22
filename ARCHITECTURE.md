@@ -60,11 +60,7 @@ Trois pages publiques :
 | `vitrine.html` (+ `vitrine.css`, `vitrine.js`) | Page d'accueil : présentation, carte mondiale des expéditions, formulaire de contact. SEO optimisé. |
 | `index.html` (+ `catalogue.css`, `catalogue.js`) | **Cœur du site.** Catalogue avec recherche tolérante aux fautes, ~30 filtres, panier persistant, partage de sélection, modale détail produit, demande de proforma, génération PDF. |
 
-Une page **non-publique** :
-
-| Fichier | Statut |
-|---|---|
-| `admin.local.html` | Mini-CRUD interne pour ajouts/suppressions manuels. **Retirée du déploiement** (ajoutée à `.gitignore`, plus servie par GitHub Pages). À ouvrir uniquement en local via `python3 -m http.server`. Vu les RLS durcies, elle ne peut plus écrire en base depuis la clé anon — pour modifs ponctuelles passer par le **dashboard Supabase web** (Table Editor). |
+Pour les modifs ponctuelles en base : **dashboard Supabase web** (Table Editor).
 
 **Pas de framework** (vanilla JS). Avantages :
 - chargement rapide (pas de bundle lourd) ;
@@ -237,7 +233,7 @@ Un audit complet a été mené ce jour, ayant identifié 10 failles initiales + 
 **Frontend** :
 - ~28 zones XSS échappées via helpers `esc()`, `safeUrl()`, `attrJs()`, `numId()` dans `catalogue.js` et `vitrine.js`
 - 3 reflected XSS résiduelles fermées (correction note, empty state, filter chips, error.message)
-- CSP meta + nosniff + referrer policy sur `index.html`, `vitrine.html`, `admin.local.html`
+- CSP meta + nosniff + referrer policy sur `index.html`, `vitrine.html`
 - SRI sha384 sur 4 scripts CDN (emailjs, topojson, supabase-js, html2pdf) pinnés à versions exactes
 - Honeypots sur 3 formulaires (proforma single, proforma cart, contact vitrine)
 - `rel="noopener noreferrer"` sur 3 liens `target="_blank"` wa.me
@@ -333,7 +329,6 @@ Seuils d'attention : EmailJS au-delà de 200 mails/mois → ~$11/mois. Supabase 
 ## 10. Checklist avant déploiement public
 
 - [x] **RLS Supabase appliquées** sur les 3 tables (validé 2026-05-01).
-- [x] **Sécurité `admin.html`** : retiré du déploiement public (renommé `admin.local.html`, gitignored).
 - [x] **Secrets GitHub Actions** configurés et CI validée avec les nouveaux tokens.
 - [ ] CNAME DNS `paper.prodi.com` → `ethanelb.github.io` + fichier `CNAME` racine du repo.
 - [ ] Tester chemin complet en live : ouverture, filtre, panier, proforma, réception mail.
@@ -372,7 +367,6 @@ Seuils d'attention : EmailJS au-delà de 200 mails/mois → ~$11/mois. Supabase 
 |---|---|
 | `index.html` / `catalogue.css` / `catalogue.js` | Catalogue produit (cœur du site) |
 | `vitrine.html` / `vitrine.css` / `vitrine.js` | Page d'accueil commerciale |
-| `admin.local.html` | Mini-CRUD interne **local-only** (gitignored, jamais déployé) |
 | `img/` | Logos, fonds, icônes, fallbacks photos produits |
 | `assets/prodi2026.mp4` | Vidéo de présentation (vitrine) |
 | `scripts/import_stock_ci.py` | Robot d'import quotidien (CI) |
