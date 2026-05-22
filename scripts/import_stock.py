@@ -241,8 +241,15 @@ def parse_xlsx(filepath):
             usine_raw = clean_str(g('usine_ref'))
             usine = None
             if usine_raw:
-                m = re.search(r'\bUSINE\s*(\d+)', usine_raw, re.IGNORECASE)
-                usine = m.group(1) if m else usine_raw  # fallback: store raw value
+                # Normalisation alignée avec import_stock_ci.py::extract_usine.
+                # Gère 'USINE U 171', 'USINE USDAM 171', 'REF 102', '007', etc.
+                # Rejette 'USINE', 'USINE REPR', 'PAL.DIVERS...' (None).
+                m = re.search(r'\bUSINE\s*[A-Z]*\s*(\d+)', usine_raw, re.IGNORECASE)
+                if m:
+                    usine = str(int(m.group(1)))
+                else:
+                    stripped = re.sub(r'^REF\s*', '', usine_raw, flags=re.IGNORECASE).strip()
+                    usine = str(int(stripped)) if re.fullmatch(r'\d+', stripped) else None
 
             rec = {
                 'quality':     quality,

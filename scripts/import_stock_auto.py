@@ -41,11 +41,19 @@ def parse_price(val):
     return float(m.group(1)) if m else None
 
 def extract_usine(ref_str):
+    """Normalise les valeurs Sage 'REF QUALITÉ' en code usine pur (str(int)).
+    Gère : '287' / '007' / 'USINE 287' / 'USINE U 171' / 'USINE USDAM 171' /
+    'USINE USP 159' / 'USINE USNT 3' / 'REF 102'. Retourne None pour les
+    valeurs non-numériques ('USINE', 'USINE REPR', 'PAL.DIVERS...').
+    """
     if ref_str is None: return None
     s = str(ref_str).strip()
     if not s or 'eur' in s.lower(): return None
-    m = re.search(r'USINE\s*(\d+)', s, re.IGNORECASE)
-    return m.group(1) if m else (s if s else None)
+    m = re.search(r'\bUSINE\s*[A-Z]*\s*(\d+)', s, re.IGNORECASE)
+    if m: return str(int(m.group(1)))
+    stripped = re.sub(r'^REF\s*', '', s, flags=re.IGNORECASE).strip()
+    if re.fullmatch(r'\d+', stripped): return str(int(stripped))
+    return None
 
 # ── STEP 1: FETCH EMAIL ──
 def fetch_latest_stock_email():
