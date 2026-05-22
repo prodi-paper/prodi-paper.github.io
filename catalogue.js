@@ -1920,8 +1920,13 @@ async function _fetchAndRenderFeatured(token){
     g.innerHTML=Array(8).fill(0).map(()=>`<div class="skeleton"><div class="skel-img"></div><div class="skel-body"><div class="skel-line short"></div><div class="skel-line med"></div><div class="skel-line"></div></div></div>`).join('');
   }
   try{
-    const p=new URLSearchParams({select:'*','image_url':'not.is.null',order:'id.desc'});
+    // Pool initial : 800 refs les plus récentes (Photo_NNNNNN 6 chiffres).
+    // Le tri lex .desc équivaut au tri numérique car longueur fixe ; les Photo_FAB*,
+    // Photo_DU*, Photo_PM*, etc. sont exclus du regex pour éviter qu'ils sortent
+    // en tête (lex 'F'/'D'/... > '9').
+    const p=new URLSearchParams({select:'*','image_url':'not.is.null',order:'ref.desc'});
     p.append('image_url','neq.');
+    p.append('ref','match.^Photo_[0-9]{6}$');
     // Fetch featured products AND real total count + weight in parallel
     const [imgRes, countRes, wRes]=await Promise.all([
       sbQ('products?'+p,{headers:{'Range':'0-799'}}),
