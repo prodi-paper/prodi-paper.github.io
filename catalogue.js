@@ -2158,6 +2158,8 @@ async function _fetchAndRender(token){
   else if(s==='gsm_desc'||s==='grammage_desc')p.set('order','format.asc.nullslast,gsm.desc.nullslast,id.asc');
   else if(s==='price_asc'||s==='prix_asc')p.set('order','format.asc.nullslast,price.asc.nullslast,id.asc');
   else if(s==='price_desc'||s==='prix_desc')p.set('order','format.asc.nullslast,price.desc.nullslast,id.asc');
+  else if(s==='ref_asc')p.set('order','format.asc.nullslast,ref.asc.nullslast,id.asc');
+  else if(s==='ref_desc')p.set('order','format.asc.nullslast,ref.desc.nullslast,id.asc');
   else p.set('order','format.asc.nullslast,id.desc');
   const offset=(currentPage-1)*PAGE;
 
@@ -2254,6 +2256,8 @@ async function _fetchAndRender(token){
         if(v==='gsm_desc'||v==='grammage_desc')return['grammage','desc'];
         if(v==='price_asc'||v==='prix_asc')return['price','asc'];
         if(v==='price_desc'||v==='prix_desc')return['price','desc'];
+        if(v==='ref_asc')return['ref','asc'];
+        if(v==='ref_desc')return['ref','desc'];
         return null;})();
       const _fmtRank=p=>/palette|feuille/i.test(String(p?.format||''))?1:0;
       _groupsList.sort((a,b)=>{
@@ -2263,6 +2267,7 @@ async function _fetchAndRender(token){
           const[k,d]=_sortKey;
           const av=a._proto[k],bv=b._proto[k];
           if(av==null&&bv==null)return 0;if(av==null)return 1;if(bv==null)return -1;
+          if(k==='ref'){const c=String(av).localeCompare(String(bv));return d==='asc'?c:-c;}
           return d==='asc'?av-bv:bv-av;
         }
         return 0;
