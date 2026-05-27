@@ -2163,8 +2163,18 @@ async function _fetchAndRender(token){
   else if(s==='gsm_desc'||s==='grammage_desc')p.set('order','format.asc.nullslast,gsm.desc.nullslast,id.asc');
   else if(s==='price_asc'||s==='prix_asc')p.set('order','format.asc.nullslast,price.asc.nullslast,id.asc');
   else if(s==='price_desc'||s==='prix_desc')p.set('order','format.asc.nullslast,price.desc.nullslast,id.asc');
-  else if(s==='ref_asc')p.set('order','format.asc.nullslast,ref.asc.nullslast,id.asc');
-  else if(s==='ref_desc')p.set('order','format.asc.nullslast,ref.desc.nullslast,id.asc');
+  else if(s==='ref_asc'||s==='ref_desc'){
+    // "Arrivage" = vraies bobines en stock (refs numériques Photo_NNNNNN avec photo
+    // réelle). On exclut PM/FAB/DU + on force image_url not null pour atterrir
+    // direct sur le stock physique sans noise "photos/fabrication sur demande".
+    p.append('ref','not.ilike.Photo_PM%');
+    p.append('ref','not.ilike.Photo_FAB%');
+    p.append('ref','not.ilike.Photo_DU%');
+    if(_photoFilter!=='with')p.append('image_url','not.is.null');
+    p.set('order',s==='ref_asc'
+      ? 'format.asc.nullslast,ref.asc.nullslast,id.asc'
+      : 'format.asc.nullslast,ref.desc.nullslast,id.asc');
+  }
   else p.set('order','format.asc.nullslast,id.desc');
   const offset=(currentPage-1)*PAGE;
 
@@ -4573,3 +4583,197 @@ function syncResultsBarTop(){
 syncResultsBarTop();
 window.addEventListener('resize',syncResultsBarTop);
 
+
+// ── SCAN QR ──────────────────────────────────────────────────────────────────
+// Caméra → BarcodeDetector (natif) ou jsQR (fallback CDN) → match `ref` dans
+// `all[]` (tolère le préfixe Photo_) → addToCart(p.id). Mode rafale : on garde
+// la caméra active, debounce 1.2s entre scans pour ne pas re-trigger sur le
+// même tag.
+let _scanStream=null, _scanRaf=null, _scanLast=0, _scanLastRef='', _scanDetector=null, _scanCanvas=null, _scanAborted=false;
+
+async function openScanModal(){
+  const modal=document.getElementById('scan-modal');
+  if(!modal)return;
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden','false');
+  const hist=document.getElementById('scan-history');
+  if(hist)hist.innerHTML='';
+  _setScanStatus('Demande d\'accès caméra…');
+  _scanAborted=false;
+  _scanLast=0; _scanLastRef='';
+  try{
+    _scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}}});
+    const v=document.getElementById('scan-video');
+    v.srcObject=_scanStream;
+    await v.play();
+    _setScanStatus('Pointe la caméra vers un QR…');
+    _scanLoop();
+  }catch(e){
+    _setScanStatus('Erreur caméra : '+(e&&(e.message||e.name)||'inconnue'));
+  }
+}
+
+function closeScanModal(){
+  _scanAborted=true;
+  if(_scanRaf){cancelAnimationFrame(_scanRaf);_scanRaf=null;}
+  if(_scanStream){_scanStream.getTracks().forEach(t=>t.stop());_scanStream=null;}
+  const modal=document.getElementById('scan-modal');
+  if(modal){modal.classList.remove('open');modal.setAttribute('aria-hidden','true');}
+}
+
+async function _ensureScanLib(){
+  if('BarcodeDetector' in window){
+    if(!_scanDetector){try{_scanDetector=new window.BarcodeDetector({formats:['qr_code']});}catch(_){_scanDetector=null;}}
+    if(_scanDetector)return 'native';
+  }
+  if(window.jsQR)return 'jsqr';
+  await new Promise((resolve,reject)=>{
+    const s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js';
+    s.onload=resolve;
+    s.onerror=()=>reject(new Error('Impossible de charger jsQR'));
+    document.head.appendChild(s);
+  });
+  return 'jsqr';
+}
+
+async function _scanLoop(){
+  if(_scanAborted)return;
+  const v=document.getElementById('scan-video');
+  if(!v||v.readyState<2||!v.videoWidth){_scanRaf=requestAnimationFrame(_scanLoop);return;}
+  try{
+    const lib=await _ensureScanLib();
+    let raw=null;
+    if(lib==='native'){
+      const codes=await _scanDetector.detect(v);
+      if(codes&&codes.length)raw=codes[0].rawValue;
+    } else if(window.jsQR){
+      if(!_scanCanvas)_scanCanvas=document.createElement('canvas');
+      _scanCanvas.width=v.videoWidth; _scanCanvas.height=v.videoHeight;
+      const ctx=_scanCanvas.getContext('2d',{willReadFrequently:true});
+      ctx.drawImage(v,0,0,_scanCanvas.width,_scanCanvas.height);
+      const imd=ctx.getImageData(0,0,_scanCanvas.width,_scanCanvas.height);
+      const r=window.jsQR(imd.data,imd.width,imd.height,{inversionAttempts:'dontInvert'});
+      if(r)raw=r.data;
+    }
+    if(raw){
+      const now=Date.now();
+      // Debounce 1.2s, ET on n'autorise le même ref que toutes les 3s pour
+      // éviter de spammer le toast sur le même tag tenu devant la caméra.
+      const ref=_extractScanRef(raw);
+      const sameAsLast=(ref&&ref===_scanLastRef);
+      const minDelay=sameAsLast?3000:1200;
+      if(now-_scanLast>minDelay){
+        _scanLast=now; _scanLastRef=ref;
+        _handleScanResult(raw);
+      }
+    }
+  }catch(_){}
+  _scanRaf=requestAnimationFrame(_scanLoop);
+}
+
+function _setScanStatus(s){const el=document.getElementById('scan-status');if(el)el.textContent=s;}
+
+function _extractScanRef(text){
+  let s=String(text||'').trim();
+  // Si URL, on prend le dernier segment de path non vide.
+  if(/^https?:\/\//i.test(s)){
+    try{
+      const u=new URL(s);
+      const parts=u.pathname.split('/').filter(Boolean);
+      if(parts.length)s=parts[parts.length-1];
+    }catch(_){}
+  }
+  return decodeURIComponent(s).trim();
+}
+
+function _findProductByRef(candidate){
+  if(!candidate)return null;
+  const c=candidate.toLowerCase();
+  const cStripped=c.replace(/^photo_/,'');
+  return all.find(p=>{
+    const r=String(p.ref||'').toLowerCase();
+    if(!r)return false;
+    return r===c || r===('photo_'+cStripped) || r.replace(/^photo_/,'')===cStripped;
+  })||null;
+}
+
+function _handleScanResult(text){
+  const ref=_extractScanRef(text);
+  if(!ref){_setScanStatus('QR vide / illisible');return;}
+  const p=_findProductByRef(ref);
+  if(!p){
+    _setScanStatus('Référence "'+ref+'" introuvable dans le catalogue');
+    _addScanHistory(ref,false);
+    return;
+  }
+  const refDisp=String(p.ref||ref).replace(/^Photo_/i,'');
+  const inCart=cart.find(x=>x.id===+p.id);
+  if(inCart){
+    _setScanStatus('Déjà dans la liste : '+refDisp);
+    _addScanHistory(refDisp,true,'(déjà)');
+    return;
+  }
+  // addToCart toggle si déjà présent → on a vérifié ci-dessus que non, donc ça
+  // ajoute toujours.
+  addToCart(p.id);
+  _setScanStatus('Ajouté : '+refDisp);
+  _addScanHistory(refDisp,true);
+}
+
+function _addScanHistory(ref,ok,suffix){
+  const h=document.getElementById('scan-history');
+  if(!h)return;
+  const row=document.createElement('div');
+  row.className='scan-hist-row '+(ok?'ok':'err');
+  row.textContent=(ok?'✓ ':'✗ ')+ref+(suffix?' '+suffix:'');
+  h.insertBefore(row,h.firstChild);
+  while(h.children.length>8)h.removeChild(h.lastChild);
+}
+
+// ── COPY CART LINK ───────────────────────────────────────────────────────────
+// Génère un short-code, persiste {code, cart_ids} dans `shared_carts`, copie
+// l'URL `?s=CODE` dans le presse-papier. `cart_ids` = refs (Photo_…) pour
+// survivre au re-import quotidien (cf CLAUDE.md).
+async function copyCartLink(btn){
+  if(!cart.length){toast('Liste vide — ajoutez des produits d\'abord');return;}
+  const code=_shortCode();
+  const refs=cart.map(x=>x.ref).filter(Boolean).join(',');
+  if(!refs){toast('Aucune référence valide dans la liste');return;}
+  const url=window.location.origin+window.location.pathname+'?s='+code+(typeof _priceMode!=='undefined'&&_priceMode?'&p=1':'');
+  try{
+    const res=await sbQ('shared_carts',{method:'POST',body:{code,cart_ids:refs},headers:{'Prefer':'return=minimal'}});
+    if(res&&res.status&&res.status>=400){throw new Error('HTTP '+res.status);}
+  }catch(e){
+    console.error('share',e);
+    toast('Erreur création du lien partagé');
+    return;
+  }
+  let copied=false;
+  try{
+    await navigator.clipboard.writeText(url);
+    copied=true;
+  }catch(_){
+    // Safari iOS / file:// peuvent refuser clipboard sans gesture user → fallback
+    try{
+      const ta=document.createElement('textarea');
+      ta.value=url; ta.style.cssText='position:fixed;left:-9999px;';
+      document.body.appendChild(ta); ta.select();
+      copied=document.execCommand('copy');
+      document.body.removeChild(ta);
+    }catch(_){}
+  }
+  if(copied){
+    toast('🔗 Lien copié');
+    if(btn&&btn.classList){
+      btn.classList.add('done');
+      const span=btn.querySelector('span');
+      const prev=span?span.textContent:null;
+      if(span)span.textContent='✓ Lien copié';
+      setTimeout(()=>{btn.classList.remove('done');if(span&&prev)span.textContent=prev;},1800);
+    }
+  } else {
+    // Dernier recours : afficher le lien pour copie manuelle
+    prompt('Copie ce lien :',url);
+  }
+}
