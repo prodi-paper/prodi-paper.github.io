@@ -77,6 +77,10 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><circle cx="8" cy="6" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="16" cy="12" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="8" cy="18" r="2" fill="currentColor" stroke="none"/></svg>
     </button>
     <div class="hright">
+      <button class="btn-head btn-head-scan" onclick="openScanModal()" title="Scanner un QR code" aria-label="Scanner un QR code">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg>
+        <span class="btn-scan-txt">Scanner</span>
+      </button>
       <div class="cart-wrap">
         <button class="btn-head btn-head-panier" onclick="openCartDrawer()" id="cart-btn" title="Ma Liste">
           <img src="img/truck2.png" alt="truck" style="height:30px;width:auto;vertical-align:-6px;"> <span class="btn-panier-txt">Ma Liste</span>
@@ -425,6 +429,10 @@
         <span>Liste</span>
       </button>
     </div>
+    <button class="da-copy-link" onclick="copyCartLink(this)" title="Copier un lien partageable">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+      <span>Copier le lien</span>
+    </button>
     <div class="drawer-totals">
       <div class="dt-row">
         <span class="dt-lbl">TONNAGE TOTAL</span>
@@ -435,6 +443,24 @@
         <span class="dt-val" id="drawer-price-val">—</span>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- SCAN MODAL -->
+<div class="scan-modal" id="scan-modal" aria-hidden="true" onclick="if(event.target===this)closeScanModal()">
+  <div class="scan-modal-content">
+    <div class="scan-modal-head">
+      <div class="scan-modal-title">Scanner un QR code</div>
+      <button class="scan-close" onclick="closeScanModal()" aria-label="Fermer">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="scan-video-wrap">
+      <video id="scan-video" playsinline muted></video>
+      <div class="scan-overlay"></div>
+    </div>
+    <div class="scan-status" id="scan-status">Pointe la caméra vers un QR…</div>
+    <div class="scan-history" id="scan-history"></div>
   </div>
 </div>
 
