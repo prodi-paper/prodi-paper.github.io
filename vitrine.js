@@ -11,7 +11,7 @@ const safeUrl = u => {
 const STOCK_CODE = 'depot2026';
 function openStock(){
   try{
-    if(sessionStorage.getItem('stock_unlocked')==='1'){ window.location.href='./index.html'; return; }
+    if(sessionStorage.getItem('stock_unlocked')==='1'){ window.location.href='./catalogue.html'; return; }
   }catch(_){}
   const g=document.getElementById('stock-gate'); if(!g)return;
   g.style.display='flex';
@@ -31,7 +31,7 @@ function submitStockGate(e){
   const err=document.getElementById('stock-gate-err');
   if(code===STOCK_CODE){
     try{ sessionStorage.setItem('stock_unlocked','1'); }catch(_){}
-    window.location.href='./index.html';
+    window.location.href='./catalogue.html';
   }else{
     if(err) err.textContent='Code invalide. Contactez-nous pour obtenir le code d\'accès.';
   }
@@ -308,7 +308,7 @@ async function submitContact(e) {
       const imgHtml=p.image_url
         ?`<img src="${safeUrl(p.image_url)}" alt="${esc(title)}" loading="lazy" onerror="this.src='${fb}';this.className='pcard-nophoto'">`
         :`<img src="${fb}" alt="Photo sur demande" class="pcard-nophoto">`;
-      return`<a class="pcard" href="./index.html" onclick="openStock();return false;"><div class="pcard-img">${imgHtml}${refOverlay}${usineOverlay}</div><div class="pcard-body"><div class="pcard-name">${esc(title)}</div>${subtitleHtml}${specsHtml}</div></a>`;
+      return`<a class="pcard" href="./catalogue.html" onclick="openStock();return false;"><div class="pcard-img">${imgHtml}${refOverlay}${usineOverlay}</div><div class="pcard-body"><div class="pcard-name">${esc(title)}</div>${subtitleHtml}${specsHtml}</div></a>`;
     }
 
     track.innerHTML=slides.map(slide=>`<div class="sc-slide">${slide.map(cardHtml).join('')}</div>`).join('');
@@ -331,7 +331,7 @@ async function submitContact(e) {
 function goSearch(e) {
   e.preventDefault();
   const q = document.getElementById('sc-search-input').value.trim();
-  window.location.href = './index.html' + (q ? '?q=' + encodeURIComponent(q) : '');
+  window.location.href = './catalogue.html' + (q ? '?q=' + encodeURIComponent(q) : '');
 }
 
 // ─── GEO MAP ───
