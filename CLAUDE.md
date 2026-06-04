@@ -5,8 +5,8 @@ Site statique de catalogue papier/carton B2B. Déployé sur GitHub Pages.
 ## Stack
 - **Frontend** : HTML/CSS/JS vanilla (aucun framework)
 - **Backend** : Supabase (PostgREST + RLS) — lecture seule côté client
-- **Déploiement** : GitHub Pages → `https://ethanelb.github.io/` (pas de CNAME custom — `paper.prodi.com` est un autre site Bitrix24, sans rapport avec ce repo)
-- **Repo** : `https://github.com/ethanelb/ethanelb.github.io`
+- **Déploiement** : GitHub Pages → `https://prodi-paper.github.io/` (migration 2026-06-04 depuis `ethanelb.github.io` ; ancien repo conservé en lecture, workflow d'import désactivé là-bas pour éviter le double-write Supabase). Pas de CNAME custom — `paper.prodi.com` est un autre site Bitrix24, sans rapport avec ce repo.
+- **Repo** : `https://github.com/prodi-paper/prodi-paper.github.io` (`origin`). Ancien `ethanelb/ethanelb.github.io` accessible via remote local `ethanelb-old`.
 
 ## Fichiers principaux
 | Fichier | Rôle |
