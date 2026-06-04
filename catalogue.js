@@ -2575,7 +2575,7 @@ function renderCards(list){
     const _altTxt=[p.name,p.grammage?p.grammage+'g/m²':'',p.couleur].filter(Boolean).join(' — ')||'Produit';
     const _isFab=p.ref&&/^Photo_FAB/i.test(String(p.ref))&&p.emplacement!=='OUR WAREHOUSE';
     const _isSiderun=p.ref&&/^Photo_DU/i.test(String(p.ref));
-    const _fallbackImg=_isSiderun?'img/siderun-sur-demande.png':_isFab?'img/fabrication-sur-demande.png':'img/no-photo.png';
+    const _fallbackImg=_isSiderun?'/img/siderun-sur-demande.png':_isFab?'/img/fabrication-sur-demande.png':'/img/no-photo.png';
     const imgHtml=p.image_url
         ?`<img src="${safeUrl(p.image_url)}" alt="${esc(_altTxt)}" loading="lazy" onerror="this.src='${esc(_fallbackImg)}';this.className='pcard-nophoto'">`
         :`<img src="${esc(_fallbackImg)}" alt="Photo sur demande" class="pcard-nophoto">`;
@@ -2696,7 +2696,7 @@ function renderList(list){
     const _isFabL=p.ref&&/^Photo_FAB/i.test(String(p.ref))&&p.emplacement!=='OUR WAREHOUSE';
     const title=formatProductTitle(p.qualite,p.name);
     const _isSiderunL=p.ref&&/^Photo_DU/i.test(String(p.ref));
-    const _listFallback=_isSiderunL?'img/siderun-sur-demande.png':_isFabL?'img/fabrication-sur-demande.png':'img/no-photo.png';
+    const _listFallback=_isSiderunL?'/img/siderun-sur-demande.png':_isFabL?'/img/fabrication-sur-demande.png':'/img/no-photo.png';
     const thumb=p.image_url
         ?`<img src="${safeUrl(p.image_url)}" alt="${esc(title)}" class="plist-thumb" loading="lazy" onerror="this.src='${esc(_listFallback)}'">`
         :`<img src="${esc(_listFallback)}" alt="" class="plist-thumb">`;
@@ -2805,8 +2805,8 @@ function render(list){
 }
 
 
-const _DET_NO_PHOTO=`<img src="img/photos-sur-demande.png" alt="Photos sur demande" style="width:100%;height:100%;object-fit:contain;background:#fff;">`;
-const _DET_FAB_PHOTO=`<img src="img/fabrication-sur-demande.png" alt="Fabrication sur demande" style="width:100%;height:100%;object-fit:contain;">`;
+const _DET_NO_PHOTO=`<img src="/img/photos-sur-demande.png" alt="Photos sur demande" style="width:100%;height:100%;object-fit:contain;background:#fff;">`;
+const _DET_FAB_PHOTO=`<img src="/img/fabrication-sur-demande.png" alt="Fabrication sur demande" style="width:100%;height:100%;object-fit:contain;">`;
 function detImgErr(img){img.onerror=null;img.parentNode.innerHTML=_DET_NO_PHOTO;}
 let _detIdx=-1;
 let _detSource='list'; // 'list' = navigation dans la page courante, 'cart' = dans la sélection
@@ -2856,7 +2856,7 @@ async function openDetail(id){
   const _detAlt=[p.name,p.grammage?p.grammage+'g/m²':'',p.couleur].filter(Boolean).join(' — ')||'Produit';
   const _isFab=p.ref&&/^Photo_FAB/i.test(String(p.ref))&&p.emplacement!=='OUR WAREHOUSE';
   const _isSiderunD=p.ref&&/^Photo_DU/i.test(String(p.ref));
-  const _DET_SIDERUN_PHOTO=`<img src="img/siderun-sur-demande.png" alt="Siderun" style="width:100%;height:100%;object-fit:contain;">`;
+  const _DET_SIDERUN_PHOTO=`<img src="/img/siderun-sur-demande.png" alt="Siderun" style="width:100%;height:100%;object-fit:contain;">`;
   const _detFallback=_isSiderunD?_DET_SIDERUN_PHOTO:_isFab?_DET_FAB_PHOTO:_DET_NO_PHOTO;
   mi.innerHTML=p.image_url?`<img src="${safeUrl(p.image_url)}" loading="lazy" alt="${esc(_detAlt)}" style="cursor:zoom-in;" onclick="event.stopPropagation();openImageLightbox(this.src,this.alt)" onerror="this.onerror=null;this.parentNode.innerHTML=document.getElementById('det-fallback').innerHTML;">`
     :_detFallback;
@@ -3903,7 +3903,7 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
   <div class="page-num">1</div>
   <div class="head">
     <div class="brand">
-      <img class="brand-logo" src="img/logo.png" alt="Prodiconseil" onerror="this.style.display='none'">
+      <img class="brand-logo" src="/img/logo.png" alt="Prodiconseil" onerror="this.style.display='none'">
       <div class="brand-text">
         <div class="brand-line">9 Promenée Jeanne Hachette 94200 Ivry sur Seine - FRANCE</div>
         <div class="brand-line"><b>Contact e-mail :</b> clients@prodi.com</div>
@@ -4240,7 +4240,7 @@ function renderDrawer(){
     const _ref=p.ref||_pFull.ref||null;
     const _isSiderunD=_ref&&/^Photo_DU/i.test(String(_ref));
     const _isFabD=_ref&&/^Photo_FAB/i.test(String(_ref))&&_emp!=='OUR WAREHOUSE';
-    const _fallback=_isSiderunD?'img/siderun-sur-demande.png':_isFabD?'img/fabrication-sur-demande.png':'img/no-photo.png';
+    const _fallback=_isSiderunD?'/img/siderun-sur-demande.png':_isFabD?'/img/fabrication-sur-demande.png':'/img/no-photo.png';
     const imgHtml=imgSrc?`<img src="${safeUrl(imgSrc)}" onerror="this.src='${esc(_fallback)}'">`:`<img src="${esc(_fallback)}" alt="">`;
     return`<div class="ci" id="ci-${numId(p.id)}" onclick="_ciOpenDetail(${numId(p.id)})" style="cursor:pointer">
       <div class="ci-img">${imgHtml}</div>
