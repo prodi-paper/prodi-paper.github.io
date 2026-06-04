@@ -59,7 +59,7 @@ button{cursor:pointer;border:none;font-family:inherit;background:none;}
 .page.active{display:block;}
 
 /* ── HERO ── */
-.hero{background:var(--paper);position:relative;overflow:hidden;}
+.hero{background:#fff;position:relative;overflow:hidden;}
 .hero-inner{max-width:var(--max);margin:0 auto;padding:32px var(--pad) 28px;width:100%;position:relative;z-index:1;}
 .hero-split{display:flex;align-items:center;justify-content:space-between;gap:40px;}
 .hero-badge{display:none;}
