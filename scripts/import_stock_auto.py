@@ -290,7 +290,12 @@ def update_supabase(products):
             ref, famille, zone, corr_zone, c_zone, coul = row
             if not ref: continue
             ref_str = str(ref).strip()
-            if c_zone == 'OK' and corr_zone:
+            # FIX (2026-05-29) : Quand C_ZONE == 'OK', la zone validée est dans
+            # col 2 (ZONES), pas col 3 (CORRECTIONS_ZONE) — col 3 contient juste
+            # le flag "OK". Quand C_ZONE == 'FAUX', col 3 propose des corrections.
+            if c_zone == 'OK' and zone:
+                ref_zone[ref_str] = str(zone).strip()
+            elif c_zone == 'FAUX' and corr_zone:
                 ref_zone[ref_str] = str(corr_zone).strip()
             elif zone:
                 ref_zone[ref_str] = str(zone).strip()
