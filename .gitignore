@@ -7,6 +7,10 @@ __pycache__/
 skills-lock.json
 scripts/*.log
 
+# macOS screenshots traînants
+Capture d*.png
+Screen*.png
+
 # Security: never commit prompt files containing leaked secrets / dev brief
 SECURITY_FIX_PROMPT.md
 ARCHITECTURE.pdf
