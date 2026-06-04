@@ -155,15 +155,17 @@ async function submitContact(e) {
   const dotsWrap=document.getElementById('sc-dots');
   if(!track)return;
 
-  // Fetch products with image_url
+  // Fetch products with image_url — même filtre que catalogue.js:_fetchAndRenderFeatured
+  // (refs Photo_NNNNNN 6 chiffres uniquement, tri ref.desc = plus récents). Exclut
+  // Photo_FAB*, Photo_DU*, Photo_PM* etc. qui sortaient des machines dans le showcase.
   try{
-    const r=await fetch(SURL+'/rest/v1/products?select=*&image_url=not.is.null&order=id.desc',{
+    const r=await fetch(SURL+'/rest/v1/products?select=*&image_url=not.is.null&image_url=neq.&ref=match.%5EPhoto_%5B0-9%5D%7B6%7D%24&order=ref.desc',{
       headers:{'apikey':SKEY,'Authorization':'Bearer '+SKEY,'Range':'0-499'}
     });
     const data=await r.json();
     if(!data||!data.length)return;
 
-    // Filter products with real image_url — garde l'ordre id.desc (= plus récents d'abord)
+    // Filter products with real image_url — garde l'ordre ref.desc (= plus récents d'abord)
     const candidates=data.filter(p=>p.image_url&&p.image_url.trim().length>10);
 
     // Verify images load — check les 120 plus récents, garde l'ordre original

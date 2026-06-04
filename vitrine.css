@@ -213,7 +213,7 @@ button{cursor:pointer;border:none;font-family:inherit;background:none;}
 .habt-stat-l{display:block;font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--steel);}
 
 /* ── GEO MAP ── */
-.geo-sec{background:var(--paper);padding:var(--sec-m) 0 0;}
+.geo-sec{background:#fff;padding:var(--sec-m) 0 0;}
 .geo-sec .sec-tag{color:var(--red);}
 .geo-sec .sec-h{color:var(--ink);}
 .geo-sec .sec-sub{color:var(--ink2);max-width:680px;margin-bottom:12px;}
