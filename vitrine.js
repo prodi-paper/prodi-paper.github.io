@@ -7,6 +7,42 @@ const safeUrl = u => {
 };
 
 
+// ─── STOCK ACCESS GATE ───
+const STOCK_CODE = 'depot2026';
+function openStock(){
+  try{
+    if(sessionStorage.getItem('stock_unlocked')==='1'){ window.location.href='./index.html'; return; }
+  }catch(_){}
+  const g=document.getElementById('stock-gate'); if(!g)return;
+  g.style.display='flex';
+  document.body.style.overflow='hidden';
+  setTimeout(()=>document.getElementById('stock-gate-code')?.focus(),60);
+}
+function closeStockGate(){
+  const g=document.getElementById('stock-gate'); if(!g)return;
+  g.style.display='none';
+  document.body.style.overflow='';
+  const err=document.getElementById('stock-gate-err'); if(err) err.textContent='';
+  const inp=document.getElementById('stock-gate-code'); if(inp) inp.value='';
+}
+function submitStockGate(e){
+  e.preventDefault();
+  const code=(document.getElementById('stock-gate-code')?.value||'').trim().toLowerCase();
+  const err=document.getElementById('stock-gate-err');
+  if(code===STOCK_CODE){
+    try{ sessionStorage.setItem('stock_unlocked','1'); }catch(_){}
+    window.location.href='./index.html';
+  }else{
+    if(err) err.textContent='Code invalide. Contactez-nous pour obtenir le code d\'accès.';
+  }
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    const g=document.getElementById('stock-gate');
+    if(g && g.style.display!=='none') closeStockGate();
+  }
+});
+
 // ─── PAGE NAVIGATION ───
 function showPage(id) {
   if (id === 'about' || id === 'contact') {
@@ -72,13 +108,13 @@ async function submitContact(e) {
   } catch(err) {
     btn.disabled = false;
     btn.textContent = 'Envoyer le message';
-    alert('Erreur — veuillez réessayer ou écrire à eelbilia@gmail.com');
+    alert('Erreur — veuillez réessayer ou écrire à contact@prodi.com');
   }
 }
 
 // ─── SCROLL REVEAL ───
 (function(){
-  const els = document.querySelectorAll('[data-reveal]');
+  const els = document.querySelectorAll('[data-reveal],[data-reveal-left],[data-reveal-right]');
   if(!els.length) return;
   const obs = new IntersectionObserver(entries => {
     entries.forEach(e => {
@@ -86,6 +122,32 @@ async function submitContact(e) {
     });
   },{threshold:.12,rootMargin:'0px 0px -40px 0px'});
   els.forEach(el => obs.observe(el));
+})();
+
+// ─── COUNT-UP générique (.depot-count / .habt-count) ───
+(function genericCountUp(){
+  const items=document.querySelectorAll('.depot-count[data-target],.habt-count[data-target]');
+  if(!items.length)return;
+  const obs=new IntersectionObserver((entries,o)=>{
+    entries.forEach(e=>{
+      if(!e.isIntersecting)return;
+      const el=e.target;
+      const target=parseInt(el.dataset.target,10)||0;
+      const noFmt=el.dataset.noformat==='1';
+      const dur=1800;
+      const start=performance.now();
+      function step(now){
+        const t=Math.min((now-start)/dur,1);
+        const eased=1-Math.pow(1-t,3);
+        const cur=Math.round(target*eased);
+        el.textContent=noFmt?String(cur):cur.toLocaleString('fr-FR');
+        if(t<1)requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+      o.unobserve(el);
+    });
+  },{threshold:.4});
+  items.forEach(el=>obs.observe(el));
 })();
 
 // ─── STATS SCROLL REVEAL ───
@@ -109,7 +171,7 @@ async function submitContact(e) {
     'f-soc':   {required:true, min:2, errMsg:'Entreprise requise'},
     'f-email': {required:true, email:true, errMsg:'Email invalide'},
     'f-tel':   {required:false, errMsg:''},
-    'f-msg':   {required:true, min:10, errMsg:'Message trop court (min. 10 car.)'},
+    'f-msg':   {required:true, min:15, errMsg:'Message trop court (min. 15 car.)'},
   };
   function validate(id){
     const input = document.getElementById(id);
@@ -181,19 +243,37 @@ async function submitContact(e) {
     const verified=toCheck.filter((_,i)=>ok[i]);
     if(!verified.length)return;
 
-    // Pick 1 par qualité dans l'ordre récent, max 20 → 20 papiers différents
-    const seen=new Set();
+    // Cible 16 produits, 2 passes :
+    //  1) 1 par qualité (max diversité)
+    //  2) si <16, on autorise une 2e carte d'une qualité déjà prise, mais
+    //     seulement si signature (grammage|format|largeur|couleur) différente
+    //     → jamais 2 cartes visuellement identiques.
+    const sigOf=p=>[p.gsm||'',p.format||'',p.width||'',p.color||''].join('|');
+    const cntQ={};
+    const seenSig=new Set();
     const picked=[];
     for(const p of verified){
       const q=p.quality||'_';
-      if(seen.has(q))continue;
-      seen.add(q);
-      picked.push(p);
-      if(picked.length>=20)break;
+      if(cntQ[q])continue;
+      const s=q+'|'+sigOf(p);
+      if(seenSig.has(s))continue;
+      cntQ[q]=1;seenSig.add(s);picked.push(p);
+      if(picked.length>=16)break;
+    }
+    if(picked.length<16){
+      for(const p of verified){
+        if(picked.length>=16)break;
+        if(picked.includes(p))continue;
+        const q=p.quality||'_';
+        if((cntQ[q]||0)>=2)continue;
+        const s=q+'|'+sigOf(p);
+        if(seenSig.has(s))continue;
+        cntQ[q]=(cntQ[q]||0)+1;seenSig.add(s);picked.push(p);
+      }
     }
 
-    // Split into slides of 10
-    const PER_SLIDE=10;
+    // Split into 2 slides de 8 → grille 4×2
+    const PER_SLIDE=8;
     const slides=[];
     for(let i=0;i<picked.length;i+=PER_SLIDE)slides.push(picked.slice(i,i+PER_SLIDE));
     if(!slides.length)return;
@@ -201,14 +281,34 @@ async function submitContact(e) {
     // Quality labels
     const QL={'R1SC':'Couché 1 face','R2SC':'Couché 2 faces','RADH':'Adhésif','RAFF':'Papier affiche','RBOA':'Carton couché','RBON':'Carton non couché','RBOU':'Bouffant','RCAR':'Autocopiant','RCOL':'Offset couleur','RCUI':'Papier cuisson','RDIV':'Divers / Alu','RFLEX':'Complexe','RKDO':'Papier cadeau','RKRA':'Kraft','RKRABRUN':'Kraft brun','RKRG':'Kraft gomme','RKRR':'Kraft armé','RLINER':'Liner / Testliner','RLUX':'Papier luxe','RLWC':'LWC','RNEW':'Papier journal','ROFF':'Offset','RPAC':'Emballage','RPLA':'Plastique','RSIL':'Silicone / Glassine','RTHERM':'Thermique','RTIS':'Ouate / Tissue','S1SC':'Couché 1 face','S2SC':'Couché 2 faces','SADH':'Adhésif','SAFF':'Papier affiche','SBOA':'Carton couché','SBON':'Carton non couché','SBOU':'Bouffant','SCAR':'Autocopiant','SCOL':'Offset couleur','SCUT':'Ramette','SDIV':'Divers','SENV':'Enveloppes','SKRA':'Kraft','SLUX':'Papier luxe','SNEW':'Papier journal','SOFF':'Offset','SPAC':'Emballage','SPLA':'Plastique','SSBS':'SBS / Carton blanc','SINK':'Encre','UMAC':'Machines','SLWC':'LWC'};
 
-    // Render cards
+    // Render cards (visuel identique aux cartes du catalogue: .pcard)
+    const mmCm=mm=>mm!=null?(+(mm/10).toFixed(1)).toString().replace(/\.0$/,''):null;
     function cardHtml(p){
       const q=p.quality||'';
-      const title=QL[q]||q||'Produit';
-      const det=(p.details||'').replace(/[-–—\s]+/g,' ').trim();
-      const fmt=p.format||(p.noyau?'Bobine':'Palette');
-      const weight=p.weight?Math.round(p.weight).toLocaleString('fr-FR')+' kg':'—';
-      return`<a class="sp-card" href="./index.html"><div class="sp-photo"><img src="${safeUrl(p.image_url)}" alt="${esc(title)}" loading="lazy" onerror="this.parentElement.innerHTML='<div style=\\'display:flex;align-items:center;justify-content:center;height:100%;color:#ccc\\'>Photo sur demande</div>'"></div><div class="sp-body"><div class="sp-name">${esc(title)}</div>${det?`<div class="sp-type">${esc(det.substring(0,35))}${det.length>35?'…':''}</div>`:''}<div class="sp-specs"><span class="sp-spec">${p.gsm?esc(p.gsm+' g/m²'):'—'}</span><span class="sp-spec">${esc(fmt)}</span></div><div class="sp-footer"><span class="sp-weight">${esc(weight)}</span></div></div></a>`;
+      const c=q[0];
+      const prefix=c==='R'?'BOBINE':c==='S'?'FORMAT':c==='U'?'MACHINE':q;
+      const lab=QL[q]||q||'';
+      const title=q?`${prefix} — ${lab.toUpperCase()}`:'Produit';
+      const isPalette=p.format&&/palette|feuille/i.test(p.format);
+      const dimTag=!isPalette&&p.width?`${mmCm(p.width)} cm`:'';
+      const paletteDims=isPalette&&(p.width||p.longueur)?[p.width,p.longueur].filter(Boolean).map(mmCm).join('×'):null;
+      const _refClean=(p.ref||'').replace(/^Photo_/i,'').trim();
+      const _usineClean=p.usine?String(p.usine).replace(/^REF\s*/i,''):null;
+      const refOverlay=_refClean?`<div class="pcard-ref-overlay" title="${esc(_refClean)}"><span class="pcard-ref-txt">${esc(_refClean)}</span></div>`:'';
+      const usineOverlay=_usineClean?`<div class="pcard-gsm-overlay"><span class="pcard-gsm-lbl">USINE</span><span class="pcard-gsm-num">${esc(_usineClean)}</span></div>`:'';
+      const _det=(p.details||'').replace(/(?<=^|\s)-(?=\s|$)/g,'').replace(/\s{2,}/g,' ').trim();
+      const subtitleHtml=_det.length>2?`<div class="pcard-subtitle">${esc(_det)}</div>`:'';
+      const specRows=[
+        p.gsm?`${p.gsm} g/m²`:'—',
+        isPalette?(paletteDims?paletteDims+' cm':'—'):(dimTag||'—'),
+        p.color||'—'
+      ];
+      const specsHtml=`<div class="pcard-specs">${specRows.map(v=>`<div class="pcard-spec"><span class="pspec-val">${esc(v)}</span></div>`).join('')}</div>`;
+      const fb='img/no-photo.png';
+      const imgHtml=p.image_url
+        ?`<img src="${safeUrl(p.image_url)}" alt="${esc(title)}" loading="lazy" onerror="this.src='${fb}';this.className='pcard-nophoto'">`
+        :`<img src="${fb}" alt="Photo sur demande" class="pcard-nophoto">`;
+      return`<a class="pcard" href="./index.html" onclick="openStock();return false;"><div class="pcard-img">${imgHtml}${refOverlay}${usineOverlay}</div><div class="pcard-body"><div class="pcard-name">${esc(title)}</div>${subtitleHtml}${specsHtml}</div></a>`;
     }
 
     track.innerHTML=slides.map(slide=>`<div class="sc-slide">${slide.map(cardHtml).join('')}</div>`).join('');
@@ -274,11 +374,6 @@ const GEO_PTS=[
   {f:'🇬🇹',lon:-90,  lat:15   },{f:'🇭🇳',lon:-87, lat:15   },{f:'🇨🇷',lon:-84, lat:10   },
 ];
 
-// Container route indices — recalculated after Africa additions (+7 countries)
-// Europe:0-19, Africa:20-35(MA=20,CN_asia=43), ME:36-38, Asia:39-46, Americas:47-54
-// US=47, CN=43, BR=51, MA=20
-const GEO_SHIP_IDX=[47,43,51,20];
-
 async function initGeoMap(){
   const svg=document.getElementById('geo-svg');
   const countriesG=document.getElementById('geo-countries');
@@ -286,8 +381,20 @@ async function initGeoMap(){
   const shipsG=document.getElementById('geo-ships');
   const mrkG=document.getElementById('geo-markers');
   if(!svg||!countriesG||!arcsG||!mrkG) return;
+  const NS='http://www.w3.org/2000/svg';
 
-  // 1. Render world map via topojson
+  // Theme "Earth at Night" : navy ultra profond + lumières dorées
+  const bgRect=svg.querySelector('rect');
+  if(bgRect) bgRect.setAttribute('fill','#040A18');
+  // France origin : étoile dorée blanc-chaud (style ville-capitale sur photo nocturne NASA)
+  svg.querySelectorAll('circle[cx="507"][cy="82"]').forEach(c=>{
+    const r=c.getAttribute('r');
+    if(r==='16') c.setAttribute('fill','#FFC833'),c.setAttribute('opacity','0.35');
+    if(r==='5')  c.setAttribute('fill','#FFE066');
+    if(r==='2.5')c.setAttribute('fill','#FFF8D0');
+  });
+
+  // 1. Render world map via topojson — palette dark
   try{
     const world=await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(r=>r.json());
     const features=topojson.feature(world,world.objects.countries).features;
@@ -297,80 +404,99 @@ async function initGeoMap(){
         return `${i===0?'M':'L'}${x.toFixed(1)},${y.toFixed(1)}`;
       }).join('')+'Z';
     }
+    // Skip Antarctica + polygones qui traversent l'antiméridien (provoquent
+    // des traits horizontaux fantômes en travers de la carte).
+    const isAntarctica=feat=>{
+      const n=(feat.properties&&(feat.properties.name||feat.properties.NAME))||'';
+      return /antarctica|antarctique/i.test(n);
+    };
+    const ringWraps=ring=>{
+      for(let i=1;i<ring.length;i++){
+        if(Math.abs(ring[i][0]-ring[i-1][0])>180)return true;
+      }
+      return false;
+    };
     features.forEach(feat=>{
       const g=feat.geometry;
-      if(!g) return;
+      if(!g||isAntarctica(feat)) return;
       const polys=g.type==='Polygon'?[g.coordinates]:g.type==='MultiPolygon'?g.coordinates:[];
       polys.forEach(poly=>{
+        if(poly.some(ringWraps))return;
         const d=poly.map(ringToD).join(' ');
-        const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+        const p=document.createElementNS(NS,'path');
         p.setAttribute('d',d);
-        p.setAttribute('fill','#C8C9D1');
-        p.setAttribute('stroke','#E2E3EA');
-        p.setAttribute('stroke-width','0.4');
+        p.setAttribute('fill','#0B1426');
+        p.setAttribute('stroke','none');
         countriesG.appendChild(p);
       });
     });
   }catch(e){console.warn('world-atlas load failed',e);}
 
-  // 2. Draw arcs + markers
-  GEO_PTS.forEach((c,i)=>{
+  // Plus de bateaux ni d'arcs permanents
+  if(shipsG) shipsG.innerHTML='';
+
+  // 2. Chaque port = halo ambré + dot doré (lumières de ville vue de l'espace)
+  const ports=GEO_PTS.map((c,i)=>{
     const [cx,cy]=geoProj(c.lon,c.lat);
-    const delay=(0.15+i*0.07).toFixed(2);
-    const mx=(GEO_FX+cx)/2, my=(GEO_FY+cy)/2;
-    const dist=Math.hypot(cx-GEO_FX,cy-GEO_FY);
-    const cpY=Math.max(my-dist*0.45,4);
-    const d=`M${GEO_FX.toFixed(1)},${GEO_FY.toFixed(1)} Q${mx.toFixed(1)},${cpY.toFixed(1)} ${cx.toFixed(1)},${cy.toFixed(1)}`;
-    const arcId=`geo-arc-${i}`;
-
-    // Glow
-    const pg=document.createElementNS('http://www.w3.org/2000/svg','path');
-    pg.setAttribute('d',d);pg.setAttribute('stroke','#FE0000');pg.setAttribute('stroke-width','4');
-    pg.setAttribute('fill','none');pg.setAttribute('stroke-linecap','round');pg.setAttribute('opacity','0');
-    arcsG.appendChild(pg);
-    const plg=pg.getTotalLength();
-    pg.setAttribute('stroke-dasharray',plg);pg.setAttribute('stroke-dashoffset',plg);
-    pg.style.setProperty('--pl',plg);pg.style.animation=`arcGlow 1.1s ease-out ${delay}s forwards`;
-
-    // Main arc (named for mpath)
-    const p=document.createElementNS('http://www.w3.org/2000/svg','path');
-    p.setAttribute('id',arcId);p.setAttribute('d',d);p.setAttribute('stroke','#FE0000');
-    p.setAttribute('stroke-width','1.4');p.setAttribute('fill','none');
-    p.setAttribute('stroke-linecap','round');p.setAttribute('opacity','0');
-    arcsG.appendChild(p);
-    const pl=p.getTotalLength();
-    p.setAttribute('stroke-dasharray',pl);p.setAttribute('stroke-dashoffset',pl);
-    p.style.setProperty('--pl',pl);p.style.animation=`arcDraw 1.1s ease-out ${delay}s forwards`;
-
-    // Dot
-    const dot=document.createElementNS('http://www.w3.org/2000/svg','circle');
-    dot.setAttribute('cx',cx.toFixed(1));dot.setAttribute('cy',cy.toFixed(1));dot.setAttribute('r','3.5');
-    dot.setAttribute('fill','#FE0000');dot.setAttribute('opacity','0');
-    dot.style.animation=`dotPop .25s ease-out ${(parseFloat(delay)+1.05).toFixed(2)}s forwards`;
-    dot.style.transformOrigin=`${cx.toFixed(1)}px ${cy.toFixed(1)}px`;dot.style.transform='scale(0)';
+    const halo=document.createElementNS(NS,'circle');
+    halo.setAttribute('cx',cx.toFixed(1));halo.setAttribute('cy',cy.toFixed(1));
+    halo.setAttribute('r','4');halo.setAttribute('fill','#FFB42E');halo.setAttribute('opacity','0');
+    halo.style.transition='opacity .6s';
+    mrkG.appendChild(halo);
+    const dot=document.createElementNS(NS,'circle');
+    dot.setAttribute('cx',cx.toFixed(1));dot.setAttribute('cy',cy.toFixed(1));
+    dot.setAttribute('r','1.4');dot.setAttribute('fill','#FFE066');dot.setAttribute('opacity','0');
+    dot.style.transition='opacity .6s';
     mrkG.appendChild(dot);
-
+    setTimeout(()=>{halo.style.opacity='.22';dot.style.opacity='.95';}, 300+i*18);
+    return {cx,cy,halo,dot};
   });
 
-  // 3. Container icon animations on key routes (SVG symbol #geo-ctr)
-  GEO_SHIP_IDX.forEach((ptIdx,si)=>{
-    const arcId=`geo-arc-${ptIdx}`;
-    if(!document.getElementById(arcId)) return;
-    const dur=[18,22,20,14][si];
-    const startDelay=(parseFloat((0.15+ptIdx*0.07).toFixed(2))+1.5+si*2).toFixed(1);
-    const g=document.createElementNS('http://www.w3.org/2000/svg','g');
-    const u=document.createElementNS('http://www.w3.org/2000/svg','use');
-    u.setAttribute('href','#geo-ctr');
-    u.setAttribute('width','32');u.setAttribute('height','24');
-    u.setAttribute('x','-16');u.setAttribute('y','-12');
-    g.appendChild(u);
-    const am=document.createElementNS('http://www.w3.org/2000/svg','animateMotion');
-    am.setAttribute('dur',`${dur}s`);am.setAttribute('begin',`${startDelay}s`);
-    am.setAttribute('repeatCount','indefinite');am.setAttribute('rotate','0');
-    const mp=document.createElementNS('http://www.w3.org/2000/svg','mpath');
-    mp.setAttribute('href',`#${arcId}`);
-    am.appendChild(mp);g.appendChild(am);shipsG.appendChild(g);
-  });
+  // 3. Ping aléatoire : pulse expansif sur un port + flash du dot
+  function pingPort(idx){
+    const p=ports[idx];if(!p)return;
+    const {cx,cy,halo,dot}=p;
+    // Flash du dot/halo
+    halo.style.transition='opacity .15s';
+    dot.style.transition='opacity .15s';
+    halo.style.opacity='.65';dot.style.opacity='1';
+    setTimeout(()=>{
+      halo.style.transition='opacity .9s';
+      dot.style.transition='opacity .9s';
+      halo.style.opacity='.22';dot.style.opacity='.95';
+    },180);
+    // Onde concentrique dorée
+    const ring=document.createElementNS(NS,'circle');
+    ring.setAttribute('cx',cx.toFixed(1));ring.setAttribute('cy',cy.toFixed(1));
+    ring.setAttribute('r','2');ring.setAttribute('fill','none');
+    ring.setAttribute('stroke','#FFD24D');ring.setAttribute('stroke-width','1.4');
+    ring.setAttribute('opacity','.9');
+    mrkG.appendChild(ring);
+    const anim=ring.animate([
+      {r:'2',opacity:.9,strokeWidth:'1.4'},
+      {r:'16',opacity:0,strokeWidth:'.3'}
+    ],{duration:1400,easing:'cubic-bezier(.2,.6,.4,1)',fill:'forwards'});
+    anim.onfinish=()=>ring.remove();
+  }
+
+  // Émission continue : tirage aléatoire pondéré (shuffle queue)
+  const queue=[];
+  function refillQueue(){
+    const idxs=ports.map((_,i)=>i);
+    for(let i=idxs.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [idxs[i],idxs[j]]=[idxs[j],idxs[i]];
+    }
+    queue.push(...idxs);
+  }
+  function tick(){
+    if(!queue.length) refillQueue();
+    pingPort(queue.shift());
+  }
+  // Burst de démarrage (3 pings rapides)
+  for(let i=0;i<3;i++) setTimeout(tick, 600+i*220);
+  // Cadence continue : ~3 pings/s pour un effet "live" sans saturation
+  setInterval(tick, 340);
 }
 
 // IntersectionObserver → start animation when visible
@@ -380,6 +506,109 @@ const _geoObs=new IntersectionObserver(entries=>{
 const _geoEl=document.getElementById('geo-svg');
 if(_geoEl) _geoObs.observe(_geoEl);
 
+// ─── REAL GLOBE (orthographic, silhouette only) ───
+async function initGlobe(){
+  const land=document.getElementById('globe-land');
+  if(!land) return;
+  const NS='http://www.w3.org/2000/svg';
+  // Globe plein (silhouette continents blancs sur disque bleu)
+  const CX=160, CY=160, R=148;
+  // Centré sur Atlantique pour cadrer Amériques + Europe + Afrique
+  const lon0_deg=-30, lat0_deg=15;
+  const lon0=lon0_deg*Math.PI/180, lat0=lat0_deg*Math.PI/180;
+  const sinL=Math.sin(lat0), cosL=Math.cos(lat0);
+
+  function proj(lon,lat){
+    const λ=lon*Math.PI/180 - lon0;
+    const φ=lat*Math.PI/180;
+    const cosP=Math.cos(φ), sinP=Math.sin(φ);
+    const cosΛ=Math.cos(λ), sinΛ=Math.sin(λ);
+    const x=cosP*sinΛ;
+    const y=cosL*sinP - sinL*cosP*cosΛ;
+    const z=sinL*sinP + cosL*cosP*cosΛ;
+    return [CX + R*x, CY - R*y, z];
+  }
+
+  // ── Land : silhouette continents en projection orthographique ──
+  try{
+    const world=await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(r=>r.json());
+    const features=topojson.feature(world,world.objects.countries).features;
+    function ringToD(ring){
+      let d='', started=false, firstPt=null;
+      for(const pt of ring){
+        const [x,y,z]=proj(pt[0],pt[1]);
+        if(z>=-0.001){
+          if(!started){ d+=`M${x.toFixed(1)},${y.toFixed(1)}`; started=true; firstPt=[x,y]; }
+          else d+=`L${x.toFixed(1)},${y.toFixed(1)}`;
+        } else { started=false; }
+      }
+      if(firstPt) d+='Z';
+      return d;
+    }
+    features.forEach(feat=>{
+      const g=feat.geometry; if(!g)return;
+      const name=(feat.properties&&(feat.properties.name||feat.properties.NAME))||'';
+      if(/antarctica|antarctique/i.test(name))return;
+      const polys=g.type==='Polygon'?[g.coordinates]:g.type==='MultiPolygon'?g.coordinates:[];
+      polys.forEach(poly=>{
+        const d=poly.map(ringToD).filter(Boolean).join(' ');
+        if(!d)return;
+        const p=document.createElementNS(NS,'path');
+        p.setAttribute('d',d);
+        land.appendChild(p);
+      });
+    });
+  }catch(e){console.warn('globe land failed',e);}
+}
+
+const _globeEl=document.getElementById('globe-svg');
+if(_globeEl){
+  const _gobs=new IntersectionObserver(entries=>{
+    if(entries[0].isIntersecting){ initGlobe(); _gobs.disconnect(); }
+  },{threshold:.1});
+  _gobs.observe(_globeEl);
+}
+
+
+// ─── STATS COUNT-UP : animation au scroll vers les chiffres cibles
+(function statsCountUp(){
+  const items=document.querySelectorAll('.sc-stat-num[data-target]');
+  if(!items.length)return;
+  const fmt=(n,noFmt)=>noFmt?String(n):n.toLocaleString('fr-FR');
+  const obs=new IntersectionObserver((entries,o)=>{
+    entries.forEach(e=>{
+      if(!e.isIntersecting)return;
+      const el=e.target;
+      const target=parseInt(el.dataset.target,10)||0;
+      const noFmt=el.dataset.noFormat==='1';
+      const dur=1500+Math.min(target,2000)*0.3;
+      const start=performance.now();
+      function step(now){
+        const t=Math.min((now-start)/dur,1);
+        const eased=1-Math.pow(1-t,3);
+        const cur=Math.round(target*eased);
+        el.textContent='+'+fmt(cur,noFmt);
+        if(t<1)requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+      o.unobserve(el);
+    });
+  },{threshold:.4});
+  items.forEach(el=>obs.observe(el));
+})();
+
+// ─── HERO VIDEO : aspect-ratio dynamique pour s'adapter à n'importe quel format
+(function adaptHeroVideo(){
+  const v=document.getElementById('hero-vid');
+  if(!v)return;
+  const apply=()=>{
+    if(!v.videoWidth||!v.videoHeight)return;
+    const wrap=v.closest('.hero-video-wrap');
+    if(wrap) wrap.style.setProperty('--vid-ratio',`${v.videoWidth}/${v.videoHeight}`);
+  };
+  v.addEventListener('loadedmetadata',apply);
+  if(v.readyState>=1) apply();
+})();
 
 function toggleSound(){
   const v=document.getElementById('hero-vid');

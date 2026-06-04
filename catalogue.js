@@ -28,7 +28,7 @@ const safeUrl = u => {
 const attrJs = s => esc(JSON.stringify(String(s ?? '')));
 // numId: coerce id to integer for use in onclick handlers (prevents JS injection if id is non-numeric string)
 const numId = v => Number.isFinite(+v) ? +v : 0;
-const WA='33649754915';
+const WA='33609997407';
 let all=[],cur=null;
 const PAGE=40; let currentPage=1,_totalCount=0,_reqToken=0,_lastCorrections=[],_isFirstLoad=true,_featuredMode=false;
 // ─── MODE REGROUPÉ ───
