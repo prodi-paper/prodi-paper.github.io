@@ -163,28 +163,32 @@ async function submitContact(e) {
     const data=await r.json();
     if(!data||!data.length)return;
 
-    // Filter products with real image_url
+    // Filter products with real image_url — garde l'ordre id.desc (= plus récents d'abord)
     const candidates=data.filter(p=>p.image_url&&p.image_url.trim().length>10);
-    candidates.sort(()=>Math.random()-.5);
 
-    // Verify images load (check 80 candidates)
-    const toCheck=candidates.slice(0,80);
-    const verified=[];
-    await Promise.all(toCheck.map(p=>new Promise(resolve=>{
+    // Verify images load — check les 120 plus récents, garde l'ordre original
+    const toCheck=candidates.slice(0,120);
+    const ok=new Array(toCheck.length).fill(false);
+    await Promise.all(toCheck.map((p,idx)=>new Promise(resolve=>{
       const img=new Image();
-      img.onload=()=>{verified.push(p);resolve();};
+      img.onload=()=>{ok[idx]=true;resolve();};
       img.onerror=()=>resolve();
       img.src=p.image_url;
       setTimeout(resolve,3000);
     })));
+    const verified=toCheck.filter((_,i)=>ok[i]);
     if(!verified.length)return;
 
-    // Group by quality, pick 2 per group, shuffle
-    const groups=new Map();
-    for(const p of verified){const q=p.quality||'_';if(!groups.has(q))groups.set(q,[]);groups.get(q).push(p);}
+    // Pick 1 par qualité dans l'ordre récent, max 20 → 20 papiers différents
+    const seen=new Set();
     const picked=[];
-    for(const [,items] of groups){picked.push(...items.slice(0,2));}
-    picked.sort(()=>Math.random()-.5);
+    for(const p of verified){
+      const q=p.quality||'_';
+      if(seen.has(q))continue;
+      seen.add(q);
+      picked.push(p);
+      if(picked.length>=20)break;
+    }
 
     // Split into slides of 10
     const PER_SLIDE=10;
