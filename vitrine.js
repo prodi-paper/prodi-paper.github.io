@@ -245,8 +245,20 @@ async function submitContact(e) {
     // Filter products with real image_url — garde l'ordre ref.desc (= plus récents d'abord)
     const candidates=data.filter(p=>p.image_url&&p.image_url.trim().length>10);
 
-    // Verify images load — check les 120 plus récents, garde l'ordre original
-    const toCheck=candidates.slice(0,120);
+    // Ré-ordonne par diversité de qualité : 1ère occurrence de chaque qualité d'abord,
+    // puis le reste. Comme ça les ~17 premiers couvrent les 17 qualités disponibles.
+    const seenQ={};
+    const firstPerQ=[];
+    const rest=[];
+    for(const p of candidates){
+      const q=p.quality||'_';
+      if(!seenQ[q]){ seenQ[q]=1; firstPerQ.push(p); }
+      else rest.push(p);
+    }
+    const ordered=[...firstPerQ,...rest];
+
+    // Image-verify les 50 premiers (17 qualités + 33 backups si certaines images cassées)
+    const toCheck=ordered.slice(0,50);
     const ok=new Array(toCheck.length).fill(false);
     await Promise.all(toCheck.map((p,idx)=>new Promise(resolve=>{
       const img=new Image();
