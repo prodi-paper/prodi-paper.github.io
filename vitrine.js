@@ -103,6 +103,21 @@ async function submitContact(e) {
       headers:{'apikey':SKEY,'Authorization':'Bearer '+SKEY,'Content-Type':'application/json','Prefer':'return=minimal'},
       body: JSON.stringify({nom, societe:soc, email, telephone:tel, message:msg, quantite_souhaitee:'Contact vitrine', statut:'vitrine_contact'})
     });
+    // Push lead vers Bitrix24 CRM (non-bloquant, fail-silent)
+    fetch('https://b24-0oz3cu.bitrix24.fr/rest/1/7vu92qhgw9dl0a3e/crm.lead.add.json', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({fields:{
+        TITLE: 'Lead vitrine — ' + (soc || nom || 'sans nom'),
+        NAME: nom,
+        COMPANY_TITLE: soc,
+        EMAIL: [{VALUE: email, VALUE_TYPE: 'WORK'}],
+        PHONE: [{VALUE: tel, VALUE_TYPE: 'WORK'}],
+        COMMENTS: msg,
+        SOURCE_ID: 'WEB',
+        SOURCE_DESCRIPTION: 'Formulaire vitrine paper.prodi.net'
+      }})
+    }).catch(()=>{});
     document.getElementById('contact-form').style.display = 'none';
     document.getElementById('form-ok').style.display = 'block';
   } catch(err) {
