@@ -575,10 +575,12 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
 .mob-search-head:hover,.mob-search-head:active{background:#d40000;border-color:#d40000;}
 
 @media(max-width:1024px){
-  .header-search{max-width:340px;}
   .live-pill{display:none;}
   .live-pill-desktop{display:none;}
 }
+/* Safety net : empêche le cart-drawer fixed (translateX hors viewport) de causer
+   un scroll horizontal sur tablette aussi (déjà appliqué en mobile <768px). */
+html,body{overflow-x:hidden;}
 @media(max-width:768px){
   /* Header row 1: panda + filter-btn + cart (search moved below) */
   .header-inner{padding:0 10px;height:50px;gap:8px;position:relative;}
@@ -821,10 +823,27 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
   #results-bar{top:87px;}
 }
 
-/* ── TABLET: sidebar plus étroite ── */
+/* ── TABLET (769–1200px) : compacter le header pour éviter l'overflow horizontal
+   (iPad Air landscape 1180×820, iPad portrait, iPad mini…). Au-delà = desktop ── */
+@media(min-width:769px) and (max-width:1200px){
+  .header-inner{padding-left:20px;padding-right:16px;gap:10px;}
+  .header-search-group{flex-shrink:1;min-width:0;}
+  .header-search{width:auto;max-width:280px;flex-shrink:1;}
+  .btn-scan-txt{display:none;}
+  .btn-panier-txt{display:none;}
+  .btn-head-scan{padding:6px 10px;flex-shrink:0;}
+  .btn-head-panier{padding:6px 12px;flex-shrink:0;}
+  .hright{gap:6px;}
+}
+
+/* ── TABLET ÉTROIT (769–880px, iPad Air portrait) : sidebar plus étroite + masque Exact ── */
 @media(min-width:769px) and (max-width:900px){
   .body-wrap{grid-template-columns:220px 1fr;}
   .filters-panel{padding:14px 14px 40px;}
+}
+@media(min-width:769px) and (max-width:880px){
+  .exact-toggle{display:none;}
+  .header-search{max-width:220px;}
 }
 
 /* ── MOBILE ── */
