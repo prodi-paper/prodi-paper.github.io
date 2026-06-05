@@ -1461,7 +1461,7 @@ function _matchesActiveFilters(row, excludeKey){
   if(zoneNum && zoneLet){ if(!zStr.startsWith(zoneNum+zoneLet)) return false; }
   else if(zoneNum){ if(!zStr.startsWith(zoneNum)) return false; }
   else if(zoneLet){ if(!zStr.includes(zoneLet)) return false; }
-  const formats=new Set([...document.querySelectorAll('.fpill.active:not(.fpill-orig):not(.fpill-stock):not(.fpill-depot)')].map(b=>b.dataset.format));
+  const formats=new Set([...document.querySelectorAll('.fpill.active:not(.fpill-orig):not(.fpill-stock):not(.fpill-depot):not(.fpill-photo)')].map(b=>b.dataset.format));
   if(formats.size && !formats.has(row.format)) return false;
   return true;
 }
@@ -1568,7 +1568,7 @@ function _detailsFiltersSig(){
     us:document.getElementById('f-usine')?.value||'',
     zn:document.getElementById('f-zone-num')?.value||'',
     zl:document.getElementById('f-zone-let')?.value||'',
-    fmt:[...document.querySelectorAll('.fpill.active:not(.fpill-orig):not(.fpill-stock):not(.fpill-depot)')].map(b=>b.dataset.format).sort(),
+    fmt:[...document.querySelectorAll('.fpill.active:not(.fpill-orig):not(.fpill-stock):not(.fpill-depot):not(.fpill-photo)')].map(b=>b.dataset.format).sort(),
   });
 }
 function _rebuildDetailsMsd(){
@@ -1878,7 +1878,7 @@ function _filterSharedLocal(){
   const types=getMsdValues('msd-type');
   const couleurs=getMsdValues('msd-couleur');
   const mandrins=getMsdValues('msd-mandrin');
-  const formats=new Set([...document.querySelectorAll('.fpill.active:not(.fpill-orig):not(.fpill-stock):not(.fpill-depot)')].map(b=>b.dataset.format));
+  const formats=new Set([...document.querySelectorAll('.fpill.active:not(.fpill-orig):not(.fpill-stock):not(.fpill-depot):not(.fpill-photo)')].map(b=>b.dataset.format));
   const typeCodes=types.size>0?[...types].flatMap(c=>TYPE_MAP[c]||[c]):[];
 
   let filtered=_sharedAll.filter(p=>{
@@ -2022,7 +2022,7 @@ async function _fetchAndRender(token){
   const refCode=(document.getElementById('f-ref-code')?.value||'').trim().toUpperCase();
   const mandrins=getMsdValues('msd-mandrin');
   const couleurs=getMsdValues('msd-couleur');
-  const formats=new Set([...document.querySelectorAll('.fpill.active:not(.fpill-orig):not(.fpill-stock):not(.fpill-depot)')].map(b=>b.dataset.format));
+  const formats=new Set([...document.querySelectorAll('.fpill.active:not(.fpill-orig):not(.fpill-stock):not(.fpill-depot):not(.fpill-photo)')].map(b=>b.dataset.format));
   const origines=new Set([...document.querySelectorAll('.fpill-orig.active')].map(b=>b.dataset.origine));
   const sortEl=document.getElementById('sort-sel')||document.getElementById('sort-select');
   const s=sortEl?sortEl.value:'gsm_asc';
@@ -2456,7 +2456,7 @@ function updateFilterChips(){
   const lmax2=document.getElementById('f-lmax')?.value||'';
   if(q)chips.push({label:'Recherche'+' : "'+q+'"',clear:()=>{document.getElementById('search-input').value='';document.getElementById('search-input-mob').value='';filterProducts();}});
   // Add format pills chip
-  const _activeFmts=Array.from(document.querySelectorAll('.fpill.active:not(.fpill-orig):not(.fpill-stock):not(.fpill-depot)')).map(b=>b.dataset.format);
+  const _activeFmts=Array.from(document.querySelectorAll('.fpill.active:not(.fpill-orig):not(.fpill-stock):not(.fpill-depot):not(.fpill-photo)')).map(b=>b.dataset.format);
   const _activeOrigs=Array.from(document.querySelectorAll('.fpill-orig.active')).map(b=>b.dataset.origine==='R'?'Stocklot':'Fabrication');
   if(_activeOrigs.length>0)chips.push({label:('Origine')+' : '+_activeOrigs.join(', '),clear:()=>{document.querySelectorAll('.fpill-orig.active').forEach(b=>b.classList.remove('active'));filterProducts();}});
   _stockFilter.forEach(_sf=>{
