@@ -4010,6 +4010,7 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
   async function copyShareLink(ev){
     if(ev)ev.preventDefault();
     const shareUrl=${JSON.stringify(_shareUrl)};
+    const shareText='Album photo : '+shareUrl;
     const btn=document.querySelector('.btn-link');
     // Bail out if a previous click is still showing the copied feedback —
     // otherwise the captured orig would be the checkmark, not the link icon.
@@ -4023,18 +4024,18 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
       setTimeout(()=>{btn.innerHTML=orig;btn.classList.remove('copied');btn.disabled=false;},1500);
     };
     try{
-      await navigator.clipboard.writeText(shareUrl);
+      await navigator.clipboard.writeText(shareText);
       showCopied();
     }catch(_){
       // Fallback execCommand for older browsers / non-secure contexts
       const ta=document.createElement('textarea');
-      ta.value=shareUrl;ta.style.position='fixed';ta.style.opacity='0';
+      ta.value=shareText;ta.style.position='fixed';ta.style.opacity='0';
       document.body.appendChild(ta);ta.select();
       let ok=false;
       try{ok=document.execCommand('copy');}catch(_){}
       ta.remove();
       if(ok)showCopied();
-      else prompt('Copiez ce lien :',shareUrl); // user-selectable fallback
+      else prompt('Copiez ce message :',shareText); // user-selectable fallback
     }
   }
   async function sendByEmail(ev){
@@ -4762,6 +4763,7 @@ async function copyCartLink(btn){
   const refs=cart.map(x=>x.ref).filter(Boolean).join(',');
   if(!refs){toast('Aucune référence valide dans la liste');return;}
   const url=window.location.origin+window.location.pathname+'?s='+code+(typeof _priceMode!=='undefined'&&_priceMode?'&p=1':'');
+  const shareText='Album photo : '+url;
   try{
     const res=await sbQ('shared_carts',{method:'POST',body:{code,cart_ids:refs},headers:{'Prefer':'return=minimal'}});
     if(res&&res.status&&res.status>=400){throw new Error('HTTP '+res.status);}
@@ -4772,13 +4774,13 @@ async function copyCartLink(btn){
   }
   let copied=false;
   try{
-    await navigator.clipboard.writeText(url);
+    await navigator.clipboard.writeText(shareText);
     copied=true;
   }catch(_){
     // Safari iOS / file:// peuvent refuser clipboard sans gesture user → fallback
     try{
       const ta=document.createElement('textarea');
-      ta.value=url; ta.style.cssText='position:fixed;left:-9999px;';
+      ta.value=shareText; ta.style.cssText='position:fixed;left:-9999px;';
       document.body.appendChild(ta); ta.select();
       copied=document.execCommand('copy');
       document.body.removeChild(ta);
