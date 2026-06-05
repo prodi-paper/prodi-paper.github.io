@@ -258,33 +258,14 @@ async function submitContact(e) {
     const verified=toCheck.filter((_,i)=>ok[i]);
     if(!verified.length)return;
 
-    // Cible 16 produits, 2 passes :
-    //  1) 1 par qualité (max diversité)
-    //  2) si <16, on autorise une 2e carte d'une qualité déjà prise, mais
-    //     seulement si signature (grammage|format|largeur|couleur) différente
-    //     → jamais 2 cartes visuellement identiques.
-    const sigOf=p=>[p.gsm||'',p.format||'',p.width||'',p.color||''].join('|');
+    // 1 carte par qualité, max 16. Mieux vaut moins de cartes que des doublons visuels.
     const cntQ={};
-    const seenSig=new Set();
     const picked=[];
     for(const p of verified){
       const q=p.quality||'_';
       if(cntQ[q])continue;
-      const s=q+'|'+sigOf(p);
-      if(seenSig.has(s))continue;
-      cntQ[q]=1;seenSig.add(s);picked.push(p);
+      cntQ[q]=1;picked.push(p);
       if(picked.length>=16)break;
-    }
-    if(picked.length<16){
-      for(const p of verified){
-        if(picked.length>=16)break;
-        if(picked.includes(p))continue;
-        const q=p.quality||'_';
-        if((cntQ[q]||0)>=2)continue;
-        const s=q+'|'+sigOf(p);
-        if(seenSig.has(s))continue;
-        cntQ[q]=(cntQ[q]||0)+1;seenSig.add(s);picked.push(p);
-      }
     }
 
     // Split into 2 slides de 8 → grille 4×2
