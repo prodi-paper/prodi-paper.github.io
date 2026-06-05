@@ -83,7 +83,7 @@
 <link rel="preconnect" href="https://bvcgpdoukhcatjibmvnb.supabase.co">
 <link rel="dns-prefetch" href="https://stock.prodi.net">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/catalogue.css?v=335">
+<link rel="stylesheet" href="/catalogue.css?v=336">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4.4.1/dist/email.min.js" integrity="sha384-SALc35EccAf6RzGw4iNsyj7kTPr33K7RoGzYu+7heZhT8s0GZouafRiCg1qy44AS" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -328,7 +328,7 @@
       </div>
 
       <div class="fg">
-        <div class="nmr-row"><label class="fl">Référence bobine</label></div>
+        <div class="nmr-row"><label class="fl">Référence article</label></div>
         <div class="nmr-wrap"><input type="number" class="nmr-in" id="f-refmin" placeholder="Min" min="0" oninput="filterProducts()"><span class="nmr-sep">—</span><input type="number" class="nmr-in" id="f-refmax" placeholder="Max" min="0" oninput="filterProducts()"></div>
       </div>
 
@@ -424,7 +424,11 @@
     <div class="dbody">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
         <div class="d-name" id="det-name"></div>
-        <button class="dclose" onclick="closeDetail()" aria-label="Fermer">✕</button>
+        <div class="dhead-actions">
+          <button class="dnav-inline" id="dmod-prev-inline" onclick="navDetail(-1)" aria-label="Article précédent" title="Article précédent">‹</button>
+          <button class="dnav-inline" id="dmod-next-inline" onclick="navDetail(1)" aria-label="Article suivant" title="Article suivant">›</button>
+          <button class="dclose" onclick="closeDetail()" aria-label="Fermer">✕</button>
+        </div>
       </div>
       <div class="d-summary" id="det-summary"></div>
       <div class="dspecs" id="det-specs"></div>
@@ -743,9 +747,9 @@
         </div>
       </div>
     </div>
-    <!-- Référence bobine (range) -->
+    <!-- Référence article (range) -->
     <div class="fd-section open">
-      <div class="fd-section-head" style="font-weight:600;padding-bottom:4px;">Référence bobine</div>
+      <div class="fd-section-head" style="font-weight:600;padding-bottom:4px;">Référence article</div>
       <div class="fd-section-body" style="padding-top:6px;">
         <div class="frow">
           <input class="fi" type="number" id="f-refmin-mob" placeholder="Min" oninput="syncMobFilter('f-refmin','f-refmin-mob')">
@@ -820,6 +824,6 @@
 </div>
 <div class="spin-bg" id="spinner"><div class="spin"></div></div>
 
-<script src="/catalogue.js?v=338"></script>
+<script src="/catalogue.js?v=339"></script>
 </body>
 </html>
