@@ -328,6 +328,11 @@
       </div>
 
       <div class="fg">
+        <div class="nmr-row"><label class="fl">Référence bobine</label></div>
+        <div class="nmr-wrap"><input type="number" class="nmr-in" id="f-refmin" placeholder="Min" min="0" oninput="filterProducts()"><span class="nmr-sep">—</span><input type="number" class="nmr-in" id="f-refmax" placeholder="Max" min="0" oninput="filterProducts()"></div>
+      </div>
+
+      <div class="fg">
         <div class="nmr-row"><label class="fl">Référence usine</label></div>
         <div class="nmr-wrap nmr-wrap-single"><input type="number" class="nmr-in" id="f-usine" placeholder="N° usine" min="0" oninput="filterProducts()"></div>
       </div>
@@ -738,6 +743,16 @@
         </div>
       </div>
     </div>
+    <!-- Référence bobine (range) -->
+    <div class="fd-section open">
+      <div class="fd-section-head" style="font-weight:600;padding-bottom:4px;">Référence bobine</div>
+      <div class="fd-section-body" style="padding-top:6px;">
+        <div class="frow">
+          <input class="fi" type="number" id="f-refmin-mob" placeholder="Min" oninput="syncMobFilter('f-refmin','f-refmin-mob')">
+          <input class="fi" type="number" id="f-refmax-mob" placeholder="Max" oninput="syncMobFilter('f-refmax','f-refmax-mob')">
+        </div>
+      </div>
+    </div>
     <!-- Référence usine -->
     <div class="fd-section open">
       <div class="fd-section-body" style="padding-top:6px;">
@@ -805,6 +820,6 @@
 </div>
 <div class="spin-bg" id="spinner"><div class="spin"></div></div>
 
-<script src="/catalogue.js?v=334"></script>
+<script src="/catalogue.js?v=335"></script>
 </body>
 </html>
