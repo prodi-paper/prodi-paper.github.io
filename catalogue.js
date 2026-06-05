@@ -1445,6 +1445,14 @@ function _matchesActiveFilters(row, excludeKey){
   if(_photoFilter==='without' && row.image_url) return false;
   const refCode=(document.getElementById('f-ref-code')?.value||'').trim().toUpperCase();
   if(refCode && !String(row.quality||'').toUpperCase().startsWith(refCode)) return false;
+  const refMin=+document.getElementById('f-refmin')?.value||0;
+  const refMax=+document.getElementById('f-refmax')?.value||0;
+  if(refMin||refMax){
+    const refNum=parseInt(String(row.ref||'').replace(/\D/g,''),10);
+    if(!refNum)return false;
+    if(refMin&&refNum<refMin)return false;
+    if(refMax&&refNum>refMax)return false;
+  }
   const usineVal=(document.getElementById('f-usine')?.value||'').trim();
   if(usineVal && String(row.usine||'')!==usineVal) return false;
   const zoneNum=(document.getElementById('f-zone-num')?.value||'').trim();
@@ -1555,6 +1563,8 @@ function _detailsFiltersSig(){
     wmax:document.getElementById('f-wmax')?.value||'',
     dep:_depotFilter, ph:_photoFilter,
     ref:document.getElementById('f-ref-code')?.value||'',
+    rmin:document.getElementById('f-refmin')?.value||'',
+    rmax:document.getElementById('f-refmax')?.value||'',
     us:document.getElementById('f-usine')?.value||'',
     zn:document.getElementById('f-zone-num')?.value||'',
     zl:document.getElementById('f-zone-let')?.value||'',
@@ -2468,6 +2478,9 @@ function updateFilterChips(){
   // PRIX_MASQUÉ: filtre prix désactivé
   // const cpn=document.getElementById('f-pmin').value,cpx=document.getElementById('f-pmax').value;
   // if(cpn||cpx)chips.push({label:'Prix'+...});
+  const refMinChip=(document.getElementById('f-refmin')?.value||'').trim();
+  const refMaxChip=(document.getElementById('f-refmax')?.value||'').trim();
+  if(refMinChip||refMaxChip)chips.push({label:'Réf. bobine : '+(refMinChip||'—')+' → '+(refMaxChip||'—'),clear:()=>{['f-refmin','f-refmax','f-refmin-mob','f-refmax-mob'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});filterProducts();}});
   const usineChip=(document.getElementById('f-usine')?.value||'').trim();
   if(usineChip)chips.push({label:'Usine : '+usineChip,clear:()=>{const e=document.getElementById('f-usine');if(e)e.value='';filterProducts();}});
   const zoneNumChip=(document.getElementById('f-zone-num')?.value||'').trim();
@@ -3052,7 +3065,7 @@ function resetFilters(){
      'f-zone-num','f-zone-let','f-zone-num-mob','f-zone-let-mob',
      'f-gmin-sb','f-gmax-sb','f-pmin-sb','f-pmax-sb',
      'f-gmin-mob','f-gmax-mob','f-lmin-mob','f-lmax-mob','f-pmin-mob','f-pmax-mob',
-     'f-usine',
+     'f-usine','f-refmin','f-refmax','f-refmin-mob','f-refmax-mob',
      'search-input','search-input-mob'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
 
     // 6. Clear chips & reset UI
