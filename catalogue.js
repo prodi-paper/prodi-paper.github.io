@@ -2488,7 +2488,7 @@ function updateFilterChips(){
   // if(cpn||cpx)chips.push({label:'Prix'+...});
   const refMinChip=(document.getElementById('f-refmin')?.value||'').trim();
   const refMaxChip=(document.getElementById('f-refmax')?.value||'').trim();
-  if(refMinChip||refMaxChip)chips.push({label:'Réf. bobine : '+(refMinChip||'—')+' → '+(refMaxChip||'—'),clear:()=>{['f-refmin','f-refmax','f-refmin-mob','f-refmax-mob'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});filterProducts();}});
+  if(refMinChip||refMaxChip)chips.push({label:'Réf. article : '+(refMinChip||'—')+' → '+(refMaxChip||'—'),clear:()=>{['f-refmin','f-refmax','f-refmin-mob','f-refmax-mob'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});filterProducts();}});
   const usineChip=(document.getElementById('f-usine')?.value||'').trim();
   if(usineChip)chips.push({label:'Usine : '+usineChip,clear:()=>{const e=document.getElementById('f-usine');if(e)e.value='';filterProducts();}});
   const zoneNumChip=(document.getElementById('f-zone-num')?.value||'').trim();
@@ -2847,9 +2847,15 @@ function navDetail(dir){
 function _updateDetNav(){
   const prev=document.getElementById('dmod-prev');
   const next=document.getElementById('dmod-next');
+  const previn=document.getElementById('dmod-prev-inline');
+  const nextin=document.getElementById('dmod-next-inline');
   const len=_detList().length;
-  if(prev)prev.disabled=(_detIdx<=0);
-  if(next)next.disabled=(_detIdx>=len-1);
+  const atStart=_detIdx<=0;
+  const atEnd=_detIdx>=len-1;
+  if(prev)prev.disabled=atStart;
+  if(next)next.disabled=atEnd;
+  if(previn)previn.disabled=atStart;
+  if(nextin)nextin.disabled=atEnd;
 }
 async function openDetail(id){
   const list=_detList();
