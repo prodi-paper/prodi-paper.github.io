@@ -2108,6 +2108,14 @@ async function _fetchAndRender(token){
   // Escape PostgREST glob/group meta-chars so free-form inputs can't break the query
   const _pgEsc = s => String(s||'').replace(/[%_(),]/g,'\\$&');
   if(refCode)p.append('quality',`ilike.${_pgEsc(refCode)}%`);
+  // Référence bobine (range numérique sur "Photo_NNNNNN")
+  const refMinSrv=+document.getElementById('f-refmin')?.value||0;
+  const refMaxSrv=+document.getElementById('f-refmax')?.value||0;
+  if(refMinSrv||refMaxSrv){
+    if(refMinSrv)p.append('ref',`gte.Photo_${String(refMinSrv).padStart(6,'0')}`);
+    if(refMaxSrv)p.append('ref',`lte.Photo_${String(refMaxSrv).padStart(6,'0')}`);
+    p.append('ref','match.^Photo_[0-9]{6}$');
+  }
   const usineVal=(document.getElementById('f-usine')?.value||'').trim();
   if(usineVal)p.append('usine',`eq.${_pgEsc(usineVal)}`);
   const detailsSel=getMsdValues('msd-details');
