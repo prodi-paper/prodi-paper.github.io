@@ -950,23 +950,6 @@ async function init(){
   _refreshAllFacets();
   await _doFilter();
   _updateToggleBtn();
-  // Deep-link ?ref=Photo_XXXXX : ouvre directement la fiche du produit (utilisé
-  // par les QR codes imprimés depuis l'app logistique côté étiquettes clients).
-  // Ne pas ajouter au panier — le client décide.
-  const _urlRef = _urlParams.get('ref');
-  if(_urlRef) _openProductByRef(_urlRef);
-}
-
-async function _openProductByRef(rawRef){
-  const ref = String(rawRef||'').trim();
-  if(!ref) return;
-  const p = await _findProductByRef(ref);
-  if(!p){
-    if(typeof toast==='function') toast('Référence "'+ref+'" introuvable');
-    return;
-  }
-  if(!all.find(x=>x.id===p.id)) all = all.concat([p]);
-  openDetail(p.id);
 }
 
 function countUp(id, target, fixedVal){
