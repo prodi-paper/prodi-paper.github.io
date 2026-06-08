@@ -4715,21 +4715,31 @@ function _extractScanRef(text){
   return decodeURIComponent(s).trim();
 }
 
-function _findProductByRef(candidate){
+// Cherche dans la vue courante (rapide) puis dans tout le catalogue (cache).
+// Sans le fallback `_loadAllProducts`, scanner un produit qui n'est pas dans
+// la page filtrée actuellement renvoyait "introuvable" alors qu'il existe.
+async function _findProductByRef(candidate){
   if(!candidate)return null;
   const c=candidate.toLowerCase();
   const cStripped=c.replace(/^photo_/,'');
-  return all.find(p=>{
+  const match=(list)=>list.find(p=>{
     const r=String(p.ref||'').toLowerCase();
     if(!r)return false;
     return r===c || r===('photo_'+cStripped) || r.replace(/^photo_/,'')===cStripped;
   })||null;
+  const inView=match(all);
+  if(inView)return inView;
+  try{
+    const allProducts=await _loadAllProducts();
+    return match(allProducts);
+  }catch(_){return null;}
 }
 
-function _handleScanResult(text){
+async function _handleScanResult(text){
   const ref=_extractScanRef(text);
   if(!ref){_setScanStatus('QR vide / illisible');return;}
-  const p=_findProductByRef(ref);
+  _setScanStatus('Recherche : '+ref+'…');
+  const p=await _findProductByRef(ref);
   if(!p){
     _setScanStatus('Référence "'+ref+'" introuvable dans le catalogue');
     _addScanHistory(ref,false);
