@@ -832,7 +832,7 @@ html,body{overflow-x:hidden;}
    (iPad Air landscape 1180×820, iPad portrait, iPad mini…). Au-delà = desktop ── */
 @media(min-width:769px) and (max-width:1200px){
   .header-inner{padding-left:20px;padding-right:16px;gap:10px;}
-  .header-search-group{flex:1;min-width:0;}
+  .header-search-group{flex:1;min-width:0;margin-left:20px;}
   .header-search{width:auto;max-width:560px;flex-shrink:1;}
   .btn-scan-txt{display:none;}
   .btn-panier-txt{display:none;}
