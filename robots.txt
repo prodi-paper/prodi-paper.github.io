@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /catalogue/
 
 Sitemap: https://paper.prodi.com/sitemap.xml
