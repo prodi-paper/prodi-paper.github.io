@@ -832,8 +832,8 @@ html,body{overflow-x:hidden;}
    (iPad Air landscape 1180×820, iPad portrait, iPad mini…). Au-delà = desktop ── */
 @media(min-width:769px) and (max-width:1200px){
   .header-inner{padding-left:20px;padding-right:16px;gap:10px;}
-  .header-search-group{flex-shrink:1;min-width:0;}
-  .header-search{width:auto;max-width:280px;flex-shrink:1;}
+  .header-search-group{flex:1;min-width:0;}
+  .header-search{width:auto;max-width:560px;flex-shrink:1;}
   .btn-scan-txt{display:none;}
   .btn-panier-txt{display:none;}
   .btn-head-scan{padding:6px 10px;flex-shrink:0;}
@@ -848,7 +848,7 @@ html,body{overflow-x:hidden;}
 }
 @media(min-width:769px) and (max-width:880px){
   .exact-toggle{display:none;}
-  .header-search{max-width:220px;}
+  .header-search{max-width:380px;}
 }
 
 /* ── MOBILE ── */
