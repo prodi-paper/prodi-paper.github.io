@@ -458,8 +458,8 @@ button{cursor:pointer;border:none;font-family:inherit;background:none;}
 /* ── ABOUT ── */
 .ab-hero{background:var(--dark);padding:68px 0 52px;}
 .ab-hero-in{max-width:var(--max);margin:0 auto;padding:0 var(--pad);}
-.ab-hero h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(54px,8vw,104px);color:#fff;letter-spacing:2px;line-height:.88;margin-bottom:20px;}
-.ab-hero h1 em{color:var(--gold);font-style:normal;}
+.ab-hero h2{font-family:'Bebas Neue',sans-serif;font-size:clamp(54px,8vw,104px);color:#fff;letter-spacing:2px;line-height:.88;margin-bottom:20px;}
+.ab-hero h2 em{color:var(--gold);font-style:normal;}
 .ab-hero p{font-size:16px;color:rgba(255,255,255,.38);max-width:500px;line-height:1.85;font-weight:400;}
 .ab-body{padding:var(--sec) 0;background:var(--paper);}
 .ab-in{max-width:var(--max);margin:0 auto;padding:0 var(--pad);}
