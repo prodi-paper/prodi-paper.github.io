@@ -836,9 +836,12 @@ html,body{overflow-x:hidden;}
   .header-search{width:auto;max-width:560px;flex-shrink:1;}
   .btn-scan-txt{display:none;}
   .btn-panier-txt{display:none;}
-  .btn-head-scan{padding:6px 10px;flex-shrink:0;}
-  .btn-head-panier{padding:6px 12px;flex-shrink:0;}
-  .hright{gap:6px;}
+  .btn-head-scan{padding:0;width:56px;height:44px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .btn-head-scan svg{width:22px;height:22px;}
+  .btn-head-panier{padding:0;width:56px;height:44px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .btn-head-panier img{height:30px !important;width:auto;vertical-align:0 !important;margin:0 !important;}
+  .hright{gap:10px;}
+  .hright .lang-btn{width:56px !important;height:44px !important;font-size:17px !important;}
 }
 
 /* ── TABLET ÉTROIT (769–880px, iPad Air portrait) : sidebar plus étroite + masque Exact ── */
