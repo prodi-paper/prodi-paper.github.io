@@ -4133,6 +4133,10 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
 // Detected synchronously at script load so _doFilter can check it
 const _shareParam=new URLSearchParams(window.location.search).get('share');
 const _shareCode=new URLSearchParams(window.location.search).get('s');
+// ?ref=Photo_<référence> — flow QR étiquette : scan de l'app appareil photo
+// natif sur une étiquette PDF imprimée par prodi_arrivages. À l'arrivée on
+// pré-ouvre la fiche détail du produit correspondant.
+const _refParam=new URLSearchParams(window.location.search).get('ref');
 let _sharedMode=!!_shareParam||!!_shareCode;
 let _sharedAll=[];
 if(new URLSearchParams(window.location.search).get('p')==='1')togglePriceMode(true);
@@ -4429,8 +4433,34 @@ window.addEventListener('load',async()=>{
     }catch(e){ _sharedMode=false; _doFilter(); }
   } else if(_shareParam){
     loadSharedQuote();
+  } else if(_refParam){
+    // Scan QR étiquette → ouvre direct la fiche produit. Le catalogue charge
+    // normalement en arrière-plan pour la navigation post-scan.
+    openProductByRef(_refParam);
   }
 });
+
+// Ouvre la fiche détail d'un produit identifié par sa `ref` (ex. "Photo_919465").
+// Utilisé par le flow QR étiquette (`?ref=`). Le produit peut ne PAS être dans
+// `all` (catalogue filtré, ou pas encore chargé) → on fetch direct par ref,
+// on injecte dans `all`, puis on openDetail.
+async function openProductByRef(ref){
+  const r=await sbQ('products?ref=eq.'+encodeURIComponent(ref)+'&select=*&limit=1');
+  if(!r.data||!r.data.length){
+    // Produit non trouvé : import du matin pas encore passé, ou produit retiré
+    // du stock Sage. On laisse l'utilisateur sur le catalogue normal avec
+    // une notice.
+    const sqb=document.getElementById('shared-quote-banner');
+    if(sqb){
+      sqb.innerHTML='<div class="sq-inner sq-slim"><span class="sq-slim-label">⚠️ Cette référence n\'est pas (ou plus) disponible dans le catalogue actuel.</span></div>';
+      sqb.style.display='block';
+    }
+    return;
+  }
+  const ui=rowToUi(r.data[0]);
+  if(!all.find(x=>x.id===ui.id))all.push(ui);
+  openDetail(ui.id);
+}
 
 function updateFilterVisibility(){
   const bobine=
