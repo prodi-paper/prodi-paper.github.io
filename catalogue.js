@@ -2387,7 +2387,7 @@ function _updatePager(){
     }
     if(all.length===0){pager.innerHTML='';if(pagerTop)pagerTop.innerHTML='';return;}
     if(isLast&&currentPage===1){pager.innerHTML='';/* keep pager-top visible with page 1 */
-      if(pagerTop)pagerTop.innerHTML=`<button class="parrow" disabled>‹</button><button class="pnum active" onclick="_goToPage(1)">1</button><button class="parrow" disabled>›</button>`;return;}
+      if(pagerTop)pagerTop.innerHTML=`<button class="parrow" disabled aria-label="Page précédente">‹</button><button class="pnum active" onclick="_goToPage(1)">1</button><button class="parrow" disabled aria-label="Page suivante">›</button>`;return;}
     const last=_maxKnownPage;
     const pageSet=new Set([1]);
     for(let i=Math.max(1,currentPage-2);i<=Math.min(last,currentPage+2);i++)pageSet.add(i);
@@ -2399,7 +2399,7 @@ function _updatePager(){
       pagesHtml+=`<button class="pnum${p===currentPage?' active':''}" onclick="_goToPage(${p})">${p}</button>`;
       prev=p;
     }
-    const pagerHtml=`<button class="parrow" ${currentPage<=1?'disabled':''} onclick="_goToPage(${currentPage-1})">‹</button>${pagesHtml}<button class="parrow" ${isLast?'disabled':''} onclick="_goToPage(${currentPage+1})">›</button>`;
+    const pagerHtml=`<button class="parrow" ${currentPage<=1?'disabled':''} onclick="_goToPage(${currentPage-1})" aria-label="Page précédente">‹</button>${pagesHtml}<button class="parrow" ${isLast?'disabled':''} onclick="_goToPage(${currentPage+1})" aria-label="Page suivante">›</button>`;
     pager.innerHTML=pagerHtml;
     if(pagerTop)pagerTop.innerHTML=pagerHtml;
   }catch(e){console.error('_updatePager:',e);}
@@ -2471,7 +2471,7 @@ function updateFilterChips(){
   if(zoneNumChip)chips.push({label:'Zone : '+zoneNumChip,clear:()=>{['f-zone-num','f-zone-num-mob'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});filterProducts();}});
   if(zoneLetChip)chips.push({label:'Allée : '+zoneLetChip,clear:()=>{['f-zone-let','f-zone-let-mob'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});filterProducts();}});
   if(!chips.length){container.innerHTML='';const ac2=document.getElementById('active-chips');if(ac2)ac2.innerHTML='';return;}
-  const chipsHtml=chips.map((chip,i)=>`<div class="fchip" id="chip-${numId(i)}">${esc(chip.label)}<button onclick="clearChip(${numId(i)})" title="Retirer ce filtre">✕</button></div>`).join('')
+  const chipsHtml=chips.map((chip,i)=>`<div class="fchip" id="chip-${numId(i)}">${esc(chip.label)}<button onclick="clearChip(${numId(i)})" title="Retirer ce filtre" aria-label="Retirer le filtre ${esc(chip.label)}">✕</button></div>`).join('')
     +(chips.length>1?`<button class="chips-clear" onclick="resetFilters()">Tout effacer</button>`:'');
   container.innerHTML=chipsHtml;
   container._chips=chips;
@@ -2573,8 +2573,8 @@ function renderCards(list){
     const _isSiderun=p.ref&&/^Photo_DU/i.test(String(p.ref));
     const _fallbackImg=_isSiderun?'/img/siderun-sur-demande.png':_isFab?'/img/fabrication-sur-demande.png':'/img/no-photo.png';
     const imgHtml=p.image_url
-        ?`<img src="${safeUrl(p.image_url)}" alt="${esc(_altTxt)}" loading="lazy" onerror="this.src='${esc(_fallbackImg)}';this.className='pcard-nophoto'">`
-        :`<img src="${esc(_fallbackImg)}" alt="Photo sur demande" class="pcard-nophoto">`;
+        ?`<img src="${safeUrl(p.image_url)}" alt="${esc(_altTxt)}" loading="lazy" width="300" height="279" onerror="this.src='${esc(_fallbackImg)}';this.className='pcard-nophoto'">`
+        :`<img src="${esc(_fallbackImg)}" alt="Photo sur demande" class="pcard-nophoto" width="300" height="279">`;
     const {cls:badgeCls,txt:badgeTxt}=decodeQuality(p.type);
     const isPalette=p.format&&/palette|feuille/i.test(p.format);
     const dimTag=!isPalette&&p.largeur?`${mmToCm(p.largeur)} cm`:'';
@@ -2694,8 +2694,8 @@ function renderList(list){
     const _isSiderunL=p.ref&&/^Photo_DU/i.test(String(p.ref));
     const _listFallback=_isSiderunL?'/img/siderun-sur-demande.png':_isFabL?'/img/fabrication-sur-demande.png':'/img/no-photo.png';
     const thumb=p.image_url
-        ?`<img src="${safeUrl(p.image_url)}" alt="${esc(title)}" class="plist-thumb" loading="lazy" onerror="this.src='${esc(_listFallback)}'">`
-        :`<img src="${esc(_listFallback)}" alt="" class="plist-thumb">`;
+        ?`<img src="${safeUrl(p.image_url)}" alt="${esc(title)}" class="plist-thumb" loading="lazy" width="50" height="40" onerror="this.src='${esc(_listFallback)}'">`
+        :`<img src="${esc(_listFallback)}" alt="" class="plist-thumb" width="50" height="40">`;
     // PRIX_MASQUÉ: const price=p.price?`<span class="plist-price">${p.price.toLocaleString('fr-FR')} €/T</span>`:`<span class="plist-price-ask">Sur dem.</span>`;
     const price='';
     const inCart=cart.find(x=>x.id===+p.id);
@@ -3905,7 +3905,7 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
   <div class="page-num">1</div>
   <div class="head">
     <div class="brand">
-      <img class="brand-logo" src="/img/logo.png" alt="Prodiconseil" onerror="this.style.display='none'">
+      <img class="brand-logo" src="/img/logo.png" alt="Prodiconseil" width="196" height="32" onerror="this.style.display='none'">
       <div class="brand-text">
         <div class="brand-line">9 Promenée Jeanne Hachette 94200 Ivry sur Seine - FRANCE</div>
         <div class="brand-line"><b>Contact e-mail :</b> clients@prodi.com</div>
