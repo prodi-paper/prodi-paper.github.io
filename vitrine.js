@@ -322,7 +322,7 @@ async function submitContact(e) {
     track.innerHTML=slides.map(slide=>`<div class="sc-slide">${slide.map(cardHtml).join('')}</div>`).join('');
 
     // Dots
-    dotsWrap.innerHTML=slides.map((_,i)=>`<button class="sc-dot${i===0?' active':''}" data-sc="${i}"></button>`).join('');
+    dotsWrap.innerHTML=slides.map((_,i)=>`<button class="sc-dot${i===0?' active':''}" data-sc="${i}" aria-label="Aller au slide ${i+1}"></button>`).join('');
 
     // Carousel logic
     const dots=dotsWrap.querySelectorAll('.sc-dot');
