@@ -509,6 +509,8 @@ footer{background:#111;border-top:3px solid var(--red);padding:24px;}
   :root{--sec:64px;--pad:24px;}
   .hd-nav,.hd-divider,.btn-cat{display:none;}
   .hd-burger{display:flex;}
+  /* +4px de respiration sous la vidéo (mobile) — sinon collée au bord du bloc. */
+  .hero-inner{padding-bottom:35px;}
   .hero-split{flex-direction:column;align-items:center;text-align:center;gap:28px;}
   .hero-text{order:1;}
   .hero-video-col{order:2;margin:0 auto;}
