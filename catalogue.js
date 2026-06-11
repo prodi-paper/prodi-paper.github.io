@@ -1040,60 +1040,52 @@ const QUALITE_LABELS={
   'AUTRES':'Autres',
 };
 
-// CN8 EU TARIC codes per internal code (source: TARIC chapitres 32, 48, 84 — taricsupport.com 2026).
-// UN SEUL code 8 chiffres par produit (le catch-all le plus probable). Affinement via getHsCode()
-// selon grammage/format pour pointer la sous-position exacte.
+// Codes douaniers CN8 — source de vérité unique (TARIC Maroc, validé par
+// Prodiconseil sur les BRS papier). Doit rester aligné avec
+// `prodi_arrivages/lib/prodi/code-douanier.ts` pour que la facture douane =
+// ce que le client voit sur le catalogue web.
+//
+// Familles sans code (volontaire) : RDIV, SDIV, SSPE, RKDO, RMIN, RPAC, SPAC,
+// RPLA, SPLA, RENV, SENV, SINK, SKRM, UMAC, UMAN, RAFF, SAFF → null.
 const HS_CODES={
-  // Couché 1/2 faces — défaut: autre graphique couché kaolin
-  'R1SC':'48101900', 'R2SC':'48101900', 'S1SC':'48101900', 'S2SC':'48101900',
-  // Adhésif / gommé
-  'RADH':'48114190', 'SADH':'48114190', 'RKRG':'48114190',
-  // Affiche / couleur — papier vierge >150g par défaut
-  'RAFF':'48025890', 'SAFF':'48025890', 'RCOL':'48025890', 'SCOL':'48025890',
-  // Carton couché kaolin (SBS/FBB/GC/GD/GT/luxe) — défaut multi-couche >225g
-  'RBOA':'48109290', 'SBOA':'48109290',
-  'RLUX':'48109290', 'SLUX':'48109290', 'SSBS':'48109290',
-  // Carton non couché — défaut autre >225g
-  'RBON':'48059380', 'SBON':'48059380',
-  // Bouffant — défaut autre mécanique
-  'RBOU':'48026900', 'SBOU':'48026900',
-  // Autocopiant / carbone
-  'RCAM':'48092000', 'SCAM':'48092000', 'RCAR':'48092000', 'SCAR':'48092000',
-  // Cuisson — défaut autre glazed transparent
-  'RCUI':'48064090',
-  // Divers / spécial / cadeau — catch-all "autres articles en papier"
-  'RDIV':'48239085', 'SDIV':'48239085', 'SSPE':'48239085', 'RKDO':'48239085',
-  // Complexes / kraft armé / thermique — défaut autre couché
-  'RFLEX':'48119000', 'SFLEX':'48119000',
-  'RKRR':'48119000', 'SKRR':'48119000', 'RTHERM':'48119000',
-  // Kraft non couché — défaut kraftliner unbleached other
-  'RKRA':'48041190', 'SKRA':'48041190', 'RKRABRUN':'48041190',
-  // Liner — défaut testliner ≤150g
-  'RLINER':'48052400',
-  // LWC
-  'RLWC':'48102200', 'SLWC':'48102200',
-  // Papier mince <40g
-  'RMIN':'48025400',
   // Journal
-  'RNEW':'48010000', 'SNEW':'48010000',
-  // Offset / ramette / offset avec bois
-  'ROFF':'48025590', 'SOFF':'48025590', 'SCUT':'48025680', 'SOFB':'48026900',
-  // Emballage — défaut kraft >225g
-  'RPAC':'48045990', 'SPAC':'48045990',
-  // Plastique — défaut papier plastifié autre
-  'RPLA':'48115900', 'SPLA':'48115900',
-  // Silicone / glassine
-  'RSIL':'48064090', 'SSIL':'48064090',
-  // Ouate / tissue — défaut autre
-  'RTIS':'48030090', 'STIS':'48030090',
-  // Enveloppes
-  'RENV':'48171000', 'SENV':'48171000',
-  // Encres (chapitre 32) — défaut autres couleurs
-  'SINK':'32151900',
-  // Kraft pour maculature — testliner >150g
-  'SKRM':'48052500',
-  // Machines (chapitre 84) — défaut machines de découpe papier
-  'UMAC':'84413010', 'UMAN':'84413010',
+  'RNEW':'48010000','SNEW':'48010000',
+  // Offset bobine — affinés par grammage.
+  'ROFF':'48025590','RCOL':'48025590','RLUX':'48025590',
+  // Offset palette — affinés par grammage.
+  'SOFF':'48025700','SCOL':'48025700','SLUX':'48025700',
+  // SCUT palette cut (A4/A3) — affiné par détail (sinon null).
+  'SCUT':'48025680',
+  // Bouffant
+  'RBOU':'48026100','SBOU':'48026100','SOFB':'48026100',
+  // Kraft (BRUN par défaut, raffiné par couleur + fibres dans le switch)
+  'RKRA':'48041190','SKRA':'48041190','RKRABRUN':'48041190',
+  // Testliner — affiné par grammage.
+  'RLINER':'48052400',
+  // Cuisson
+  'RCUI':'48061000',
+  // Silicone / Glassine
+  'RSIL':'48064010','SSIL':'48064010',
+  // Carton non couché gros grammage
+  'RBON':'48070030','SBON':'48070030',
+  // Autocopiant
+  'RCAM':'48092000','SCAM':'48092000','RCAR':'48092000','SCAR':'48092000',
+  // Couché 1F/2F bobine vs palette
+  'R1SC':'48101300','R2SC':'48101300',
+  'S1SC':'48101900','S2SC':'48101900',
+  // Carton couché SBS (palette)
+  'SSBS':'48101900',
+  // LWC
+  'RLWC':'48102200','SLWC':'48102200',
+  // Carton couché duplex/triplex — affiné pour gros grammage.
+  'RBOA':'48109290','SBOA':'48109290',
+  // Adhésifs / Kraft adhésif
+  'RADH':'48114190','SADH':'48114190','RKRG':'48114190',
+  // Thermique / Flexible / Kraft renforcé
+  'RFLEX':'48119000','SFLEX':'48119000',
+  'RKRR':'48119000','SKRR':'48119000','RTHERM':'48119000',
+  // Ouate 1 pli — affiné par grammage.
+  'RTIS':'48181090','STIS':'48181090',
 };
 
 // Compact a slash-separated HS code list into a range when codes share the same 4-digit chapter
@@ -1126,76 +1118,59 @@ function _toCN8(code){
   }).join(' / ');
 }
 
-// Refines CN8 code based on grammage / format. UN SEUL code 8 chiffres retourné.
-// Codes TARIC réels chapitres 48 (papier) et 32 (encres) — source taricsupport.com 2026.
-function getHsCode(qualite,gsm,format){
-  if(!qualite||!HS_CODES[qualite])return null;
-  const isPalette=format&&/palette|feuille/i.test(format);
+// Affine le code CN8 selon qualité + grammage + couleur + details (texte libre
+// contenant fibres / qualite_papier / détail A4-A3).
+// Signature : getHsCode(qualite, gsm, format, couleur?, details?).
+// Garde un 3e arg `format` pour compatibilité (palette/feuille) même s'il
+// n'est plus utilisé dans l'affinement (les seuils sont par grammage uniquement).
+function getHsCode(qualite,gsm,format,couleur,details){
+  if(!qualite)return null;
   const g=Number(gsm)||0;
+  const col=String(couleur||'').toUpperCase();
+  const det=String(details||'').toUpperCase();
+  const detClean=det.replace(/[-–—\s]+/g,' ');
+
+  // Override universel : INGRAISSABLE (et INGRAISSABLE - REH) → 48062000.
+  if(/\bINGRAISSABLE\b/.test(detClean))return '48062000';
+  // Override CALQUE : uniquement RLUX/SLUX.
+  if((qualite==='RLUX'||qualite==='SLUX')&&/\bCALQUE\b/.test(detClean))return '48063000';
+
+  if(!HS_CODES[qualite])return null;
+
   switch(qualite){
-    case 'ROFF': case 'SOFF':
+    case 'ROFF': case 'RCOL': case 'RLUX':
       if(!g)break;
-      if(g<40)return '48025400';
-      if(isPalette)return g<=150?'48025680':'48025890';
-      if(g<=60)return '48025515';
-      if(g<=75)return '48025525';
-      if(g<=80)return '48025530';
+      if(g<60)return '48025515';
+      if(g<75)return '48025525';
+      if(g<80)return '48025530';
       if(g<=150)return '48025590';
       return '48025810';
-    case 'SCUT':
+    case 'SOFF': case 'SCOL': case 'SLUX':
       if(!g)break;
-      if(g<40)return '48025400';
-      if(g<=150)return '48025680';
+      if(g<=150)return '48025700';
       return '48025890';
-    case 'RBOU': case 'SBOU':
-      if(!g)break;
-      if(g<40)return '48025400';
-      if(isPalette)return '48026200';
-      if(g<=72)return '48026115';
-      if(g<=150)return '48026180';
-      return '48026900';
-    case 'SOFB':
-      if(g&&g<=72&&!isPalette)return '48026115';
-      return isPalette?'48026200':'48026180';
-    case 'RBOA': case 'SBOA': case 'RLUX': case 'SLUX': case 'SSBS':
-      if(!g)break;
-      if(g<=150)return '48101900';
-      if(g<=225)return '48103290';
-      return '48109290';
-    case 'R1SC': case 'S1SC': case 'R2SC': case 'S2SC':
-      if(!g)break;
-      if(g<=150)return '48101900';
-      return isPalette?'48102980':'48102930';
-    case 'RBON': case 'SBON':
-      if(!g)break;
-      if(g<=150)return '48052400';
-      if(g<=225)return '48059200';
-      return '48059380';
-    case 'RKRA': case 'SKRA':
-      if(!g)break;
-      if(g<60)return '48043180';
-      if(g<=115)return '48042190';
-      if(g<175)return '48041190';
-      if(g<=225)return '48041119';
-      return '48045100';
-    case 'RKRABRUN':
-      if(!g)break;
-      if(g<=115)return '48042190';
-      if(g<175)return '48041190';
-      if(g<=225)return '48041119';
-      return '48045100';
+    case 'SCUT':
+      if(/\bA4\b/.test(detClean))return '48025620';
+      if(/\bA3\b/.test(detClean))return '48025680';
+      return null;
+    case 'RKRA': case 'SKRA': case 'RKRABRUN': {
+      if(/RECYCLE|RECYCLÉ/.test(detClean))return '48051990';
+      const isBrun=qualite==='RKRABRUN'||/BRUN|KRAFT/.test(col);
+      return isBrun?'48041190':'48042990';
+    }
     case 'RLINER':
-      if(!g)break;
+      if(!g)return '48052400';
       if(g<=150)return '48052400';
-      if(g<175)return '48052500';
-      return '48041119';
-    case 'RLWC': case 'SLWC': return '48102200';
-    case 'RCUI': return '48064090';
-    case 'RNEW': case 'SNEW': return '48010000';
-    case 'RENV': case 'SENV': return '48171000';
-    case 'RMIN':
-      if(g&&g<40)return '48025400';
-      break;
+      return '48052500';
+    case 'RBOA': case 'SBOA':
+      if(g>225)return '48109910';
+      return '48109290';
+    case 'RTIS': case 'STIS':
+      if(g&&g<=25)return '48181010';
+      return '48181090';
+    // Familles à code fixe : RNEW/SNEW, RBOU/SBOU/SOFB, R1SC/R2SC/S1SC/S2SC,
+    // SSBS, RLWC/SLWC, RCUI, RSIL/SSIL, RBON/SBON, RCAM/SCAM/RCAR/SCAR,
+    // RADH/SADH/RKRG, RFLEX/SFLEX/RKRR/SKRR/RTHERM → renvoient le défaut.
   }
   return HS_CODES[qualite];
 }
@@ -2937,7 +2912,7 @@ async function openDetail(id){
     {lbl: 'Dépôt',  val: p.zone||p.emplacement},
     {lbl: 'Zone',                                  val: p.allee||'—', always:true},
     {lbl: 'Type',                                 val: p.qualite||null},
-    {lbl: 'Code douanier',                        val: _toCN8(getHsCode(p.qualite,p.grammage,p.format))},
+    {lbl: 'Code douanier',                        val: _toCN8(getHsCode(p.qualite,p.grammage,p.format,p.couleur,p.details))},
     {lbl: 'Poids',          val: p.poids_net?fmt(p.poids_net):null},
   ].filter(s=>s.val||s.always);
   document.getElementById('det-specs').innerHTML=specDefs.map(s=>
@@ -3650,7 +3625,7 @@ async function printSelection(opts){
     const titre=formatProductTitle(qualite,qualite);
     const photoRef=String(p.ref||_f.ref||'').replace(/^Photo_/i,'').trim();
     const it={qualite,couleur,usine,gsm,largeurCm,details,format,emplacement:p.emplacement||_f.emplacement||''};
-    const hs=getHsCode(qualite,gsm,format)||'';
+    const hs=getHsCode(qualite,gsm,format,couleur,details)||'';
     return{ref:qualite||'—',photoRef,qualite,titre,details:_detClean,couleur,gsm,dim,poidsKg,usine,priceKg,priceT,montant,format,hs,designation:_proformaDesignation(it)};
   });
   const _isPaletteIt=it=>!!(it.format&&/palette|feuille/i.test(it.format));
