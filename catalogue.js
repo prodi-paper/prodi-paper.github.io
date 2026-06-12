@@ -2907,6 +2907,8 @@ async function openDetail(id){
     {lbl: (p.format&&/palette|feuille/i.test(p.format)&&p.largeur&&p.longueur)?'Dimensions':('Laize'),
      val: (p.format&&/palette|feuille/i.test(p.format)&&p.largeur&&p.longueur)?mmToCm(p.largeur)+' × '+mmToCm(p.longueur)+' cm':(p.largeur?mmToCm(p.largeur)+' cm':null)},
     {lbl: 'Longueur', val: p.format&&/palette|feuille/i.test(p.format)&&p.largeur&&p.longueur?null:(p.format==='Palette'&&p.longueur?mmToCm(p.longueur)+' cm':null)},
+    // Bobines : la colonne `longueur` stocke le diamètre (mm) — héritage import Sage.
+    {lbl: 'Diamètre',  val: !(p.format&&/palette|feuille/i.test(p.format))&&p.longueur?'Ø '+mmToCm(p.longueur)+' cm':null},
     {lbl: 'Mandrin',   val: p.noyau?p.noyau+' mm':null},
     {lbl: 'Condit.',  val: p.qualite!=='UMAC'&&p.qualite!=='UMAN'&&!(p.format&&/palette|feuille/i.test(p.format))?formatLabel(p):null},
     {lbl: 'Dépôt',  val: p.zone||p.emplacement},
