@@ -3310,8 +3310,12 @@ function _refreshGrpPopover(gid){
   });
 }
 
-function addToCart(id){
-  const p=all.find(x=>x.id===+id);if(!p)return;
+// `productObj` optionnel : produit déjà résolu hors de la vue courante (ex.
+// scanner QR → produit trouvé dans le cache complet mais absent de `all`).
+// Sans lui, un produit hors vue faisait un return silencieux alors que le
+// scanner affichait "Ajouté".
+function addToCart(id,productObj){
+  const p=productObj||all.find(x=>x.id===+id);if(!p)return;
   const alreadyIn=cart.find(x=>x.id===+id);
   const mab=document.getElementById('modal-add-btn');
   if(alreadyIn){
@@ -4743,7 +4747,11 @@ async function _findProductByRef(candidate){
   if(inView)return inView;
   try{
     const allProducts=await _loadAllProducts();
-    return match(allProducts);
+    // _loadAllProducts renvoie des rows DB brutes (quality/gsm/width…) —
+    // on les passe par rowToUi pour avoir la shape UI (name/grammage/largeur…)
+    // attendue par le panier et la modale.
+    const raw=match(allProducts);
+    return raw?rowToUi(raw):null;
   }catch(_){return null;}
 }
 
@@ -4765,8 +4773,9 @@ async function _handleScanResult(text){
     return;
   }
   // addToCart toggle si déjà présent → on a vérifié ci-dessus que non, donc ça
-  // ajoute toujours.
-  addToCart(p.id);
+  // ajoute toujours. On passe `p` directement : il peut venir du cache complet
+  // (produit hors de la vue courante filtrée, introuvable dans `all`).
+  addToCart(p.id,p);
   _setScanStatus('Ajouté : '+refDisp);
   _addScanHistory(refDisp,true);
 }
