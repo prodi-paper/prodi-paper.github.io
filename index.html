@@ -3,6 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+// Flow QR étiquette : les QR imprimés par Prodi Arrivages encodent
+// https://paper.prodi.com/?ref=Photo_XXXXXX (racine). Le handler ?ref= vit
+// dans catalogue.js (servi sous /catalogue/) — on forward donc le param au
+// catalogue le plus tôt possible (replace : pas d'entrée history vitrine).
+(function(){
+  try{
+    var ref=new URLSearchParams(location.search).get('ref');
+    if(ref)location.replace('./catalogue/?ref='+encodeURIComponent(ref));
+  }catch(_){}
+})();
+</script>
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://stock.prodi.net https://paper.prodi.com https://prodi-paper.github.io https://images.unsplash.com; connect-src 'self' https://bvcgpdoukhcatjibmvnb.supabase.co https://api.emailjs.com https://cdn.jsdelivr.net https://b24-0oz3cu.bitrix24.fr; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
