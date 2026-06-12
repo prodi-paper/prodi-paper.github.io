@@ -4709,12 +4709,19 @@ function _setScanStatus(s){const el=document.getElementById('scan-status');if(el
 
 function _extractScanRef(text){
   let s=String(text||'').trim();
-  // Si URL, on prend le dernier segment de path non vide.
+  // Si URL : d'abord le paramètre ?ref= (format des QR d'étiquettes Prodi
+  // Arrivages : https://paper.prodi.com/?ref=Photo_990892 — le path est "/",
+  // donc le fallback segment ne suffit pas), sinon le dernier segment de path.
   if(/^https?:\/\//i.test(s)){
     try{
       const u=new URL(s);
-      const parts=u.pathname.split('/').filter(Boolean);
-      if(parts.length)s=parts[parts.length-1];
+      const qref=u.searchParams.get('ref');
+      if(qref){
+        s=qref;
+      }else{
+        const parts=u.pathname.split('/').filter(Boolean);
+        if(parts.length)s=parts[parts.length-1];
+      }
     }catch(_){}
   }
   return decodeURIComponent(s).trim();
