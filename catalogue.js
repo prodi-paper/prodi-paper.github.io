@@ -4769,17 +4769,22 @@ async function _handleScanResult(text){
   }
   const refDisp=String(p.ref||ref).replace(/^Photo_/i,'');
   const inCart=cart.find(x=>x.id===+p.id);
-  if(inCart){
-    _setScanStatus('Déjà dans la liste : '+refDisp);
+  // Ajoute au panier si pas déjà présent (addToCart toggle, donc on garde).
+  if(!inCart){
+    // On passe `p` directement : il peut venir du cache complet (produit hors
+    // de la vue courante filtrée, introuvable dans `all`).
+    addToCart(p.id,p);
+    _addScanHistory(refDisp,true);
+  }else{
     _addScanHistory(refDisp,true,'(déjà)');
-    return;
   }
-  // addToCart toggle si déjà présent → on a vérifié ci-dessus que non, donc ça
-  // ajoute toujours. On passe `p` directement : il peut venir du cache complet
-  // (produit hors de la vue courante filtrée, introuvable dans `all`).
-  addToCart(p.id,p);
-  _setScanStatus('Ajouté : '+refDisp);
-  _addScanHistory(refDisp,true);
+  _setScanStatus(inCart?('Déjà dans la liste : '+refDisp):('Ajouté : '+refDisp));
+  // Comme un clic sur le produit : on ferme le scanner et on ouvre la fiche.
+  // openDetail lit depuis `all` → on injecte le produit s'il en est absent
+  // (cas d'un scan d'un produit hors vue courante).
+  if(!all.find(x=>x.id===+p.id))all.push(p);
+  closeScanModal();
+  openDetail(p.id);
 }
 
 function _addScanHistory(ref,ok,suffix){
