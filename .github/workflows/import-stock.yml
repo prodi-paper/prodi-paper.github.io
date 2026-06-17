@@ -72,3 +72,26 @@ jobs:
         env:
           SUPABASE_MGMT_TOKEN: ${{ secrets.SUPABASE_MGMT_TOKEN }}
         run: python3 scripts/verify_photos.py
+
+      # Alerte email si une étape précédente a échoué. Canal INDÉPENDANT de Gmail
+      # (Resend) : si l'App Password Gmail saute — la panne la plus fréquente —
+      # l'alerte part quand même. Sans RESEND_API_KEY, l'étape ne fait rien.
+      - name: Alerte email si échec
+        if: failure()
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+        run: |
+          if [ -z "${RESEND_API_KEY:-}" ]; then
+            echo "RESEND_API_KEY absent — pas d'alerte envoyée."; exit 0
+          fi
+          RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          curl -s -X POST https://api.resend.com/emails \
+            -H "Authorization: Bearer $RESEND_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"from\": \"Prodi Stock <onboarding@resend.dev>\",
+              \"to\": [\"eelbilia@gmail.com\"],
+              \"subject\": \"⚠️ Import stock Prodi — ÉCHEC\",
+              \"text\": \"L'import quotidien du stock a échoué.\\n\\nCause la plus fréquente : l'App Password Gmail de eelbilia@gmail.com a expiré (erreur IMAP AUTHENTICATIONFAILED) → en recréer un et mettre à jour le secret IMAP_PASS du repo.\\n\\nLog du run : ${RUN_URL}\"
+            }"
+          echo "Alerte email envoyée."
