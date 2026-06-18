@@ -11,7 +11,7 @@ Usage:
   python3 import_stock_auto.py --dry    # dry run (affiche sans modifier la base)
 """
 
-import imaplib, email, os, sys, json, re, tempfile, subprocess, urllib.request
+import imaplib, email, email.header, os, sys, json, re, tempfile, subprocess, urllib.request
 from datetime import datetime
 from collections import defaultdict
 
@@ -25,7 +25,7 @@ SUPABASE_URL = "https://bvcgpdoukhcatjibmvnb.supabase.co"
 ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2Y2dwZG91a2hjYXRqaWJtdm5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNzg5MjgsImV4cCI6MjA4Nzg1NDkyOH0.Ip3ykSUS9sajTH04yXBerOG1haBKMD1kAvMQNjnGL1Q"
 MGMT_TOKEN = os.environ["SUPABASE_MGMT_TOKEN"]
 
-ALL_KEYS = ['quality','color','details','gsm','width','longueur','noyau','weight','price','ref','usine','emplacement','format','image_url']
+ALL_KEYS = ['quality','color','details','gsm','width','longueur','noyau','weight','price','ref','usine','emplacement','zone','format','image_url']
 
 DRY_RUN = '--dry' in sys.argv
 
@@ -55,6 +55,23 @@ def extract_usine(ref_str):
     if re.fullmatch(r'\d+', stripped): return str(int(stripped))
     return None
 
+# Sépare la colonne EMPLACEMENT/LOCATION (col 12 des fichiers par qualité) en
+# (emplacement, zone). Le mail "AVEC ZONE" met l'ALLÉE précise dans cette colonne
+# (ex "6KD", "3UG, 3VG") à la place de "OUR WAREHOUSE" :
+#   - allée détectée → emplacement="OUR WAREHOUSE" (garde le filtre NOTRE DÉPÔT)
+#                      + zone=<allée du jour>
+#   - sinon (DIRECT USINE, FAB DEPART ST OUEN, FRANCE…) → emplacement tel quel, zone=None.
+_AISLE_RE = re.compile(r'^\s*\d{1,3}[A-Z]{1,3}(?:\s*,\s*\d{1,3}[A-Z]{1,3})*\s*$', re.IGNORECASE)
+def split_location(val):
+    if val is None:
+        return None, None
+    s = str(val).strip()
+    if not s:
+        return None, None
+    if _AISLE_RE.match(s):
+        return "OUR WAREHOUSE", s.upper()
+    return s, None
+
 # ── STEP 1: FETCH EMAIL ──
 def fetch_latest_stock_email():
     log("Connexion IMAP...")
@@ -69,12 +86,32 @@ def fetch_latest_stock_email():
         mail.logout()
         return None, None
 
-    latest_id = msg_ids[-1]
+    # Chaque matin, info@prodi.com envoie 2 mails (~15s d'écart) :
+    # "STOCK DÉTAILLÉ AVEC ZONE" puis "STOCK DÉTAILLÉ" (sans zone). On veut la
+    # version AVEC ZONE. On NE peut PAS se fier à l'ordre d'arrivée (le sans-zone
+    # arrive en dernier) ni prendre aveuglément le dernier mail (pourrait être un
+    # autre courrier). On choisit par SUJET, du plus récent au plus ancien.
+    def _subject(mid):
+        _, d = mail.fetch(mid, '(BODY.PEEK[HEADER.FIELDS (SUBJECT)])')
+        raw = email.message_from_bytes(d[0][1]).get('Subject', '')
+        return ''.join(
+            (b.decode(enc or 'utf-8', 'replace') if isinstance(b, bytes) else b)
+            for b, enc in email.header.decode_header(raw)
+        ).upper()
+
+    recent = list(reversed(msg_ids))[:12]
+    subj = {mid: _subject(mid) for mid in recent}
+    latest_id = next((mid for mid in recent if 'STOCK' in subj[mid] and 'ZONE' in subj[mid]), None)
+    if latest_id is None:  # repli : un "STOCK DÉTAILLÉ" récent (sans zone)
+        latest_id = next((mid for mid in recent if 'STOCK' in subj[mid]), None)
+    if latest_id is None:  # ultime repli : comportement historique
+        latest_id = msg_ids[-1]
+
     status, data = mail.fetch(latest_id, '(RFC822)')
     msg = email.message_from_bytes(data[0][1])
 
     date_str = msg.get('Date', '')
-    log(f"Dernier mail: {msg.get('Subject', '?')} — {date_str}")
+    log(f"Mail choisi: {msg.get('Subject', '?')} — {date_str}")
 
     # Extract attachments to temp dir
     tmpdir = tempfile.mkdtemp(prefix='prodi_stock_')
@@ -117,6 +154,7 @@ def parse_all_files(files):
                 quality = str(row[1]).strip() if row[1] else None
                 if not quality: continue
                 ref_val = str(row[0]).strip() if row[0] else None
+                empl, zone = split_location(row[14] if len(row) > 14 else None)
                 all_products.append({
                     'ref': f"Photo_{ref_val}" if ref_val else None,
                     'quality': quality,
@@ -129,7 +167,8 @@ def parse_all_files(files):
                     'weight': float(row[10]) if row[10] else None,
                     'price': parse_price(row[11]),
                     'usine': extract_usine(str(row[13]).strip() if row[13] else None),
-                    'emplacement': str(row[14]).strip() if row[14] else None,
+                    'emplacement': empl,
+                    'zone': zone,
                     'format': 'Palette' if quality.startswith('S') else 'Bobine',
                 })
         else:
@@ -173,6 +212,7 @@ def parse_all_files(files):
                 ref_photo = str(row[0]).strip() if row[0] else None
                 gsm_val = g(row,'gsm'); width_val = g(row,'width'); long_val = g(row,'longueur')
                 noyau_val = g(row,'noyau'); weight_val = g(row,'weight')
+                empl, zone = split_location(g(row,'emplacement'))
                 all_products.append({
                     'ref': ref_photo,
                     'quality': quality,
@@ -185,7 +225,8 @@ def parse_all_files(files):
                     'weight': float(weight_val) if weight_val and isinstance(weight_val,(int,float)) else None,
                     'price': parse_price(g(row,'price')),
                     'usine': extract_usine(str(g(row,'usine')).strip() if g(row,'usine') else None),
-                    'emplacement': str(g(row,'emplacement')).strip() if g(row,'emplacement') else None,
+                    'emplacement': empl,
+                    'zone': zone,
                     'format': 'Bobine' if quality.startswith('R') else 'Palette',
                 })
         wb.close()
@@ -274,13 +315,16 @@ def update_supabase(products):
 
     log(f"Insertion: {success} OK, {errors} erreurs")
 
-    # Re-apply zones from correction_zone.xlsx if it exists
+    # Zones (allées) : désormais fournies FRAÎCHES par l'email "AVEC ZONE"
+    # (col EMPLACEMENT → split_location → champ zone, inséré directement). On
+    # n'applique donc PLUS le fichier statique correction_zone.xlsx (périmé).
+    APPLY_STATIC_ZONES = False
     zone_candidates = [
         "/Users/tantan/Desktop/dossier sans titre 2/correction_zone.xlsx",
         os.path.join(os.path.dirname(os.path.abspath(__file__)), "correction_zone.xlsx"),
     ]
     zone_file = next((p for p in zone_candidates if os.path.exists(p)), None)
-    if zone_file:
+    if APPLY_STATIC_ZONES and zone_file:
         log("Application des zones/allées...")
         import openpyxl
         wb = openpyxl.load_workbook(zone_file, read_only=True, data_only=True)
