@@ -708,6 +708,13 @@ html,body{overflow-x:hidden;}
 .nmr-in{flex:1;min-width:0;border:1px solid var(--border);border-radius:5px;padding:6px 8px;font-size:15px;color:var(--ink);background:#fff;outline:none;-moz-appearance:textfield;}
 .nmr-in::-webkit-inner-spin-button,.nmr-in::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
 .nmr-in:focus{border-color:var(--red);}
+/* Zone/Allée : un label au-dessus de chaque champ (au lieu d'un en-tête commun) */
+.nmr-wrap-2col{align-items:flex-end;}
+.nmr-col{display:flex;flex-direction:column;flex:1;min-width:0;}
+.nmr-col .nmr-in{width:100%;flex:none;}
+.nmr-col .fl{margin-bottom:3px;}
+.frow-col{display:flex;flex-direction:column;flex:1;min-width:0;}
+.frow-col .fl{margin-bottom:3px;}
 
 /* ── FILTER BAR ── */
 #filter-bar{background:var(--white);border-bottom:1px solid var(--border);position:sticky;top:var(--header-h);z-index:var(--z-filterbar);padding:0 24px;}
