@@ -123,9 +123,12 @@ Un produit est siderun si **les deux** conditions sont vraies :
 - Si le lien `image_url` retourne 404, le `onerror` affiche le fallback approprié (siderun > fab > générique)
 - Les photos FAB sur `stock.prodi.net` retournent toujours 404 (n'existent pas)
 
-### Import
+### Import (scripts/import_stock_ci.py + import_stock_auto.py, à garder SYNCHRO)
 - Les `image_url` viennent des **hyperlinks** dans les fichiers Excel (pattern : `https://stock.prodi.net/albums/photo/{ref}.jpg`)
 - Quand on importe des produits depuis les Excel, **toujours extraire les hyperlinks** de la colonne A pour remplir `image_url`
+- **2 mails chaque matin** de info@prodi.com (~15s d'écart, mêmes PJ) : sujet `STOCK DÉTAILLÉ AVEC ZONE` (le bon) et `STOCK DÉTAILLÉ` (sans zone). La sélection se fait **par SUJET** (`fetch_latest_stock_email` : + récent contenant STOCK+ZONE ; repli STOCK ; repli ultime dernier mail). NE PAS prendre `msg_ids[-1]` aveuglément (le sans-zone arrive en dernier).
+- **Allées (`zone`)** = colonne 12 (EMPLACEMENT/LOCATION) des fichiers par qualité. Dans AVEC ZONE elle contient l'allée (ex `6KD`, `3UG, 3VG`). `split_location()` : allée → `zone`=allée + `emplacement="OUR WAREHOUSE"` (garde le filtre NOTRE DÉPÔT) ; sinon emplacement tel quel. Le fichier statique `correction_zone.xlsx` est **désactivé** (`APPLY_STATIC_ZONES=False`) — l'email du jour est la source.
+- **Alerte échec** : étape `if: failure()` du workflow → Resend (secret `RESEND_API_KEY`) → email à eelbilia@gmail.com (canal indépendant de Gmail).
 
 ## Déploiement
 - Push sur `main` → GitHub Pages (automatique, ~30s)
@@ -149,3 +152,6 @@ Un produit est siderun si **les deux** conditions sont vraies :
 - Si un test curl insère du garbage avec la clé anon mgmt token via le management API, **toujours nettoyer** : DELETE WHERE id = X. La clé anon ne peut plus écrire (RLS) mais les tests via mgmt token bypassent RLS.
 - **Robot d'import CI silencieux après harden RLS** : si tu changes les policies sur `products`, vérifier que le script `scripts/import_stock_ci.py` utilise toujours la `service_role` key (variable env `SUPABASE_SERVICE_ROLE`). Avec la clé `anon`, les batches POST renvoient HTTP 403 + `code 42501` mais le script "réussit" (exit 0) et les insertions sont juste perdues silencieusement.
 - **Mapping headers Excel** dans `scripts/import_stock_ci.py` et `scripts/import_stock_auto.py` : la branche `elif 'diam' in s` doit rester présente, sinon les diamètres bobines (col "Diamètre") sont droppés et la colonne `longueur` reste null à 99% (cf commit `f26d7e1e`). Garder les deux scripts synchronisés.
+- **`ALL_KEYS` (haut des 2 scripts import) supprime les champs non listés** : la normalisation finale fait `del p[k] if k not in ALL_KEYS`. Ajouter une colonne au produit (ex `zone`) SANS l'ajouter à `ALL_KEYS` = elle disparaît silencieusement avant l'INSERT. (Bug vécu 2026-06-18 sur `zone`.)
+- **Choix du mail d'import** : toujours par SUJET (cf section Import). Prendre le dernier mail de l'expéditeur prenait le mauvais (sans zone) et pouvait attraper un courrier sans rapport.
+- **Secrets du repo** : `ethanelb` n'a PAS les droits (403/404 Settings). Utiliser `gh auth switch --user prodi-paper` puis `-R prodi-paper/prodi-paper.github.io`, et rebasculer sur `ethanelb` ensuite.
