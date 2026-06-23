@@ -257,27 +257,42 @@ async function submitContact(e) {
     }
     const ordered=[...firstPerQ,...rest];
 
-    // Image-verify les 50 premiers (17 qualités + 33 backups si certaines images cassées)
-    const toCheck=ordered.slice(0,50);
+    // Image-verify large : 150 candidats + timeout 5s → assez de backups par
+    // qualité pour atteindre 16 cartes même si stock.prodi.net est lent/casse
+    // quelques images.
+    const toCheck=ordered.slice(0,150);
     const ok=new Array(toCheck.length).fill(false);
     await Promise.all(toCheck.map((p,idx)=>new Promise(resolve=>{
       const img=new Image();
       img.onload=()=>{ok[idx]=true;resolve();};
       img.onerror=()=>resolve();
       img.src=p.image_url;
-      setTimeout(resolve,3000);
+      setTimeout(resolve,5000);
     })));
     const verified=toCheck.filter((_,i)=>ok[i]);
     if(!verified.length)return;
 
-    // 1 carte par qualité, max 16. Mieux vaut moins de cartes que des doublons visuels.
+    // Cible 16 cartes : 1 par qualité d'abord (diversité), puis on COMPLÈTE avec
+    // des produits restants (max 3/qualité) si des qualités manquent — évite un
+    // bloc à trous quand quelques images n'ont pas chargé.
+    const TARGET=16;
     const cntQ={};
     const picked=[];
     for(const p of verified){
       const q=p.quality||'_';
       if(cntQ[q])continue;
       cntQ[q]=1;picked.push(p);
-      if(picked.length>=16)break;
+      if(picked.length>=TARGET)break;
+    }
+    if(picked.length<TARGET){
+      const used=new Set(picked);
+      for(const p of verified){
+        if(used.has(p))continue;
+        const q=p.quality||'_';
+        if((cntQ[q]||0)>=3)continue;
+        cntQ[q]=(cntQ[q]||0)+1;picked.push(p);used.add(p);
+        if(picked.length>=TARGET)break;
+      }
     }
 
     // Split into 2 slides de 8 → grille 4×2
