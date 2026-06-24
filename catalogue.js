@@ -3997,7 +3997,7 @@ body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;col
   async function copyShareLink(ev){
     if(ev)ev.preventDefault();
     const shareUrl=${JSON.stringify(_shareUrl)};
-    const shareText='Album photo : '+shareUrl;
+    const shareText=shareUrl;
     const btn=document.querySelector('.btn-link');
     // Bail out if a previous click is still showing the copied feedback —
     // otherwise the captured orig would be the checkmark, not the link icon.
@@ -4807,7 +4807,7 @@ async function copyCartLink(btn){
   const refs=cart.map(x=>x.ref).filter(Boolean).join(',');
   if(!refs){toast('Aucune référence valide dans la liste');return;}
   const url=window.location.origin+window.location.pathname+'?s='+code+(typeof _priceMode!=='undefined'&&_priceMode?'&p=1':'');
-  const shareText='Album photo : '+url;
+  const shareText=url;
   try{
     const res=await sbQ('shared_carts',{method:'POST',body:{code,cart_ids:refs},headers:{'Prefer':'return=minimal'}});
     if(res&&res.status&&res.status>=400){throw new Error('HTTP '+res.status);}
@@ -4842,5 +4842,220 @@ async function copyCartLink(btn){
   } else {
     // Dernier recours : afficher le lien pour copie manuelle
     prompt('Copie ce lien :',url);
+  }
+}
+
+// ── EXPORT EXCEL "OFFRE" (TEST) ──────────────────────────────────────────────
+// Génère un .xlsx stylé (logo + en-tête société + bande photos + tableaux
+// Bobines/Formats bilingues + prix) depuis la Liste. ExcelJS chargé à la demande.
+function _ensureExcelJS(){
+  if(window.ExcelJS)return Promise.resolve();
+  return new Promise((ok,no)=>{
+    const s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';
+    s.onload=()=>ok(); s.onerror=()=>no(new Error('ExcelJS load failed'));
+    document.head.appendChild(s);
+  });
+}
+async function _fetchImgB64(url){
+  try{
+    // stock.prodi.net ne renvoie pas d'en-tête CORS → fetch des octets refusé.
+    // On route les images EXTERNES via un proxy qui ajoute le CORS (et redimensionne).
+    // Le logo (même origine) est récupéré en direct.
+    let u=url;
+    if(url&&/^https?:\/\//.test(url)&&!url.startsWith(location.origin)){
+      u='https://images.weserv.nl/?url='+encodeURIComponent(url.replace(/^https?:\/\//,''))+'&w=320&output=jpg';
+    }
+    const res=await fetch(u,{mode:'cors'});
+    if(!res.ok)return null;
+    const blob=await res.blob();
+    return await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.onerror=()=>r(null);fr.readAsDataURL(blob);});
+  }catch(_){return null;}
+}
+async function exportListExcelTest(btn){
+  if(!cart.length){toast('Liste vide — ajoutez des produits d\'abord');return;}
+  const span=btn&&btn.querySelector?btn.querySelector('span'):null;
+  const prev=span?span.textContent:null;
+  if(span)span.textContent='…';
+  if(btn)btn.disabled=true;
+  try{
+    await _ensureExcelJS();
+    // Données enrichies depuis `all` si dispo
+    const rows=cart.map(p=>{
+      const f=all.find(x=>x.id===+p.id)||{};
+      const qual=p.qualite||f.qualite||'';
+      let detTitle=(typeof formatProductTitle==='function')?formatProductTitle(qual,p.name):'';
+      // Préfixe BOBINE/FORMAT inutile (la section l'indique déjà) → on l'enlève.
+      detTitle=detTitle.replace(/^\s*(BOBINE|FORMAT|PALETTE|MACHINE)\s*[—–-]\s*/i,'');
+      const det=[detTitle,(p.details||f.details||'')].filter(Boolean).join(' — ');
+      return {
+        isBobine:/^R/i.test(qual)||(p.type&&/bobine/i.test(p.type)),
+        emplacement:p.allee||p.zone||p.emplacement||'',
+        couleur:(p.couleur||f.couleur||'').toString().toUpperCase(),
+        detail:det||(p.name||''),
+        grammage:p.grammage??f.grammage??'',
+        mandrin:f.noyau??f.mandrin??'',
+        largeur:p.largeur??f.largeur??'',
+        diametre:f.diametre??'',
+        longueur:f.longueur??p.longueur??'',
+        poids:Math.round(p.poids_net??f.poids_net??0)||'',
+        prix:(p.price??f.price)||null,
+        img:p.img||p.image_url||f.image_url||null,
+      };
+    });
+    const _byGsm=(a,b)=>(Number(a.grammage)||0)-(Number(b.grammage)||0);
+    const bobines=rows.filter(r=>r.isBobine).sort(_byGsm);
+    const formats=rows.filter(r=>!r.isBobine).sort(_byGsm);
+
+    const ExcelJS=window.ExcelJS;
+    const wb=new ExcelJS.Workbook();
+    const ws=wb.addWorksheet('Offre',{views:[{showGridLines:false}],pageSetup:{orientation:'landscape',fitToPage:true,fitToWidth:1}});
+    // Largeurs colonnes A..I
+    [19,20,61,18,18,19,19,18,20].forEach((w,i)=>{ws.getColumn(i+1).width=w;});
+
+    // Palette "industriel premium" Prodiconseil : charbon + blanc cassé chaud + rouge.
+    const RED='FFE60000', INK='FF1A1A1A', WHITE='FFFFFFFF';
+    const BAND='FF1C1C1C';    // bande section (charbon)
+    const HEADBG='FFEDEAE3';  // en-tête colonnes (neutre chaud)
+    const ZEBRA='FFFAF7F2';   // 1 ligne sur 2
+    const HAIR='FFD9D3C8';    // filet hairline discret
+    const SUB='FF6E6A62';     // texte secondaire
+    const thin={style:'thin',color:{argb:HAIR}};
+    const allBorders={top:thin,left:thin,bottom:thin,right:thin};
+    const redRule={bottom:{style:'medium',color:{argb:RED}}};
+    const box=(cell,{bold,italic,size,color,bg,align,wrap,border}={})=>{
+      if(bold||italic||size||color)cell.font={bold:!!bold,italic:!!italic,size:size||11,color:{argb:color||INK},name:'Arial'};
+      if(bg)cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:bg}};
+      cell.alignment={horizontal:align||'left',vertical:'middle',wrapText:wrap!==false};
+      if(border)cell.border=allBorders;
+    };
+
+    // Helper insertion image robuste (strip data-URI prefix + try/catch).
+    const _imgId=(dataUrl)=>{try{if(!dataUrl)return null;const ext=/image\/jpe?g/i.test(dataUrl)?'jpeg':'png';return wb.addImage({base64:dataUrl.split(',')[1],extension:ext});}catch(_){return null;}};
+
+    let r=1;
+    // Logo (A1:B4)
+    const logoB64=await _fetchImgB64(location.origin+'/img/logo.png');
+    const _lid=_imgId(logoB64);
+    if(_lid!=null)ws.addImage(_lid,{tl:{col:0.1,row:0.1},ext:{width:200,height:34}});
+    // Encadré STOCKLOTS + date (H1:I3)
+    ws.mergeCells('H1:I3');
+    const sc=ws.getCell('H1');
+    sc.value='STOCKLOTS\n'+new Date().toLocaleDateString('fr-FR');
+    box(sc,{bold:true,size:16,color:RED,bg:WHITE,align:'center'});
+    const _redB={style:'medium',color:{argb:RED}};
+    sc.border={top:_redB,bottom:_redB,left:_redB,right:_redB};
+    // Bloc société — nom mis en avant, coordonnées en gris (hiérarchie).
+    ws.mergeCells('A5:F5');
+    const nm=ws.getCell('A5');
+    nm.value='PRODICONSEIL SARL';
+    nm.font={bold:true,size:16,color:{argb:INK},name:'Arial'};
+    nm.alignment={horizontal:'left',vertical:'middle'};
+    ws.getRow(5).height=22;
+    ws.mergeCells('A6:I11');
+    const ic=ws.getCell('A6');
+    ic.value=[
+      '9 Promenée Jeanne Hachette — 94200 Ivry sur Seine, FRANCE',
+      'Tél : +33 1 46 72 03 69      Fax : +33 1 49 59 87 31',
+      'Véronique ELBILIA — WhatsApp +33 6 09 46 77 48 / ve@prodi.com',
+      'Julien CARON — WhatsApp +33 6 20 25 85 83 / vente@prodi.com',
+      'Service client — WhatsApp +33 6 09 99 74 07 / clients@prodi.com',
+      'paper.prodi.com',
+    ].join('\n');
+    ic.font={size:12,color:{argb:SUB},name:'Arial'};
+    ic.alignment={horizontal:'left',vertical:'top',wrapText:true};
+    r=12;
+    // Titre FR + EN
+    ws.mergeCells('A12:I12'); const t1=ws.getCell('A12');
+    t1.value='OFFRE PAPIER & CARTON EN STOCKLOTS';
+    box(t1,{bold:true,size:22,color:INK,align:'center'});
+    ws.getRow(12).height=36;
+    ws.mergeCells('A13:I13'); const t2=ws.getCell('A13');
+    t2.value='PAPER & CARDBOARD STOCKLOTS OFFER';
+    box(t2,{bold:true,size:14,color:RED,align:'center'});
+    t2.border=redRule; // filet rouge signature sous le titre
+    ws.getRow(13).height=24;
+    r=14;
+    // Bande photos : quelques produits AU HASARD de la liste (max 5), GRANDES et
+    // CONTIGUËS. Placement au pixel près (les colonnes ont des largeurs inégales,
+    // d'où les "trous" si on se cale sur les colonnes) → on convertit une position
+    // X en pixels vers un index de colonne fractionnaire.
+    const _colWpx=[19,20,61,18,18,19,19,18,20].map(w=>Math.round(w*7+5));
+    const _cumX=[0]; _colWpx.forEach(w=>_cumX.push(_cumX[_cumX.length-1]+w));
+    const _pxToCol=(x)=>{let c=0;while(c<_colWpx.length-1&&_cumX[c+1]<=x)c++;return c+Math.min(Math.max((x-_cumX[c])/_colWpx[c],0),0.999);};
+    const _totalW=_cumX[_cumX.length-1];
+    const _imgUrls=rows.map(x=>x.img).filter(Boolean);
+    for(let i=_imgUrls.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[_imgUrls[i],_imgUrls[j]]=[_imgUrls[j],_imgUrls[i]];}
+    const photoUrls=_imgUrls.slice(0,6);
+    const photos=(await Promise.all(photoUrls.map(_fetchImgB64))).filter(Boolean);
+    if(photos.length){
+      const PW=234, PH=172, gap=6;
+      const bandW=photos.length*PW+(photos.length-1)*gap;
+      let x0=Math.max(2,Math.round((_totalW-bandW)/2)); // centre la bande
+      photos.forEach((b64,i)=>{
+        const id=_imgId(b64);
+        if(id==null)return;
+        ws.addImage(id,{tl:{col:_pxToCol(x0+i*(PW+gap)),row:13.05},ext:{width:PW,height:PH}});
+      });
+      ws.getRow(14).height=132; ws.getRow(15).height=6; ws.getRow(16).height=6;
+      r=17;
+    }
+
+    const HEAD=(labelsFr,labelsEn)=>{
+      const row1=ws.getRow(r); labelsFr.forEach((l,i)=>{const c=row1.getCell(i+1);c.value=l;box(c,{bold:true,size:13,color:INK,bg:HEADBG,align:'center',border:true});});
+      ws.getRow(r).height=32; r++;
+      const row2=ws.getRow(r); labelsEn.forEach((l,i)=>{const c=row2.getCell(i+1);c.value=l;box(c,{italic:true,size:11,color:SUB,bg:HEADBG,align:'center',border:true});});
+      ws.getRow(r).height=24; r++;
+    };
+    const DATA=(d,cells,idx)=>{
+      const row=ws.getRow(r);
+      const zeb=(idx%2===1)?ZEBRA:null; // 1 ligne sur 2 (lisibilité)
+      cells.forEach((v,i)=>{
+        const c=row.getCell(i+1); c.value=v;
+        box(c,{size:13,align:i===2?'left':'center',border:true,bg:zeb});
+        if(i===8&&v){ c.font={bold:true,size:13,color:{argb:RED},name:'Arial'}; } // prix en rouge
+      });
+      // Auto-hauteur : le DÉTAIL (colonne C) peut wrapper sur 2-3 lignes → on
+      // estime le nombre de lignes pour que rien ne soit coupé (col C ≈ 46 car/ligne).
+      const _det=String(cells[2]||'');
+      const _lines=Math.max(1,Math.ceil(_det.length/46));
+      row.height=Math.max(row.height||0,12+_lines*17);
+      r++;
+    };
+    const sectionTitle=(fr)=>{ws.mergeCells(`A${r}:I${r}`);const c=ws.getCell(`A${r}`);c.value=fr;box(c,{bold:true,size:16,color:WHITE,bg:BAND,align:'center'});c.border={bottom:{style:'medium',color:{argb:RED}}};ws.getRow(r).height=30;r++;};
+
+    if(bobines.length){
+      sectionTitle('BOBINES / REELS');
+      HEAD(
+        ['EMPLACEMENT','COULEUR','DÉTAIL','GRAMMAGE (g/m²)','MANDRIN (mm)','LAIZE (mm)','DIAMÈTRE (mm)','POIDS (kg)','PRIX (€/T)'],
+        ['LOCATION','COLOR','DETAIL','GRAMMAGE (gsm)','CORE (mm)','WIDTH (mm)','DIAMETER (mm)','WEIGHT (kg)','EX-WORKS PRICE'],
+      );
+      bobines.forEach((d,idx)=>DATA(d,[d.emplacement,d.couleur,d.detail,d.grammage,d.mandrin,d.largeur,d.diametre,d.poids,d.prix?d.prix.toLocaleString('fr-FR')+' €/T':''],idx));
+      r++;
+    }
+    if(formats.length){
+      sectionTitle('FORMATS / PALETTES — SHEETS / PALLETS');
+      HEAD(
+        ['EMPLACEMENT','COULEUR','DÉTAIL','GRAMMAGE (g/m²)','LARGEUR (mm)','LONGUEUR (mm)','—','POIDS (kg)','PRIX (€/T)'],
+        ['LOCATION','COLOR','DETAIL','GRAMMAGE (gsm)','WIDTH (mm)','LENGTH (mm)','—','WEIGHT (kg)','EX-WORKS PRICE'],
+      );
+      formats.forEach((d,idx)=>DATA(d,[d.emplacement,d.couleur,d.detail,d.grammage,d.largeur,d.longueur,'',d.poids,d.prix?d.prix.toLocaleString('fr-FR')+' €/T':''],idx));
+      r++;
+    }
+
+    const buf=await wb.xlsx.writeBuffer();
+    const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='Offre Prodiconseil '+new Date().toLocaleDateString('fr-FR').replace(/\//g,'-')+'.xlsx';
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+    toast('📄 Excel généré');
+  }catch(e){
+    console.error('excel export',e);
+    toast('Erreur génération Excel');
+  }finally{
+    if(span&&prev)span.textContent=prev;
+    if(btn)btn.disabled=false;
   }
 }
