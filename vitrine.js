@@ -67,6 +67,7 @@ function showPage(id) {
 function toggleMob() {
   const m = document.getElementById('mob-menu');
   m.classList.toggle('open');
+  document.getElementById('burger')?.setAttribute('aria-expanded', m.classList.contains('open') ? 'true' : 'false');
 }
 document.addEventListener('click', e => {
   const m = document.getElementById('mob-menu');
@@ -110,21 +111,9 @@ async function submitContact(e) {
     // Un 4xx (RLS, message trop long…) affichait quand même « envoyé » et le
     // lead était perdu en silence.
     if(!r.ok) throw new Error('HTTP '+r.status);
-    // Push lead vers Bitrix24 CRM (non-bloquant, fail-silent)
-    fetch('https://b24-0oz3cu.bitrix24.fr/rest/1/7vu92qhgw9dl0a3e/crm.lead.add.json', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({fields:{
-        TITLE: 'LEAD WEB — ' + (soc || nom || 'sans nom'),
-        NAME: nom,
-        COMPANY_TITLE: soc,
-        EMAIL: [{VALUE: email, VALUE_TYPE: 'WORK'}],
-        PHONE: [{VALUE: tel, VALUE_TYPE: 'WORK'}],
-        COMMENTS: msg,
-        SOURCE_ID: 'WEB',
-        SOURCE_DESCRIPTION: 'Formulaire vitrine paper.prodi.net'
-      }})
-    }).catch(()=>{});
+    // Le push vers Bitrix24 se fait CÔTÉ SERVEUR (trigger Postgres pg_net sur
+    // proforma_requests, statut vitrine_contact) : le webhook CRM n'apparaît
+    // plus jamais dans le code public. Ne JAMAIS remettre d'URL Bitrix ici.
     document.getElementById('contact-form').style.display = 'none';
     document.getElementById('form-ok').style.display = 'block';
   } catch(err) {
@@ -133,6 +122,19 @@ async function submitContact(e) {
     alert('Erreur — veuillez réessayer ou écrire à contact@prodi.com');
   }
 }
+
+// ─── VIDÉO DÉPÔT : lecture seulement à l'approche (3,2 Mo → 0 au chargement) ───
+(function(){
+  const v=document.getElementById('depot-vid');
+  if(!v||!('IntersectionObserver' in window))return;
+  const obs=new IntersectionObserver(entries=>{
+    if(entries[0].isIntersecting){
+      v.play().catch(()=>{});
+      obs.disconnect();
+    }
+  },{rootMargin:'400px 0px'});
+  obs.observe(v);
+})();
 
 // ─── SCROLL REVEAL ───
 (function(){

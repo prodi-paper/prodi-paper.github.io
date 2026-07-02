@@ -43,7 +43,9 @@ button{cursor:pointer;border:none;font-family:inherit;background:none;}
 .hd-divider{width:1px;height:18px;background:var(--bd);margin:0 4px;}
 .btn-cat{background:var(--red);color:#fff;padding:10px 22px;border-radius:var(--r-btn);font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;transition:background var(--tr);white-space:nowrap;}
 .btn-cat:hover{background:var(--red2);}
-.hd-burger{display:none;flex-direction:column;gap:5px;padding:8px;margin-left:auto;}
+/* <button> natif (clavier + lecteurs d'écran) ; zone de tap ≥ 44×44 px via
+   padding, compensé par des marges négatives pour ne pas bouger le layout. */
+.hd-burger{display:none;flex-direction:column;justify-content:center;gap:5px;padding:12px;margin:-4px -4px -4px auto;min-width:44px;min-height:44px;background:none;border:0;cursor:pointer;box-sizing:border-box;}
 .hd-burger span{display:block;width:20px;height:1.5px;background:var(--ink);border-radius:1px;transition:all .25s;}
 
 /* ── MOBILE MENU ── */
