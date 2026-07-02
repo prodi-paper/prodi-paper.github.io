@@ -102,13 +102,20 @@ def fetch_latest_stock_email():
             for b, enc in email.header.decode_header(raw)
         ).upper()
 
+    # Depuis le 2026-07-02 la source est le mail « STOCK COMPLET AVEC LES
+    # RESERVATION » (PJ unique INV_toutarticle.xlsx = export DOV complet,
+    # ~9 300 lignes, allées en colonne DP_CODE). L'ancien « STOCK DÉTAILLÉ
+    # AVEC ZONE » (83 PJ par qualité) ne part plus depuis le 2026-07-01 ;
+    # « STOCK DÉTAILLÉ » (sans zone) arrive encore mais n'est PAS utilisé.
+    # PAS de repli vers un autre mail : mieux vaut échouer (alerte Resend)
+    # que d'importer la mauvaise source et vider le catalogue.
     recent = list(reversed(msg_ids))[:12]
     subj = {mid: _subject(mid) for mid in recent}
-    latest_id = next((mid for mid in recent if 'STOCK' in subj[mid] and 'ZONE' in subj[mid]), None)
-    if latest_id is None:  # repli : un "STOCK DÉTAILLÉ" récent (sans zone)
-        latest_id = next((mid for mid in recent if 'STOCK' in subj[mid]), None)
-    if latest_id is None:  # ultime repli : comportement historique
-        latest_id = msg_ids[-1]
+    latest_id = next((mid for mid in recent if 'STOCK' in subj[mid] and ('COMPLET' in subj[mid] or 'RESERVATION' in subj[mid])), None)
+    if latest_id is None:
+        log("ERREUR: aucun mail « STOCK COMPLET AVEC LES RESERVATION » récent trouvé")
+        mail.logout()
+        return None, None
 
     status, data = mail.fetch(latest_id, '(RFC822)')
     msg = email.message_from_bytes(data[0][1])
@@ -132,168 +139,101 @@ def fetch_latest_stock_email():
     mail.logout()
     return tmpdir, attachments
 
-# ── STEP 2: PARSE EXCEL FILES ──
-def parse_all_files(files):
+# ── STEP 2: PARSE DOV (INV_toutarticle.xlsx) ──
+# Une seule PJ : feuille DOV_export, ~9 300 lignes, TOUT l'ERP. Deux destins :
+#   - familles papier/carton vendables ET stock > 0 → source='email'
+#     (visibles sur le catalogue B2B public)
+#   - le reste (machines UMAC/UMAN, frais WFRA, fret WFRE, écarts ECART,
+#     quantité nulle) → source='inventaire' (invisible du catalogue, mais
+#     présent pour la reconnaissance des scans d'inventaire)
+# Mapping vérifié colonne par colonne le 2026-07-02. Remplace l'ancien parsing
+# des 83 PJ par qualité (mail « AVEC ZONE » disparu le 2026-07-01).
+HIDDEN_FAMILIES = {'UMAC', 'UMAN', 'WFRA', 'WFRE', 'ECART'}
+
+def parse_dov(files):
     import openpyxl
-
-    all_products = []
-
-    for fp in files:
-        try:
-            wb = openpyxl.load_workbook(fp, read_only=False, data_only=True)
-        except:
-            continue
-        ws = wb.active
-        rows_raw = list(ws.iter_rows(values_only=True))
-        if not rows_raw:
-            wb.close()
-            continue
-
-        first_vals = [str(v).strip() if v else '' for v in rows_raw[0]]
-
-        if 'Référence' in first_vals:
-            for row in rows_raw[1:]:
-                if row[0] is None and row[1] is None: continue
-                quality = str(row[1]).strip() if row[1] else None
-                if not quality: continue
-                ref_val = str(row[0]).strip() if row[0] else None
-                empl, zone = split_location(row[14] if len(row) > 14 else None)
-                all_products.append({
-                    'ref': f"Photo_{ref_val}" if ref_val else None,
-                    'quality': quality,
-                    'color': str(row[2]).strip() if row[2] else None,
-                    'details': str(row[3]).strip() if row[3] else None,
-                    'gsm': int(row[5]) if row[5] and row[5] != 0 else None,
-                    'width': int(row[6]) if row[6] else None,
-                    'longueur': int(row[7]) if row[7] and row[7] != 0 else None,
-                    'noyau': int(row[9]) if row[9] and row[9] != 0 else None,
-                    'weight': float(row[10]) if row[10] else None,
-                    'price': parse_price(row[11]),
-                    'usine': extract_usine(str(row[13]).strip() if row[13] else None),
-                    'emplacement': empl,
-                    'zone': zone,
-                    'format': 'Palette' if quality.startswith('S') else 'Bobine',
-                })
-        else:
-            header_idx = header_row = None
-            for i, row in enumerate(rows_raw):
-                vals = [str(v).strip().lower() if v else '' for v in row]
-                if 'qualité' in vals:
-                    header_idx, header_row = i, row
-                    break
-            if header_idx is None:
-                wb.close()
-                continue
-
-            col_map = {}
-            for ci, cv in enumerate(header_row):
-                if cv is None: continue
-                s = str(cv).strip().lower()
-                if 'qualit' in s and 'ref' not in s: col_map['quality'] = ci
-                elif 'couleur' in s: col_map['color'] = ci
-                elif 'detail' in s: col_map['details'] = ci
-                elif s.startswith('gr') and len(s) <= 3: col_map['gsm'] = ci
-                elif 'laize' in s: col_map['width'] = ci
-                elif 'longueur' in s: col_map['longueur'] = ci
-                elif 'diam' in s: col_map['longueur'] = ci
-                elif 'mandrin' in s: col_map['noyau'] = ci
-                elif 'poids' in s: col_map['weight'] = ci
-                elif 'depart' in s or 'exwork' in s: col_map['price'] = ci
-                elif 'ref' in s and 'qualit' in s: col_map['usine'] = ci
-                elif 'emplacement' in s: col_map['emplacement'] = ci
-
-            def g(row, key):
-                idx = col_map.get(key)
-                if idx is None or idx >= len(row): return None
-                return row[idx]
-
-            for row in rows_raw[header_idx+2:]:
-                if len(row) < 5: continue
-                quality = g(row, 'quality')
-                if quality: quality = str(quality).strip()
-                if not quality: continue
-                ref_photo = str(row[0]).strip() if row[0] else None
-                gsm_val = g(row,'gsm'); width_val = g(row,'width'); long_val = g(row,'longueur')
-                noyau_val = g(row,'noyau'); weight_val = g(row,'weight')
-                empl, zone = split_location(g(row,'emplacement'))
-                all_products.append({
-                    'ref': ref_photo,
-                    'quality': quality,
-                    'color': str(g(row,'color')).strip() if g(row,'color') else None,
-                    'details': str(g(row,'details')).strip() if g(row,'details') else None,
-                    'gsm': int(gsm_val) if gsm_val and isinstance(gsm_val,(int,float)) else None,
-                    'width': int(width_val) if width_val and isinstance(width_val,(int,float)) else None,
-                    'longueur': int(long_val) if long_val and isinstance(long_val,(int,float)) and long_val != 0 else None,
-                    'noyau': int(noyau_val) if noyau_val and isinstance(noyau_val,(int,float)) and noyau_val != 0 else None,
-                    'weight': float(weight_val) if weight_val and isinstance(weight_val,(int,float)) else None,
-                    'price': parse_price(g(row,'price')),
-                    'usine': extract_usine(str(g(row,'usine')).strip() if g(row,'usine') else None),
-                    'emplacement': empl,
-                    'zone': zone,
-                    'format': 'Bobine' if quality.startswith('R') else 'Palette',
-                })
+    fp = next((f for f in files if 'toutarticle' in os.path.basename(f).lower().replace('_', '')), files[0] if files else None)
+    if not fp:
+        return []
+    wb = openpyxl.load_workbook(fp, read_only=True, data_only=True)
+    ws = wb.active
+    rows_iter = ws.iter_rows(values_only=True)
+    header = [str(h).strip().strip('"') if h else '' for h in next(rows_iter)]
+    idx = {h: i for i, h in enumerate(header)}
+    if 'REF' not in idx or 'CODE_FAM' not in idx:
+        log(f"ERREUR: structure inattendue ({os.path.basename(fp)}) — colonnes {header[:6]}")
         wb.close()
+        return []
 
-    # Fix refs
-    for p in all_products:
-        if p['ref']:
-            while 'Photo_Photo_' in p['ref']: p['ref'] = p['ref'].replace('Photo_Photo_','Photo_')
-            if not p['ref'].startswith('Photo_'): p['ref'] = 'Photo_' + p['ref']
+    def g(row, col):
+        i = idx.get(col)
+        return row[i] if i is not None and i < len(row) else None
 
-    all_products = [p for p in all_products if p['quality'] not in ('GRIS / GREY',)]
-    all_products = [p for p in all_products if not (p['color'] and p['color'].replace('.','').isdigit())]
+    def clean(v):
+        s = str(v).strip() if v is not None else ''
+        return s if s and s != '-' else None
 
-    # Dedup by ref
-    by_ref = defaultdict(list)
-    for p in all_products: by_ref[p['ref']].append(p)
-    deduped = [max(variants, key=lambda p: sum(1 for v in p.values() if v is not None)) for variants in by_ref.values()]
-
-    # Extract image URLs from hyperlinks
-    log("Extraction des URLs photos...")
-    ref_to_url = {}
-    # stock.prodi.net serves images at /albums/photo/<numeric>.jpg.
-    # Some source Excel files contain hyperlinks with one or more "Photo_"
-    # prefixes baked into the filename (e.g. /Photo_Photo_919465.jpg) which
-    # all 404. Normalize to the bare numeric form.
-    url_norm_re = re.compile(r'(/albums/photo/)(?:Photo_)+(.+)$', re.IGNORECASE)
-    for fp in files:
+    def num(v):
         try:
-            import openpyxl as oxl
-            wb2 = oxl.load_workbook(fp, read_only=False, data_only=False)
-        except: continue
-        ws2 = wb2.active
-        for row in ws2.iter_rows(min_row=1):
-            cell = row[0]
-            if cell.hyperlink and cell.hyperlink.target and 'stock.prodi.net' in str(cell.hyperlink.target):
-                ref_val = str(cell.value).strip() if cell.value else None
-                if ref_val and ref_val != 'To view picture click here':
-                    key = f"Photo_{ref_val}"
-                    while 'Photo_Photo_' in key: key = key.replace('Photo_Photo_','Photo_')
-                    target = url_norm_re.sub(r'\1\2', cell.hyperlink.target)
-                    ref_to_url[key] = target
-        wb2.close()
+            f = float(v)
+            return f if f > 0 else None
+        except (TypeError, ValueError):
+            return None
 
-    img_count = 0
-    for p in deduped:
-        if p['ref'] in ref_to_url:
-            p['image_url'] = ref_to_url[p['ref']]; img_count += 1
-        else:
-            p['image_url'] = None
+    by_ref = {}
+    for row in rows_iter:
+        ref = clean(g(row, 'REF'))
+        if not ref:
+            continue
+        qty = num(g(row, 'QTSTO')) or 0
+        # Doublons de réf (multi-lots) : on garde la ligne à la plus grosse qté.
+        if ref in by_ref and by_ref[ref][0] >= qty:
+            continue
+        fam_code = clean(g(row, 'CODE_FAM'))
+        fam_lib = clean(g(row, 'FAM')) or ''
+        visible = fam_code not in HIDDEN_FAMILIES and qty > 0
 
-    # Uniform keys
-    for p in deduped:
-        # 'email' = stock du jour (vs 'inventaire' = complément DOV statique).
-        # Le catalogue public filtre source=neq.inventaire → un NULL ici serait
-        # exclu aussi (sémantique PostgREST des NULL) : toujours expliciter.
-        p['source'] = 'email'
-        for k in ALL_KEYS:
-            if k not in p: p[k] = None
-        for k in list(p.keys()):
-            if k not in ALL_KEYS: del p[k]
+        dp = clean(g(row, 'DP_CODE'))
+        zone = dp.upper() if dp and _AISLE_RE.match(dp) else None
+        depot = clean(g(row, 'NOM_DEPOT'))
+        emplacement = 'OUR WAREHOUSE' if depot == 'A-PRODI SAINT-OUEN' else depot
+        # Bobines : le diamètre (HDIAM) alimente `longueur`, même convention
+        # que l'ancien import par qualité (piège 'diam' du CLAUDE.md).
+        longueur = num(g(row, 'LONG')) or num(g(row, 'HDIAM'))
+        # details = désignation + champs structurés (chips de l'app inventaire).
+        parts = []
+        for col in ('AR_Langue1', 'DETAIL', 'FIBRE', 'BACK', 'FINITION', 'QUALITE', 'TEINTE'):
+            v = clean(g(row, col))
+            if v and v.upper() not in (p.upper() for p in parts):
+                parts.append(v)
+        # Le DOV n'a pas d'hyperliens photo : URLs déterministes stock.prodi.net
+        # pour les réfs numériques (le site gère les 404 par fallback visuel).
+        image_url = f"https://stock.prodi.net/albums/photo/{ref}.jpg" if ref.isdigit() else None
 
-    w = sum(1 for p in deduped if p['weight'] is not None)
-    log(f"Produits: {len(deduped)}, avec poids: {w}, avec photo: {img_count}")
-    return deduped
+        by_ref[ref] = (qty, {
+            'ref': f"Photo_{ref}",
+            'quality': fam_code,
+            'color': clean(g(row, 'COULEUR')),
+            'details': ' '.join(parts) or None,
+            'gsm': int(num(g(row, 'GRS')) or 0) or None,
+            'width': int(num(g(row, 'LARG')) or 0) or None,
+            'longueur': int(longueur) if longueur else None,
+            'noyau': int(num(g(row, 'MANDRIN')) or 0) or None,
+            'weight': num(g(row, 'PNET')),
+            'price': num(g(row, 'PUNET')),
+            'usine': extract_usine(clean(g(row, 'EMPLACEMENT'))),
+            'emplacement': emplacement,
+            'zone': zone,
+            'format': 'Bobine' if fam_lib.startswith('BOB') else 'Palette' if fam_lib.startswith('PAL') else None,
+            'image_url': image_url,
+            'source': 'email' if visible else 'inventaire',
+        })
+    wb.close()
+
+    products = [p for _, p in by_ref.values()]
+    visibles = sum(1 for p in products if p['source'] == 'email')
+    log(f"DOV: {len(products)} réfs uniques — {visibles} visibles catalogue, {len(products) - visibles} inventaire seul")
+    return products
 
 # ── STEP 3: UPDATE SUPABASE ──
 def update_supabase(products):
@@ -375,48 +315,7 @@ def update_supabase(products):
                 '-d', json.dumps({"query": sql})], capture_output=True)
         log(f"Zones appliquées: {len(ref_zone)} refs")
 
-# ── STEP 4: COMPLÉMENT INVENTAIRE ──
-# L'export DOV complet (scripts/inventaire_complement.json, ~9 200 réfs, généré
-# par convert_inventaire_toutarticle.py) couvre TOUT l'ERP alors que le mail
-# quotidien n'en donne que ~5 900 : sans lui, les scans d'inventaire des réfs
-# manquantes finissent « à vérifier ». On insère ici les réfs absentes du stock
-# email du jour, avec source='inventaire' (le catalogue B2B public les filtre,
-# l'app inventaire les voit). À refaire chaque matin : update_supabase() vide
-# toute la table avant de réinsérer.
-def insert_inventory_complement(email_products):
-    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'inventaire_complement.json')
-    if not os.path.exists(path):
-        log("Complément inventaire absent — étape sautée")
-        return
-    with open(path) as f:
-        complement = json.load(f)
-    # Réfs email préfixées Photo_ ; complément en réf ERP brute.
-    strip = lambda r: r[6:] if r.startswith('Photo_') else r
-    existing = {strip(str(p['ref'])) for p in email_products if p.get('ref')}
-    to_insert = [p for p in complement if strip(str(p['ref'])) not in existing]
-    log(f"Complément inventaire: {len(complement)} réfs DOV, {len(to_insert)} absentes du stock email")
-    if DRY_RUN:
-        log("DRY RUN — complément non inséré")
-        return
-    BATCH = 500
-    success = errors = 0
-    for i in range(0, len(to_insert), BATCH):
-        batch = to_insert[i:i+BATCH]
-        tmpfile = '/tmp/prodi_batch.json'
-        with open(tmpfile,'w') as f: json.dump(batch, f, ensure_ascii=False)
-        result = subprocess.run(['curl','-s','-w','%{http_code}','-X','POST',
-            f'{SUPABASE_URL}/rest/v1/products',
-            '-H',f'apikey: {SERVICE_ROLE}','-H',f'Authorization: Bearer {SERVICE_ROLE}',
-            '-H','Content-Type: application/json','-H','Prefer: return=minimal',
-            '-d','@/tmp/prodi_batch.json'], capture_output=True, text=True)
-        if result.stdout[-3:] == '201':
-            success += len(batch)
-        else:
-            errors += len(batch)
-            log(f"  ERREUR complément batch {i//BATCH+1}: {result.stdout[:-3][:200]}")
-    log(f"Complément inventaire inséré: {success} OK, {errors} erreurs")
-
-# ── STEP 5: RÉ-APPARIEMENT INVENTAIRE ──
+# ── STEP 4: RÉ-APPARIEMENT INVENTAIRE ──
 # La FK inventaire_lignes.product_id est ON DELETE SET NULL et update_supabase()
 # régénère tous les ids de products → chaque import détache TOUTES les lignes
 # d'inventaire (elles s'affichent « hors catalogue » dans l'app). On les
@@ -437,12 +336,17 @@ if __name__ == '__main__':
     log("=== Import stock Prodiconseil ===")
     tmpdir, files = fetch_latest_stock_email()
     if not files:
-        log("Aucun fichier à traiter")
-        sys.exit(0)
+        log("ERREUR: mail STOCK COMPLET introuvable — import annulé (base intacte)")
+        sys.exit(1)
 
-    products = parse_all_files(files)
+    products = parse_dov(files)
+    # Garde-fou : update_supabase VIDE la table avant d'insérer. Un fichier
+    # anormalement petit (mauvaise PJ, structure changée) annulerait le
+    # catalogue entier → on refuse et on laisse la base d'hier en place.
+    if len(products) < 5000:
+        log(f"ABANDON: {len(products)} produits parsés (< 5000) — base NON touchée")
+        sys.exit(1)
     update_supabase(products)
-    insert_inventory_complement(products)
     rematch_inventaire_lignes()
 
     # Cleanup
