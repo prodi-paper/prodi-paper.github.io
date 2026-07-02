@@ -236,7 +236,7 @@ async function submitContact(e) {
   // (refs Photo_NNNNNN 6 chiffres uniquement, tri ref.desc = plus récents). Exclut
   // Photo_FAB*, Photo_DU*, Photo_PM* etc. qui sortaient des machines dans le showcase.
   try{
-    const r=await fetch(SURL+'/rest/v1/products?select=*&image_url=not.is.null&image_url=neq.&ref=match.%5EPhoto_%5B0-9%5D%7B6%7D%24&order=ref.desc',{
+    const r=await fetch(SURL+'/rest/v1/products?select=*&image_url=not.is.null&image_url=neq.&ref=match.%5EPhoto_%5B0-9%5D%7B6%7D%24&source=neq.inventaire&order=ref.desc',{
       headers:{'apikey':SKEY,'Authorization':'Bearer '+SKEY,'Range':'0-499'}
     });
     const data=await r.json();
