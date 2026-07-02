@@ -252,33 +252,18 @@ async function submitContact(e) {
   // (refs Photo_NNNNNN 6 chiffres uniquement, tri ref.desc = plus récents). Exclut
   // Photo_FAB*, Photo_DU*, Photo_PM* etc. qui sortaient des machines dans le showcase.
   try{
+    // RÈGLE (Ethan, 02/07/2026) : le showcase = un MIX DE QUALITÉS pris dans
+    // les 1 000 DERNIÈRES réfs qui ont une VRAIE photo. Les toutes dernières
+    // réfs (~350) n'ont pas encore leur photo dans l'album stock.prodi.net
+    // (URLs synthétisées par l'import → 404) : on descend la liste par lots —
+    // les 404 échouent vite — et on s'arrête dès qu'on a la diversité voulue.
     const r=await fetch(SURL+'/rest/v1/products?select=*&image_url=not.is.null&image_url=neq.&ref=match.%5EPhoto_%5B0-9%5D%7B6%7D%24&source=neq.inventaire&order=ref.desc',{
-      headers:{'apikey':SKEY,'Authorization':'Bearer '+SKEY,'Range':'0-499'}
+      headers:{'apikey':SKEY,'Authorization':'Bearer '+SKEY,'Range':'0-999'}
     });
     const data=await r.json();
     if(!data||!data.length)return;
-
-    // Filter products with real image_url — garde l'ordre ref.desc (= plus récents d'abord)
     const candidates=data.filter(p=>p.image_url&&p.image_url.trim().length>10);
 
-    // Ré-ordonne par diversité de qualité : 1ère occurrence de chaque qualité d'abord,
-    // puis le reste. Comme ça les ~17 premiers couvrent les 17 qualités disponibles.
-    const seenQ={};
-    const firstPerQ=[];
-    const rest=[];
-    for(const p of candidates){
-      const q=p.quality||'_';
-      if(!seenQ[q]){ seenQ[q]=1; firstPerQ.push(p); }
-      else rest.push(p);
-    }
-    const ordered=[...firstPerQ,...rest];
-
-    // Vérification par LOTS avec arrêt anticipé. Depuis l'import DOV
-    // (2026-07-02), les image_url des réfs récentes sont synthétisées et
-    // majoritairement 404 : l'ancienne vérif « 150 d'un coup » trouvait ~5
-    // images valides → carousel quasi vide. Ici : lots de 24 en descendant
-    // (récents d'abord, ≤ 6 lots), stop dès TARGET+6 confirmées, puis REPLI
-    // sur les réfs anciennes (photographiées historiquement) pour compléter.
     const TARGET=16;
     async function verifyBatch(list){
       const okArr=new Array(list.length).fill(false);
@@ -291,10 +276,17 @@ async function submitContact(e) {
       })));
       return list.filter((_,i)=>okArr[i]);
     }
+    // Descente par lots de 64 sur les 1 000 dernières (ordre desc = fraîcheur),
+    // stop dès 16+ photos confirmées couvrant au moins 8 qualités.
     let verified=[];
-    for(let i=0;i<Math.min(ordered.length,144)&&verified.length<TARGET+6;i+=24){
-      verified=verified.concat(await verifyBatch(ordered.slice(i,i+24)));
+    for(let i=0;i<candidates.length;i+=64){
+      verified=verified.concat(await verifyBatch(candidates.slice(i,i+64)));
+      const q=new Set(verified.map(p=>p.quality||'_'));
+      // Stop quand on a de quoi remplir AVEC de la variété : 16+ photos et
+      // 8 qualités différentes (ou une bonne marge de photos).
+      if(verified.length>=TARGET&&(q.size>=8||verified.length>=TARGET+8))break;
     }
+    // Filet (ne devrait jamais servir) : compléter avec les réfs anciennes.
     if(verified.length<TARGET){
       try{
         const r2=await fetch(SURL+'/rest/v1/products?select=*&image_url=not.is.null&image_url=neq.&ref=match.%5EPhoto_%5B0-9%5D%7B6%7D%24&source=neq.inventaire&order=ref.asc',{
@@ -303,16 +295,15 @@ async function submitContact(e) {
         const older=(await r2.json())||[];
         const have=new Set(verified.map(p=>p.ref));
         const pool=Array.isArray(older)?older.filter(p=>p.image_url&&!have.has(p.ref)):[];
-        for(let i=0;i<pool.length&&verified.length<TARGET+4;i+=24){
-          verified=verified.concat(await verifyBatch(pool.slice(i,i+24)));
+        for(let i=0;i<pool.length&&verified.length<TARGET;i+=48){
+          verified=verified.concat(await verifyBatch(pool.slice(i,i+48)));
         }
       }catch(_){/* best-effort */}
     }
     if(!verified.length)return;
 
-    // Cible 16 cartes : 1 par qualité d'abord (diversité), puis on COMPLÈTE avec
-    // des produits restants (max 3/qualité) si des qualités manquent — évite un
-    // bloc à trous quand quelques images n'ont pas chargé.
+    // MIX DE QUALITÉS : 1 produit par qualité d'abord (les plus récents de
+    // chaque), puis on complète (max 3/qualité) jusqu'à 16 cartes.
     const cntQ={};
     const picked=[];
     for(const p of verified){
