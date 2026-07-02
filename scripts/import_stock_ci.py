@@ -416,6 +416,22 @@ def insert_inventory_complement(email_products):
             log(f"  ERREUR complément batch {i//BATCH+1}: {result.stdout[:-3][:200]}")
     log(f"Complément inventaire inséré: {success} OK, {errors} erreurs")
 
+# ── STEP 5: RÉ-APPARIEMENT INVENTAIRE ──
+# La FK inventaire_lignes.product_id est ON DELETE SET NULL et update_supabase()
+# régénère tous les ids de products → chaque import détache TOUTES les lignes
+# d'inventaire (elles s'affichent « hors catalogue » dans l'app). On les
+# ré-apparie par référence (stable) via la RPC rematch_inventaire_product_ids
+# (migration 019 du repo prodi_arrivages).
+def rematch_inventaire_lignes():
+    if DRY_RUN:
+        log("DRY RUN — ré-appariement inventaire sauté")
+        return
+    result = subprocess.run(['curl','-s','-X','POST',
+        f'{SUPABASE_URL}/rest/v1/rpc/rematch_inventaire_product_ids',
+        '-H',f'apikey: {SERVICE_ROLE}','-H',f'Authorization: Bearer {SERVICE_ROLE}',
+        '-H','Content-Type: application/json','-d','{}'], capture_output=True, text=True)
+    log(f"Ré-appariement inventaire: {result.stdout.strip() or '?'} lignes rattachées")
+
 # ── MAIN ──
 if __name__ == '__main__':
     log("=== Import stock Prodiconseil ===")
@@ -427,6 +443,7 @@ if __name__ == '__main__':
     products = parse_all_files(files)
     update_supabase(products)
     insert_inventory_complement(products)
+    rematch_inventaire_lignes()
 
     # Cleanup
     import shutil
