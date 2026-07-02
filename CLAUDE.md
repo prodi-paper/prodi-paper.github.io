@@ -124,10 +124,12 @@ Un produit est siderun si **les deux** conditions sont vraies :
 - Les photos FAB sur `stock.prodi.net` retournent toujours 404 (n'existent pas)
 
 ### Import (scripts/import_stock_ci.py + import_stock_auto.py, à garder SYNCHRO)
-- Les `image_url` viennent des **hyperlinks** dans les fichiers Excel (pattern : `https://stock.prodi.net/albums/photo/{ref}.jpg`)
-- Quand on importe des produits depuis les Excel, **toujours extraire les hyperlinks** de la colonne A pour remplir `image_url`
-- **2 mails chaque matin** de info@prodi.com (~15s d'écart, mêmes PJ) : sujet `STOCK DÉTAILLÉ AVEC ZONE` (le bon) et `STOCK DÉTAILLÉ` (sans zone). La sélection se fait **par SUJET** (`fetch_latest_stock_email` : + récent contenant STOCK+ZONE ; repli STOCK ; repli ultime dernier mail). NE PAS prendre `msg_ids[-1]` aveuglément (le sans-zone arrive en dernier).
-- **Allées (`zone`)** = colonne 12 (EMPLACEMENT/LOCATION) des fichiers par qualité. Dans AVEC ZONE elle contient l'allée (ex `6KD`, `3UG, 3VG`). `split_location()` : allée → `zone`=allée + `emplacement="OUR WAREHOUSE"` (garde le filtre NOTRE DÉPÔT) ; sinon emplacement tel quel. Le fichier statique `correction_zone.xlsx` est **désactivé** (`APPLY_STATIC_ZONES=False`) — l'email du jour est la source.
+- **Source depuis le 2026-07-02 : mail « STOCK COMPLET AVEC LES RESERVATION »** (info@prodi.com, ~8h) — PJ unique `INV_toutarticle.xlsx` (export DOV complet, feuille DOV_export, ~9 300 lignes, TOUT l'ERP). L'ancien « STOCK DÉTAILLÉ AVEC ZONE » (83 PJ par qualité) ne part plus depuis le 2026-07-01 ; « STOCK DÉTAILLÉ » arrive encore mais est IGNORÉ. **Pas de repli** : mail introuvable = échec (alerte Resend), la base d'hier reste en place.
+- **parse_dov()** : familles vendables + QTSTO>0 → `source='email'` (visibles catalogue) ; machines UMAC/UMAN, frais WFRA, fret WFRE, écarts ECART, qté nulle → `source='inventaire'` (invisibles catalogue — filtre `source=neq.inventaire` dans `sbQ()` de catalogue.js + vitrine.js — mais utilisés par l'app d'inventaire pour reconnaître les scans).
+- **Garde-fou anti-wipe** : < 5 000 produits parsés = abandon sans toucher la base (update_supabase fait DELETE all + INSERT).
+- Mapping DOV : REF→ref (préfixé `Photo_`), CODE_FAM→quality, FAM (BOB./PAL.)→format, DP_CODE→zone (allée, ex `6KD`), NOM_DEPOT→emplacement (`A-PRODI SAINT-OUEN`→`OUR WAREHOUSE`), LONG sinon **HDIAM→longueur** (diamètre bobine, piège historique 'diam'), MANDRIN→noyau, PNET→weight, PUNET→price, EMPLACEMENT (« USINE 421 »)→usine.
+- **image_url synthétisées** : `https://stock.prodi.net/albums/photo/{ref}.jpg` pour les réfs numériques (le DOV n'a pas d'hyperliens ; les 404 tombent sur les fallbacks visuels existants).
+- **STEP 4 ré-appariement** : après chaque import, RPC `rematch_inventaire_product_ids` (repo prodi_arrivages, migration 019) — les ids products sont régénérés chaque matin et la FK des lignes d'inventaire est ON DELETE SET NULL.
 - **Alerte échec** : étape `if: failure()` du workflow → Resend (secret `RESEND_API_KEY`) → email à eelbilia@gmail.com (canal indépendant de Gmail).
 
 ## Déploiement
