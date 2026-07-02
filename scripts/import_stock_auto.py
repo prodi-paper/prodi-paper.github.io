@@ -25,7 +25,7 @@ SUPABASE_URL = "https://bvcgpdoukhcatjibmvnb.supabase.co"
 ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2Y2dwZG91a2hjYXRqaWJtdm5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNzg5MjgsImV4cCI6MjA4Nzg1NDkyOH0.Ip3ykSUS9sajTH04yXBerOG1haBKMD1kAvMQNjnGL1Q"
 MGMT_TOKEN = os.environ["SUPABASE_MGMT_TOKEN"]
 
-ALL_KEYS = ['quality','color','details','gsm','width','longueur','noyau','weight','price','ref','usine','emplacement','zone','format','image_url']
+ALL_KEYS = ['quality','color','details','gsm','width','longueur','noyau','weight','price','ref','usine','emplacement','zone','format','image_url','source']
 
 DRY_RUN = '--dry' in sys.argv
 
@@ -273,6 +273,10 @@ def parse_all_files(files):
 
     # Uniform keys
     for p in deduped:
+        # 'email' = stock du jour (vs 'inventaire' = complément DOV statique).
+        # Le catalogue public filtre source=neq.inventaire → un NULL ici serait
+        # exclu aussi (sémantique PostgREST des NULL) : toujours expliciter.
+        p['source'] = 'email'
         for k in ALL_KEYS:
             if k not in p: p[k] = None
         for k in list(p.keys()):
@@ -368,6 +372,47 @@ def update_supabase(products):
                 failed += 1
         log(f"Zones appliquées: {applied} OK, {failed} erreurs (sur {len(ref_zone)} refs)")
 
+# ── STEP 4: COMPLÉMENT INVENTAIRE ──
+# L'export DOV complet (scripts/inventaire_complement.json, ~9 200 réfs, généré
+# par convert_inventaire_toutarticle.py) couvre TOUT l'ERP alors que le mail
+# quotidien n'en donne que ~5 900 : sans lui, les scans d'inventaire des réfs
+# manquantes finissent « à vérifier ». On insère ici les réfs absentes du stock
+# email du jour, avec source='inventaire' (le catalogue B2B public les filtre,
+# l'app inventaire les voit). À refaire chaque matin : update_supabase() vide
+# toute la table avant de réinsérer. GARDER SYNCHRO avec import_stock_ci.py.
+def insert_inventory_complement(email_products):
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'inventaire_complement.json')
+    if not os.path.exists(path):
+        log("Complément inventaire absent — étape sautée")
+        return
+    with open(path) as f:
+        complement = json.load(f)
+    # Réfs email préfixées Photo_ ; complément en réf ERP brute.
+    strip = lambda r: r[6:] if r.startswith('Photo_') else r
+    existing = {strip(str(p['ref'])) for p in email_products if p.get('ref')}
+    to_insert = [p for p in complement if strip(str(p['ref'])) not in existing]
+    log(f"Complément inventaire: {len(complement)} réfs DOV, {len(to_insert)} absentes du stock email")
+    if DRY_RUN:
+        log("DRY RUN — complément non inséré")
+        return
+    BATCH = 500
+    success = errors = 0
+    for i in range(0, len(to_insert), BATCH):
+        batch = to_insert[i:i+BATCH]
+        tmpfile = '/tmp/prodi_batch.json'
+        with open(tmpfile,'w') as f: json.dump(batch, f, ensure_ascii=False)
+        result = subprocess.run(['curl','-s','-w','%{http_code}','-X','POST',
+            f'{SUPABASE_URL}/rest/v1/products',
+            '-H',f'apikey: {ANON_KEY}','-H',f'Authorization: Bearer {ANON_KEY}',
+            '-H','Content-Type: application/json','-H','Prefer: return=minimal',
+            '-d','@/tmp/prodi_batch.json'], capture_output=True, text=True)
+        if result.stdout[-3:] == '201':
+            success += len(batch)
+        else:
+            errors += len(batch)
+            log(f"  ERREUR complément batch {i//BATCH+1}: {result.stdout[:-3][:200]}")
+    log(f"Complément inventaire inséré: {success} OK, {errors} erreurs")
+
 # ── MAIN ──
 if __name__ == '__main__':
     log("=== Import stock Prodiconseil ===")
@@ -378,6 +423,7 @@ if __name__ == '__main__':
 
     products = parse_all_files(files)
     update_supabase(products)
+    insert_inventory_complement(products)
 
     # Cleanup
     import shutil

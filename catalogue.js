@@ -9,6 +9,11 @@ const SURL='https://bvcgpdoukhcatjibmvnb.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2Y2dwZG91a2hjYXRqaWJtdm5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNzg5MjgsImV4cCI6MjA4Nzg1NDkyOH0.Ip3ykSUS9sajTH04yXBerOG1haBKMD1kAvMQNjnGL1Q';
 const SB_H={'apikey':SKEY,'Authorization':'Bearer '+SKEY,'Content-Type':'application/json'};
 async function sbQ(path,opts={}){
+  // Le complément inventaire (source='inventaire', réinséré chaque matin par le
+  // robot d'import pour l'app d'inventaire physique) ne doit JAMAIS apparaître
+  // sur le catalogue public : machines, vieux stock, dépôts extérieurs.
+  // Filtre appliqué ici — toutes les requêtes products passent par sbQ.
+  if(path.startsWith('products?'))path+='&source=neq.inventaire';
   const r=await fetch(SURL+'/rest/v1/'+path,{method:opts.method||'GET',headers:{...SB_H,...(opts.headers||{})},body:opts.body!=null?JSON.stringify(opts.body):undefined,signal:opts.signal});
   const txt=await r.text();const d=txt?JSON.parse(txt):null;
   const cr=r.headers.get('Content-Range');
