@@ -266,7 +266,7 @@ button{cursor:pointer;border:none;font-family:inherit;background:none;}
   .habt-pillars{grid-template-columns:1fr;}
 }
 @media(prefers-reduced-motion:reduce){
-  .habt-roll,.habt-spark{animation:none!important;}
+  .habt-roll,.habt-spark,.marquee-inner{animation:none!important;}
 }
 .habt-vid{flex-shrink:0;}
 .habt-vid-wrap{position:relative;width:280px;height:496px;border-radius:var(--rl);overflow:hidden;box-shadow:0 24px 72px rgba(0,0,0,.16);}

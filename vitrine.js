@@ -88,14 +88,18 @@ async function submitContact(e) {
     document.getElementById('form-ok').style.display = 'block';
     return;
   }
+  if (typeof window._contactAllValid === 'function' && !window._contactAllValid()) return;
   const btn = document.getElementById('f-submit');
   btn.disabled = true;
   btn.textContent = '...';
   const nom = document.getElementById('f-nom').value.trim();
   const soc = document.getElementById('f-soc').value.trim();
   const email = document.getElementById('f-email').value.trim();
+  // Préfixe indicatif seulement si un numéro est saisi et qu'il n'en a pas
+  // déjà (clients export : ne pas forcer +33 ; champ vide : ne rien stocker).
+  const _telRaw = document.getElementById('f-tel').value.trim();
   const _telCode=(document.getElementById('f-tel-code')?.value)||'+33';
-  const tel = _telCode+' '+document.getElementById('f-tel').value.trim();
+  const tel = _telRaw ? (/^(\+|00)/.test(_telRaw) ? _telRaw : _telCode+' '+_telRaw) : '';
   const msg = document.getElementById('f-msg').value.trim();
   try {
     const r = await fetch(SURL+'/rest/v1/proforma_requests', {
@@ -103,6 +107,9 @@ async function submitContact(e) {
       headers:{'apikey':SKEY,'Authorization':'Bearer '+SKEY,'Content-Type':'application/json','Prefer':'return=minimal'},
       body: JSON.stringify({nom, societe:soc, email, telephone:tel, message:msg, quantite_souhaitee:'Contact vitrine', statut:'vitrine_contact'})
     });
+    // Un 4xx (RLS, message trop long…) affichait quand même « envoyé » et le
+    // lead était perdu en silence.
+    if(!r.ok) throw new Error('HTTP '+r.status);
     // Push lead vers Bitrix24 CRM (non-bloquant, fail-silent)
     fetch('https://b24-0oz3cu.bitrix24.fr/rest/1/7vu92qhgw9dl0a3e/crm.lead.add.json', {
       method:'POST',
@@ -220,6 +227,13 @@ async function submitContact(e) {
       Object.keys(RULES).forEach(id => { if(!validate(id)) allOk = false; });
       if(!allOk) e.preventDefault();
     }, true);
+    // Exposé pour submitContact (onsubmit inline, que le listener ci-dessus
+    // ne peut pas bloquer) : re-vérification avant envoi.
+    window._contactAllValid = () => {
+      let ok = true;
+      Object.keys(RULES).forEach(id => { if(!validate(id)) ok = false; });
+      return ok;
+    };
   }
 })();
 
@@ -257,25 +271,46 @@ async function submitContact(e) {
     }
     const ordered=[...firstPerQ,...rest];
 
-    // Image-verify large : 150 candidats + timeout 5s → assez de backups par
-    // qualité pour atteindre 16 cartes même si stock.prodi.net est lent/casse
-    // quelques images.
-    const toCheck=ordered.slice(0,150);
-    const ok=new Array(toCheck.length).fill(false);
-    await Promise.all(toCheck.map((p,idx)=>new Promise(resolve=>{
-      const img=new Image();
-      img.onload=()=>{ok[idx]=true;resolve();};
-      img.onerror=()=>resolve();
-      img.src=p.image_url;
-      setTimeout(resolve,5000);
-    })));
-    const verified=toCheck.filter((_,i)=>ok[i]);
+    // Vérification par LOTS avec arrêt anticipé. Depuis l'import DOV
+    // (2026-07-02), les image_url des réfs récentes sont synthétisées et
+    // majoritairement 404 : l'ancienne vérif « 150 d'un coup » trouvait ~5
+    // images valides → carousel quasi vide. Ici : lots de 24 en descendant
+    // (récents d'abord, ≤ 6 lots), stop dès TARGET+6 confirmées, puis REPLI
+    // sur les réfs anciennes (photographiées historiquement) pour compléter.
+    const TARGET=16;
+    async function verifyBatch(list){
+      const okArr=new Array(list.length).fill(false);
+      await Promise.all(list.map((p,idx)=>new Promise(resolve=>{
+        const img=new Image();
+        img.onload=()=>{okArr[idx]=true;resolve();};
+        img.onerror=()=>resolve();
+        img.src=p.image_url;
+        setTimeout(resolve,3000);
+      })));
+      return list.filter((_,i)=>okArr[i]);
+    }
+    let verified=[];
+    for(let i=0;i<Math.min(ordered.length,144)&&verified.length<TARGET+6;i+=24){
+      verified=verified.concat(await verifyBatch(ordered.slice(i,i+24)));
+    }
+    if(verified.length<TARGET){
+      try{
+        const r2=await fetch(SURL+'/rest/v1/products?select=*&image_url=not.is.null&image_url=neq.&ref=match.%5EPhoto_%5B0-9%5D%7B6%7D%24&source=neq.inventaire&order=ref.asc',{
+          headers:{'apikey':SKEY,'Authorization':'Bearer '+SKEY,'Range':'0-149'}
+        });
+        const older=(await r2.json())||[];
+        const have=new Set(verified.map(p=>p.ref));
+        const pool=Array.isArray(older)?older.filter(p=>p.image_url&&!have.has(p.ref)):[];
+        for(let i=0;i<pool.length&&verified.length<TARGET+4;i+=24){
+          verified=verified.concat(await verifyBatch(pool.slice(i,i+24)));
+        }
+      }catch(_){/* best-effort */}
+    }
     if(!verified.length)return;
 
     // Cible 16 cartes : 1 par qualité d'abord (diversité), puis on COMPLÈTE avec
     // des produits restants (max 3/qualité) si des qualités manquent — évite un
     // bloc à trous quand quelques images n'ont pas chargé.
-    const TARGET=16;
     const cntQ={};
     const picked=[];
     for(const p of verified){
@@ -350,184 +385,6 @@ async function submitContact(e) {
     startAuto();
   }catch(e){console.error('Showcase carousel error:',e);}
 })();
-
-function goSearch(e) {
-  e.preventDefault();
-  const q = document.getElementById('sc-search-input').value.trim();
-  window.location.href = './catalogue/' + (q ? '?q=' + encodeURIComponent(q) : '');
-}
-
-// ─── GEO MAP ───
-function geoProj(lon,lat){
-  return [(lon+180)/360*1000, (90-lat)/180*360];
-}
-// France origin
-const GEO_FR=[2.35,48.85]; // lon,lat
-const [GEO_FX,GEO_FY]=geoProj(...GEO_FR); // ≈ 507, 82
-
-const GEO_PTS=[
-  // Europe
-  {f:'🇩🇪',lon:10,   lat:51   },{f:'🇪🇸',lon:-4,  lat:40   },{f:'🇬🇧',lon:-2,  lat:54   },
-  {f:'🇵🇱',lon:20,   lat:52   },{f:'🇵🇹',lon:-8,  lat:39.5 },{f:'🇧🇪',lon:4.5, lat:50.5 },
-  {f:'🇳🇱',lon:5.3,  lat:52.1 },{f:'🇮🇹',lon:12.5,lat:42   },{f:'🇷🇴',lon:25,  lat:46   },
-  {f:'🇬🇷',lon:22,   lat:39   },{f:'🇹🇷',lon:35,  lat:39   },{f:'🇸🇪',lon:18,  lat:60   },
-  {f:'🇨🇭',lon:8.3,  lat:47   },{f:'🇩🇰',lon:10,  lat:56   },{f:'🇳🇴',lon:10,  lat:62   },
-  {f:'🇫🇮',lon:26,   lat:62   },{f:'🇨🇿',lon:15.5,lat:49.8 },{f:'🇭🇺',lon:19,  lat:47   },
-  {f:'🇺🇦',lon:32,   lat:49   },{f:'🇦🇹',lon:14.6,lat:47.5 },
-  // Africa
-  {f:'🇲🇦',lon:-5.8, lat:31.8 },{f:'🇩🇿',lon:3,   lat:28   },{f:'🇹🇳',lon:9,   lat:34   },
-  {f:'🇱🇾',lon:17,   lat:27   },{f:'🇲🇷',lon:-11, lat:20   },{f:'🇲🇱',lon:-2,  lat:17   },
-  {f:'🇳🇪',lon:8,    lat:17   },{f:'🇹🇩',lon:18,  lat:15   },
-  {f:'🇸🇳',lon:-14.5,lat:14   },{f:'🇨🇮',lon:-5.5,lat:7.5  },{f:'🇬🇭',lon:-1,  lat:8    },
-  {f:'🇨🇲',lon:12,   lat:4    },{f:'🇳🇬',lon:8,   lat:10   },
-  {f:'🇪🇬',lon:30,   lat:27   },{f:'🇰🇪',lon:37.5,lat:0    },{f:'🇿🇦',lon:25,  lat:-29  },
-  // Middle East
-  {f:'🇦🇪',lon:54,   lat:24   },{f:'🇸🇦',lon:45,  lat:24   },{f:'🇮🇱',lon:34.8,lat:31.5 },
-  // Asia
-  {f:'🇵🇰',lon:70,   lat:30   },{f:'🇮🇳',lon:80,  lat:22   },{f:'🇹🇭',lon:101, lat:15   },
-  {f:'🇮🇩',lon:118,  lat:-5   },{f:'🇨🇳',lon:105, lat:35   },{f:'🇰🇷',lon:127.5,lat:37  },
-  {f:'🇯🇵',lon:138,  lat:36   },{f:'🇦🇺',lon:134, lat:-25  },
-  // Americas
-  {f:'🇺🇸',lon:-98,  lat:38   },{f:'🇨🇦',lon:-95, lat:55   },{f:'🇲🇽',lon:-102,lat:23.6 },
-  {f:'🇨🇴',lon:-74,  lat:4    },{f:'🇧🇷',lon:-52, lat:-10  },{f:'🇦🇷',lon:-64, lat:-34  },
-  {f:'🇵🇪',lon:-76,  lat:-10  },{f:'🇨🇱',lon:-71, lat:-35  },
-  {f:'🇻🇪',lon:-66,  lat:8    },{f:'🇪🇨',lon:-78, lat:-2   },{f:'🇧🇴',lon:-65, lat:-17  },
-  {f:'🇵🇾',lon:-58,  lat:-23  },{f:'🇺🇾',lon:-56, lat:-33  },{f:'🇬🇾',lon:-59, lat:5    },
-  {f:'🇨🇺',lon:-80,  lat:22   },{f:'🇩🇴',lon:-70, lat:19   },{f:'🇵🇦',lon:-80, lat:9    },
-  {f:'🇬🇹',lon:-90,  lat:15   },{f:'🇭🇳',lon:-87, lat:15   },{f:'🇨🇷',lon:-84, lat:10   },
-];
-
-async function initGeoMap(){
-  const svg=document.getElementById('geo-svg');
-  const countriesG=document.getElementById('geo-countries');
-  const arcsG=document.getElementById('geo-arcs');
-  const shipsG=document.getElementById('geo-ships');
-  const mrkG=document.getElementById('geo-markers');
-  if(!svg||!countriesG||!arcsG||!mrkG) return;
-  const NS='http://www.w3.org/2000/svg';
-
-  // Theme "Earth at Night" : navy ultra profond + lumières dorées
-  const bgRect=svg.querySelector('rect');
-  if(bgRect) bgRect.setAttribute('fill','#040A18');
-  // France origin : étoile dorée blanc-chaud (style ville-capitale sur photo nocturne NASA)
-  svg.querySelectorAll('circle[cx="507"][cy="82"]').forEach(c=>{
-    const r=c.getAttribute('r');
-    if(r==='16') c.setAttribute('fill','#FFC833'),c.setAttribute('opacity','0.35');
-    if(r==='5')  c.setAttribute('fill','#FFE066');
-    if(r==='2.5')c.setAttribute('fill','#FFF8D0');
-  });
-
-  // 1. Render world map via topojson — palette dark
-  try{
-    const world=await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(r=>r.json());
-    const features=topojson.feature(world,world.objects.countries).features;
-    function ringToD(ring){
-      return ring.map((pt,i)=>{
-        const [x,y]=geoProj(pt[0],pt[1]);
-        return `${i===0?'M':'L'}${x.toFixed(1)},${y.toFixed(1)}`;
-      }).join('')+'Z';
-    }
-    // Skip Antarctica + polygones qui traversent l'antiméridien (provoquent
-    // des traits horizontaux fantômes en travers de la carte).
-    const isAntarctica=feat=>{
-      const n=(feat.properties&&(feat.properties.name||feat.properties.NAME))||'';
-      return /antarctica|antarctique/i.test(n);
-    };
-    const ringWraps=ring=>{
-      for(let i=1;i<ring.length;i++){
-        if(Math.abs(ring[i][0]-ring[i-1][0])>180)return true;
-      }
-      return false;
-    };
-    features.forEach(feat=>{
-      const g=feat.geometry;
-      if(!g||isAntarctica(feat)) return;
-      const polys=g.type==='Polygon'?[g.coordinates]:g.type==='MultiPolygon'?g.coordinates:[];
-      polys.forEach(poly=>{
-        if(poly.some(ringWraps))return;
-        const d=poly.map(ringToD).join(' ');
-        const p=document.createElementNS(NS,'path');
-        p.setAttribute('d',d);
-        p.setAttribute('fill','#0B1426');
-        p.setAttribute('stroke','none');
-        countriesG.appendChild(p);
-      });
-    });
-  }catch(e){console.warn('world-atlas load failed',e);}
-
-  // Plus de bateaux ni d'arcs permanents
-  if(shipsG) shipsG.innerHTML='';
-
-  // 2. Chaque port = halo ambré + dot doré (lumières de ville vue de l'espace)
-  const ports=GEO_PTS.map((c,i)=>{
-    const [cx,cy]=geoProj(c.lon,c.lat);
-    const halo=document.createElementNS(NS,'circle');
-    halo.setAttribute('cx',cx.toFixed(1));halo.setAttribute('cy',cy.toFixed(1));
-    halo.setAttribute('r','4');halo.setAttribute('fill','#FFB42E');halo.setAttribute('opacity','0');
-    halo.style.transition='opacity .6s';
-    mrkG.appendChild(halo);
-    const dot=document.createElementNS(NS,'circle');
-    dot.setAttribute('cx',cx.toFixed(1));dot.setAttribute('cy',cy.toFixed(1));
-    dot.setAttribute('r','1.4');dot.setAttribute('fill','#FFE066');dot.setAttribute('opacity','0');
-    dot.style.transition='opacity .6s';
-    mrkG.appendChild(dot);
-    setTimeout(()=>{halo.style.opacity='.22';dot.style.opacity='.95';}, 300+i*18);
-    return {cx,cy,halo,dot};
-  });
-
-  // 3. Ping aléatoire : pulse expansif sur un port + flash du dot
-  function pingPort(idx){
-    const p=ports[idx];if(!p)return;
-    const {cx,cy,halo,dot}=p;
-    // Flash du dot/halo
-    halo.style.transition='opacity .15s';
-    dot.style.transition='opacity .15s';
-    halo.style.opacity='.65';dot.style.opacity='1';
-    setTimeout(()=>{
-      halo.style.transition='opacity .9s';
-      dot.style.transition='opacity .9s';
-      halo.style.opacity='.22';dot.style.opacity='.95';
-    },180);
-    // Onde concentrique dorée
-    const ring=document.createElementNS(NS,'circle');
-    ring.setAttribute('cx',cx.toFixed(1));ring.setAttribute('cy',cy.toFixed(1));
-    ring.setAttribute('r','2');ring.setAttribute('fill','none');
-    ring.setAttribute('stroke','#FFD24D');ring.setAttribute('stroke-width','1.4');
-    ring.setAttribute('opacity','.9');
-    mrkG.appendChild(ring);
-    const anim=ring.animate([
-      {r:'2',opacity:.9,strokeWidth:'1.4'},
-      {r:'16',opacity:0,strokeWidth:'.3'}
-    ],{duration:1400,easing:'cubic-bezier(.2,.6,.4,1)',fill:'forwards'});
-    anim.onfinish=()=>ring.remove();
-  }
-
-  // Émission continue : tirage aléatoire pondéré (shuffle queue)
-  const queue=[];
-  function refillQueue(){
-    const idxs=ports.map((_,i)=>i);
-    for(let i=idxs.length-1;i>0;i--){
-      const j=Math.floor(Math.random()*(i+1));
-      [idxs[i],idxs[j]]=[idxs[j],idxs[i]];
-    }
-    queue.push(...idxs);
-  }
-  function tick(){
-    if(!queue.length) refillQueue();
-    pingPort(queue.shift());
-  }
-  // Burst de démarrage (3 pings rapides)
-  for(let i=0;i<3;i++) setTimeout(tick, 600+i*220);
-  // Cadence continue : ~3 pings/s pour un effet "live" sans saturation
-  setInterval(tick, 340);
-}
-
-// IntersectionObserver → start animation when visible
-const _geoObs=new IntersectionObserver(entries=>{
-  if(entries[0].isIntersecting){initGeoMap();_geoObs.disconnect();}
-},{threshold:.15});
-const _geoEl=document.getElementById('geo-svg');
-if(_geoEl) _geoObs.observe(_geoEl);
 
 // ─── REAL GLOBE (orthographic, silhouette only) ───
 async function initGlobe(){
