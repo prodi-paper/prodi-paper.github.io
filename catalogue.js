@@ -3448,7 +3448,12 @@ function openImportRefs(){
   d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;display:flex;align-items:center;justify-content:center;padding:16px;';
   d.innerHTML=`<div style="background:#fff;border-radius:12px;padding:28px;max-width:500px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2);">
     <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1.5px;margin-bottom:4px;">IMPORTER DES RÉFÉRENCES</div>
-    <div style="font-size:13px;color:#999;margin-bottom:14px;">Colle tes numéros de ref (un par ligne, ou séparés par des virgules/espaces)</div>
+    <div style="font-size:13px;color:#999;margin-bottom:10px;">Dépose un document (BL, préparation de livraison…) ou colle tes numéros</div>
+    <button type="button" onclick="document.getElementById('import-refs-file').click()" id="import-refs-drop"
+      style="width:100%;padding:14px;margin-bottom:10px;border:2px dashed #FE0000;border-radius:8px;background:#fff5f5;color:#c00;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">
+      📄 Choisir un fichier — PDF, Excel, Word, CSV…<br><span style="font-weight:400;font-size:12px;color:#999">les références (6 chiffres, DU, FAB) sont détectées automatiquement</span>
+    </button>
+    <input type="file" id="import-refs-file" accept=".pdf,.xlsx,.xls,.csv,.txt,.docx" style="display:none" onchange="if(this.files[0])_importRefsFromFile(this.files[0]);this.value='';">
     <textarea id="import-refs-input" style="width:100%;min-height:120px;padding:12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;resize:vertical;box-sizing:border-box;" placeholder="917643&#10;985042&#10;DU5517&#10;774533"></textarea>
     <div id="import-refs-result" style="font-size:13px;margin-top:8px;min-height:20px;"></div>
     <div style="display:flex;gap:8px;margin-top:12px;">
@@ -3459,6 +3464,95 @@ function openImportRefs(){
   d.addEventListener('click',e=>{if(e.target===d)d.remove();});
   document.body.appendChild(d);
   document.getElementById('import-refs-input').focus();
+}
+
+// ─── Import de références depuis un DOCUMENT (BL, préparation de livraison…) ───
+// Tout se passe dans le navigateur : extraction du texte (pdf.js / SheetJS /
+// JSZip pour docx, lecture brute sinon), détection des réfs (6 chiffres, codes
+// DU/FAB), puis le flux existant _doImportRefs() fait le matching catalogue.
+const _LAZY_LIBS={
+  pdf:{src:'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js',sri:'sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e'},
+  xlsx:{src:'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',sri:'sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw'},
+  jszip:{src:'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js',sri:'sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG'},
+};
+const _loadedLibs={};
+function _loadScript(key){
+  if(_loadedLibs[key])return _loadedLibs[key];
+  _loadedLibs[key]=new Promise((resolve,reject)=>{
+    const s=document.createElement('script');
+    s.src=_LAZY_LIBS[key].src;
+    s.integrity=_LAZY_LIBS[key].sri;
+    s.crossOrigin='anonymous';
+    s.onload=resolve;
+    s.onerror=()=>reject(new Error('chargement '+key));
+    document.head.appendChild(s);
+  });
+  return _loadedLibs[key];
+}
+
+async function _extractTextFromFile(file){
+  const name=(file.name||'').toLowerCase();
+  if(name.endsWith('.pdf')){
+    await _loadScript('pdf');
+    const lib=window.pdfjsLib||window['pdfjs-dist/build/pdf'];
+    // Worker cross-origin impossible (same-origin policy) → pdf.js bascule
+    // tout seul en "fake worker" sur le thread principal. OK pour un BL.
+    lib.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+    const doc=await lib.getDocument({data:await file.arrayBuffer()}).promise;
+    let text='';
+    for(let i=1;i<=doc.numPages;i++){
+      const page=await doc.getPage(i);
+      const content=await page.getTextContent();
+      text+=content.items.map(it=>it.str).join(' ')+'\n';
+    }
+    return text;
+  }
+  if(name.endsWith('.xlsx')||name.endsWith('.xls')){
+    await _loadScript('xlsx');
+    const wb=window.XLSX.read(await file.arrayBuffer(),{type:'array'});
+    return wb.SheetNames.map(n=>window.XLSX.utils.sheet_to_csv(wb.Sheets[n])).join('\n');
+  }
+  if(name.endsWith('.docx')){
+    await _loadScript('jszip');
+    const zip=await window.JSZip.loadAsync(await file.arrayBuffer());
+    const xml=await zip.file('word/document.xml')?.async('string');
+    return (xml||'').replace(/<[^>]+>/g,' ');
+  }
+  return file.text(); // txt, csv, et tout format texte
+}
+
+async function _importRefsFromFile(file){
+  const result=document.getElementById('import-refs-result');
+  const drop=document.getElementById('import-refs-drop');
+  if(result)result.innerHTML='<span style="color:#999">Lecture de '+esc(file.name)+'…</span>';
+  if(drop)drop.disabled=true;
+  try{
+    const text=await _extractTextFromFile(file);
+    // Réfs = 6 chiffres (bornés : pas au milieu d'un nombre plus long),
+    // + codes catalogue DU/FAB. Dédupliquées, ordre d'apparition conservé.
+    // Lookbehind via new RegExp + repli : un littéral casserait TOUT le script
+    // au chargement sur les Safari < 16.4.
+    let six;
+    try{six=text.match(new RegExp('(?<![\\d.,])\\d{6}(?![\\d.,])','g'))||[];}
+    catch(_){six=text.match(/\b\d{6}\b/g)||[];}
+    const refs=[...new Set([
+      ...six,
+      ...(text.match(/\b(?:DU|FAB)\d{3,5}\b/gi)||[]).map(r=>r.toUpperCase()),
+    ])];
+    if(!refs.length){
+      if(result)result.innerHTML='<span style="color:#e53e3e">Aucune référence détectée dans ce document.</span>';
+      return;
+    }
+    const capped=refs.slice(0,150);
+    document.getElementById('import-refs-input').value=capped.join('\n');
+    if(result)result.innerHTML='<span style="color:#999">'+capped.length+' référence(s) détectée(s)'+(refs.length>150?' (150 premières)':'')+' — recherche au catalogue…</span>';
+    await _doImportRefs();
+  }catch(e){
+    console.error('Import fichier:',e);
+    if(result)result.innerHTML='<span style="color:#e53e3e">Impossible de lire ce fichier ('+esc(e.message||'erreur')+').</span>';
+  }finally{
+    if(drop)drop.disabled=false;
+  }
 }
 
 async function _doImportRefs(){
