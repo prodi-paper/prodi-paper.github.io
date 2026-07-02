@@ -311,6 +311,27 @@ def update_supabase(products):
                 failed += 1
         log(f"Zones appliquées: {applied} OK, {failed} erreurs (sur {len(ref_zone)} refs)")
 
+
+# ── STEP 3bis: FILET IMAGE_URL (server-side, idempotent) ──
+# Constaté le 2026-07-02 : sur le runner CI, ~1 000 lignes sont arrivées en
+# base avec image_url NULL alors que le parse local du MÊME fichier avec le
+# MÊME code produit bien l'URL (cause non identifiée : parse déterministe,
+# types de cellules identiques, log d'insertion propre). Ce filet SQL
+# synthétise l'URL manquante pour toute réf numérique, quel que soit
+# l'environnement — le catalogue ne peut plus perdre ses photos.
+def backfill_image_urls():
+    if DRY_RUN:
+        return
+    sql = ("update products set image_url = 'https://stock.prodi.net/albums/photo/' "
+           "|| substring(ref from 7) || '.jpg' "
+           "where image_url is null and ref ~ '^Photo_[0-9]+$';")
+    subprocess.run(['curl','-s','-X','POST',
+        'https://api.supabase.com/v1/projects/bvcgpdoukhcatjibmvnb/database/query',
+        '-H',f'Authorization: Bearer {MGMT_TOKEN}',
+        '-H','Content-Type: application/json',
+        '-d', json.dumps({'query': sql})], capture_output=True)
+    log("Filet image_url appliqué (réfs numériques sans URL)")
+
 # ── STEP 4: RÉ-APPARIEMENT INVENTAIRE ──
 # La FK inventaire_lignes.product_id est ON DELETE SET NULL et update_supabase()
 # régénère tous les ids de products → chaque import détache TOUTES les lignes
@@ -344,6 +365,7 @@ if __name__ == '__main__':
         log(f"ABANDON: {len(products)} produits parsés (< 5000) — base NON touchée")
         sys.exit(1)
     update_supabase(products)
+    backfill_image_urls()
     rematch_inventaire_lignes()
 
     # Cleanup
