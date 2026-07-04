@@ -10,6 +10,7 @@ const safeUrl = u => {
 // ─── STOCK ACCESS GATE ───
 const STOCK_CODE = 'depot2026';
 function openStock(){
+  window.prodiTrack?.('cta_catalogue');
   try{
     if(sessionStorage.getItem('stock_unlocked')==='1'){ window.location.href='./catalogue/'; return; }
   }catch(_){}
@@ -111,6 +112,7 @@ async function submitContact(e) {
     // Un 4xx (RLS, message trop long…) affichait quand même « envoyé » et le
     // lead était perdu en silence.
     if(!r.ok) throw new Error('HTTP '+r.status);
+    window.prodiTrack?.('contact_envoye');
     // Le push vers Bitrix24 se fait CÔTÉ SERVEUR (trigger Postgres pg_net sur
     // proforma_requests, statut vitrine_contact) : le webhook CRM n'apparaît
     // plus jamais dans le code public. Ne JAMAIS remettre d'URL Bitrix ici.
