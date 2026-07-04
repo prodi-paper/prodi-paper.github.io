@@ -2599,6 +2599,8 @@ function renderCards(list){
     const usineOverlay=_usineLbl?`<div class="pcard-gsm-overlay"><span class="pcard-gsm-lbl">USINE</span><span class="pcard-gsm-num">${esc(_usineLbl)}</span></div>`:'';
     const _refClean=(p.ref||'').replace(/^Photo_/i,'').trim();
     const refOverlay=_refClean?`<div class="pcard-ref-overlay" title="${esc(_refClean)}"><span class="pcard-ref-txt">${esc(_refClean)}</span></div>`:'';
+    // Réservation Sage (CODE_CLI/CODE_PIECE importés chaque matin)
+    const resaOverlay=p.reserve_client?`<div class="pcard-resa-overlay" title="Article réservé">RÉSERVÉ</div>`:'';
     const photoRef='';
     // Mini spec rows (label + value, only if value exists)
     // Usine désormais affichée en chip overlay sur la photo
@@ -2652,7 +2654,7 @@ function renderCards(list){
         </div>
       </div>`;
     return`<div class="pcard" onclick="openDetail(${numId(p.id)})">
-      <div class="pcard-img">${imgHtml}${typeOverlay}${refOverlay}${usineOverlay}${prixHtml}${photoRef}</div>
+      <div class="pcard-img">${imgHtml}${typeOverlay}${refOverlay}${usineOverlay}${resaOverlay}${prixHtml}${photoRef}</div>
       <div class="pcard-body">
         <div class="pcard-name">${esc(formatProductTitle(p.qualite,p.type))}</div>
         ${subtitleHtml}
@@ -2881,6 +2883,20 @@ async function openDetail(id){
     } else {
       ub.style.display='none';
     }
+  }
+  // Badge Réservé (réservation Sage : client + bon de préparation)
+  let resab=document.getElementById('det-resa-badge');
+  if(!resab){
+    resab=document.createElement('div');
+    resab.id='det-resa-badge';
+    resab.style.cssText='display:none;position:absolute;top:12px;left:12px;z-index:10;background:#b45309;color:#fff;border-radius:8px;padding:6px 12px;font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;';
+    document.getElementById('det-ref-badge')?.parentNode?.appendChild(resab);
+  }
+  if(p.reserve_client){
+    resab.textContent='Réservé';
+    resab.style.display='block';
+  } else {
+    resab.style.display='none';
   }
   // Ref badge positionné dans dimg-col (hors dmain pour éviter les conflits)
   const rb=document.getElementById('det-ref-badge');
