@@ -1128,3 +1128,6 @@ body.drawer-open .fab-contact{right:444px;}
 .da-copy-link svg{flex-shrink:0;}
 .da-copy-link.done{background:#1a6a17;}
 .da-copy-link.done:hover{background:#155513;}
+
+/* Badge Réservé (réservation Sage — reserve_client importé chaque matin) */
+.pcard-resa-overlay{position:absolute;top:10px;left:10px;background:#b45309;color:#fff;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:800;letter-spacing:.6px;z-index:2;}

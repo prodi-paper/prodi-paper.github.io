@@ -25,7 +25,7 @@ SUPABASE_URL = "https://bvcgpdoukhcatjibmvnb.supabase.co"
 ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2Y2dwZG91a2hjYXRqaWJtdm5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNzg5MjgsImV4cCI6MjA4Nzg1NDkyOH0.Ip3ykSUS9sajTH04yXBerOG1haBKMD1kAvMQNjnGL1Q"
 MGMT_TOKEN = os.environ["SUPABASE_MGMT_TOKEN"]
 
-ALL_KEYS = ['quality','color','details','gsm','width','longueur','noyau','weight','price','ref','usine','emplacement','zone','format','image_url','source']
+ALL_KEYS = ['quality','color','details','gsm','width','longueur','noyau','weight','price','ref','usine','emplacement','zone','format','image_url','source','reserve_client','reserve_piece']
 
 DRY_RUN = '--dry' in sys.argv
 
@@ -217,6 +217,11 @@ def parse_dov(files):
             'format': 'Bobine' if fam_lib.startswith('BOB') else 'Palette' if fam_lib.startswith('PAL') else None,
             'image_url': image_url,
             'source': 'email' if visible else 'inventaire',
+            # Réservation Sage : code client + bon de préparation (BPxxxxx).
+            # (QTRES existe dans le fichier mais reste à 0 — la réservation
+            # s'exprime par CODE_CLI/CODE_PIECE.)
+            'reserve_client': clean(g(row, 'CODE_CLI')) or None,
+            'reserve_piece': clean(g(row, 'CODE_PIECE')) or None,
         })
     wb.close()
 
