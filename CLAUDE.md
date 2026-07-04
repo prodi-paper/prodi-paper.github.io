@@ -15,6 +15,7 @@ Site statique de catalogue papier/carton B2B. Déployé sur GitHub Pages.
 | `catalogue.js` | Logique JS du catalogue (~3760 lignes) |
 | `catalogue.css` | Styles du catalogue |
 | `vitrine.html/js/css` | Page d'accueil commerciale |
+| `analytics.js` | Traqueur maison (→ table `site_events`, inclus vitrine + catalogue, expose `window.prodiTrack`) |
 | `img/` | Images statiques |
 | `assets/prodi2026.mp4` | Vidéo vitrine |
 | `scripts/` | Robot d'import quotidien + utilitaires (Python, exécutés par CI) |
@@ -28,7 +29,7 @@ Site statique de catalogue papier/carton B2B. Déployé sur GitHub Pages.
 - **SQL endpoint (mgmt API)** : `POST https://api.supabase.com/v1/projects/bvcgpdoukhcatjibmvnb/database/query`
 
 ### Tables principales
-- `products` — stock papier (colonnes : `id, quality, color, gsm, width, longueur, weight, price, ref, details, image_url, zone, noyau, format, usine, emplacement, reserve_client, reserve_piece, created_at`). **Réservations Sage** (depuis 2026-07-05) : `reserve_client` (code client) + `reserve_piece` (bon de préparation BPxxxxx) importés depuis CODE_CLI/CODE_PIECE du fichier — le QTRES du fichier est toujours 0, la réservation vit dans ces colonnes. ~1 350 réfs réservées. Badge « RÉSERVÉ » sur les cartes et fiches du catalogue.
+- `products` — stock papier (colonnes : `id, quality, color, gsm, width, longueur, weight, price, ref, details, image_url, zone, noyau, format, usine, emplacement, reserve_client, reserve_piece, created_at`). **Réservations Sage** (depuis 2026-07-05) : `reserve_client` (code client) + `reserve_piece` (bon de préparation BPxxxxx) importés depuis CODE_CLI/CODE_PIECE du fichier — le QTRES du fichier est toujours 0, la réservation vit dans ces colonnes. ~1 350 réfs réservées. Badge « RÉSERVÉ » sur les cartes et fiches du catalogue + pastille cadenas (`.fpill-resa`, à côté des filtres photo) = n'afficher que les réservés (filtre serveur `reserve_client=not.is.null`).
 - `proforma_requests` — demandes de devis (créée 2026-05-01) : `id, created_at, product_id, nom, societe, email, telephone, message, quantite_souhaitee, statut`
 - `site_events` — **analytics maison** (créée 2026-07-05) : `visitor_id/session_id`
   (ids aléatoires localStorage/sessionStorage), `page` (vitrine|catalogue),
