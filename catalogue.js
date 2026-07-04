@@ -1286,6 +1286,14 @@ function toggleDepotPill(btn){
   document.querySelectorAll('.fpill-depot').forEach(b=>b.classList.toggle('active',_depotFilter===b.dataset.depot));
   filterProducts();
 }
+// Filtre RÉSERVÉ (reserve_client posé par l'import Sage) : actif = ne
+// montrer QUE les articles réservés.
+let _resaFilter=false;
+function toggleResaPill(btn){
+  _resaFilter=!_resaFilter;
+  btn.classList.toggle('active',_resaFilter);
+  filterProducts();
+}
 let _photoFilter=''; // '' | 'with' | 'without'
 function togglePhotoPill(btn){
   const val=btn.dataset.photo;
@@ -1423,6 +1431,7 @@ function _matchesActiveFilters(row, excludeKey){
   if(_depotFilter==='ext' && row.emplacement==='OUR WAREHOUSE') return false;
   if(_photoFilter==='with' && !row.image_url) return false;
   if(_photoFilter==='without' && row.image_url) return false;
+  if(_resaFilter && !row.reserve_client) return false;
   const refCode=(document.getElementById('f-ref-code')?.value||'').trim().toUpperCase();
   if(refCode && !String(row.quality||'').toUpperCase().startsWith(refCode)) return false;
   const refMin=+document.getElementById('f-refmin')?.value||0;
@@ -1541,7 +1550,7 @@ function _detailsFiltersSig(){
     lgmax:document.getElementById('f-longmax')?.value||'',
     wmin:document.getElementById('f-wmin')?.value||'',
     wmax:document.getElementById('f-wmax')?.value||'',
-    dep:_depotFilter, ph:_photoFilter,
+    dep:_depotFilter, ph:_photoFilter, rsv:_resaFilter?1:0,
     ref:document.getElementById('f-ref-code')?.value||'',
     rmin:document.getElementById('f-refmin')?.value||'',
     rmax:document.getElementById('f-refmax')?.value||'',
@@ -1878,6 +1887,7 @@ function _filterSharedLocal(){
     if(_depotFilter==='our'&&p.emplacement!=='OUR WAREHOUSE')return false;
     if(_depotFilter==='ext'&&p.emplacement==='OUR WAREHOUSE')return false;
     if(!_stockMatch(p))return false;
+    if(_resaFilter&&!p.reserve_client)return false;
     const _hasPhoto=p.image_url&&p.image_url.length>0;
     if(_photoFilter==='with'&&!_hasPhoto)return false;
     if(_photoFilter==='without'){
@@ -2148,6 +2158,8 @@ async function _fetchAndRender(token){
     });
     if(_terms.length)p.append('or',`(${_terms.join(',')})`);
   }
+  // Filtre Réservé — reserve_client posé par l'import Sage quotidien.
+  if(_resaFilter)p.append('reserve_client','not.is.null');
   // Photo filter — image_url is NULL pour les produits sans photo réelle (mis à jour par scripts/verify_photos.py)
   if(_photoFilter==='with')p.append('image_url','not.is.null');
   else if(_photoFilter==='without'){
