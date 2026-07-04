@@ -30,6 +30,15 @@ Site statique de catalogue papier/carton B2B. Déployé sur GitHub Pages.
 ### Tables principales
 - `products` — stock papier (colonnes : `id, quality, color, gsm, width, longueur, weight, price, ref, details, image_url, zone, noyau, format, usine, emplacement, created_at`)
 - `proforma_requests` — demandes de devis (créée 2026-05-01) : `id, created_at, product_id, nom, societe, email, telephone, message, quantite_souhaitee, statut`
+- `site_events` — **analytics maison** (créée 2026-07-05) : `visitor_id/session_id`
+  (ids aléatoires localStorage/sessionStorage), `page` (vitrine|catalogue),
+  `event` (pageview, recherche, fiche_vue, panier_ajout, panier_partage,
+  devis_envoye, contact_envoye, cta_catalogue, duree), `props`, `referrer`
+  (hostname externe), `utm`, `lang`, `mobile`, `interne`. Alimentée par
+  `analytics.js` (inclus dans les 2 pages, expose `window.prodiTrack`).
+  Équipe : visiter `/?team` une fois par appareil → `interne=true` à vie
+  (localhost aussi). Robots filtrés (webdriver/UA). RLS : anon INSERT borné,
+  authenticated SELECT (lisible par l'assistant IA de l'app arrivages).
 - `shared_carts` — sélections partagées : `code` TEXT PK, `cart_ids` TEXT (numeric comma-sep), `created_at`, `expires_at` (default `now() + 90d`, purge cron 3h UTC)
 
 ### RLS appliquées (depuis 2026-05-01)

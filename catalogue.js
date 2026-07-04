@@ -2838,6 +2838,7 @@ function _updateDetNav(){
   if(nextin)nextin.disabled=atEnd;
 }
 async function openDetail(id){
+  try{const _tp=(_detList().find(x=>x.id===+id)||all.find(x=>x.id===+id));window.prodiTrack?.('fiche_vue',{ref:_tp?.ref});}catch(e){}
   const list=_detList();
   let idx=list.findIndex(x=>x.id===+id);
   // Source list n'a pas le produit (édge: cart change pendant la session) → fallback sur `all`
@@ -3014,6 +3015,7 @@ async function sendProforma(){
   const btn=document.getElementById('pf-btn');btn.disabled=true;btn.textContent='ENVOI...';
   try{
     await sbQ('proforma_requests',{method:'POST',body:{product_id:cur?.id,nom,telephone:tel,message:msg,statut:'nouveau'},headers:{'Prefer':'return=minimal'}}).catch(()=>{});
+    window.prodiTrack?.('devis_envoye',{ref:cur?.ref});
     const box=document.querySelector('#proforma-bg .pf-box');
     if(box)box.innerHTML=`<div class="pf-success"><div class="pf-success-ico">✅</div><div class="pf-success-t">Demande envoyée</div><div class="pf-success-s">Nous vous recontacterons rapidement.</div><button class="btn-pf-close" onclick="closeProforma();document.querySelector('#proforma-bg .pf-box').innerHTML=''">Fermer</button></div>`;
     toast('✅ Demande envoyée');
@@ -3324,6 +3326,7 @@ function _refreshGrpPopover(gid){
 function addToCart(id,productObj){
   const p=productObj||all.find(x=>x.id===+id);if(!p)return;
   const alreadyIn=cart.find(x=>x.id===+id);
+  if(!alreadyIn)window.prodiTrack?.('panier_ajout',{ref:p.ref});
   const mab=document.getElementById('modal-add-btn');
   if(alreadyIn){
     // Toggle OFF — remove from cart
@@ -3788,6 +3791,7 @@ async function printSelection(opts){
   const _shareIds=cart.map(x=>x.ref).filter(Boolean).join(',');
   const _shareUrl=window.location.origin+window.location.pathname+'?s='+_shareCode+(_priceMode?'&p=1':'');
   sbQ('shared_carts',{method:'POST',body:{code:_shareCode,cart_ids:_shareIds},headers:{'Prefer':'return=minimal'}}).catch(()=>{});
+  window.prodiTrack?.('panier_partage',{code:_shareCode,nb:(_shareIds.match(/,/g)||[]).length+1});
   const _greeting=clientName?`Bonjour M. ${clientName},`:'Bonjour,';
   const _mailLines=[
     _greeting,'',
@@ -4434,6 +4438,7 @@ async function sendCartProforma(){
     const savedCart=[...cart];
     for(const p of savedCart){
       await sbQ('proforma_requests',{method:'POST',body:{product_id:p.id,nom,telephone:tel,message:msg,statut:'nouveau'},headers:{'Prefer':'return=minimal'}}).catch(()=>{});
+      window.prodiTrack?.('devis_envoye',{ref:p.ref});
     }
     btn.disabled=false;btn.textContent='ENVOYER';
     closeCartProforma();doClearCart();closeCartDrawer();
@@ -4909,6 +4914,7 @@ async function copyCartLink(btn){
   const shareText=url;
   try{
     const res=await sbQ('shared_carts',{method:'POST',body:{code,cart_ids:refs},headers:{'Prefer':'return=minimal'}});
+    window.prodiTrack?.('panier_partage',{code,nb:(refs.match(/,/g)||[]).length+1});
     if(res&&res.status&&res.status>=400){throw new Error('HTTP '+res.status);}
   }catch(e){
     console.error('share',e);
