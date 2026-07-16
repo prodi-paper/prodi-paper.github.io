@@ -3897,15 +3897,16 @@ async function printSelection(opts){
     const format=p.format||_f.format||'';
     const isPalette=format&&/palette|feuille/i.test(format);
     const dim=isPalette&&largeur&&longueur
-      ?`${mmToCm(largeur)} × ${mmToCm(longueur)} cm`
+      ?`${mmToCm(largeur)} × ${mmToCm(longueur)} mm`
       :largeur&&longueur
-        ?`${mmToCm(largeur)} cm · Ø ${mmToCm(longueur)} cm`
-        :largeur?`${mmToCm(largeur)} cm`:'—';
+        ?`${mmToCm(largeur)} mm · Ø ${mmToCm(longueur)} mm`
+        :largeur?`${mmToCm(largeur)} mm`:'—';
     const details=p.details||_f.details||'';
     const _detClean=details.replace(/[-–—\s]+/g,' ').trim();
     const poidsKg=Number(p.poids_net||0);
-    const priceT=Number(_f.price||0);
-    const priceKg=priceT/1000;
+    // price en base = €/KG (vérifié 16/07 : médiane 0,59 €/kg) → €/T = ×1000.
+    const priceKg=Number(_f.price||0);
+    const priceT=priceKg*1000;
     const montant=poidsKg*priceKg;
     const titre=formatProductTitle(qualite,qualite);
     const photoRef=String(p.ref||_f.ref||'').replace(/^Photo_/i,'').trim();
