@@ -998,7 +998,7 @@ const msdLabels = {
 };
 // ── FAMILLES DE FORMATS (16/07) : dimensions feuilles regroupées à ±20 mm,
 // sens ignoré (520×720 = 720×520). Anchors = les formats du fond de stock.
-const FORMAT_TOL=20;
+const FORMAT_TOL=50;
 const FORMAT_FAMILLES=[[700,1000],[650,920],[520,720],[297,420],[210,297],[630,880],[320,450],[450,640],[580,780],[445,610],[740,1020],[570,870],[963,1342],[580,920],[650,1000]];
 const FORMAT_AUTRES='__fmt_autres__';
 const _fmtLbl=f=>f[0]+' × '+f[1]+' mm';
