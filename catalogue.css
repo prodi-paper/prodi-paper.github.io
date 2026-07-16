@@ -611,7 +611,7 @@ html,body{overflow-x:hidden;}
   .live-pill{display:none;}
   .lang-sep{display:none;}
   .lang-btn{font-size:11px;padding:3px 6px;}
-  .btn-panier-txt{display:none;}
+  .btn-panier-txt{display:inline !important;font-size:16px !important;font-weight:800 !important;}
   .mob-filter-head{display:flex;}
   #filter-bar{display:none;}
   /* Trust bar défilant — hauteur fixe 22px */
@@ -627,7 +627,7 @@ html,body{overflow-x:hidden;}
   .live-pill-hright{display:none;}
   .btn-head-panier{padding:0;border-radius:10px;width:46px;height:38px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1.5px solid var(--border);background:var(--white);transition:border-color .15s,background .15s;}
   .btn-head-panier:hover,.btn-head-panier:active{background:var(--off);border-color:var(--ink);}
-  .btn-head-panier .btn-panier-txt{display:none;}
+  .btn-head-panier .btn-panier-txt{display:inline !important;font-size:16px !important;font-weight:800 !important;}
   .btn-head-panier img{height:24px !important;width:auto;vertical-align:0 !important;margin:0 !important;}
   .lang-sep{display:none;}
   /* € price toggle in header — same square geometry as les autres boutons */
@@ -680,7 +680,7 @@ html,body{overflow-x:hidden;}
   .pgrid-v2{grid-template-columns:1fr 1fr;}
 }
 @media(max-width:480px){
-  .btn-panier-txt{display:none;}
+  .btn-panier-txt{display:inline !important;font-size:16px !important;font-weight:800 !important;}
 }
 
 /* ── LANG TOGGLE ── */
@@ -844,7 +844,7 @@ html,body{overflow-x:hidden;}
   .header-search-group{flex:1;min-width:0;margin-left:20px;}
   .header-search{width:auto;max-width:560px;flex-shrink:1;}
   .btn-scan-txt{display:none;}
-  .btn-panier-txt{display:none;}
+  .btn-panier-txt{display:inline !important;font-size:16px !important;font-weight:800 !important;}
   .btn-head-scan{padding:0;width:62px;height:44px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
   .btn-head-scan svg{width:22px;height:22px;}
   .btn-head-panier{padding:0;width:88px;height:44px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
@@ -1146,3 +1146,6 @@ body.drawer-open .fab-contact{right:444px;}
   .rbar-inner{position:relative;}
   .rbar-inner .pager.pager-top{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);margin:0;}
 }
+/* PRODIX (IA offre) : reprend la pastille flottante, en noir Prodi */
+.fab-prodix{background:var(--ink);box-shadow:0 4px 16px rgba(0,0,0,.35);}
+.fab-prodix:hover{background:#000;transform:scale(1.08);box-shadow:0 6px 22px rgba(0,0,0,.45);}
