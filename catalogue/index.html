@@ -83,7 +83,7 @@
 <link rel="preconnect" href="https://bvcgpdoukhcatjibmvnb.supabase.co">
 <link rel="dns-prefetch" href="https://stock.prodi.net">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/catalogue.css?v=338">
+<link rel="stylesheet" href="/catalogue.css?v=368">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4.4.1/dist/email.min.js" integrity="sha384-SALc35EccAf6RzGw4iNsyj7kTPr33K7RoGzYu+7heZhT8s0GZouafRiCg1qy44AS" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -104,15 +104,14 @@
       <img src="/img/panda.png" alt="Prodiconseil" class="logo-img logo-mob">
     </a>
     <div class="header-search-group">
-    <div class="header-search">
-      <input type="text" id="search-input" placeholder="Kraft 80g, SBS blanc, Testliner..." autocomplete="off" oninput="onSearchInput(this)" onfocus="onSearchInput(this)" onkeydown="onSearchKeydown(event)">
-      <label class="exact-toggle" title="Recherche exacte (sans correction ni synonymes)">
-        <input type="checkbox" id="exact-toggle" onchange="toggleExactMode(this.checked)">
-        <span>Exact</span>
-      </label>
-      <button onclick="filterProducts()" aria-label="Rechercher">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      </button>
+    <div class="header-search" style="background:none;border:none;box-shadow:none;border-radius:0;display:flex;gap:8px;padding:0;max-width:330px;">
+      <!-- Barre texte remplacée par la plage Réf article (16/07). Le champ
+           search-input reste CACHÉ : le scanner QR et le mode partagé écrivent
+           dedans (12 points d'accroche JS). -->
+      <input type="text" id="search-input" style="display:none" autocomplete="off">
+      <label class="exact-toggle" style="display:none"><input type="checkbox" id="exact-toggle"><span>Exact</span></label>
+      <input type="number" id="f-refmin-top" placeholder="Réf article" min="0" style="width:170px;height:38px;border:1.5px solid var(--border);border-radius:8px;background:#fff;font:inherit;font-size:14px;padding:0 12px;outline:none;box-sizing:border-box;" oninput="syncMobFilter('f-refmin','f-refmin-top')">
+      <input type="number" id="f-refmax-top" placeholder="Max" min="0" style="width:110px;height:38px;border:1.5px solid var(--border);border-radius:8px;background:#fff;font:inherit;font-size:14px;padding:0 12px;outline:none;box-sizing:border-box;" oninput="syncMobFilter('f-refmax','f-refmax-top')">
     </div>
     </div>
     <button class="mob-search-head" onclick="toggleMobSearch()" aria-label="Rechercher">
@@ -121,19 +120,21 @@
     <button class="mob-filter-head" onclick="openFilterDrawer()" aria-label="Filtres">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><circle cx="8" cy="6" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="16" cy="12" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="8" cy="18" r="2" fill="currentColor" stroke="none"/></svg>
     </button>
+    <div class="rbar-count" id="rbar-count" role="status" aria-live="polite" style="margin-left:auto;margin-right:auto;">
+      <span id="rbar-refs">—</span>&nbsp;<span id="rbar-refs-lbl">produits</span> • <span style="white-space:nowrap"><span id="rbar-tons">—</span>&nbsp;t</span>
+      <span id="correction-note"></span>
+    </div>
     <div class="hright">
-      <button class="btn-head btn-head-scan" onclick="openScanModal()" title="Scanner un QR code" aria-label="Scanner un QR code">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg>
-        <span class="btn-scan-txt">Scanner</span>
-      </button>
       <div class="cart-wrap">
         <button class="btn-head btn-head-panier" onclick="openCartDrawer()" id="cart-btn" title="Ma Liste">
           <img src="/img/truck2.png" alt="truck" style="height:30px;width:auto;vertical-align:-6px;"> <span class="btn-panier-txt">Ma Liste</span>
           <span class="cart-badge" id="cart-badge" aria-live="polite" aria-label="Produits dans la liste">0</span>
         </button>
       </div>
-      <div class="lang-sep"></div>
-      <button onclick="togglePriceMode(!_priceMode)" id="lang-fr" class="lang-btn on" title="Afficher / masquer les prix">€</button>
+      <button class="btn-head btn-head-scan" onclick="openScanModal()" title="Scanner un QR code" aria-label="Scanner un QR code">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg>
+      </button>
+      <button class="btn-head btn-head-scan on" onclick="togglePriceMode(!_priceMode)" id="lang-fr" title="Afficher / masquer les prix" style="font-size:18px;font-weight:700;">€</button>
     </div>
   </div>
   <!-- mobile lang bar -->
@@ -253,10 +254,6 @@
       </div>
       <div class="fg" style="border-bottom:2px solid var(--border);margin-bottom:14px;padding-bottom:14px;">
         <div class="format-pills" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-          <button class="fpill fpill-stock fpill-dark" data-stock="stocklot" onclick="toggleStockPill(this)" style="justify-content:center;grid-column:1/-1;">Stocklots</button>
-          <button class="fpill fpill-stock fpill-yellow" data-stock="fab" onclick="toggleStockPill(this)" style="justify-content:center;width:100%;box-sizing:border-box;">Fabrication</button>
-          <button class="fpill fpill-stock fpill-blue" data-stock="siderun" onclick="toggleStockPill(this)" style="justify-content:center;width:100%;box-sizing:border-box;">Siderun</button>
-          <div style="grid-column:1/-1;border-top:1.5px dashed var(--border);margin:4px 0;"></div>
           <button class="fpill fpill-dark" data-format="Bobine" onclick="toggleFormatPill(this)" style="justify-content:center;width:100%;box-sizing:border-box;">Bobine</button>
           <button class="fpill fpill-dark" data-format="Palette" onclick="toggleFormatPill(this)" style="justify-content:center;width:100%;box-sizing:border-box;">Format</button>
         </div>
@@ -267,6 +264,22 @@
         <div class="msd" id="sb-msd-type">
           <button class="msd-btn" data-msd-id="msd-type" onclick="toggleMsd('sb-msd-type')">
             <span class="msd-btn-label">Type de papier</span><span class="msd-arrow">▾</span>
+          </button>
+          <div class="msd-panel"></div>
+        </div>
+      </div>
+      <div class="fg">
+        <div class="msd" id="sb-msd-details">
+          <button class="msd-btn" data-msd-id="msd-details" onclick="toggleMsd('sb-msd-details')">
+            <span class="msd-btn-label">Détails</span><span class="msd-arrow">▾</span>
+          </button>
+          <div class="msd-panel"></div>
+        </div>
+      </div>
+      <div class="fg" id="sb-sec-format">
+        <div class="msd" id="sb-msd-format">
+          <button class="msd-btn" data-msd-id="msd-format" onclick="toggleMsd('sb-msd-format')">
+            <span class="msd-btn-label">Formats</span><span class="msd-arrow">▾</span>
           </button>
           <div class="msd-panel"></div>
         </div>
@@ -286,19 +299,11 @@
         </div>
       </div>
       <div class="fg">
-        <div class="msd" id="sb-msd-details">
-          <button class="msd-btn" data-msd-id="msd-details" onclick="toggleMsd('sb-msd-details')">
-            <span class="msd-btn-label">Détails</span><span class="msd-arrow">▾</span>
-          </button>
-          <div class="msd-panel"></div>
-        </div>
-      </div>
-      <div class="fg">
         <div class="nmr-row"><label class="fl"><span>Grammage</span> <span class="nmr-unit">(g/m²)</span></label></div>
         <div class="nmr-wrap"><input type="number" class="nmr-in" id="f-gmin" placeholder="Min" min="0" oninput="filterProducts()"><span class="nmr-sep">—</span><input type="number" class="nmr-in" id="f-gmax" placeholder="Max" min="0" oninput="filterProducts()"></div>
       </div>
       <div class="fg" id="sb-sec-laize">
-        <div class="nmr-row"><label class="fl" id="sb-laize-lbl"><span>Laize</span> <span class="nmr-unit">(cm)</span></label></div>
+        <div class="nmr-row"><label class="fl" id="sb-laize-lbl"><span>Laize</span> <span class="nmr-unit">(mm)</span></label></div>
         <div class="nmr-wrap"><input type="number" class="nmr-in" id="f-lmin" placeholder="Min" min="0" oninput="filterProducts()"><span class="nmr-sep">—</span><input type="number" class="nmr-in" id="f-lmax" placeholder="Max" min="0" oninput="filterProducts()"></div>
       </div>
       <div class="fg" id="sb-sec-longueur">
@@ -314,30 +319,33 @@
         <div class="nmr-row"><label class="fl"><span>Prix</span> <span class="nmr-unit">(€/T)</span></label></div>
         <div class="nmr-wrap"><input type="number" class="nmr-in" id="f-pmin" placeholder="Min" min="0" oninput="filterProducts()"><span class="nmr-sep">—</span><input type="number" class="nmr-in" id="f-pmax" placeholder="Max" min="0" oninput="filterProducts()"></div>
       </div>
-      <div class="fg" style="margin-top:6px;">
-        <div class="nmr-row"><label class="fl">Dépôt</label></div>
-        <div class="format-pills" style="display:flex;gap:6px;margin-top:6px;">
-          <button class="fpill fpill-dark fpill-depot" data-depot="our" onclick="toggleDepotPill(this)" style="flex:1;justify-content:center;font-size:11px;">Notre dépôt</button>
-          <button class="fpill fpill-yellow fpill-depot" data-depot="ext" onclick="toggleDepotPill(this)" style="flex:1;justify-content:center;font-size:11px;">Hors dépôt</button>
-        </div>
-      </div>
-
-      <div class="fg">
-        <div class="nmr-wrap nmr-wrap-2col">
-          <div class="nmr-col"><label class="fl">Allée</label><input type="number" class="nmr-in" id="f-zone-num" placeholder="n°" min="0" oninput="filterProducts()"></div>
-          <span class="nmr-sep">—</span>
-          <div class="nmr-col"><label class="fl">Zone</label><input type="text" class="nmr-in" id="f-zone-let" placeholder="A, B, C…" oninput="filterProducts()" style="text-transform:uppercase;"></div>
-        </div>
-      </div>
-
-      <div class="fg">
-        <div class="nmr-row"><label class="fl">Référence article</label></div>
-        <div class="nmr-wrap"><input type="number" class="nmr-in" id="f-refmin" placeholder="Min" min="0" oninput="filterProducts()"><span class="nmr-sep">—</span><input type="number" class="nmr-in" id="f-refmax" placeholder="Max" min="0" oninput="filterProducts()"></div>
-      </div>
+      <!-- Réf article : déplacée dans la barre du haut (16/07). Inputs cachés
+           = source de vérité, la barre écrit dedans via syncMobFilter. -->
+      <input type="number" id="f-refmin" style="display:none"><input type="number" id="f-refmax" style="display:none">
 
       <div class="fg">
         <div class="nmr-row"><label class="fl">Référence usine</label></div>
         <div class="nmr-wrap nmr-wrap-single"><input type="number" class="nmr-in" id="f-usine" placeholder="N° usine" min="0" oninput="filterProducts()"></div>
+      </div>
+      <div class="fg" style="border-top:2px solid var(--border);margin-top:14px;padding-top:14px;">
+        <div class="format-pills" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <button class="fpill fpill-dark fpill-photo" data-photo="with" onclick="togglePhotoPill(this)" style="justify-content:center;gap:5px;width:100%;box-sizing:border-box;font-size:11px;padding:7px 6px;">
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1" y="3" width="12" height="9" rx="1.5"/><circle cx="7" cy="7.5" r="2.2"/><path d="M5 3l1-1.5h2L9 3"/></svg>
+            Avec photo
+          </button>
+          <button class="fpill fpill-dark fpill-photo" data-photo="without" onclick="togglePhotoPill(this)" style="justify-content:center;gap:5px;width:100%;box-sizing:border-box;font-size:11px;padding:7px 6px;">
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1" y="3" width="12" height="9" rx="1.5"/><line x1="1" y1="1" x2="13" y2="13" stroke-width="1.8"/></svg>
+            Sans photo
+          </button>
+          <button class="fpill fpill-dark fpill-resa" data-resa="with" onclick="toggleResaPill(this)" style="justify-content:center;gap:5px;width:100%;box-sizing:border-box;font-size:11px;padding:7px 6px;">
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2.5" y="6" width="9" height="6.5" rx="1.2"/><path d="M4.5 6V4.5a2.5 2.5 0 0 1 5 0V6"/></svg>
+            Réservés
+          </button>
+          <button class="fpill fpill-dark fpill-resa" data-resa="without" onclick="toggleResaPill(this)" style="justify-content:center;gap:5px;width:100%;box-sizing:border-box;font-size:11px;padding:7px 6px;">
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2.5" y="6" width="9" height="6.5" rx="1.2"/><path d="M4.5 6V4.5a2.5 2.5 0 0 1 5 0V6"/><line x1="1" y1="1" x2="13" y2="13" stroke-width="1.8"/></svg>
+            Sans réservé
+          </button>
+        </div>
       </div>
 
 
@@ -355,28 +363,12 @@
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="1" width="5" height="5" rx="1"/><rect x="8" y="1" width="5" height="5" rx="1"/><rect x="1" y="8" width="5" height="5" rx="1"/><rect x="8" y="8" width="5" height="5" rx="1"/><line x1="3.5" y1="3.5" x2="10.5" y2="10.5"/></svg>
           <span class="grp-toggle-lbl">Groupé</span>
         </button>
-        <button class="vt-toggle-btn" id="vt-toggle" onclick="toggleView()">
+        <button class="vt-toggle-btn" id="vt-toggle" onclick="toggleView()" style="display:none">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="14" height="2.5" rx="1"/><rect x="0" y="5.5" width="14" height="2.5" rx="1"/><rect x="0" y="11" width="14" height="2.5" rx="1"/></svg>
           <span>Vue liste détaillée</span>
         </button>
-        <div class="rbar-count" id="rbar-count" role="status" aria-live="polite">
-          <span id="rbar-refs">—</span>&nbsp;<span id="rbar-refs-lbl">produits</span> • <span style="white-space:nowrap"><span id="rbar-tons">—</span>&nbsp;t</span>
-          <span id="correction-note"></span>
-        </div>
         <div class="pager pager-top" id="pager-top"></div>
-        <div class="rbar-photo">
-          <button class="rbar-photo-btn fpill-photo" data-photo="with" onclick="togglePhotoPill(this)" title="Produits avec photo réelle">
-            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1" y="3" width="12" height="9" rx="1.5"/><circle cx="7" cy="7.5" r="2.2"/><path d="M5 3l1-1.5h2L9 3"/></svg>
-          </button>
-          <button class="rbar-photo-btn fpill-photo" data-photo="without" onclick="togglePhotoPill(this)" title="Produits sans photo">
-            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1" y="3" width="12" height="9" rx="1.5"/><line x1="1" y1="1" x2="13" y2="13" stroke-width="1.8"/></svg>
-          </button>
-          <button class="rbar-photo-btn fpill-resa" onclick="toggleResaPill(this)" title="Articles réservés uniquement">
-            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2.5" y="6" width="9" height="6.5" rx="1.2"/><path d="M4.5 6V4.5a2.5 2.5 0 0 1 5 0V6"/></svg>
-          </button>
-        </div>
         <div class="rbar-sort">
-          <span class="rbar-sort-lbl">Trier :</span>
           <select class="rbar-sel" id="sort-sel" onchange="filterProducts()">
             <option value="price_asc">Prix ↑</option>
             <option value="price_desc">Prix ↓</option>
@@ -404,7 +396,7 @@
         <button class="vt-toggle-btn add-page-btn" onclick="addPageToCart()" title="Ajouter tous les produits de la page à la liste">
           <svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="7" y1="2" x2="7" y2="12"/><line x1="2" y1="7" x2="12" y2="7"/></svg>
         </button>
-        <button class="vt-toggle-btn" id="vt-toggle" onclick="toggleView()">
+        <button class="vt-toggle-btn" id="vt-toggle" onclick="toggleView()" style="display:none">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="14" height="2.5" rx="1"/><rect x="0" y="5.5" width="14" height="2.5" rx="1"/><rect x="0" y="11" width="14" height="2.5" rx="1"/></svg>
           <span>Vue liste détaillée</span>
         </button>
@@ -467,8 +459,9 @@
       <div class="drawer-meta" id="drawer-meta">—</div>
     </div>
     <div class="drawer-head-actions">
-      <button class="dh-icon-btn" onclick="openImportRefs()" title="Importer des références" aria-label="Importer des références">
+      <button class="dh-icon-btn" onclick="openImportRefs()" title="Album photo" aria-label="Album photo" style="width:auto;padding:0 10px;gap:6px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;letter-spacing:.2px;white-space:nowrap;">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+        Album photo
       </button>
       <button class="dh-clear-btn" onclick="doClearCart()" title="Vider la liste">Vider la liste</button>
       <button class="dh-close-btn" onclick="closeCartDrawer()" aria-label="Fermer">
@@ -623,16 +616,6 @@
     <button class="fd-close" onclick="closeFilterDrawer()">✕</button>
   </div>
   <div class="fd-body">
-    <!-- Stock -->
-    <div class="fd-section open">
-      <div class="fd-section-body">
-        <div class="format-pills" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-          <button class="fpill fpill-stock fpill-dark" data-stock="stocklot" onclick="toggleStockPill(this)" style="justify-content:center;grid-column:1/-1;">Stocklots</button>
-          <button class="fpill fpill-stock fpill-yellow" data-stock="fab" onclick="toggleStockPill(this)" style="justify-content:center;">Fabrication</button>
-          <button class="fpill fpill-stock fpill-blue" data-stock="siderun" onclick="toggleStockPill(this)" style="justify-content:center;">Siderun</button>
-        </div>
-      </div>
-    </div>
     <!-- Format -->
     <div class="fd-section open">
       <div class="fd-section-body">
@@ -649,6 +632,30 @@
           <button class="msd-btn" id="fd-msd-type-btn" data-msd-id="msd-type" onclick="toggleMsd('msd-type-mob')">
             <span class="msd-btn-label" id="fd-msd-type-label">Tous</span>
             <span class="msd-count" id="fd-msd-type-count" style="display:none"></span>
+            <span class="msd-arrow">▾</span>
+          </button>
+          <div class="msd-panel"></div>
+        </div>
+      </div>
+    </div>
+    <!-- Détails -->
+    <div class="fd-section open">
+      <div class="fd-section-body" style="margin-top:6px;">
+        <div class="msd" id="msd-details-mob">
+          <button class="msd-btn" data-msd-id="msd-details" onclick="toggleMsd('msd-details-mob')">
+            <span class="msd-btn-label">Détails</span>
+            <span class="msd-arrow">▾</span>
+          </button>
+          <div class="msd-panel"></div>
+        </div>
+      </div>
+    </div>
+    <!-- Formats -->
+    <div class="fd-section open" id="mob-sec-format">
+      <div class="fd-section-body" style="margin-top:6px;">
+        <div class="msd" id="msd-format-mob">
+          <button class="msd-btn" data-msd-id="msd-format" onclick="toggleMsd('msd-format-mob')">
+            <span class="msd-btn-label">Formats</span>
             <span class="msd-arrow">▾</span>
           </button>
           <div class="msd-panel"></div>
@@ -679,18 +686,6 @@
         </div>
       </div>
     </div>
-    <!-- Détails -->
-    <div class="fd-section open">
-      <div class="fd-section-body" style="margin-top:6px;">
-        <div class="msd" id="msd-details-mob">
-          <button class="msd-btn" data-msd-id="msd-details" onclick="toggleMsd('msd-details-mob')">
-            <span class="msd-btn-label">Détails</span>
-            <span class="msd-arrow">▾</span>
-          </button>
-          <div class="msd-panel"></div>
-        </div>
-      </div>
-    </div>
     <!-- Grammage -->
     <div class="fd-section open">
       <div class="fd-section-head" onclick="toggleFdSection(this)">
@@ -706,7 +701,7 @@
     <!-- Laize -->
     <div class="fd-section open" id="mob-sec-laize">
       <div class="fd-section-head" onclick="toggleFdSection(this)">
-        <span class="fd-section-title" id="mob-laize-title">Laize (cm)</span><span class="fd-section-arrow">▾</span>
+        <span class="fd-section-title" id="mob-laize-title">Laize (mm)</span><span class="fd-section-arrow">▾</span>
       </div>
       <div class="fd-section-body" style="padding-top:6px;">
         <div class="frow">
@@ -736,24 +731,6 @@
         <div class="frow">
           <input class="fi" type="number" id="f-wmin-mob" placeholder="min kg" oninput="syncMobFilter('f-wmin','f-wmin-mob')">
           <input class="fi" type="number" id="f-wmax-mob" placeholder="max kg" oninput="syncMobFilter('f-wmax','f-wmax-mob')">
-        </div>
-      </div>
-    </div>
-    <!-- Dépôt -->
-    <div class="fd-section open">
-      <div class="fd-section-body" style="padding-top:6px;">
-        <div class="format-pills" style="display:flex;gap:8px;">
-          <button class="fpill fpill-dark fpill-depot" data-depot="our" onclick="toggleDepotPill(this)" style="flex:1;justify-content:center;">Notre dépôt</button>
-          <button class="fpill fpill-yellow fpill-depot" data-depot="ext" onclick="toggleDepotPill(this)" style="flex:1;justify-content:center;">Hors dépôt</button>
-        </div>
-      </div>
-    </div>
-    <!-- Zone & Allée -->
-    <div class="fd-section open" id="mob-sec-zone">
-      <div class="fd-section-body" style="padding-top:6px;">
-        <div class="frow">
-          <div class="frow-col"><label class="fl">Allée</label><input class="fi" type="number" id="f-zone-num-mob" placeholder="n°" oninput="syncMobFilter('f-zone-num','f-zone-num-mob')"></div>
-          <div class="frow-col"><label class="fl">Zone</label><input class="fi" type="text" id="f-zone-let-mob" placeholder="A, B, C…" oninput="syncMobFilter('f-zone-let','f-zone-let-mob')" style="text-transform:uppercase;"></div>
         </div>
       </div>
     </div>
@@ -835,6 +812,6 @@
 <div class="spin-bg" id="spinner"><div class="spin"></div></div>
 
 <script src="/analytics.js?v=1"></script>
-<script src="/catalogue.js?v=345"></script>
+<script src="/catalogue.js?v=359"></script>
 </body>
 </html>
