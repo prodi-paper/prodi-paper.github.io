@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://stock.prodi.net https://paper.prodi.com https://prodi-paper.github.io https://images.unsplash.com; connect-src 'self' https://bvcgpdoukhcatjibmvnb.supabase.co https://api.emailjs.com https://cdn.jsdelivr.net https://stock.prodi.net https://images.weserv.nl; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://stock.prodi.net https://paper.prodi.com https://prodi-paper.github.io https://images.unsplash.com; connect-src 'self' https://bvcgpdoukhcatjibmvnb.supabase.co https://prodi-arrivages.vercel.app https://api.emailjs.com https://cdn.jsdelivr.net https://stock.prodi.net https://images.weserv.nl; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <link rel="icon" type="image/png" href="/img/panda.png">
@@ -83,7 +83,7 @@
 <link rel="preconnect" href="https://bvcgpdoukhcatjibmvnb.supabase.co">
 <link rel="dns-prefetch" href="https://stock.prodi.net">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/catalogue.css?v=368">
+<link rel="stylesheet" href="/catalogue.css?v=371">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4.4.1/dist/email.min.js" integrity="sha384-SALc35EccAf6RzGw4iNsyj7kTPr33K7RoGzYu+7heZhT8s0GZouafRiCg1qy44AS" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -127,7 +127,7 @@
     <div class="hright">
       <div class="cart-wrap">
         <button class="btn-head btn-head-panier" onclick="openCartDrawer()" id="cart-btn" title="Ma Liste">
-          <img src="/img/truck2.png" alt="truck" style="height:30px;width:auto;vertical-align:-6px;"> <span class="btn-panier-txt">Ma Liste</span>
+          <span class="btn-panier-txt" style="font-size:19px;font-weight:800;">Liste</span>
           <span class="cart-badge" id="cart-badge" aria-live="polite" aria-label="Produits dans la liste">0</span>
         </button>
       </div>
@@ -298,21 +298,45 @@
           <div class="msd-panel"></div>
         </div>
       </div>
+      <!-- Grammage : familles ±5 g (16/07). Min/Max gardés CACHÉS (fb bar/RPC). -->
+      <input type="number" id="f-gmin" style="display:none"><input type="number" id="f-gmax" style="display:none">
       <div class="fg">
-        <div class="nmr-row"><label class="fl"><span>Grammage</span> <span class="nmr-unit">(g/m²)</span></label></div>
-        <div class="nmr-wrap"><input type="number" class="nmr-in" id="f-gmin" placeholder="Min" min="0" oninput="filterProducts()"><span class="nmr-sep">—</span><input type="number" class="nmr-in" id="f-gmax" placeholder="Max" min="0" oninput="filterProducts()"></div>
+        <div class="msd" id="sb-msd-grammage">
+          <button class="msd-btn" data-msd-id="msd-grammage" onclick="toggleMsd('sb-msd-grammage')">
+            <span class="msd-btn-label">Grammages</span><span class="msd-arrow">▾</span>
+          </button>
+          <div class="msd-panel"></div>
+        </div>
       </div>
+      <!-- Laize : familles ±15 mm (16/07). Min/Max gardés CACHÉS (fb bar). -->
+      <input type="number" id="f-lmin" style="display:none"><input type="number" id="f-lmax" style="display:none">
       <div class="fg" id="sb-sec-laize">
-        <div class="nmr-row"><label class="fl" id="sb-laize-lbl"><span>Laize</span> <span class="nmr-unit">(mm)</span></label></div>
-        <div class="nmr-wrap"><input type="number" class="nmr-in" id="f-lmin" placeholder="Min" min="0" oninput="filterProducts()"><span class="nmr-sep">—</span><input type="number" class="nmr-in" id="f-lmax" placeholder="Max" min="0" oninput="filterProducts()"></div>
+        <div class="msd" id="sb-msd-laize">
+          <button class="msd-btn" data-msd-id="msd-laize" onclick="toggleMsd('sb-msd-laize')">
+            <span class="msd-btn-label">Laizes</span><span class="msd-arrow">▾</span>
+          </button>
+          <div class="msd-panel"></div>
+        </div>
       </div>
+      <!-- Longueur → Ø bobine (familles ±25 mm) ; Poids → tranches (16/07).
+           Inputs gardés CACHÉS (lecteurs JS optionnels). -->
+      <input type="number" id="f-longmin" style="display:none"><input type="number" id="f-longmax" style="display:none">
+      <input type="number" id="f-wmin" style="display:none"><input type="number" id="f-wmax" style="display:none">
       <div class="fg" id="sb-sec-longueur">
-        <div class="nmr-row"><label class="fl"><span>Longueur</span> <span class="nmr-unit">(mm)</span></label></div>
-        <div class="nmr-wrap"><input type="number" class="nmr-in" id="f-longmin" placeholder="Min" min="0" oninput="filterProducts()"><span class="nmr-sep">—</span><input type="number" class="nmr-in" id="f-longmax" placeholder="Max" min="0" oninput="filterProducts()"></div>
+        <div class="msd" id="sb-msd-diametre">
+          <button class="msd-btn" data-msd-id="msd-diametre" onclick="toggleMsd('sb-msd-diametre')">
+            <span class="msd-btn-label">Diamètre (Ø)</span><span class="msd-arrow">▾</span>
+          </button>
+          <div class="msd-panel"></div>
+        </div>
       </div>
       <div class="fg">
-        <div class="nmr-row"><label class="fl"><span>Poids</span> <span class="nmr-unit">(KG)</span></label></div>
-        <div class="nmr-wrap"><input type="number" class="nmr-in" id="f-wmin" placeholder="Min" min="0" oninput="filterProducts()"><span class="nmr-sep">—</span><input type="number" class="nmr-in" id="f-wmax" placeholder="Max" min="0" oninput="filterProducts()"></div>
+        <div class="msd" id="sb-msd-poids">
+          <button class="msd-btn" data-msd-id="msd-poids" onclick="toggleMsd('sb-msd-poids')">
+            <span class="msd-btn-label">Poids</span><span class="msd-arrow">▾</span>
+          </button>
+          <div class="msd-panel"></div>
+        </div>
       </div>
       <!-- PRIX_MASQUÉ: filtre prix sidebar masqué -->
       <div class="fg" style="display:none">
@@ -323,9 +347,15 @@
            = source de vérité, la barre écrit dedans via syncMobFilter. -->
       <input type="number" id="f-refmin" style="display:none"><input type="number" id="f-refmax" style="display:none">
 
+      <!-- Réf usine : multi-sélection avec recherche (16/07). Input caché. -->
+      <input type="number" id="f-usine" style="display:none">
       <div class="fg">
-        <div class="nmr-row"><label class="fl">Référence usine</label></div>
-        <div class="nmr-wrap nmr-wrap-single"><input type="number" class="nmr-in" id="f-usine" placeholder="N° usine" min="0" oninput="filterProducts()"></div>
+        <div class="msd" id="sb-msd-usine">
+          <button class="msd-btn" data-msd-id="msd-usine" onclick="toggleMsd('sb-msd-usine')">
+            <span class="msd-btn-label">Réf usine</span><span class="msd-arrow">▾</span>
+          </button>
+          <div class="msd-panel"></div>
+        </div>
       </div>
       <div class="fg" style="border-top:2px solid var(--border);margin-top:14px;padding-top:14px;">
         <div class="format-pills" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
@@ -370,12 +400,12 @@
         <div class="pager pager-top" id="pager-top"></div>
         <div class="rbar-sort">
           <select class="rbar-sel" id="sort-sel" onchange="filterProducts()">
-            <option value="price_asc">Prix ↑</option>
-            <option value="price_desc">Prix ↓</option>
-            <option value="gsm_asc" selected>Grammage ↑</option>
-            <option value="gsm_desc">Grammage ↓</option>
-            <option value="ref_asc">Arrivage ↑</option>
-            <option value="ref_desc">Arrivage ↓</option>
+            <option value="price_asc">Prix : moins cher d’abord</option>
+            <option value="price_desc">Prix : plus cher d’abord</option>
+            <option value="gsm_asc" selected>Grammage : léger → lourd</option>
+            <option value="gsm_desc">Grammage : lourd → léger</option>
+            <option value="ref_asc">Arrivage : plus anciens</option>
+            <option value="ref_desc">Arrivage : plus récents</option>
           </select>
         </div>
         <button class="rbar-reset" id="rbar-reset" onclick="resetFilters()" style="display:none">Réinitialiser</button>
@@ -386,12 +416,12 @@
       <div class="sort-wrap">
         <span class="sort-lbl">Trier :</span>
         <select class="sort-sel" id="sort-select" onchange="filterProducts()">
-          <option value="prix_asc">Prix ↑</option>
-          <option value="prix_desc">Prix ↓</option>
-          <option value="grammage_asc" selected>Grammage ↑</option>
-          <option value="grammage_desc">Grammage ↓</option>
-          <option value="ref_asc">Arrivage ↑</option>
-          <option value="ref_desc">Arrivage ↓</option>
+          <option value="prix_asc">Prix : moins cher d’abord</option>
+          <option value="prix_desc">Prix : plus cher d’abord</option>
+          <option value="grammage_asc" selected>Grammage : léger → lourd</option>
+          <option value="grammage_desc">Grammage : lourd → léger</option>
+          <option value="ref_asc">Arrivage : plus anciens</option>
+          <option value="ref_desc">Arrivage : plus récents</option>
         </select>
         <button class="vt-toggle-btn add-page-btn" onclick="addPageToCart()" title="Ajouter tous les produits de la page à la liste">
           <svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="7" y1="2" x2="7" y2="12"/><line x1="2" y1="7" x2="12" y2="7"/></svg>
@@ -459,10 +489,7 @@
       <div class="drawer-meta" id="drawer-meta">—</div>
     </div>
     <div class="drawer-head-actions">
-      <button class="dh-icon-btn" onclick="openImportRefs()" title="Album photo" aria-label="Album photo" style="width:auto;padding:0 10px;gap:6px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;letter-spacing:.2px;white-space:nowrap;">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
-        Album photo
-      </button>
+      <button class="dh-clear-btn" onclick="openImportRefs()" title="Album photo" aria-label="Album photo">Album photo</button>
       <button class="dh-clear-btn" onclick="doClearCart()" title="Vider la liste">Vider la liste</button>
       <button class="dh-close-btn" onclick="closeCartDrawer()" aria-label="Fermer">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -692,9 +719,12 @@
         <span class="fd-section-title">Grammage (g/m²)</span><span class="fd-section-arrow">▾</span>
       </div>
       <div class="fd-section-body" style="padding-top:6px;">
-        <div class="frow">
-          <div class="fi-unit-wrap"><input class="fi" type="number" id="f-gmin-mob" placeholder="min" oninput="syncMobFilter('f-gmin','f-gmin-mob')"><span class="fi-unit">g/m²</span></div>
-          <div class="fi-unit-wrap"><input class="fi" type="number" id="f-gmax-mob" placeholder="max" oninput="syncMobFilter('f-gmax','f-gmax-mob')"><span class="fi-unit">g/m²</span></div>
+        <div class="msd" id="msd-grammage-mob">
+          <button class="msd-btn" data-msd-id="msd-grammage" onclick="toggleMsd('msd-grammage-mob')">
+            <span class="msd-btn-label">Grammages</span>
+            <span class="msd-arrow">▾</span>
+          </button>
+          <div class="msd-panel"></div>
         </div>
       </div>
     </div>
@@ -704,33 +734,42 @@
         <span class="fd-section-title" id="mob-laize-title">Laize (mm)</span><span class="fd-section-arrow">▾</span>
       </div>
       <div class="fd-section-body" style="padding-top:6px;">
-        <div class="frow">
-          <input class="fi" type="number" id="f-lmin-mob" placeholder="min cm" oninput="syncMobFilter('f-lmin','f-lmin-mob')">
-          <input class="fi" type="number" id="f-lmax-mob" placeholder="max cm" oninput="syncMobFilter('f-lmax','f-lmax-mob')">
+        <div class="msd" id="msd-laize-mob">
+          <button class="msd-btn" data-msd-id="msd-laize" onclick="toggleMsd('msd-laize-mob')">
+            <span class="msd-btn-label">Laizes</span>
+            <span class="msd-arrow">▾</span>
+          </button>
+          <div class="msd-panel"></div>
         </div>
       </div>
     </div>
     <!-- Longueur -->
     <div class="fd-section open" id="mob-sec-longueur">
       <div class="fd-section-head" onclick="toggleFdSection(this)">
-        <span class="fd-section-title">Longueur (mm)</span><span class="fd-section-arrow">▾</span>
+        <span class="fd-section-title">Diamètre (Ø)</span><span class="fd-section-arrow">▾</span>
       </div>
       <div class="fd-section-body" style="padding-top:6px;">
-        <div class="frow">
-          <input class="fi" type="number" id="f-longmin-mob" placeholder="min cm" oninput="syncMobFilter('f-longmin','f-longmin-mob')">
-          <input class="fi" type="number" id="f-longmax-mob" placeholder="max cm" oninput="syncMobFilter('f-longmax','f-longmax-mob')">
+        <div class="msd" id="msd-diametre-mob">
+          <button class="msd-btn" data-msd-id="msd-diametre" onclick="toggleMsd('msd-diametre-mob')">
+            <span class="msd-btn-label">Diamètre (Ø)</span>
+            <span class="msd-arrow">▾</span>
+          </button>
+          <div class="msd-panel"></div>
         </div>
       </div>
     </div>
     <!-- Poids -->
     <div class="fd-section open" id="mob-sec-poids">
       <div class="fd-section-head" onclick="toggleFdSection(this)">
-        <span class="fd-section-title">Poids (KG)</span><span class="fd-section-arrow">▾</span>
+        <span class="fd-section-title">Poids</span><span class="fd-section-arrow">▾</span>
       </div>
       <div class="fd-section-body" style="padding-top:6px;">
-        <div class="frow">
-          <input class="fi" type="number" id="f-wmin-mob" placeholder="min kg" oninput="syncMobFilter('f-wmin','f-wmin-mob')">
-          <input class="fi" type="number" id="f-wmax-mob" placeholder="max kg" oninput="syncMobFilter('f-wmax','f-wmax-mob')">
+        <div class="msd" id="msd-poids-mob">
+          <button class="msd-btn" data-msd-id="msd-poids" onclick="toggleMsd('msd-poids-mob')">
+            <span class="msd-btn-label">Poids</span>
+            <span class="msd-arrow">▾</span>
+          </button>
+          <div class="msd-panel"></div>
         </div>
       </div>
     </div>
@@ -747,7 +786,13 @@
     <!-- Référence usine -->
     <div class="fd-section open">
       <div class="fd-section-body" style="padding-top:6px;">
-        <input class="fi" type="number" id="f-usine-mob" placeholder="N° usine" oninput="syncMobFilter('f-usine','f-usine-mob')">
+        <div class="msd" id="msd-usine-mob">
+          <button class="msd-btn" data-msd-id="msd-usine" onclick="toggleMsd('msd-usine-mob')">
+            <span class="msd-btn-label">Réf usine</span>
+            <span class="msd-arrow">▾</span>
+          </button>
+          <div class="msd-panel"></div>
+        </div>
       </div>
     </div>
     <!-- Photo -->
@@ -783,10 +828,10 @@
   </div>
 </div>
 
-<!-- Floating WhatsApp button -->
-<a href="https://wa.me/33609997407?text=Bonjour%2C%20je%20voudrais%20recevoir%20une%20offre%20pour%20du%20papier%20%2F%20carton." target="_blank" rel="noopener" class="fab-contact" aria-label="WhatsApp">
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
-</a>
+<!-- Bouton flottant PRODIX (IA offre) — remplace le WhatsApp (17/07) -->
+<button class="fab-contact fab-prodix" onclick="openProdix()" aria-label="PRODIX — assistant offre" title="PRODIX — je te compose une offre">
+  <span style="font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px;line-height:1;">PRO<br>DIX</span>
+</button>
 <div class="toast" id="toast" role="alert" aria-live="assertive"></div>
 <div id="search-suggest" class="search-suggest"></div>
 
@@ -812,6 +857,6 @@
 <div class="spin-bg" id="spinner"><div class="spin"></div></div>
 
 <script src="/analytics.js?v=1"></script>
-<script src="/catalogue.js?v=366"></script>
+<script src="/catalogue.js?v=399"></script>
 </body>
 </html>

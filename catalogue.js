@@ -933,12 +933,20 @@ async function init(){
   buildMsdOptions('msd-mandrin',['70','76','150','152'],'Mandrins',v=>v+' mm');
   buildMsdOptions('sb-msd-mandrin',['70','76','150','152'],'Mandrins',v=>v+' mm','msd-mandrin');
   buildMsdOptions('sb-msd-format',FORMAT_OPTIONS,'Formats',v=>v===FORMAT_AUTRES?'Autres formats':v,'msd-format');
+  buildMsdOptions('sb-msd-grammage',GRAMMAGE_OPTIONS,'Grammages',v=>v===GRAMMAGE_AUTRES?'Autres grammages':v,'msd-grammage');
+  buildMsdOptions('sb-msd-laize',LAIZE_OPTIONS,'Laizes',v=>v===LAIZE_AUTRES?'Autres laizes':v,'msd-laize');
+  buildMsdOptions('sb-msd-diametre',DIAM_OPTIONS,'Diamètre (Ø)',v=>v===DIAM_AUTRES?'Autres Ø':v,'msd-diametre');
+  buildMsdOptions('sb-msd-poids',POIDS_OPTIONS,'Poids','msd-poids'===''?null:undefined,'msd-poids');
 
   // Also build mobile msd panels (msd-type-mob, msd-mandrin-mob, msd-couleur-mob)
   buildMsdOptions('msd-type-mob',QUALITE_CODES,'Tous',_typeLabel,'msd-type');
   buildMsdOptions('msd-couleur-mob',couleurVals,'Couleurs',null,'msd-couleur');
   buildMsdOptions('msd-mandrin-mob',['70','76','150','152'],'Mandrins',v=>v+' mm','msd-mandrin');
   buildMsdOptions('msd-format-mob',FORMAT_OPTIONS,'Formats',v=>v===FORMAT_AUTRES?'Autres formats':v,'msd-format');
+  buildMsdOptions('msd-grammage-mob',GRAMMAGE_OPTIONS,'Grammages',v=>v===GRAMMAGE_AUTRES?'Autres grammages':v,'msd-grammage');
+  buildMsdOptions('msd-laize-mob',LAIZE_OPTIONS,'Laizes',v=>v===LAIZE_AUTRES?'Autres laizes':v,'msd-laize');
+  buildMsdOptions('msd-diametre-mob',DIAM_OPTIONS,'Diamètre (Ø)',v=>v===DIAM_AUTRES?'Autres Ø':v,'msd-diametre');
+  buildMsdOptions('msd-poids-mob',POIDS_OPTIONS,'Poids',undefined,'msd-poids');
 
   // Pre-fill from URL params (coming from vitrine)
   const _urlParams = new URLSearchParams(window.location.search);
@@ -988,6 +996,11 @@ const msdState = {
   'msd-couleur': new Set(),
   'msd-details': new Set(),
   'msd-format': new Set(),
+  'msd-grammage': new Set(),
+  'msd-laize': new Set(),
+  'msd-usine': new Set(),
+  'msd-diametre': new Set(),
+  'msd-poids': new Set(),
 };
 const msdLabels = {
   'msd-type': 'Type de papier',
@@ -995,6 +1008,11 @@ const msdLabels = {
   'msd-couleur': 'Couleurs',
   'msd-details': 'Détails',
   'msd-format': 'Formats',
+  'msd-grammage': 'Grammages',
+  'msd-laize': 'Laizes',
+  'msd-usine': 'Réf usine',
+  'msd-diametre': 'Diamètre (Ø)',
+  'msd-poids': 'Poids',
 };
 // ── FAMILLES DE FORMATS (16/07) : dimensions feuilles regroupées à ±20 mm,
 // sens ignoré (520×720 = 720×520). Anchors = les formats du fond de stock.
@@ -1021,6 +1039,86 @@ function _fmtPg(f){
   const c1=`and(width.gte.${a-t},width.lte.${a+t},longueur.gte.${b-t},longueur.lte.${b+t})`;
   const c2=`and(width.gte.${b-t},width.lte.${b+t},longueur.gte.${a-t},longueur.lte.${a+t})`;
   return `and(format.neq.Bobine,or(${c1},${c2}))`;
+}
+// ── FAMILLES DE GRAMMAGES (16/07) : ±5 g/m², ancres = grammages du stock
+// (familles ≥30 produits). Sans grammage ou hors familles → Autres.
+const GRAMMAGE_TOL=5;
+const GRAMMAGE_FAMILLES=[17,32,40,52,60,70,80,90,100,110,120,130,140,150,160,170,180,190,200,220,240,250,275,300,325,350,400,850];
+const GRAMMAGE_AUTRES='__gsm_autres__';
+const _gsmLbl=g=>g+' g/m²';
+const GRAMMAGE_OPTIONS=[80,70,90,60,100].map(_gsmLbl)
+  .concat(GRAMMAGE_FAMILLES.filter(g=>![80,70,90,60,100].includes(g)).map(_gsmLbl))
+  .concat([GRAMMAGE_AUTRES]);
+function _grammageFamilleOf(row){
+  const g=+row.gsm||0;
+  if(!g)return GRAMMAGE_AUTRES;
+  for(const a of GRAMMAGE_FAMILLES){
+    if(Math.abs(g-a)<=GRAMMAGE_TOL)return _gsmLbl(a);
+  }
+  return GRAMMAGE_AUTRES;
+}
+function _gsmPg(a){
+  return `and(gsm.gte.${a-GRAMMAGE_TOL},gsm.lte.${a+GRAMMAGE_TOL})`;
+}
+// ── FAMILLES DE LAIZES bobines (16/07) : ±15 mm — le grain du métier
+// (900 rejoint 915, mais 1000 et 1020 restent séparées). Bobines uniquement.
+const LAIZE_TOL=10;
+const LAIZE_FAMILLES=[105,180,200,250,300,330,380,400,420,450,480,500,533,560,580,610,650,670,700,720,762,800,850,880,915,960,980,1000,1020,1050,1160,1200,1220,1236,1280,1320,1370,1473,1500,1710,2018,2045];
+const LAIZE_AUTRES='__laize_autres__';
+const _laizeLbl=v=>v+' mm';
+const LAIZE_OPTIONS=[915,1050,1000,850,450].map(_laizeLbl)
+  .concat(LAIZE_FAMILLES.filter(v=>![915,1050,1000,850,450].includes(v)).map(_laizeLbl))
+  .concat([LAIZE_AUTRES]);
+function _laizeFamilleOf(row){
+  if(String(row.format||'')!=='Bobine')return null;
+  const w=+row.width||0;
+  if(!w)return LAIZE_AUTRES;
+  for(const a of LAIZE_FAMILLES){
+    if(Math.abs(w-a)<=LAIZE_TOL)return _laizeLbl(a);
+  }
+  return LAIZE_AUTRES;
+}
+function _laizePg(a){
+  return `and(format.eq.Bobine,width.gte.${a-LAIZE_TOL},width.lte.${a+LAIZE_TOL})`;
+}
+// ── DIAMÈTRES bobines (16/07) : ±25 mm — les Ø sont standardisés (1000, 1200…).
+const DIAM_TOL=25;
+const DIAM_FAMILLES=[150,300,350,400,450,500,550,600,650,700,750,800,850,900,940,1000,1050,1100,1150,1200,1250,1300,1350,1400,1470,1500,1950];
+const DIAM_AUTRES='__diam_autres__';
+const _diamLbl=v=>'Ø '+v+' mm';
+const DIAM_OPTIONS=[1000,1200,1250,940,1100].map(_diamLbl)
+  .concat(DIAM_FAMILLES.filter(v=>![1000,1200,1250,940,1100].includes(v)).map(_diamLbl))
+  .concat([DIAM_AUTRES]);
+function _diamFamilleOf(row){
+  if(String(row.format||'')!=='Bobine')return null;
+  const d=+row.longueur||0;
+  if(!d)return DIAM_AUTRES;
+  for(const a of DIAM_FAMILLES){
+    if(Math.abs(d-a)<=DIAM_TOL)return _diamLbl(a);
+  }
+  return DIAM_AUTRES;
+}
+function _diamPg(a){
+  return `and(format.eq.Bobine,longueur.gte.${a-DIAM_TOL},longueur.lte.${a+DIAM_TOL})`;
+}
+// ── POIDS : tranches logistiques fixes (manutention / conteneur).
+const POIDS_TRANCHES=[
+ {label:'< 250 kg',min:0,max:250},
+ {label:'250 – 500 kg',min:250,max:500},
+ {label:'500 – 750 kg',min:500,max:750},
+ {label:'750 – 1000 kg',min:750,max:1000},
+ {label:'1 – 1,5 T',min:1000,max:1500},
+ {label:'> 1,5 T',min:1500,max:99999},
+];
+const POIDS_OPTIONS=POIDS_TRANCHES.map(t=>t.label);
+function _poidsTrancheOf(row){
+  const w=+row.weight||+row.poids_net||0;
+  if(!w)return null;
+  const t=POIDS_TRANCHES.find(t=>w>=t.min&&w<t.max);
+  return t?t.label:null;
+}
+function _poidsPg(t){
+  return `and(weight.gte.${t.min},weight.lt.${t.max})`;
 }
 const QUALITE_CODES=['R1SC','R2SC','RADH','RAFF','RBOA','RBON','RBOU','RCAR','ROFF','Offset Couleur','Dossier Couleur','RCUI','RDIV','RFLEX','RKDO','RKRA','RKRABRUN','RKRG','RKRR','RLINER','RLUX','RLWC','RNEW','RPAC','RPLA','RSIL','RTHERM','RTIS','S1SC','S2SC','SADH','SAFF','SBOA','SBON','SBOU','SCAR','SCOL','SCUT','SDIV','SENV','SKDO','SKRA','SLUX','SLWC','SNEW','SOFF','SPAC','SPLA','SSBS','SSPE','SINK','UMAC','AUTRES'];
 // Real DB quality codes: strip the 'AUTRES' sentinel and expand the
@@ -1551,6 +1649,26 @@ function _matchesActiveFilters(row, excludeKey){
     const fmts=getMsdValues('msd-format');
     if(fmts.size>0 && !fmts.has(_formatFamilleOf(row)||'')) return false;
   }
+  if(excludeKey!=='msd-grammage'){
+    const gsms=getMsdValues('msd-grammage');
+    if(gsms.size>0 && !gsms.has(_grammageFamilleOf(row)||'')) return false;
+  }
+  if(excludeKey!=='msd-laize'){
+    const lzs=getMsdValues('msd-laize');
+    if(lzs.size>0 && !lzs.has(_laizeFamilleOf(row)||'')) return false;
+  }
+  if(excludeKey!=='msd-usine'){
+    const usines=getMsdValues('msd-usine');
+    if(usines.size>0 && !usines.has(String(row.usine||'').trim())) return false;
+  }
+  if(excludeKey!=='msd-diametre'){
+    const dms=getMsdValues('msd-diametre');
+    if(dms.size>0 && !dms.has(_diamFamilleOf(row)||'')) return false;
+  }
+  if(excludeKey!=='msd-poids'){
+    const pds=getMsdValues('msd-poids');
+    if(pds.size>0 && !pds.has(_poidsTrancheOf(row)||'')) return false;
+  }
   const gn=+document.getElementById('f-gmin')?.value||0;
   const gx=+document.getElementById('f-gmax')?.value||0;
   if(gn && +row.gsm<gn) return false;
@@ -1608,6 +1726,21 @@ function _optMatchesValue(row, msdId, val){
   }
   if(msdId==='msd-format'){
     return _formatFamilleOf(row)===val;
+  }
+  if(msdId==='msd-grammage'){
+    return _grammageFamilleOf(row)===val;
+  }
+  if(msdId==='msd-laize'){
+    return _laizeFamilleOf(row)===val;
+  }
+  if(msdId==='msd-usine'){
+    return String(row.usine||'').trim()===val;
+  }
+  if(msdId==='msd-diametre'){
+    return _diamFamilleOf(row)===val;
+  }
+  if(msdId==='msd-poids'){
+    return _poidsTrancheOf(row)===val;
   }
   if(msdId==='msd-type'){
     const q=row.quality||'';
@@ -1674,12 +1807,34 @@ function _updateMsdFacetCounts(msdId){
     }
   });
 }
+// Réf usine : options construites depuis le cache (valeurs du stock du jour),
+// triées par nombre de produits — la barre de recherche vient de buildMsdOptions.
+let _usineOptionsBuilt=false;
+function _buildUsineOptions(){
+  if(_usineOptionsBuilt||!_allProductsCache)return;
+  const cnt=new Map();
+  _allProductsCache.forEach(r=>{
+    const u=String(r.usine||'').trim();
+    if(u)cnt.set(u,(cnt.get(u)||0)+1);
+  });
+  const vals=[...cnt.entries()].sort((a,b)=>b[1]-a[1]).map(([u])=>u);
+  if(!vals.length)return;
+  buildMsdOptions('sb-msd-usine',vals,'Réf usine',undefined,'msd-usine');
+  buildMsdOptions('msd-usine-mob',vals,'Réf usine',undefined,'msd-usine');
+  _usineOptionsBuilt=true;
+}
 function _refreshAllFacets(){
+  _buildUsineOptions();
   _rebuildDetailsMsd();
   _updateMsdFacetCounts('msd-type');
   _updateMsdFacetCounts('msd-couleur');
   _updateMsdFacetCounts('msd-mandrin');
   _updateMsdFacetCounts('msd-format');
+  _updateMsdFacetCounts('msd-grammage');
+  _updateMsdFacetCounts('msd-laize');
+  _updateMsdFacetCounts('msd-usine');
+  _updateMsdFacetCounts('msd-diametre');
+  _updateMsdFacetCounts('msd-poids');
 }
 function _detailsFiltersSig(){
   // Signature of all filters EXCEPT msd-details — used to skip rebuild
@@ -2290,6 +2445,46 @@ async function _fetchAndRender(token){
     }
     if(_fcl.length)p.append('or',`(${_fcl.join(',')})`);
   }
+  const gsmSel=getMsdValues('msd-grammage');
+  if(gsmSel.size>0){
+    const _gcl=[];
+    GRAMMAGE_FAMILLES.forEach(a=>{if(gsmSel.has(_gsmLbl(a)))_gcl.push(_gsmPg(a));});
+    if(gsmSel.has(GRAMMAGE_AUTRES)){
+      const t=GRAMMAGE_TOL;
+      _gcl.push(`or(gsm.is.null,and(${GRAMMAGE_FAMILLES.map(a=>`or(gsm.lt.${a-t},gsm.gt.${a+t})`).join(',')}))`);
+    }
+    if(_gcl.length)p.append('or',`(${_gcl.join(',')})`);
+  }
+  const lzSel=getMsdValues('msd-laize');
+  if(lzSel.size>0){
+    const _lcl=[];
+    LAIZE_FAMILLES.forEach(a=>{if(lzSel.has(_laizeLbl(a)))_lcl.push(_laizePg(a));});
+    if(lzSel.has(LAIZE_AUTRES)){
+      const t=LAIZE_TOL;
+      _lcl.push(`and(format.eq.Bobine,or(width.is.null,and(${LAIZE_FAMILLES.map(a=>`or(width.lt.${a-t},width.gt.${a+t})`).join(',')})))`);
+    }
+    if(_lcl.length)p.append('or',`(${_lcl.join(',')})`);
+  }
+  const usSel=getMsdValues('msd-usine');
+  if(usSel.size>0){
+    const _uq=[...usSel].map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',');
+    p.append('usine',`in.(${_uq})`);
+  }
+  const dmSel=getMsdValues('msd-diametre');
+  if(dmSel.size>0){
+    const _dcl=[];
+    DIAM_FAMILLES.forEach(a=>{if(dmSel.has(_diamLbl(a)))_dcl.push(_diamPg(a));});
+    if(dmSel.has(DIAM_AUTRES)){
+      const t=DIAM_TOL;
+      _dcl.push(`and(format.eq.Bobine,or(longueur.is.null,and(${DIAM_FAMILLES.map(a=>`or(longueur.lt.${a-t},longueur.gt.${a+t})`).join(',')})))`);
+    }
+    if(_dcl.length)p.append('or',`(${_dcl.join(',')})`);
+  }
+  const pdSel=getMsdValues('msd-poids');
+  if(pdSel.size>0){
+    const _pcl=POIDS_TRANCHES.filter(t=>pdSel.has(t.label)).map(_poidsPg);
+    if(_pcl.length)p.append('or',`(${_pcl.join(',')})`);
+  }
   const zoneNum=(document.getElementById('f-zone-num')?.value||'').trim();
   const zoneLet=(document.getElementById('f-zone-let')?.value||'').trim().toUpperCase();
   if(zoneNum&&zoneLet)p.append('zone',`ilike.${_pgEsc(zoneNum)}${_pgEsc(zoneLet)}%`);
@@ -2592,11 +2787,11 @@ function updateFilterChips(){
   if(_activeOrigs.length>0)chips.push({label:('Origine')+' : '+_activeOrigs.join(', '),clear:()=>{document.querySelectorAll('.fpill-orig.active').forEach(b=>b.classList.remove('active'));filterProducts();}});
   if(_photoFilter)chips.push({label:_photoFilter==='with'?'Avec photo':'Sans photo',clear:()=>{_photoFilter='';syncFilterPills();filterProducts();}});
   if(_activeFmts.length>0)chips.push({label:_activeFmts.map(f=>f==='Bobine'?'Bobine':f==='Palette'?'Format':f).join(', '),clear:()=>{_formatFilter='';syncFilterPills();filterProducts();}});
-  ['msd-type','msd-mandrin','msd-couleur','msd-details','msd-format'].forEach(id=>{
+  ['msd-type','msd-mandrin','msd-couleur','msd-details','msd-format','msd-grammage','msd-laize','msd-usine','msd-diametre','msd-poids'].forEach(id=>{
     const set=msdState[id];
     if(set.size>0){
-      const lbl={'msd-type':'Type','msd-mandrin':'Mandrin','msd-couleur':'Couleur','msd-details':'Détails','msd-format':'Format'}[id];
-      const vals=[...set].map(v=>v===DETAILS_NONE?'Sans détails':v===DETAILS_AUTRES?'Autres':v===FORMAT_AUTRES?'Autres formats':v).join(', ');
+      const lbl={'msd-type':'Type','msd-mandrin':'Mandrin','msd-couleur':'Couleur','msd-details':'Détails','msd-format':'Format','msd-grammage':'Grammage','msd-laize':'Laize','msd-usine':'Usine','msd-diametre':'Ø','msd-poids':'Poids'}[id];
+      const vals=[...set].map(v=>v===DETAILS_NONE?'Sans détails':v===DETAILS_AUTRES?'Autres':v===FORMAT_AUTRES?'Autres formats':v===GRAMMAGE_AUTRES?'Autres grammages':v===LAIZE_AUTRES?'Autres laizes':v===DIAM_AUTRES?'Autres Ø':v).join(', ');
       chips.push({label:lbl+' : '+vals,clear:()=>{resetMsd(id);filterProducts();}});
     }
   });
@@ -3202,7 +3397,7 @@ function resetFilters(){
     document.querySelectorAll('.msd-option.selected').forEach(o=>o.classList.remove('selected'));
 
     // 3. Reset all msd button labels
-    ['msd-type','msd-mandrin','msd-couleur','msd-details','msd-format'].forEach(id=>{
+    ['msd-type','msd-mandrin','msd-couleur','msd-details','msd-format','msd-grammage','msd-laize','msd-usine','msd-diametre','msd-poids'].forEach(id=>{
       // fbar button
       const fbBtn=document.querySelector(`#${id} .fb-msd-btn`);
       if(fbBtn){ const lbl=fbBtn.querySelector('span:first-child');if(lbl)lbl.textContent=msdLabels[id]; }
@@ -3252,7 +3447,11 @@ function toggleMobFilters(){
 }
 
 // ── PANIER (DRAWER) ──
-let cart=(()=>{try{return JSON.parse(localStorage.getItem('prodi_cart'))||[];}catch(_){return[];}})();
+// La liste repart de ZÉRO à chaque chargement (17/07) — plus de restauration
+// depuis le cache. Le lien partagé (?s=) la remplit juste après, et les écritures
+// localStorage restent (état interne de la session en cours).
+let cart=[];
+try{localStorage.removeItem('prodi_cart');}catch(_){/* stockage indisponible */}
 
 function updateCartBadge(){
   const badge=document.getElementById('cart-badge');
@@ -3686,6 +3885,63 @@ async function _extractTextFromFile(file){
     return (xml||'').replace(/<[^>]+>/g,' ');
   }
   return file.text(); // txt, csv, et tout format texte
+}
+
+// ── PRODIX : l'IA compose une offre (remplit Ma Liste) ──────────────────────
+// « Fais-moi une offre pour du papier SBS » / « un container d'offset 80 g en
+// bobine ». L'API (prodi-arrivages.vercel.app) traduit la demande en critères
+// et renvoie une liste de réfs — on la déverse dans le flux d'import existant.
+const PRODIX_API='https://prodi-arrivages.vercel.app/api/prodix-offre';
+function openProdix(){
+  const existing=document.getElementById('prodix-bg');
+  if(existing)existing.remove();
+  const d=document.createElement('div');
+  d.id='prodix-bg';
+  d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;display:flex;align-items:center;justify-content:center;padding:16px;';
+  d.innerHTML=`<div style="background:#fff;border-radius:16px;padding:32px;max-width:600px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2);">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;margin-bottom:4px;">PRODIX <span style="color:#FE0000;">— OFFRE EXPRESS</span></div>
+    <div style="font-size:15px;color:#999;margin-bottom:14px;">Dis-moi ce que tu veux, je remplis la liste. Ex : « une offre de papier SBS », « un container d'offset 80 g en bobine », « 10 tonnes de kraft brun ».</div>
+    <textarea id="prodix-input" style="width:100%;min-height:80px;padding:14px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:16px;font-family:'DM Sans',sans-serif;resize:vertical;box-sizing:border-box;" placeholder="Fais-moi une offre pour…"></textarea>
+    <div id="prodix-result" style="font-size:15px;margin-top:8px;min-height:22px;"></div>
+    <div style="display:flex;gap:10px;margin-top:12px;">
+      <button onclick="_doProdix()" id="prodix-btn" style="flex:2;padding:14px;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:1.2px;cursor:pointer;">COMPOSER L'OFFRE</button>
+      <button onclick="document.getElementById('prodix-bg').remove();" style="padding:14px 18px;background:transparent;border:1.5px solid #e0e0e0;border-radius:10px;font-size:16px;cursor:pointer;">Fermer</button>
+    </div>
+  </div>`;
+  d.addEventListener('click',e=>{if(e.target===d)d.remove();});
+  document.body.appendChild(d);
+  document.getElementById('prodix-input').focus();
+  window.prodiTrack?.('prodix_open',{});
+}
+async function _doProdix(){
+  const inp=document.getElementById('prodix-input');
+  const out=document.getElementById('prodix-result');
+  const btn=document.getElementById('prodix-btn');
+  const msg=(inp?.value||'').trim();
+  if(!msg){toast('Dis-moi ce que tu cherches !');return;}
+  btn.disabled=true;btn.textContent='PRODIX RÉFLÉCHIT…';
+  out.innerHTML='<span style="color:#999">Analyse de la demande + sélection au stock…</span>';
+  try{
+    const r=await fetch(PRODIX_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg})});
+    const data=await r.json();
+    if(!r.ok)throw new Error(data?.error||('HTTP '+r.status));
+    if(!data.refs||!data.refs.length){
+      out.innerHTML='<span style="color:#e53e3e">Rien trouvé au stock pour cette demande — précise la qualité, le grammage ou le format.</span>';
+      btn.disabled=false;btn.textContent='COMPOSER L\'OFFRE';
+      return;
+    }
+    out.innerHTML='<span style="color:#1a9e5c;font-weight:600">✓ '+esc(data.resume||data.refs.length+' articles')+' — ajout à la liste…</span>';
+    window.prodiTrack?.('prodix_offre',{nb:data.refs.length,q:msg.slice(0,80)});
+    // Déversement dans le flux d'import existant (recherche catalogue + liste)
+    document.getElementById('prodix-bg')?.remove();
+    openImportRefs();
+    const t=document.getElementById('import-refs-input');
+    if(t){t.value=data.refs.join('\n');await _doImportRefs();}
+    toast('PRODIX : '+(data.resume||data.refs.length+' articles'));
+  }catch(e){
+    out.innerHTML='<span style="color:#e53e3e">'+esc(e.message||'Erreur')+'</span>';
+    btn.disabled=false;btn.textContent='COMPOSER L\'OFFRE';
+  }
 }
 
 async function _importRefsFromFile(file){
@@ -4750,15 +5006,17 @@ function updateFilterVisibility(){
   const fbLaizeLbl=document.getElementById('fb-laize-lbl');
   if(fbLaizeLbl) fbLaizeLbl.textContent=laizeLbl;
   // Sidebar
-  show('sb-sec-longueur', showLongueur);
+  show('sb-sec-longueur', !onlyPalette);
   show('sb-sec-mandrin',  showMandrin);
   show('sb-sec-format',   !onlyBobine);
+  show('sb-sec-laize',    !onlyPalette);
   const sbLbl=document.getElementById('sb-laize-lbl');
   if(sbLbl) sbLbl.firstChild.textContent=laizeLbl+' ';
   // Mobile drawer
-  show('mob-sec-longueur', showLongueur);
+  show('mob-sec-longueur', !onlyPalette);
   show('mob-sec-mandrin',  showMandrin);
   show('mob-sec-format',   !onlyBobine);
+  show('mob-sec-laize',    !onlyPalette);
   const mobLbl=document.getElementById('mob-laize-title');
   if(mobLbl) mobLbl.textContent=laizeLbl+' (mm)';
 }
@@ -5164,25 +5422,45 @@ async function exportListExcelTest(btn){
   try{
     await _ensureExcelJS();
     // Données enrichies depuis `all` si dispo
+    // Colonnes calées sur la LISTE DÉTAILLÉE (16/07) : N° / Réf. / Qualité /
+    // Détails / Couleur / GSM / Laize·Ø ou Dimensions / PN / Usine / P/T / Montant.
     const rows=cart.map(p=>{
-      const f=all.find(x=>x.id===+p.id)||{};
+      // Enrichissement : la page courante d'abord, sinon le CACHE COMPLET du
+      // stock (par réf) — sans ça, le Ø/usine manquaient pour les articles
+      // ajoutés depuis d'autres pages.
+      const _cacheHit=(typeof _allProductsCache!=='undefined'&&_allProductsCache)
+        ?_allProductsCache.find(x=>String(x.ref||'')===String(p.ref||''))
+        :null;
+      const _pageHit=all.find(x=>x.id===+p.id);
+      const f=_pageHit||(_cacheHit?{
+        qualite:_cacheHit.quality,couleur:_cacheHit.color,grammage:_cacheHit.gsm,
+        largeur:_cacheHit.width,longueur:_cacheHit.longueur,noyau:_cacheHit.noyau,
+        poids_net:_cacheHit.weight,price:_cacheHit.price,details:_cacheHit.details,
+        usine:_cacheHit.usine,image_url:_cacheHit.image_url,ref:_cacheHit.ref,
+      }:{});
       const qual=p.qualite||f.qualite||'';
-      let detTitle=(typeof formatProductTitle==='function')?formatProductTitle(qual,p.name):'';
-      // Préfixe BOBINE/FORMAT inutile (la section l'indique déjà) → on l'enlève.
-      detTitle=detTitle.replace(/^\s*(BOBINE|FORMAT|PALETTE|MACHINE)\s*[—–-]\s*/i,'');
-      const det=[detTitle,(p.details||f.details||'')].filter(Boolean).join(' — ');
+      const isBobine=/^R/i.test(qual)||(p.type&&/bobine/i.test(p.type));
+      const largeur=p.largeur??f.largeur??'';
+      const longueur=f.longueur??p.longueur??'';
+      const mandrin=f.noyau??f.mandrin??p.noyau??'';
+      const poids=Math.round(p.poids_net??f.poids_net??0)||0;
+      const prixKg=(p.price??f.price)||0;
       return {
-        isBobine:/^R/i.test(qual)||(p.type&&/bobine/i.test(p.type)),
-        emplacement:p.allee||p.zone||p.emplacement||'',
-        couleur:(p.couleur||f.couleur||'').toString().toUpperCase(),
-        detail:det||(p.name||''),
+        isBobine,
+        ref:String(p.ref||f.ref||'').replace(/^Photo_/i,''),
+        qualite:[qual,String((typeof formatProductTitle==='function')?formatProductTitle(qual,p.name):(p.name||''))
+          .replace(/^\s*(BOBINE|FORMAT|PALETTE|MACHINE)\s*[—–-]\s*/i,'').trim()].filter(Boolean).join(' — '),
+        detail:(p.details||f.details||''),
+        couleur:(p.couleur||f.couleur||'').toString(),
         grammage:p.grammage??f.grammage??'',
-        mandrin:f.noyau??f.mandrin??'',
-        largeur:p.largeur??f.largeur??'',
-        diametre:f.diametre??'',
-        longueur:f.longueur??p.longueur??'',
-        poids:Math.round(p.poids_net??f.poids_net??0)||'',
-        prix:(p.price??f.price)||null,
+        largeur:largeur||'',
+        longueur:longueur||'',
+        mandrin:mandrin||'',
+        poids:poids||'',
+        usine:String(p.usine||f.usine||'').replace(/^REF\s*/i,''),
+        prixT:prixKg?Math.round(prixKg*1000):'',
+        montant:prixKg&&poids?Math.round(poids*prixKg*100)/100:'',
+        prix:prixKg||null,
         img:p.img||p.image_url||f.image_url||null,
       };
     });
@@ -5194,15 +5472,18 @@ async function exportListExcelTest(btn){
     const wb=new ExcelJS.Workbook();
     const ws=wb.addWorksheet('Offre',{views:[{showGridLines:false}],pageSetup:{orientation:'landscape',fitToPage:true,fitToWidth:1}});
     // Largeurs colonnes A..I
-    [19,20,61,18,18,19,19,18,20].forEach((w,i)=>{ws.getColumn(i+1).width=w;});
+    [11,30,30,13,9,13,13,13,11,9,12].forEach((w,i)=>{ws.getColumn(i+1).width=w;});
 
     // Palette "industriel premium" Prodiconseil : charbon + blanc cassé chaud + rouge.
-    const RED='FFE60000', INK='FF1A1A1A', WHITE='FFFFFFFF';
+    const RED='FFFF0000', INK='FF1A1A1A', WHITE='FFFFFFFF'; // rouge pur = modèle USINE 83
     const BAND='FF1C1C1C';    // bande section (charbon)
     const HEADBG='FFEDEAE3';  // en-tête colonnes (neutre chaud)
     const ZEBRA='FFFAF7F2';   // 1 ligne sur 2
     const HAIR='FFD9D3C8';    // filet hairline discret
     const SUB='FF6E6A62';     // texte secondaire
+    const BLEU='FFB4C6E7';    // en-tête colonnes — code exact USINE 83
+    const JAUNE='FFFFFF00';   // surlignage prix
+    const VERT='FFA9D08E';    // vert USINE 83 (fond des prix)
     const thin={style:'thin',color:{argb:HAIR}};
     const allBorders={top:thin,left:thin,bottom:thin,right:thin};
     const redRule={bottom:{style:'medium',color:{argb:RED}}};
@@ -5220,111 +5501,148 @@ async function exportListExcelTest(btn){
     // Logo (A1:B4)
     const logoB64=await _fetchImgB64(location.origin+'/img/logo.png');
     const _lid=_imgId(logoB64);
-    if(_lid!=null)ws.addImage(_lid,{tl:{col:0.1,row:0.1},ext:{width:200,height:34}});
-    // Encadré STOCKLOTS + date (H1:I3)
-    ws.mergeCells('H1:I3');
-    const sc=ws.getCell('H1');
-    sc.value='STOCKLOTS\n'+new Date().toLocaleDateString('fr-FR');
-    box(sc,{bold:true,size:16,color:RED,bg:WHITE,align:'center'});
-    const _redB={style:'medium',color:{argb:RED}};
-    sc.border={top:_redB,bottom:_redB,left:_redB,right:_redB};
+    if(_lid!=null)ws.addImage(_lid,{tl:{col:8.05,row:0.1},ext:{width:235,height:40}}); // logo en haut à DROITE (17/07)
+    // Encadré STOCKLOTS retiré (16/07).
     // Bloc société — nom mis en avant, coordonnées en gris (hiérarchie).
-    ws.mergeCells('A5:F5');
-    const nm=ws.getCell('A5');
-    nm.value='PRODICONSEIL SARL';
-    nm.font={bold:true,size:16,color:{argb:INK},name:'Arial'};
-    nm.alignment={horizontal:'left',vertical:'middle'};
-    ws.getRow(5).height=22;
-    ws.mergeCells('A6:I11');
-    const ic=ws.getCell('A6');
-    ic.value=[
-      '9 Promenée Jeanne Hachette — 94200 Ivry sur Seine, FRANCE',
-      'Tél : +33 1 46 72 03 69      Fax : +33 1 49 59 87 31',
-      'Véronique ELBILIA — WhatsApp +33 6 09 46 77 48 / ve@prodi.com',
-      'Julien CARON — WhatsApp +33 6 20 25 85 83 / vente@prodi.com',
-      'Service client — WhatsApp +33 6 09 99 74 07 / clients@prodi.com',
-      'paper.prodi.com',
-    ].join('\n');
-    ic.font={size:12,color:{argb:SUB},name:'Arial'};
-    ic.alignment={horizontal:'left',vertical:'top',wrapText:true};
-    r=12;
-    // Titre FR + EN
-    ws.mergeCells('A12:I12'); const t1=ws.getCell('A12');
+    // Bloc société COMPLET à gauche (copie conforme du modèle USINE 83).
+    const _blocSociete=[
+      ['PRODICONSEIL SARL',{bold:true,size:14}],
+      ['9 PROMENEE JEANNE HACHETTE',{size:11}],
+      ['94200 Ivry sur Seine - FRANCE',{size:11}],
+      ['Tel : + 33 1 46 72 03 69  /  Fax : + 33 1 49 59 87 31',{size:11}],
+      ['Contacts : ',{size:11}],
+      ['Véronique ELBILIA : Whatsapp :  + 33 6 09 46 77 48 / ve@prodi.com',{size:11}],
+      ['Julien CARON : Whatsapp :   +33 6 20 25 85 83 / vente@prodi.com',{size:11}],
+      ['Service client : Whatsapp :  + 33 6 09 99 74 07 / clients@prodi.com',{size:11}],
+      ['Site : www.prodi.com ',{size:11}],
+    ];
+    _blocSociete.forEach(([txt,st],i)=>{
+      ws.mergeCells(`A${i+1}:F${i+1}`);
+      const c=ws.getCell(`A${i+1}`);
+      c.value=txt;
+      c.font={bold:!!st.bold,size:st.size,color:{argb:INK},name:'Arial'};
+      c.alignment={horizontal:'left',vertical:'middle'};
+      ws.getRow(i+1).height=16;
+    });
+    // Date : sa propre ligne, CENTRÉE sur la largeur du tableau (ligne 10).
+    ws.mergeCells('A10:K10');
+    const _dt=ws.getCell('A10');
+    _dt.value=new Date().toLocaleDateString('fr-FR');
+    _dt.font={bold:true,size:14,color:{argb:INK},name:'Arial'};
+    _dt.alignment={horizontal:'center',vertical:'middle'};
+    ws.getRow(10).height=20;
+    r=11;
+    // Titre FR + EN en bandeaux BLEUS bordés (modèle USINE 83)
+    const _darkB={style:'thin',color:{argb:'FF333333'}};
+    const _darkBorders={top:_darkB,left:_darkB,bottom:_darkB,right:_darkB};
+    ws.mergeCells('A11:K11'); const t1=ws.getCell('A11');
     t1.value='OFFRE PAPIER & CARTON EN STOCKLOTS';
-    box(t1,{bold:true,size:22,color:INK,align:'center'});
-    ws.getRow(12).height=36;
-    ws.mergeCells('A13:I13'); const t2=ws.getCell('A13');
+    box(t1,{bold:true,size:18,color:INK,bg:BLEU,align:'center'});
+    t1.border=_darkBorders;
+    ws.getRow(11).height=30;
+    ws.mergeCells('A12:K12'); const t2=ws.getCell('A12');
     t2.value='PAPER & CARDBOARD STOCKLOTS OFFER';
-    box(t2,{bold:true,size:14,color:RED,align:'center'});
-    t2.border=redRule; // filet rouge signature sous le titre
-    ws.getRow(13).height=24;
-    r=14;
+    box(t2,{bold:true,size:14,color:RED,bg:BLEU,align:'center'});
+    t2.border=_darkBorders;
+    ws.getRow(12).height=24;
+    r=13;
     // Bande photos : quelques produits AU HASARD de la liste (max 5), GRANDES et
     // CONTIGUËS. Placement au pixel près (les colonnes ont des largeurs inégales,
     // d'où les "trous" si on se cale sur les colonnes) → on convertit une position
     // X en pixels vers un index de colonne fractionnaire.
-    const _colWpx=[19,20,61,18,18,19,19,18,20].map(w=>Math.round(w*7+5));
+    // Placement photos : ancres en fractions de colonnes (le mode nativeCol
+    // d'ExcelJS chevauche) + RATIO NATUREL respecté par photo (les portraits
+    // étaient étirés en paysage).
+    const _colWpx=[11,30,30,13,9,13,13,13,11,9,12].map(w=>Math.round(w*7+5));
     const _cumX=[0]; _colWpx.forEach(w=>_cumX.push(_cumX[_cumX.length-1]+w));
     const _pxToCol=(x)=>{let c=0;while(c<_colWpx.length-1&&_cumX[c+1]<=x)c++;return c+Math.min(Math.max((x-_cumX[c])/_colWpx[c],0),0.999);};
     const _totalW=_cumX[_cumX.length-1];
+    const _imgSize=(b64)=>new Promise(res=>{const im=new Image();im.onload=()=>res({w:im.naturalWidth||4,h:im.naturalHeight||3});im.onerror=()=>res({w:4,h:3});im.src=b64;});
     const _imgUrls=rows.map(x=>x.img).filter(Boolean);
     for(let i=_imgUrls.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[_imgUrls[i],_imgUrls[j]]=[_imgUrls[j],_imgUrls[i]];}
     const photoUrls=_imgUrls.slice(0,6);
     const photos=(await Promise.all(photoUrls.map(_fetchImgB64))).filter(Boolean);
     if(photos.length){
-      const PW=234, PH=172, gap=6;
-      const bandW=photos.length*PW+(photos.length-1)*gap;
-      let x0=Math.max(2,Math.round((_totalW-bandW)/2)); // centre la bande
+      let PH=215; const gap=8;
+      const _availW=_totalW-10; // marge de sécurité : jamais au-delà de la colonne L
+      const _sizes=await Promise.all(photos.map(_imgSize));
+      let _ws=_sizes.map(sz=>Math.max(120,Math.min(340,Math.round(PH*sz.w/sz.h))));
+      let bandW=_ws.reduce((a,b)=>a+b,0)+(photos.length-1)*gap;
+      if(bandW>_availW-4){
+        const k=(_availW-4-(photos.length-1)*gap)/(_ws.reduce((a,b)=>a+b,0));
+        PH=Math.max(120,Math.floor(PH*k));
+        _ws=_ws.map(w=>Math.max(80,Math.floor(w*k)));
+        bandW=_ws.reduce((a,b)=>a+b,0)+(photos.length-1)*gap;
+      }
+      let x=Math.max(2,Math.round((_availW-bandW)/2)); // centre la bande
       photos.forEach((b64,i)=>{
         const id=_imgId(b64);
-        if(id==null)return;
-        ws.addImage(id,{tl:{col:_pxToCol(x0+i*(PW+gap)),row:13.05},ext:{width:PW,height:PH}});
+        if(id==null){x+=_ws[i]+gap;return;}
+        ws.addImage(id,{tl:{col:_pxToCol(x),row:12.05},ext:{width:_ws[i],height:PH}});
+        x+=_ws[i]+gap;
       });
-      ws.getRow(14).height=132; ws.getRow(15).height=6; ws.getRow(16).height=6;
-      r=17;
+      ws.getRow(13).height=Math.round(PH*0.75)+6; ws.getRow(14).height=6; ws.getRow(15).height=6;
+      r=16;
     }
 
     const HEAD=(labelsFr,labelsEn)=>{
-      const row1=ws.getRow(r); labelsFr.forEach((l,i)=>{const c=row1.getCell(i+1);c.value=l;box(c,{bold:true,size:13,color:INK,bg:HEADBG,align:'center',border:true});});
+      const row1=ws.getRow(r); labelsFr.forEach((l,i)=>{const c=row1.getCell(i+1);c.value=l;box(c,{bold:true,size:13,color:INK,bg:BLEU,align:'center'});c.border=_darkBorders;});
       ws.getRow(r).height=32; r++;
-      const row2=ws.getRow(r); labelsEn.forEach((l,i)=>{const c=row2.getCell(i+1);c.value=l;box(c,{italic:true,size:11,color:SUB,bg:HEADBG,align:'center',border:true});});
+      const row2=ws.getRow(r); labelsEn.forEach((l,i)=>{const c=row2.getCell(i+1);c.value=l;box(c,{bold:true,size:11,color:RED,bg:BLEU,align:'center'});c.border=_darkBorders;});
       ws.getRow(r).height=24; r++;
     };
+    // Chiffres stockés en NOMBRE (sinon Excel affiche « nombre sous forme de texte »)
+    const _num=(v)=>(typeof v==='string'&&v!==''&&/^\d+(\.\d+)?$/.test(v))?+v:v;
     const DATA=(d,cells,idx)=>{
       const row=ws.getRow(r);
       const zeb=(idx%2===1)?ZEBRA:null; // 1 ligne sur 2 (lisibilité)
       cells.forEach((v,i)=>{
-        const c=row.getCell(i+1); c.value=v;
-        box(c,{size:13,align:i===2?'left':'center',border:true,bg:zeb});
-        if(i===8&&v){ c.font={bold:true,size:13,color:{argb:RED},name:'Arial'}; } // prix en rouge
+        const c=row.getCell(i+1); c.value=_num(v);
+        box(c,{size:13,align:(i===1||i===2)?'left':'center',border:true,bg:zeb});
+        if(i===cells.length-1&&String(v).includes('€')){ c.font={bold:true,size:13,color:{argb:RED},name:'Arial'}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:VERT}}; } // prix rouge sur vert
       });
       // Auto-hauteur : le DÉTAIL (colonne C) peut wrapper sur 2-3 lignes → on
       // estime le nombre de lignes pour que rien ne soit coupé (col C ≈ 46 car/ligne).
       const _det=String(cells[2]||'');
-      const _lines=Math.max(1,Math.ceil(_det.length/46));
+      const _lines=Math.max(1,Math.ceil(_det.length/30),Math.ceil(String(cells[1]||'').length/30));
       row.height=Math.max(row.height||0,12+_lines*17);
       r++;
     };
-    const sectionTitle=(fr)=>{ws.mergeCells(`A${r}:I${r}`);const c=ws.getCell(`A${r}`);c.value=fr;box(c,{bold:true,size:16,color:WHITE,bg:BAND,align:'center'});c.border={bottom:{style:'medium',color:{argb:RED}}};ws.getRow(r).height=30;r++;};
+    const sectionTitle=(fr)=>{ws.mergeCells(`A${r}:K${r}`);const c=ws.getCell(`A${r}`);c.value=fr;box(c,{bold:true,size:16,color:INK,bg:BLEU,align:'center'});c.border=_darkBorders;ws.getRow(r).height=30;r++;};
 
     if(bobines.length){
       sectionTitle('BOBINES / REELS');
       HEAD(
-        ['EMPLACEMENT','COULEUR','DÉTAIL','GRAMMAGE (g/m²)','MANDRIN (mm)','LAIZE (mm)','DIAMÈTRE (mm)','POIDS (kg)','PRIX (€/T)'],
-        ['LOCATION','COLOR','DETAIL','GRAMMAGE (gsm)','CORE (mm)','WIDTH (mm)','DIAMETER (mm)','WEIGHT (kg)','EX-WORKS PRICE'],
+        ['N°','QUALITÉ','DÉTAILS','COULEUR','GSM','LAIZE (mm)','Ø (mm)','MANDRIN (mm)','PN (KG)','USINE','P/T (€)'],
+        ['NUMBER','QUALITY','DETAILS','COLOR','GSM','WIDTH (mm)','DIAMETER (mm)','CORE (mm)','NET WEIGHT','MILL','PRICE €/T'],
       );
-      bobines.forEach((d,idx)=>DATA(d,[d.emplacement,d.couleur,d.detail,d.grammage,d.mandrin,d.largeur,d.diametre,d.poids,d.prix?Math.round(d.prix*1000).toLocaleString('fr-FR')+' €/T':''],idx));
+      bobines.forEach((d,idx)=>DATA(d,[d.ref,d.qualite,d.detail,d.couleur,d.grammage,d.largeur,d.longueur,d.mandrin,d.poids,d.usine,d.prixT!==''?d.prixT+' €/t':''],idx));
       r++;
     }
     if(formats.length){
       sectionTitle('FORMATS / PALETTES — SHEETS / PALLETS');
       HEAD(
-        ['EMPLACEMENT','COULEUR','DÉTAIL','GRAMMAGE (g/m²)','LARGEUR (mm)','LONGUEUR (mm)','—','POIDS (kg)','PRIX (€/T)'],
-        ['LOCATION','COLOR','DETAIL','GRAMMAGE (gsm)','WIDTH (mm)','LENGTH (mm)','—','WEIGHT (kg)','EX-WORKS PRICE'],
+        ['N°','QUALITÉ','DÉTAILS','COULEUR','GSM','LARGEUR (mm)','LONGUEUR (mm)','PN (KG)','USINE','P/T (€)'],
+        ['NUMBER','QUALITY','DETAILS','COLOR','GSM','WIDTH (mm)','LENGTH (mm)','NET WEIGHT','MILL','PRICE €/T'],
       );
-      formats.forEach((d,idx)=>DATA(d,[d.emplacement,d.couleur,d.detail,d.grammage,d.largeur,d.longueur,'',d.poids,d.prix?Math.round(d.prix*1000).toLocaleString('fr-FR')+' €/T':''],idx));
+      formats.forEach((d,idx)=>DATA(d,[d.ref,d.qualite,d.detail,d.couleur,d.grammage,d.largeur,d.longueur,d.poids,d.usine,d.prixT!==''?d.prixT+' €/t':''],idx));
       r++;
     }
+
+    // TOTAL kg sur jaune (sous la colonne PN)
+    const _totKg=rows.reduce((s2,d)=>s2+(+d.poids||0),0);
+    const _pnCol=formats.length?'H':'I'; // PN de la dernière section affichée
+    ws.mergeCells(`A${r}:${_pnCol==='H'?'G':'H'}${r}`);
+    const _tl=ws.getCell(`A${r}`); _tl.value='TOTAL'; box(_tl,{bold:true,size:13,align:'right'});
+    const _tk=ws.getCell(`${_pnCol}${r}`); _tk.value=_totKg; box(_tk,{bold:true,size:13,color:RED,bg:JAUNE,align:'center',border:true});
+    ws.getRow(r).height=26; r+=2;
+    // Conditions de vente (bilingue)
+    ws.mergeCells(`A${r}:C${r}`); let _c1=ws.getCell(`A${r}`); _c1.value='CONDITIONS DE VENTE'; box(_c1,{bold:true,size:12,align:'center',border:true,bg:HEADBG});
+    ws.mergeCells(`D${r}:K${r}`); let _c2=ws.getCell(`D${r}`); _c2.value='30% VIREMENT AVANT EXPÉDITION ET 70% CONTRE DOCUMENTS'; box(_c2,{bold:true,size:12,align:'center',border:true});
+    ws.getRow(r).height=24; r++;
+    ws.mergeCells(`A${r}:C${r}`); _c1=ws.getCell(`A${r}`); _c1.value='TERMS OF SALE'; box(_c1,{italic:true,size:12,color:SUB,align:'center',border:true,bg:HEADBG});
+    ws.mergeCells(`D${r}:K${r}`); _c2=ws.getCell(`D${r}`); _c2.value='30% TRANSFER BEFORE SHIPMENT AND 70% AGAINST DOCUMENTS'; box(_c2,{italic:true,size:12,color:SUB,align:'center',border:true});
+    ws.getRow(r).height=24; r++;
 
     const buf=await wb.xlsx.writeBuffer();
     const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});

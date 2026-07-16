@@ -132,6 +132,28 @@ g.innerHTML=`<div onclick="openDetail(${p.id})">${p.name}</div>`;  // ❌
   Excel cellule par ligne (FS:'\n') + repêchage des tokens 6 chiffres (fix CSV virgule),
   fermeture auto + ouverture de la liste après import.
 
+## Ajouts 17/07/2026
+- **Menus à familles partout** : Grammages (±5 g, `GRAMMAGE_FAMILLES`), Laizes
+  (±10 mm, bobines seules), Diamètre Ø (±25 mm, ex-champ Longueur), Poids
+  (tranches fixes), Réf usine (options dynamiques du cache + recherche). Même
+  mécanique msd que Détails/Formats : facettes croisées client + clauses serveur.
+  Les anciens inputs Min/Max restent CACHÉS dans le DOM (lecteurs JS optionnels).
+- **PRODIX** (pastille flottante noire, remplace le WhatsApp) : modal → POST
+  `https://prodi-arrivages.vercel.app/api/prodix-offre` (route publique de
+  l'app arrivages : Haiku traduit la demande en critères, sélection serveur
+  déterministe, rate limit 15/h/IP) → réfs déversées dans Ma Liste via le flux
+  d'import. ⚠️ le domaine est dans la CSP `connect-src`.
+- **Ma Liste NON persistante** : remise à zéro à chaque chargement (le lien
+  partagé `?s=` la remplit après). Bouton header = « Liste » (plus de camion).
+- **Excel offre** : replaqué sur le modèle USINE 83 (couleurs exactes extraites
+  du PDF : rouge FF0000, jaune FFFF00, vert A9D08E prix, bleu B4C6E7 en-têtes),
+  bloc société complet à gauche, logo droite, date centrée ligne 10, photos
+  ratio naturel bornées colonne L, colonnes N°/QUALITÉ (code — nom)/DÉTAILS/
+  COULEUR/GSM/LAIZE/Ø/MANDRIN/PN/USINE/P-T « €/t », TOTAL kg jaune, conditions
+  de vente. Tri du catalogue en toutes lettres (« Arrivage : plus récents »).
+- **Prix** : la base est en €/KG → tout affichage €/T multiplie ×1000 ; ~400
+  produits sans prix Sage = cellules vides normales.
+
 ## Règles photos / images produit
 
 ### Priorité d'affichage (pour TOUS les produits)
