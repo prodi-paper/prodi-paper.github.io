@@ -2736,7 +2736,7 @@ function renderCards(list){
     const poids=_isGroup
       ?`${Math.round(_grpTotal).toLocaleString('fr-FR')}`
       :(p.poids_net?`${p.poids_net.toLocaleString('fr-FR')}`:'—');
-    const prixHtml=_priceMode&&p.price?`<div class="pcard-price">${p.price.toLocaleString('fr-FR')} €/T</div>`:'';
+    const prixHtml=_priceMode&&p.price?`<div class="pcard-price">${Math.round(p.price*1000).toLocaleString('fr-FR')} €/T</div>`:'';
     const typeOverlay='';
     const _usineClean=p.usine?String(p.usine).replace(/^REF\s*/i,''):null;
     const _usineLbl=_isGroup&&p._grpUsines&&p._grpUsines.length>1
@@ -2884,7 +2884,7 @@ function renderList(list){
         ?`<td class="plist-td plist-td-num" colspan="3">${esc(paletteDims2)}</td>`
         :`<td class="plist-td plist-td-num">${esc(laize)}</td><td class="plist-td plist-td-num">${esc(dim2)}</td><td class="plist-td plist-td-num plist-col-mandrin">${esc(mandrin||'—')}</td>`}
       <td class="plist-td plist-td-num">${esc(_poidsTxt)}</td>
-      ${_priceMode?`<td class="plist-td plist-td-num plist-price">${p.price?esc(p.price.toLocaleString('fr-FR')+' €/T'):'—'}</td>`:''}
+      ${_priceMode?`<td class="plist-td plist-td-num plist-price">${p.price?esc(Math.round(p.price*1000).toLocaleString('fr-FR')+' €/T'):'—'}</td>`:''}
       <td class="plist-td plist-td-usine plist-col-usine">${esc(_usineTxt)}</td>
     </tr>`;
   };
@@ -3096,7 +3096,7 @@ async function openDetail(id){
   const _dpRow=document.getElementById('det-price-row');
   const _dpVal=document.getElementById('det-price-val');
   if(_dpRow&&_dpVal){
-    if(_priceMode&&p.price){_dpVal.innerHTML=`<span style="font-size:22px;font-weight:800;color:var(--red)">${p.price.toLocaleString('fr-FR')} €/T</span>`;_dpRow.style.display='';}
+    if(_priceMode&&p.price){_dpVal.innerHTML=`<span style="font-size:22px;font-weight:800;color:var(--red)">${Math.round(p.price*1000).toLocaleString('fr-FR')} €/T</span>`;_dpRow.style.display='';}
     else{_dpRow.style.display='none';}
   }
   document.getElementById('det-poids-val').textContent=p.poids_net?fmt(p.poids_net):'—';
@@ -4443,7 +4443,7 @@ async function loadSharedQuote(idsOverride){
   const sqb=document.getElementById('shared-quote-banner');
   if(sqb){
     const _sqTon=(totalKg/1000).toFixed(1);
-    const _sqPrix=_priceMode?all.reduce((s,p)=>s+((p.poids_net||0)/1000)*(p.price||0),0):0;
+    const _sqPrix=_priceMode?all.reduce((s,p)=>s+(p.poids_net||0)*(p.price||0),0):0;
     sqb.innerHTML=`<div class="sq-inner sq-slim"><span class="sq-slim-label">⭐ Liste exclusive client · ${all.length} produit${all.length>1?'s':''} · ${_sqTon} T${_priceMode&&_sqPrix?' · <strong style="color:var(--red)">'+_sqPrix.toLocaleString('fr-FR',{maximumFractionDigits:0})+' €</strong>':''}</span><span class="sq-slim-hint">Retirez les produits qui ne vous intéressent pas et renvoyez-nous la liste.</span></div>`;
     sqb.style.display='block';
   }
@@ -4512,7 +4512,7 @@ function renderDrawer(){
   const prRow=document.getElementById('drawer-price-row');
   if(prRow){
     if(_priceMode){
-      const _totalEst=cart.reduce((s,p)=>{const _f=all.find(x=>x.id===+p.id)||p;return s+((p.qty_kg??(p.poids_net||0))/1000)*(_f.price||0);},0);
+      const _totalEst=cart.reduce((s,p)=>{const _f=all.find(x=>x.id===+p.id)||p;return s+(p.qty_kg??(p.poids_net||0))*(_f.price||0);},0);
       prRow.style.display=_totalEst?'':'none';
       const prVal=document.getElementById('drawer-price-val');
       if(prVal)prVal.textContent=_totalEst.toLocaleString('fr-FR',{maximumFractionDigits:0})+' €';
@@ -4547,7 +4547,7 @@ function renderDrawer(){
         <div class="ci-foot">
           <button class="ci-rm" onclick="event.stopPropagation();removeFromCart(${numId(p.id)})" aria-label="${'Retirer'}">${_trashSvg}</button>
           ${lot?`<span class="ci-lot" onclick="event.stopPropagation();navigator.clipboard.writeText(${attrJs(lot)}).then(()=>toast('📋 Réf. copiée'))">${esc(lot)}<svg width="11" height="11" viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.6"/><path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>`:'<span></span>'}
-          ${_priceMode&&_pFull.price?`<span class="ci-price" style="color:var(--red);font-weight:700;font-size:13px">${esc(_pFull.price.toLocaleString('fr-FR')+' €/T')}</span>`:''}
+          ${_priceMode&&_pFull.price?`<span class="ci-price" style="color:var(--red);font-weight:700;font-size:13px">${esc(Math.round(_pFull.price*1000).toLocaleString('fr-FR')+' €/T')}</span>`:''}
           <span class="ci-kgs">${esc(fmt(Math.round(qkg)))}</span>
         </div>
       </div>
@@ -5313,7 +5313,7 @@ async function exportListExcelTest(btn){
         ['EMPLACEMENT','COULEUR','DÉTAIL','GRAMMAGE (g/m²)','MANDRIN (mm)','LAIZE (mm)','DIAMÈTRE (mm)','POIDS (kg)','PRIX (€/T)'],
         ['LOCATION','COLOR','DETAIL','GRAMMAGE (gsm)','CORE (mm)','WIDTH (mm)','DIAMETER (mm)','WEIGHT (kg)','EX-WORKS PRICE'],
       );
-      bobines.forEach((d,idx)=>DATA(d,[d.emplacement,d.couleur,d.detail,d.grammage,d.mandrin,d.largeur,d.diametre,d.poids,d.prix?d.prix.toLocaleString('fr-FR')+' €/T':''],idx));
+      bobines.forEach((d,idx)=>DATA(d,[d.emplacement,d.couleur,d.detail,d.grammage,d.mandrin,d.largeur,d.diametre,d.poids,d.prix?Math.round(d.prix*1000).toLocaleString('fr-FR')+' €/T':''],idx));
       r++;
     }
     if(formats.length){
@@ -5322,7 +5322,7 @@ async function exportListExcelTest(btn){
         ['EMPLACEMENT','COULEUR','DÉTAIL','GRAMMAGE (g/m²)','LARGEUR (mm)','LONGUEUR (mm)','—','POIDS (kg)','PRIX (€/T)'],
         ['LOCATION','COLOR','DETAIL','GRAMMAGE (gsm)','WIDTH (mm)','LENGTH (mm)','—','WEIGHT (kg)','EX-WORKS PRICE'],
       );
-      formats.forEach((d,idx)=>DATA(d,[d.emplacement,d.couleur,d.detail,d.grammage,d.largeur,d.longueur,'',d.poids,d.prix?d.prix.toLocaleString('fr-FR')+' €/T':''],idx));
+      formats.forEach((d,idx)=>DATA(d,[d.emplacement,d.couleur,d.detail,d.grammage,d.largeur,d.longueur,'',d.poids,d.prix?Math.round(d.prix*1000).toLocaleString('fr-FR')+' €/T':''],idx));
       r++;
     }
 
