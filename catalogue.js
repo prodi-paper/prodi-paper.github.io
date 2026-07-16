@@ -13,7 +13,13 @@ async function sbQ(path,opts={}){
   // robot d'import pour l'app d'inventaire physique) ne doit JAMAIS apparaître
   // sur le catalogue public : machines, vieux stock, dépôts extérieurs.
   // Filtre appliqué ici — toutes les requêtes products passent par sbQ.
-  if(path.startsWith('products?'))path+='&source=neq.inventaire';
+  if(path.startsWith('products?'))path+='&source=neq.inventaire'
+    // Périmètre 15/07 : le catalogue ne montre QUE notre dépôt — plus de
+    // Fabrication (Photo_FAB*), plus de sideruns/DU (Photo_DU*), plus de
+    // hors dépôt. Verrou ici = toutes les requêtes products sont couvertes.
+    +'&emplacement=eq.OUR%20WAREHOUSE'
+    +'&or=(ref.not.ilike.Photo_DU%25,ref.is.null)'
+    +'&or=(ref.not.ilike.Photo_FAB%25,ref.is.null)';
   const r=await fetch(SURL+'/rest/v1/'+path,{method:opts.method||'GET',headers:{...SB_H,...(opts.headers||{})},body:opts.body!=null?JSON.stringify(opts.body):undefined,signal:opts.signal});
   const txt=await r.text();const d=txt?JSON.parse(txt):null;
   const cr=r.headers.get('Content-Range');
@@ -112,7 +118,9 @@ function togglePriceMode(on){
 }
 const ico=t=>({Kraft:'📦',FBB:'🗂️',SBS:'📋',Testliner:'🧱',Fluting:'〰️',Offset:'🧻',Thermique:'🏷️',Duplex:'📄',Triplex:'📑'}[t]||'📦');
 const fmt=kg=>!kg?'—':kg>=1000?(kg/1000).toFixed(1)+' t':kg+' KGS';
-const mmToCm=mm=>mm!=null?+(mm/10).toFixed(1):null;
+// 16/07 : TOUT reste en mm (données Sage en mm) — l'helper garde son nom
+// historique mais ne convertit plus.
+const mmToCm=mm=>mm!=null?Math.round(+mm):null;
 // Centralized rule for the "Couleur" paper type split (gsm threshold).
 // Note the deliberate asymmetry, kept from the original design:
 //   - `codes` (RCOL+SCOL) is used by TYPE_MAP (smart search) and rowToUi
@@ -830,7 +838,7 @@ function updateCmpBar(){
     const id=[...cmpSet][i];
     if(!id)return`<div class="cmp-thumb-empty">+</div>`;
     const p=all.find(x=>x.id===+id);
-    return p&&p.image_url?`<img class="cmp-thumb" src="${safeUrl(p.image_url)}" title="${esc(p.name)}">`:`<div class="cmp-thumb-empty" style="color:#aaa;font-size:10px">${esc(p?.name?.substring(0,6)||'?')}</div>`;
+    return p&&p.image_url?`<img class="cmp-thumb" loading="lazy" decoding="async" src="${safeUrl(p.image_url)}" title="${esc(p.name)}">`:`<div class="cmp-thumb-empty" style="color:#aaa;font-size:10px">${esc(p?.name?.substring(0,6)||'?')}</div>`;
   });
   items.innerHTML=slots.join('');
 }
@@ -848,7 +856,7 @@ function openCmpModal(){
     {lbl:'Type',key:'_type'},
     {lbl:'Couleur',key:'couleur'},
     {lbl:'Grammage',key:'grammage',unit:'g/m²'},
-    {lbl:'Laize',key:'largeur',unit:'cm',transform:v=>+(v/10).toFixed(1)},
+    {lbl:'Laize',key:'largeur',unit:'mm',transform:v=>Math.round(v)},
     {lbl:'Longueur',key:'longueur',unit:'mm'},
     {lbl:'Mandrin',key:'noyau',unit:'mm'},
     {lbl:'Condit.',key:'_format'},
@@ -885,7 +893,7 @@ function closeCmpModal(){document.getElementById('cmp-modal-bg').classList.remov
 function cardWa(id){
   const p=all.find(x=>x.id===+id);
   if(!p)return;
-  const msg=`Bonjour, je suis intéressé par : ${p.name}${p.grammage?' '+p.grammage+'g/m²':''}${p.largeur?' '+mmToCm(p.largeur)+'cm':''}${p.couleur?' '+p.couleur:''} — ${fmt(p.poids_net)} disponibles. Quel est votre prix ?`;
+  const msg=`Bonjour, je suis intéressé par : ${p.name}${p.grammage?' '+p.grammage+'g/m²':''}${p.largeur?' '+mmToCm(p.largeur)+'mm':''}${p.couleur?' '+p.couleur:''} — ${fmt(p.poids_net)} disponibles. Quel est votre prix ?`;
   window.open(`https://wa.me/${WA}?text=${encodeURIComponent(msg)}`,'_blank');
 }
 // ====================
@@ -924,11 +932,13 @@ async function init(){
 
   buildMsdOptions('msd-mandrin',['70','76','150','152'],'Mandrins',v=>v+' mm');
   buildMsdOptions('sb-msd-mandrin',['70','76','150','152'],'Mandrins',v=>v+' mm','msd-mandrin');
+  buildMsdOptions('sb-msd-format',FORMAT_OPTIONS,'Formats',v=>v===FORMAT_AUTRES?'Autres formats':v,'msd-format');
 
   // Also build mobile msd panels (msd-type-mob, msd-mandrin-mob, msd-couleur-mob)
   buildMsdOptions('msd-type-mob',QUALITE_CODES,'Tous',_typeLabel,'msd-type');
   buildMsdOptions('msd-couleur-mob',couleurVals,'Couleurs',null,'msd-couleur');
   buildMsdOptions('msd-mandrin-mob',['70','76','150','152'],'Mandrins',v=>v+' mm','msd-mandrin');
+  buildMsdOptions('msd-format-mob',FORMAT_OPTIONS,'Formats',v=>v===FORMAT_AUTRES?'Autres formats':v,'msd-format');
 
   // Pre-fill from URL params (coming from vitrine)
   const _urlParams = new URLSearchParams(window.location.search);
@@ -977,13 +987,39 @@ const msdState = {
   'msd-mandrin': new Set(),
   'msd-couleur': new Set(),
   'msd-details': new Set(),
+  'msd-format': new Set(),
 };
 const msdLabels = {
   'msd-type': 'Type de papier',
   'msd-mandrin': 'Mandrins',
   'msd-couleur': 'Couleurs',
   'msd-details': 'Détails',
+  'msd-format': 'Formats',
 };
+// ── FAMILLES DE FORMATS (16/07) : dimensions feuilles regroupées à ±20 mm,
+// sens ignoré (520×720 = 720×520). Anchors = les formats du fond de stock.
+const FORMAT_TOL=20;
+const FORMAT_FAMILLES=[[700,1000],[650,920],[520,720],[297,420],[210,297],[630,880],[320,450],[450,640],[580,780],[445,610],[740,1020],[570,870],[963,1342],[580,920],[650,1000]];
+const FORMAT_AUTRES='__fmt_autres__';
+const _fmtLbl=f=>f[0]+' × '+f[1]+' mm';
+const FORMAT_OPTIONS=FORMAT_FAMILLES.map(_fmtLbl).concat([FORMAT_AUTRES]);
+function _formatFamilleOf(row){
+  if(String(row.format||'')==='Bobine')return null;
+  const w=+row.width||0,l=+row.longueur||0;
+  if(!w||!l)return FORMAT_AUTRES;
+  const a=Math.min(w,l),b=Math.max(w,l);
+  for(const f of FORMAT_FAMILLES){
+    if(Math.abs(a-f[0])<=FORMAT_TOL&&Math.abs(b-f[1])<=FORMAT_TOL)return _fmtLbl(f);
+  }
+  return FORMAT_AUTRES;
+}
+// Clause PostgREST d'une famille (les DEUX orientations)
+function _fmtPg(f){
+  const t=FORMAT_TOL,a=f[0],b=f[1];
+  const c1=`and(width.gte.${a-t},width.lte.${a+t},longueur.gte.${b-t},longueur.lte.${b+t})`;
+  const c2=`and(width.gte.${b-t},width.lte.${b+t},longueur.gte.${a-t},longueur.lte.${a+t})`;
+  return `and(format.neq.Bobine,or(${c1},${c2}))`;
+}
 const QUALITE_CODES=['R1SC','R2SC','RADH','RAFF','RBOA','RBON','RBOU','RCAR','ROFF','Offset Couleur','Dossier Couleur','RCUI','RDIV','RFLEX','RKDO','RKRA','RKRABRUN','RKRG','RKRR','RLINER','RLUX','RLWC','RNEW','RPAC','RPLA','RSIL','RTHERM','RTIS','S1SC','S2SC','SADH','SAFF','SBOA','SBON','SBOU','SCAR','SCOL','SCUT','SDIV','SENV','SKDO','SKRA','SLUX','SLWC','SNEW','SOFF','SPAC','SPLA','SSBS','SSPE','SINK','UMAC','AUTRES'];
 // Real DB quality codes: strip the 'AUTRES' sentinel and expand the
 // Offset/Dossier Couleur pseudo-codes back to the actual 'RCOL' DB value.
@@ -1230,7 +1266,7 @@ function toggleMsdOption(el, id) {
 
 function updateMsdBtn(id) {
   const set = msdState[id];
-  const _disp = v => v===DETAILS_NONE ? 'Sans détails' : v;
+  const _disp = v => v===DETAILS_NONE ? 'Sans détails' : v===DETAILS_AUTRES ? 'Autres' : v;
   const btns = [
     ...document.querySelectorAll(`#${id} .msd-btn, #${id} .fb-msd-btn`),
     ...document.querySelectorAll(`[data-msd-id="${id}"]`)
@@ -1257,41 +1293,15 @@ function toggleOriginePill(btn){
   btn.classList.toggle('active');
   filterProducts();
 }
-let _stockFilter=new Set(); // Set of 'stocklot' | 'fab' | 'siderun' — multichoix (OR)
-// Tester l'appartenance d'un produit aux 3 catégories de stock.
-function _stockMatch(p){
-  if(_stockFilter.size===0)return true;
-  const _ref=String(p.ref||'');
-  // Définitions par préfixe de ref
-  const _isSiderun=/^Photo_DU/i.test(_ref);                                    // photos bleues — sur demande
-  const _isFab=/^Photo_FAB/i.test(_ref)&&p.emplacement!=='OUR WAREHOUSE';      // photos jaunes — fabrication hors dépôt
-  const _isStocklot=!_isSiderun&&!_isFab;
-  return (_stockFilter.has('fab')&&_isFab)||(_stockFilter.has('siderun')&&_isSiderun)||(_stockFilter.has('stocklot')&&_isStocklot);
-}
-function toggleStockPill(btn){
-  const val=btn.dataset.stock;
-  // Source de vérité = _stockFilter (pas le DOM, qui peut être désync entre les pills jumelles header/drawer)
-  const willSelect=!_stockFilter.has(val);
-  if(willSelect)_stockFilter.add(val); else _stockFilter.delete(val);
-  // Sync visuel sur TOUTES les pills jumelles (header + drawer mobile) sur le même data-stock
-  document.querySelectorAll('.fpill-stock[data-stock="'+val+'"]').forEach(b=>b.classList.toggle('active',willSelect));
-  filterProducts();
-}
-let _depotFilter=''; // '' | 'our' | 'ext'
-function toggleDepotPill(btn){
-  const val=btn.dataset.depot;
-  // Source de vérité = _depotFilter (pas le DOM, qui peut désync entre pills jumelles)
-  const willSelect=(_depotFilter!==val);
-  _depotFilter=willSelect?val:'';
-  document.querySelectorAll('.fpill-depot').forEach(b=>b.classList.toggle('active',_depotFilter===b.dataset.depot));
-  filterProducts();
-}
+// Filtres Stock (Stocklots/Fabrication/Siderun) et Dépôt SUPPRIMÉS le 15/07 :
+// le périmètre est verrouillé dans sbQ (dépôt uniquement, sans DU/FAB).
 // Filtre RÉSERVÉ (reserve_client posé par l'import Sage) : actif = ne
 // montrer QUE les articles réservés.
-let _resaFilter=false;
+let _resaFilter=''; // '' | 'with' (réservés) | 'without' (sans réservé)
 function toggleResaPill(btn){
-  _resaFilter=!_resaFilter;
-  btn.classList.toggle('active',_resaFilter);
+  const val=btn.dataset.resa||'with';
+  _resaFilter=(_resaFilter===val)?'':val;
+  document.querySelectorAll('.fpill-resa').forEach(b=>b.classList.toggle('active',_resaFilter===(b.dataset.resa||'with')));
   filterProducts();
 }
 let _photoFilter=''; // '' | 'with' | 'without'
@@ -1385,6 +1395,130 @@ function buildMsdOptions(msdId, values, defaultLabel, labelFn, stateId){
 // even when their count hits 0, so the user can always unselect.
 let _detailsCacheKick=false, _detailsLastSig=null;
 const DETAILS_NONE='__none__'; // sentinel for "no details" option
+const DETAILS_AUTRES='__autres__'; // sentinel « Autres » (détails non reconnus)
+// ── DÉTAILS CANONIQUES (16/07) : 1 272 libellés bruts → ~53 catégories. ──
+// Le champ details recopie souvent la désignation entière (avec doublons,
+// espaces, tirets) → le filtre listait des centaines d'entrées à 1 produit.
+// re/excl = détection CLIENT (facettes, cache produits) ; pats/notPats = le
+// MÊME concept en ilike PostgREST (* = joker) pour le filtre SERVEUR.
+const DETAIL_TAGS=[
+ {label:'FABRICATION',re:/FABRICATION/i,pats:['*fabrication*']},
+ {label:'QUALITÉ A',re:/QUAL(ITE)?\s*\.?\s*A\b/i,pats:['*qual.a*','*qual a*','*qualite a*']},
+ {label:'QUALITÉ B',re:/QUAL(ITE)?\s*\.?\s*B\b/i,pats:['*qual.b*','*qual b*','*qualite b*']},
+ {label:'QUALITÉ C',re:/QUAL(ITE)?\s*\.?\s*C\b/i,pats:['*qual.c*','*qual c*','*qualite c*']},
+ {label:'100% RECYCLÉ',re:/100\s*%?\s*REC|REC\s*\.?\s*100/i,pats:['*100*rec*','*rec*100*']},
+ {label:'FIBRES VIERGES',re:/FIBRES?\s+VIERGES?|%\s*FIBRES/i,pats:['*fibre*vierge*','*% fibres*']},
+ {label:'100% PP',re:/100\s*%?\s*PP|PP\s*\.?\s*100/i,pats:['*100*pp*','*pp100*','*pp 100*']},
+ {label:'KRAFT',re:/KRAFT/i,excl:/KRAFTLINER/i,pats:['*kraft*'],notPats:['*kraftliner*']},
+ {label:'KRAFTLINER',re:/KRAFTLINER/i,pats:['*kraftliner*']},
+ {label:'TESTLINER',re:/TESTLINER/i,pats:['*testliner*']},
+ {label:'FLUTING',re:/FLUTING/i,pats:['*fluting*']},
+ {label:'VERGÉ',re:/VERGE/i,pats:['*verge*']},
+ {label:'EN RAMES',re:/RAMES|ENRAMME/i,pats:['*rames*','*enramme*']},
+ {label:'NON COUCHÉ',re:/NON\s+COUCHE/i,pats:['*non*couche*']},
+ {label:'COUCHÉ',re:/COUCHE/i,excl:/NON\s+COUCHE/i,pats:['*couche*'],notPats:['*non*couche*']},
+ {label:'SATINÉ',re:/SATINE/i,pats:['*satine*']},
+ {label:'DEMI-MAT',re:/DEMI[\s-]*MAT/i,pats:['*demi*mat*']},
+ {label:'MAT',re:/\bMAT\b/i,excl:/DEMI[\s-]*MAT/i,pats:['mat','mat *','* mat','* mat *'],notPats:['*demi*mat*']},
+ {label:'BRILLANT',re:/BRILLANT/i,pats:['*brillant*']},
+ {label:'MARTELÉ',re:/MARTELE/i,pats:['*martele*']},
+ {label:'RUGUEUX',re:/RUGUEUX/i,pats:['*rugueux*']},
+ {label:'LISSE',re:/\bLISSE\b/i,pats:['lisse','lisse *','* lisse','* lisse *']},
+ {label:'MG',re:/\bMG\b/i,pats:['mg','mg *','* mg','* mg *']},
+ {label:'MF',re:/\bMF\b/i,pats:['mf','mf *','* mf','* mf *']},
+ {label:'OPAQUE',re:/OPAQUE/i,pats:['*opaque*']},
+ {label:'CF',re:/\bCF\b/i,pats:['cf','cf *','* cf','* cf *']},
+ {label:'CB',re:/\bCB\b/i,pats:['cb','cb *','* cb','* cb *']},
+ {label:'CFB',re:/\bCFB\b/i,pats:['cfb','cfb *','* cfb','* cfb *']},
+ {label:'GC1',re:/\bGC1\b/i,pats:['*gc1*']},
+ {label:'GC2',re:/\bGC2\b/i,pats:['*gc2*']},
+ {label:'GD2',re:/\bGD2\b/i,pats:['*gd2*']},
+ {label:'GD3',re:/\bGD3\b/i,pats:['*gd3*']},
+ {label:'GT',re:/\bGT[1-4]\b/i,pats:['*gt1*','*gt2*','*gt3*','*gt4*']},
+ {label:'CKB',re:/\bCKB\b/i,pats:['*ckb*']},
+ {label:'SBS',re:/\bSBS\b/i,pats:['*sbs*']},
+ {label:'DOS CRÈME',re:/DOS\s+CREME/i,pats:['*dos*creme*']},
+ {label:'DOS BLANC',re:/DOS\s+BLANC/i,pats:['*dos*blanc*']},
+ {label:'DOS GRIS',re:/DOS\s+GRIS/i,pats:['*dos*gris*']},
+ {label:'DOS BRUN',re:/DOS\s+BRUN/i,pats:['*dos*brun*']},
+ {label:'LWC',re:/\bLWC\b/i,pats:['*lwc*']},
+ {label:'PAPIER SÉCURITÉ',re:/SECURITE|FIBRES?\s+(IN)?VISIBLES?|FILIGRANE/i,pats:['*securite*','*fibre*visible*','*filigrane*']},
+ {label:'PAPIER CADEAU',re:/CADEAU/i,pats:['*cadeau*']},
+ {label:'PAPIER DÉCOR',re:/DECOR/i,pats:['*decor*']},
+ {label:'PAPIER DESSIN',re:/DESSIN/i,pats:['*dessin*']},
+ {label:'NOËL',re:/NO[EË]L/i,pats:['*noel*','*noël*']},
+ {label:'CALQUE',re:/CALQUE/i,pats:['*calque*']},
+ {label:'BOUFFANT',re:/BOUFFANT/i,pats:['*bouffant*']},
+ {label:'SILICONE',re:/SILICONE/i,pats:['*silicone*']},
+ {label:'SILK',re:/\bSILK\b/i,pats:['silk','silk *','* silk','* silk *']},
+ {label:'PLASTIFIÉ / PLASTIQUE',re:/PLASTIFIE|PLASTIQUE/i,pats:['*plastifie*','*plastique*']},
+ {label:'COMPLEXE',re:/COMPLEXE/i,pats:['*complexe*']},
+ {label:'INGRAISSABLE',re:/INGRAISSABLE/i,pats:['*ingraissable*']},
+ {label:'REH',re:/\bREH\b/i,pats:['reh','reh *','* reh','* reh *']},
+ {label:'POUR ÉTIQUETTES',re:/ETIQUETTES?/i,pats:['*etiquette*']},
+ {label:'REFENTE',re:/REFENTE/i,pats:['*refente*']},
+ {label:'ALVÉOLE',re:/ALVEOLE/i,pats:['*alveole*']},
+ {label:'TOILE',re:/\bTOILE\b/i,pats:['toile','toile *','* toile','* toile *']},
+ {label:'GAUFRÉ',re:/GAUF+RE/i,pats:['*gaufre*','*gauffre*']},
+ {label:'LIGNES',re:/\bLIGNES\b/i,pats:['lignes','lignes *','* lignes','* lignes *']},
+ {label:'CHROMOLUX',re:/CHROMOLUX/i,pats:['*chromolux*']},
+ {label:'CARTE',re:/\bCARTES?\b/i,pats:['*carte*']},
+ {label:'ENCRE',re:/\bENCRE\b/i,pats:['*encre*']},
+ {label:'EMBALLAGE',re:/EMBALLAGE/i,pats:['*emballage*']},
+ {label:'TRANSITION',re:/TRANSITION|\bTR\s+(GRAMMAGE|FORMAT|VERS)\b/i,pats:['*transition*','*tr grammage*','*tr format*','*tr vers*']},
+ {label:'TEINTÉ',re:/TEINTE|\bPALE\b|\bFONCEE?\b|\bCLAIRE?\b|FLUO/i,pats:['*teinte*','*pale*','*fonce*','*clair*','*fluo*']},
+ {label:'EXTENSIBLE',re:/EXTENSIBLE/i,pats:['*extensible*']},
+ {label:'ALUMINIUM',re:/\bALU(MINIUM)?\b/i,pats:['*aluminium*','*alu *','* alu','alu *']},
+ {label:'A4',re:/\bA4\b/i,pats:['a4','a4 *','* a4','* a4 *']},
+ {label:'A3',re:/\bA3\b/i,pats:['a3','a3 *','* a3','* a3 *']},
+ {label:'NATURE',re:/\bNATURE\b/i,pats:['nature','nature *','* nature','* nature *']},
+ {label:'GLASSINE',re:/GLASSINE/i,pats:['*glassine*']},
+ {label:'LATEX',re:/\bLATEX\b/i,pats:['latex','latex *','* latex','* latex *']},
+ {label:'FILET / ARMÉ',re:/FILET|\bARMES?\b/i,pats:['*filet*','arme','arme *','* arme','* arme *']},
+];
+// CIE : toute valeur est ARRONDIE à la plus proche de nos valeurs rondes
+// (« CIE 161 » → CIE 160, « CIE 168 » → CIE 170) — demande Ethan 16/07.
+const CIE_CANON=[100,120,130,140,145,150,160,165,170];
+function _cieNearest(n){
+  let best=CIE_CANON[0];
+  for(const c of CIE_CANON){
+    if(Math.abs(c-n)<Math.abs(best-n)||(Math.abs(c-n)===Math.abs(best-n)&&c>best))best=c;
+  }
+  return best;
+}
+const _detailTagCache=new Map();
+function _detailTagsOf(raw){
+  const s=String(raw||'').trim();
+  if(!s)return [];
+  let t=_detailTagCache.get(s);
+  if(!t){
+    const set=new Set(DETAIL_TAGS.filter(d=>d.re.test(s)&&!(d.excl&&d.excl.test(s))).map(d=>d.label));
+    const cieRe=/CIE\s*-?\s*(\d{2,3})/gi;
+    let m;
+    while((m=cieRe.exec(s)))set.add('CIE '+_cieNearest(+m[1]));
+    t=[...set];
+    _detailTagCache.set(s,t);
+  }
+  return t;
+}
+// Clause serveur d'un tag CIE : tous les entiers dont l'arrondi tombe sur lui.
+function _ciePg(canon){
+  const pats=[];
+  for(let n=90;n<=190;n++)if(_cieNearest(n)===canon)pats.push('details.ilike.*cie*'+n+'*');
+  return 'or('+pats.join(',')+')';
+}
+function _detailTagPg(t){ // clause PostgREST d'UN tag
+  const or_='or('+t.pats.map(x=>'details.ilike.'+x).join(',')+')';
+  const base=t.pats.length>1?or_:'details.ilike.'+t.pats[0];
+  if(t.notPats&&t.notPats.length)return 'and('+base+','+t.notPats.map(x=>'details.not.ilike.'+x).join(',')+')';
+  return base;
+}
+function _detailAutresPg(){ // « Autres » = champ rempli mais AUCUN tag reconnu
+  const nots=[];
+  DETAIL_TAGS.forEach(t=>t.pats.forEach(x=>nots.push('details.not.ilike.'+x)));
+  nots.push('details.not.ilike.*cie*');
+  return 'and(details.not.is.null,details.neq.,'+nots.join(',')+')';
+}
 function _matchesActiveFilters(row, excludeKey){
   const types=getMsdValues('msd-type');
   if(excludeKey!=='msd-type' && types.size>0){
@@ -1411,14 +1545,18 @@ function _matchesActiveFilters(row, excludeKey){
     const mandrins=getMsdValues('msd-mandrin');
     if(mandrins.size>0 && !mandrins.has(String(row.noyau))) return false;
   }
+  if(excludeKey!=='msd-format'){
+    const fmts=getMsdValues('msd-format');
+    if(fmts.size>0 && !fmts.has(_formatFamilleOf(row)||'')) return false;
+  }
   const gn=+document.getElementById('f-gmin')?.value||0;
   const gx=+document.getElementById('f-gmax')?.value||0;
   if(gn && +row.gsm<gn) return false;
   if(gx && +row.gsm>gx) return false;
   const lminCm=+document.getElementById('f-lmin')?.value||0;
   const lmaxCm=+document.getElementById('f-lmax')?.value||0;
-  if(lminCm && +row.width<lminCm*10) return false;
-  if(lmaxCm && +row.width>lmaxCm*10) return false;
+  if(lminCm && +row.width<lminCm) return false;
+  if(lmaxCm && +row.width>lmaxCm) return false;
   const longmin=+document.getElementById('f-longmin')?.value||0;
   const longmax=+document.getElementById('f-longmax')?.value||0;
   if(longmin && +row.longueur<longmin) return false;
@@ -1427,11 +1565,10 @@ function _matchesActiveFilters(row, excludeKey){
   const wmax=+document.getElementById('f-wmax')?.value||0;
   if(wmin && +row.weight<wmin) return false;
   if(wmax && +row.weight>wmax) return false;
-  if(_depotFilter==='our' && row.emplacement!=='OUR WAREHOUSE') return false;
-  if(_depotFilter==='ext' && row.emplacement==='OUR WAREHOUSE') return false;
   if(_photoFilter==='with' && !row.image_url) return false;
   if(_photoFilter==='without' && row.image_url) return false;
-  if(_resaFilter && !row.reserve_client) return false;
+  if(_resaFilter==='with' && !row.reserve_client) return false;
+  if(_resaFilter==='without' && row.reserve_client) return false;
   const refCode=(document.getElementById('f-ref-code')?.value||'').trim().toUpperCase();
   if(refCode && !String(row.quality||'').toUpperCase().startsWith(refCode)) return false;
   const refMin=+document.getElementById('f-refmin')?.value||0;
@@ -1439,8 +1576,11 @@ function _matchesActiveFilters(row, excludeKey){
   if(refMin||refMax){
     const refNum=parseInt(String(row.ref||'').replace(/\D/g,''),10);
     if(!refNum)return false;
-    if(refMin&&refNum<refMin)return false;
-    if(refMax&&refNum>refMax)return false;
+    if(refMin&&!refMax){ if(refNum!==refMin)return false; }
+    else {
+      if(refMin&&refNum<refMin)return false;
+      if(refMax&&refNum>refMax)return false;
+    }
   }
   const usineVal=(document.getElementById('f-usine')?.value||'').trim();
   if(usineVal && String(row.usine||'')!==usineVal) return false;
@@ -1463,6 +1603,9 @@ function _optMatchesValue(row, msdId, val){
   }
   if(msdId==='msd-mandrin'){
     return String(row.noyau)===String(val);
+  }
+  if(msdId==='msd-format'){
+    return _formatFamilleOf(row)===val;
   }
   if(msdId==='msd-type'){
     const q=row.quality||'';
@@ -1534,6 +1677,7 @@ function _refreshAllFacets(){
   _updateMsdFacetCounts('msd-type');
   _updateMsdFacetCounts('msd-couleur');
   _updateMsdFacetCounts('msd-mandrin');
+  _updateMsdFacetCounts('msd-format');
 }
 function _detailsFiltersSig(){
   // Signature of all filters EXCEPT msd-details — used to skip rebuild
@@ -1550,7 +1694,7 @@ function _detailsFiltersSig(){
     lgmax:document.getElementById('f-longmax')?.value||'',
     wmin:document.getElementById('f-wmin')?.value||'',
     wmax:document.getElementById('f-wmax')?.value||'',
-    dep:_depotFilter, ph:_photoFilter, rsv:_resaFilter?1:0,
+    ph:_photoFilter, rsv:_resaFilter||0,
     ref:document.getElementById('f-ref-code')?.value||'',
     rmin:document.getElementById('f-refmin')?.value||'',
     rmax:document.getElementById('f-refmax')?.value||'',
@@ -1587,18 +1731,21 @@ function _rebuildDetailsMsd(){
   _detailsLastSig=sig;
   const rows=_allProductsCache.filter(r=>_matchesActiveFilters(r,'msd-details'));
   const counts=new Map();
-  let emptyN=0;
+  let emptyN=0,autresN=0;
   rows.forEach(r=>{
     const raw=String(r.details||'').trim();
     if(!raw){ emptyN++; return; }
-    const k=raw.toLowerCase();
-    const cur=counts.get(k);
-    if(cur){ cur.n++; } else { counts.set(k,{label:raw,n:1}); }
+    const tags=_detailTagsOf(raw);
+    if(!tags.length){ autresN++; return; }
+    tags.forEach(t=>{
+      const cur=counts.get(t);
+      if(cur){ cur.n++; } else { counts.set(t,{label:t,n:1}); }
+    });
   });
   const sel=msdState['msd-details'];
   sel.forEach(v=>{
-    const k=String(v).toLowerCase();
-    if(!counts.has(k)) counts.set(k,{label:v,n:0});
+    if(v===DETAILS_NONE||v===DETAILS_AUTRES)return;
+    if(!counts.has(v)) counts.set(v,{label:v,n:0});
   });
   const sorted=[...counts.values()].sort((a,b)=>{
     const aS=sel.has(a.label)?0:1, bS=sel.has(b.label)?0:1;
@@ -1632,10 +1779,14 @@ function _rebuildDetailsMsd(){
       opt.addEventListener('click',()=>toggleMsdOption(opt,'msd-details'));
       panel.appendChild(opt);
     };
+    sorted.forEach(({label,n})=>mkOpt(label,label,n));
+    // « Autres » et « Sans détails » en FIN de liste (16/07).
+    if(autresN>0 || sel.has(DETAILS_AUTRES)){
+      mkOpt(DETAILS_AUTRES,'Autres',autresN,'msd-option-none');
+    }
     if(emptyN>0 || sel.has(DETAILS_NONE)){
       mkOpt(DETAILS_NONE,'Sans détails',emptyN,'msd-option-none');
     }
-    sorted.forEach(({label,n})=>mkOpt(label,label,n));
   });
   updateMsdBtn('msd-details');
 }
@@ -1671,7 +1822,7 @@ function showSuggestions(val,inp){
     const n=+numMatch[1];
     const hints=[];
     if(n>=20&&n<=800)hints.push({label:`${n} g/m² — Filtrer par grammage`,action:`${raw.replace(/\d+$/,'')}${n}g `});
-    if(n>=20&&n<=350)hints.push({label:`${n} cm — Filtrer par laize`,action:`${raw.replace(/\d+$/,'')}${n}cm `});
+    if(n>=200&&n<=3500)hints.push({label:`${n} mm — Filtrer par laize`,action:`${raw.replace(/\d+$/,'')}${n}mm `});
     if(hints.length){
       box.innerHTML=hints.map(h=>`<div class="suggest-item suggest-hint" onclick="document.getElementById('search-input').value=${attrJs(h.action.trim())};filterProducts();hideSuggestions()"><span>${esc(h.label)}</span></div>`).join('');
       const rect=el.getBoundingClientRect();
@@ -1858,8 +2009,8 @@ function _filterSharedLocal(){
   const gx=+document.getElementById('f-gmax')?.value||0;
   const _lminCm=+document.getElementById('f-lmin')?.value||0;
   const _lmaxCm=+document.getElementById('f-lmax')?.value||0;
-  const lmin=_lminCm?_lminCm*10:0;
-  const lmax=_lmaxCm?_lmaxCm*10:0;
+  const lmin=_lminCm||0;
+  const lmax=_lmaxCm||0;
   const longmin=+document.getElementById('f-longmin')?.value||0;
   const longmax=+document.getElementById('f-longmax')?.value||0;
   const wmin=+document.getElementById('f-wmin')?.value||0;
@@ -1884,10 +2035,8 @@ function _filterSharedLocal(){
     if(couleurs.size&&!couleurs.has(p.couleur))return false;
     if(mandrins.size&&!mandrins.has(String(p.noyau||'')))return false;
     if(formats.size&&!formats.has(p.format))return false;
-    if(_depotFilter==='our'&&p.emplacement!=='OUR WAREHOUSE')return false;
-    if(_depotFilter==='ext'&&p.emplacement==='OUR WAREHOUSE')return false;
-    if(!_stockMatch(p))return false;
-    if(_resaFilter&&!p.reserve_client)return false;
+    if(_resaFilter==='with'&&!p.reserve_client)return false;
+    if(_resaFilter==='without'&&p.reserve_client)return false;
     const _hasPhoto=p.image_url&&p.image_url.length>0;
     if(_photoFilter==='with'&&!_hasPhoto)return false;
     if(_photoFilter==='without'){
@@ -2003,8 +2152,8 @@ async function _fetchAndRender(token){
   const gx=+document.getElementById('f-gmax').value||+document.getElementById('f-gmax-fb')?.value||0;
   const _lminCm=+document.getElementById('f-lmin').value||+document.getElementById('f-lmin-fb')?.value||0;
   const _lmaxCm=+document.getElementById('f-lmax').value||+document.getElementById('f-lmax-fb')?.value||0;
-  const lmin=_lminCm?_lminCm*10:0;
-  const lmax=_lmaxCm?_lmaxCm*10:0;
+  const lmin=_lminCm||0;
+  const lmax=_lmaxCm||0;
   const longmin=+document.getElementById('f-longmin')?.value||0;
   const longmax=+document.getElementById('f-longmax')?.value||0;
   const wmin=+document.getElementById('f-wmin')?.value||0;
@@ -2102,64 +2251,52 @@ async function _fetchAndRender(token){
   const refMinSrv=+document.getElementById('f-refmin')?.value||0;
   const refMaxSrv=+document.getElementById('f-refmax')?.value||0;
   if(refMinSrv||refMaxSrv){
-    if(refMinSrv)p.append('ref',`gte.Photo_${String(refMinSrv).padStart(6,'0')}`);
-    if(refMaxSrv)p.append('ref',`lte.Photo_${String(refMaxSrv).padStart(6,'0')}`);
-    p.append('ref','match.^Photo_[0-9]{6}$');
+    if(refMinSrv&&!refMaxSrv){
+      // Min seul = LA réf exacte (pas « tout ce qui suit »).
+      p.append('ref',`eq.Photo_${String(refMinSrv).padStart(6,'0')}`);
+    } else {
+      if(refMinSrv)p.append('ref',`gte.Photo_${String(refMinSrv).padStart(6,'0')}`);
+      if(refMaxSrv)p.append('ref',`lte.Photo_${String(refMaxSrv).padStart(6,'0')}`);
+      p.append('ref','match.^Photo_[0-9]{6}$');
+    }
   }
   const usineVal=(document.getElementById('f-usine')?.value||'').trim();
   if(usineVal)p.append('usine',`eq.${_pgEsc(usineVal)}`);
   const detailsSel=getMsdValues('msd-details');
   if(detailsSel.size>0){
-    const _hasNone=detailsSel.has(DETAILS_NONE);
-    const _real=[...detailsSel].filter(v=>v!==DETAILS_NONE);
-    if(_hasNone && _real.length===0){
-      // "Sans détails" only — match null OR empty string
-      p.append('or','(details.is.null,details.eq.)');
-    } else if(_hasNone){
-      // "Sans détails" + real values
-      const _eqs=_real.map(v=>'details.eq.'+'"'+String(v).replace(/"/g,'""')+'"').join(',');
-      p.append('or',`(details.is.null,details.eq.,${_eqs})`);
-    } else {
-      // Real values only
-      const _qVals=_real.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',');
-      p.append('details',`in.(${_qVals})`);
+    // Catégories canoniques (16/07) : chaque tag = clause ilike serveur,
+    // « Autres » = aucun motif reconnu, « Sans détails » = champ vide.
+    const _terms=[];
+    if(detailsSel.has(DETAILS_NONE)){_terms.push('details.is.null','details.eq.');}
+    if(detailsSel.has(DETAILS_AUTRES)){_terms.push(_detailAutresPg());}
+    [...detailsSel].filter(v=>v!==DETAILS_NONE&&v!==DETAILS_AUTRES).forEach(lbl=>{
+      const _cie=/^CIE (\d+)$/.exec(lbl);
+      if(_cie){_terms.push(_ciePg(+_cie[1]));return;}
+      const t=DETAIL_TAGS.find(x=>x.label===lbl);
+      if(t)_terms.push(_detailTagPg(t));
+    });
+    if(_terms.length)p.append('or',`(${_terms.join(',')})`);
+  }
+  const fmtSel=getMsdValues('msd-format');
+  if(fmtSel.size>0){
+    const _fcl=[];
+    FORMAT_FAMILLES.forEach(f=>{if(fmtSel.has(_fmtLbl(f)))_fcl.push(_fmtPg(f));});
+    if(fmtSel.has(FORMAT_AUTRES)){
+      // Autres = pas bobine ET dans aucune famille (dims manquantes incluses)
+      const nots=FORMAT_FAMILLES.map(f=>'not.'+_fmtPg(f).replace(/^and\(format\.neq\.Bobine,/,'and(').replace(/\)$/,')')).join(',');
+      _fcl.push(`and(format.neq.Bobine,${FORMAT_FAMILLES.map(f=>{const t=FORMAT_TOL,a=f[0],b=f[1];return `not.or(and(width.gte.${a-t},width.lte.${a+t},longueur.gte.${b-t},longueur.lte.${b+t}),and(width.gte.${b-t},width.lte.${b+t},longueur.gte.${a-t},longueur.lte.${a+t}))`;}).join(',')})`);
     }
+    if(_fcl.length)p.append('or',`(${_fcl.join(',')})`);
   }
   const zoneNum=(document.getElementById('f-zone-num')?.value||'').trim();
   const zoneLet=(document.getElementById('f-zone-let')?.value||'').trim().toUpperCase();
   if(zoneNum&&zoneLet)p.append('zone',`ilike.${_pgEsc(zoneNum)}${_pgEsc(zoneLet)}%`);
   else if(zoneNum)p.append('zone',`like.${_pgEsc(zoneNum)}%`);
   else if(zoneLet)p.append('zone',`ilike.%${_pgEsc(zoneLet)}%`);
-  // Dépôt filter
-  if(_depotFilter==='our')p.append('emplacement',`eq.OUR WAREHOUSE`);
-  else if(_depotFilter==='ext')p.append('emplacement',`neq.OUR WAREHOUSE`);
-  // Stocklot/Fabrication server-side filter
-  // 1 seule pill → filtre simple. 2+ pills → OR composite côté serveur.
-  if(_stockFilter.size===1){
-    const _sf=[..._stockFilter][0];
-    if(_sf==='fab'){
-      // FAB = ref commence par Photo_FAB ET hors dépôt
-      p.append('ref','ilike.Photo_FAB%');
-      p.append('emplacement','neq.OUR WAREHOUSE');
-    } else if(_sf==='stocklot'){
-      // STOCKLOT = ni Photo_DU* ni Photo_FAB*
-      p.append('and','(or(ref.not.ilike.Photo_DU%,ref.is.null),or(ref.not.ilike.Photo_FAB%,ref.is.null))');
-    } else if(_sf==='siderun'){
-      // SIDERUN = ref commence par Photo_DU
-      p.append('ref','ilike.Photo_DU%');
-    }
-  } else if(_stockFilter.size>=2){
-    // Multichoix : OR des conditions (au moins 1 doit matcher)
-    const _terms=[];
-    _stockFilter.forEach(_sf=>{
-      if(_sf==='fab')_terms.push('and(ref.ilike.Photo_FAB%,emplacement.neq."OUR WAREHOUSE")');
-      else if(_sf==='siderun')_terms.push('ref.ilike.Photo_DU%');
-      else if(_sf==='stocklot')_terms.push('and(or(ref.not.ilike.Photo_DU%,ref.is.null),or(ref.not.ilike.Photo_FAB%,ref.is.null))');
-    });
-    if(_terms.length)p.append('or',`(${_terms.join(',')})`);
-  }
+  // Dépôt/stock : périmètre verrouillé dans sbQ (dépôt seul, sans DU/FAB).
   // Filtre Réservé — reserve_client posé par l'import Sage quotidien.
-  if(_resaFilter)p.append('reserve_client','not.is.null');
+  if(_resaFilter==='with')p.append('reserve_client','not.is.null');
+  else if(_resaFilter==='without')p.append('reserve_client','is.null');
   // Photo filter — image_url is NULL pour les produits sans photo réelle (mis à jour par scripts/verify_photos.py)
   if(_photoFilter==='with')p.append('image_url','not.is.null');
   else if(_photoFilter==='without'){
@@ -2451,24 +2588,19 @@ function updateFilterChips(){
   const _activeFmts=Array.from(document.querySelectorAll('.fpill.active:not(.fpill-orig):not(.fpill-stock):not(.fpill-depot):not(.fpill-photo)')).map(b=>b.dataset.format);
   const _activeOrigs=Array.from(document.querySelectorAll('.fpill-orig.active')).map(b=>b.dataset.origine==='R'?'Stocklot':'Fabrication');
   if(_activeOrigs.length>0)chips.push({label:('Origine')+' : '+_activeOrigs.join(', '),clear:()=>{document.querySelectorAll('.fpill-orig.active').forEach(b=>b.classList.remove('active'));filterProducts();}});
-  _stockFilter.forEach(_sf=>{
-    const _label=_sf==='fab'?'Fabrication':_sf==='siderun'?'Siderun':'Stocklots';
-    chips.push({label:_label,clear:()=>{_stockFilter.delete(_sf);syncFilterPills();filterProducts();}});
-  });
-  if(_depotFilter)chips.push({label:_depotFilter==='our'?'Notre dépôt':'Hors dépôt',clear:()=>{_depotFilter='';syncFilterPills();filterProducts();}});
   if(_photoFilter)chips.push({label:_photoFilter==='with'?'Avec photo':'Sans photo',clear:()=>{_photoFilter='';syncFilterPills();filterProducts();}});
   if(_activeFmts.length>0)chips.push({label:_activeFmts.map(f=>f==='Bobine'?'Bobine':f==='Palette'?'Format':f).join(', '),clear:()=>{_formatFilter='';syncFilterPills();filterProducts();}});
-  ['msd-type','msd-mandrin','msd-couleur','msd-details'].forEach(id=>{
+  ['msd-type','msd-mandrin','msd-couleur','msd-details','msd-format'].forEach(id=>{
     const set=msdState[id];
     if(set.size>0){
-      const lbl={'msd-type':'Type','msd-mandrin':'Mandrin','msd-couleur':'Couleur','msd-details':'Détails'}[id];
-      const vals=[...set].map(v=>v===DETAILS_NONE?'Sans détails':v).join(', ');
+      const lbl={'msd-type':'Type','msd-mandrin':'Mandrin','msd-couleur':'Couleur','msd-details':'Détails','msd-format':'Format'}[id];
+      const vals=[...set].map(v=>v===DETAILS_NONE?'Sans détails':v===DETAILS_AUTRES?'Autres':v===FORMAT_AUTRES?'Autres formats':v).join(', ');
       chips.push({label:lbl+' : '+vals,clear:()=>{resetMsd(id);filterProducts();}});
     }
   });
   if(gn||gx)chips.push({label:'Gram.'+' : '+(gn||'—')+' → '+(gx||'—')+' g/m²',clear:()=>{document.getElementById('f-gmin').value='';document.getElementById('f-gmax').value='';filterProducts();}});
 
-  if(lmin2||lmax2)chips.push({label:'Laize'+' : '+(lmin2||'—')+' → '+(lmax2||'—')+' cm',clear:()=>{['f-lmin','f-lmax','f-lmin-fb','f-lmax-fb','f-lmin-mob','f-lmax-mob'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});filterProducts();}});
+  if(lmin2||lmax2)chips.push({label:'Laize'+' : '+(lmin2||'—')+' → '+(lmax2||'—')+' mm',clear:()=>{['f-lmin','f-lmax','f-lmin-fb','f-lmax-fb','f-lmin-mob','f-lmax-mob'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});filterProducts();}});
   const longmin2=document.getElementById('f-longmin')?.value||'';
   const longmax2=document.getElementById('f-longmax')?.value||'';
   if(longmin2||longmax2)chips.push({label:'Longueur'+' : '+(longmin2||longmax2)+'mm',clear:()=>{['f-longmin','f-longmax','f-longmin-mob','f-longmax-mob'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});filterProducts();}});
@@ -2480,7 +2612,7 @@ function updateFilterChips(){
   // if(cpn||cpx)chips.push({label:'Prix'+...});
   const refMinChip=(document.getElementById('f-refmin')?.value||'').trim();
   const refMaxChip=(document.getElementById('f-refmax')?.value||'').trim();
-  if(refMinChip||refMaxChip)chips.push({label:'Réf. article : '+(refMinChip||'—')+' → '+(refMaxChip||'—'),clear:()=>{['f-refmin','f-refmax','f-refmin-mob','f-refmax-mob'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});filterProducts();}});
+  if(refMinChip||refMaxChip)chips.push({label:'Réf. article : '+(refMinChip&&!refMaxChip?refMinChip:(refMinChip||'—')+' → '+(refMaxChip||'—')),clear:()=>{['f-refmin','f-refmax','f-refmin-mob','f-refmax-mob'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});filterProducts();}});
   const usineChip=(document.getElementById('f-usine')?.value||'').trim();
   if(usineChip)chips.push({label:'Usine : '+usineChip,clear:()=>{const e=document.getElementById('f-usine');if(e)e.value='';filterProducts();}});
   const zoneNumChip=(document.getElementById('f-zone-num')?.value||'').trim();
@@ -2561,9 +2693,9 @@ function _productSummary(p){
   if(p.grammage)parts.push(p.grammage+' g/m²');
   const isPalette=p.format&&/palette|feuille/i.test(p.format);
   if(isPalette&&(p.largeur||p.longueur)){
-    parts.push([mmToCm(p.largeur),p.longueur?mmToCm(p.longueur):null].filter(Boolean).join(' × ')+' cm');
+    parts.push([mmToCm(p.largeur),p.longueur?mmToCm(p.longueur):null].filter(Boolean).join(' × ')+' mm');
   }else if(p.largeur){
-    const dim='Laize '+mmToCm(p.largeur)+' cm'+(p.longueur?' • Long. '+p.longueur+' mm':'');
+    const dim='Laize '+mmToCm(p.largeur)+' mm'+(p.longueur?' • Long. '+p.longueur+' mm':'');
     parts.push(dim);
   }
   return parts.join(' • ');
@@ -2594,7 +2726,7 @@ function renderCards(list){
         :`<img src="${esc(_fallbackImg)}" alt="Photo sur demande" class="pcard-nophoto" width="300" height="279">`;
     const {cls:badgeCls,txt:badgeTxt}=decodeQuality(p.type);
     const isPalette=p.format&&/palette|feuille/i.test(p.format);
-    const dimTag=!isPalette&&p.largeur?`${mmToCm(p.largeur)} cm`:'';
+    const dimTag=!isPalette&&p.largeur?`${mmToCm(p.largeur)} mm`:'';
     const fmtLabel=p.format?(isPalette?'Format':'Bobine'):null;
     const paletteDims=isPalette&&(p.largeur||p.longueur)?[p.largeur,p.longueur].filter(Boolean).map(v=>mmToCm(v)).join('×'):null;
     const _isGroup=p._grpCount&&p._grpCount>1;
@@ -2623,7 +2755,7 @@ function renderCards(list){
     const specRows=[
       ['Grammage', p.grammage?`${p.grammage} g/m²`:'—'],
       isPalette
-        ? ['Dimensions', paletteDims?paletteDims+' cm':'—']
+        ? ['Dimensions', paletteDims?paletteDims+' mm':'—']
         : ['Laize', dimTag||'—'],
       ['Couleur', p.couleur||'—'],
     ];
@@ -2726,11 +2858,11 @@ function renderList(list){
       :`<button class="plist-add${inCart?' added':''}" id="ladd-${numId(p.id)}" aria-label="${inCart?('Retirer de la liste'):('Ajouter à la liste')}" onclick="event.stopPropagation();addToCart(${numId(p.id)})">${inCart?_ICO_TRASH:'+'}</button>`;
     const isPalette=p.format&&/palette|feuille/i.test(p.format);
     // Dimensions: Bobine → Laize | Ø Diamètre | Mandrin / Palette → Dimensions (laize×long)
-    const laize=p.largeur?`${mmToCm(p.largeur)} cm`:'—';
+    const laize=p.largeur?`${mmToCm(p.largeur)} mm`:'—';
     const dim2=isPalette
-      ?(p.longueur?`${mmToCm(p.longueur)} cm`:'—')
-      :(p.longueur?`Ø ${mmToCm(p.longueur)} cm`:'—');
-    const paletteDims2=isPalette&&(p.largeur||p.longueur)?[p.largeur,p.longueur].filter(Boolean).map(v=>mmToCm(v)).join(' × ')+' cm':null;
+      ?(p.longueur?`${mmToCm(p.longueur)} mm`:'—')
+      :(p.longueur?`Ø ${mmToCm(p.longueur)} mm`:'—');
+    const paletteDims2=isPalette&&(p.largeur||p.longueur)?[p.largeur,p.longueur].filter(Boolean).map(v=>mmToCm(v)).join(' × ')+' mm':null;
     const _grpMan=_isGroupL&&p._grpMandrins&&p._grpMandrins.length?p._grpMandrins.join(' / ')+' mm':null;
     const mandrin=isPalette?null:(_grpMan||(p.noyau?`${p.noyau} mm`:'—'));
     const _poidsTxt=_isGroupL?Math.round(p._grpTotalWeight).toLocaleString('fr-FR')+' kg':(p.poids_net?p.poids_net.toLocaleString('fr-FR')+' kg':'—');
@@ -2939,10 +3071,10 @@ async function openDetail(id){
     {lbl: 'Couleur',   val: p.couleur},
     {lbl: 'Grammage',                             val: p.grammage?p.grammage+' g/m²':null},
     {lbl: (p.format&&/palette|feuille/i.test(p.format)&&p.largeur&&p.longueur)?'Dimensions':('Laize'),
-     val: (p.format&&/palette|feuille/i.test(p.format)&&p.largeur&&p.longueur)?mmToCm(p.largeur)+' × '+mmToCm(p.longueur)+' cm':(p.largeur?mmToCm(p.largeur)+' cm':null)},
-    {lbl: 'Longueur', val: p.format&&/palette|feuille/i.test(p.format)&&p.largeur&&p.longueur?null:(p.format==='Palette'&&p.longueur?mmToCm(p.longueur)+' cm':null)},
+     val: (p.format&&/palette|feuille/i.test(p.format)&&p.largeur&&p.longueur)?mmToCm(p.largeur)+' × '+mmToCm(p.longueur)+' mm':(p.largeur?mmToCm(p.largeur)+' mm':null)},
+    {lbl: 'Longueur', val: p.format&&/palette|feuille/i.test(p.format)&&p.largeur&&p.longueur?null:(p.format==='Palette'&&p.longueur?mmToCm(p.longueur)+' mm':null)},
     // Bobines : la colonne `longueur` stocke le diamètre (mm) — héritage import Sage.
-    {lbl: 'Diamètre',  val: !(p.format&&/palette|feuille/i.test(p.format))&&p.longueur?'Ø '+mmToCm(p.longueur)+' cm':null},
+    {lbl: 'Diamètre',  val: !(p.format&&/palette|feuille/i.test(p.format))&&p.longueur?'Ø '+mmToCm(p.longueur)+' mm':null},
     {lbl: 'Mandrin',   val: p.noyau?p.noyau+' mm':null},
     {lbl: 'Condit.',  val: p.qualite!=='UMAC'&&p.qualite!=='UMAN'&&!(p.format&&/palette|feuille/i.test(p.format))?formatLabel(p):null},
     {lbl: 'Dépôt',  val: p.zone||p.emplacement},
@@ -3068,7 +3200,7 @@ function resetFilters(){
     document.querySelectorAll('.msd-option.selected').forEach(o=>o.classList.remove('selected'));
 
     // 3. Reset all msd button labels
-    ['msd-type','msd-mandrin','msd-couleur','msd-details'].forEach(id=>{
+    ['msd-type','msd-mandrin','msd-couleur','msd-details','msd-format'].forEach(id=>{
       // fbar button
       const fbBtn=document.querySelector(`#${id} .fb-msd-btn`);
       if(fbBtn){ const lbl=fbBtn.querySelector('span:first-child');if(lbl)lbl.textContent=msdLabels[id]; }
@@ -3081,7 +3213,7 @@ function resetFilters(){
 
     // 4. Reset format pills
     document.querySelectorAll('.fpill.active,.fpill-orig.active,.fpill-stock.active,.fpill-depot.active,.fpill-photo.active,.fb-pill.active').forEach(b=>b.classList.remove('active'));
-    _stockFilter.clear();_depotFilter='';_photoFilter='';_formatFilter='';
+    _photoFilter='';_formatFilter='';_resaFilter='';
     ['fb-bobine','fb-palette','fb-recyc','fb-fab'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('active');});
 
     // 5. Clear all inputs
@@ -3091,7 +3223,7 @@ function resetFilters(){
      'f-zone-num','f-zone-let','f-zone-num-mob','f-zone-let-mob',
      'f-gmin-sb','f-gmax-sb','f-pmin-sb','f-pmax-sb',
      'f-gmin-mob','f-gmax-mob','f-lmin-mob','f-lmax-mob','f-pmin-mob','f-pmax-mob',
-     'f-usine','f-refmin','f-refmax','f-refmin-mob','f-refmax-mob',
+     'f-usine','f-refmin','f-refmax','f-refmin-mob','f-refmax-mob','f-refmin-top','f-refmax-top',
      'search-input','search-input-mob'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
 
     // 6. Clear chips & reset UI
@@ -3477,19 +3609,19 @@ function openImportRefs(){
   const d=document.createElement('div');
   d.id='import-refs-bg';
   d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;display:flex;align-items:center;justify-content:center;padding:16px;';
-  d.innerHTML=`<div style="background:#fff;border-radius:12px;padding:28px;max-width:500px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2);">
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1.5px;margin-bottom:4px;">IMPORTER DES RÉFÉRENCES</div>
-    <div style="font-size:13px;color:#999;margin-bottom:10px;">Dépose un document (BL, préparation de livraison…) ou colle tes numéros</div>
+  d.innerHTML=`<div style="background:#fff;border-radius:16px;padding:36px;max-width:650px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2);">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:29px;letter-spacing:2px;margin-bottom:5px;">ALBUM PHOTO</div>
+    <div style="font-size:17px;color:#999;margin-bottom:13px;">Dépose un document (BL, préparation de livraison…) ou colle tes numéros</div>
     <button type="button" onclick="document.getElementById('import-refs-file').click()" id="import-refs-drop"
-      style="width:100%;padding:14px;margin-bottom:10px;border:2px dashed #FE0000;border-radius:8px;background:#fff5f5;color:#c00;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">
-      📄 Choisir un fichier — PDF, Excel, Word, CSV…<br><span style="font-weight:400;font-size:12px;color:#999">les références (6 chiffres, DU, FAB) sont détectées automatiquement</span>
+      style="width:100%;min-height:156px;padding:18px;margin-bottom:13px;border:2px dashed #FE0000;border-radius:10px;background:#fff5f5;color:#c00;font-size:18px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">
+      📄 Choisir un fichier — PDF, Excel, Word, CSV…<br><span style="font-weight:400;font-size:16px;color:#999">les références (6 chiffres, DU, FAB) sont détectées automatiquement</span>
     </button>
     <input type="file" id="import-refs-file" accept=".pdf,.xlsx,.xls,.csv,.txt,.docx" style="display:none" onchange="if(this.files[0])_importRefsFromFile(this.files[0]);this.value='';">
-    <textarea id="import-refs-input" style="width:100%;min-height:120px;padding:12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;resize:vertical;box-sizing:border-box;" placeholder="917643&#10;985042&#10;DU5517&#10;774533"></textarea>
-    <div id="import-refs-result" style="font-size:13px;margin-top:8px;min-height:20px;"></div>
-    <div style="display:flex;gap:8px;margin-top:12px;">
-      <button onclick="_doImportRefs()" style="flex:2;padding:12px;background:#FE0000;color:#fff;border:none;border-radius:8px;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;cursor:pointer;" id="import-refs-btn">AJOUTER À LA LISTE</button>
-      <button onclick="document.getElementById('import-refs-bg').remove();" style="padding:12px 16px;background:transparent;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;cursor:pointer;">Fermer</button>
+    <textarea id="import-refs-input" style="width:100%;min-height:62px;padding:16px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:18px;font-family:'DM Sans',sans-serif;resize:vertical;box-sizing:border-box;" placeholder="917643&#10;985042"></textarea>
+    <div id="import-refs-result" style="font-size:17px;margin-top:10px;min-height:26px;"></div>
+    <div style="display:flex;gap:10px;margin-top:16px;">
+      <button onclick="_doImportRefs()" style="flex:2;padding:16px;background:#FE0000;color:#fff;border:none;border-radius:10px;font-family:'Bebas Neue',sans-serif;font-size:21px;letter-spacing:1.3px;cursor:pointer;" id="import-refs-btn">AJOUTER À LA LISTE</button>
+      <button onclick="document.getElementById('import-refs-bg').remove();" style="padding:16px 21px;background:transparent;border:1.5px solid #e0e0e0;border-radius:10px;font-size:18px;cursor:pointer;">Fermer</button>
     </div>
   </div>`;
   d.addEventListener('click',e=>{if(e.target===d)d.remove();});
@@ -3541,7 +3673,9 @@ async function _extractTextFromFile(file){
   if(name.endsWith('.xlsx')||name.endsWith('.xls')){
     await _loadScript('xlsx');
     const wb=window.XLSX.read(await file.arrayBuffer(),{type:'array'});
-    return wb.SheetNames.map(n=>window.XLSX.utils.sheet_to_csv(wb.Sheets[n])).join('\n');
+    // FS '\n' = une CELLULE par ligne : un CSV virgule collait la réf au champ
+    // suivant (« 993076,548 ») et la garde anti-décimales la rejetait.
+    return wb.SheetNames.map(n=>window.XLSX.utils.sheet_to_csv(wb.Sheets[n],{FS:'\n'})).join('\n');
   }
   if(name.endsWith('.docx')){
     await _loadScript('jszip');
@@ -3566,8 +3700,12 @@ async function _importRefsFromFile(file){
     let six;
     try{six=text.match(new RegExp('(?<![\\d.,])\\d{6}(?![\\d.,])','g'))||[];}
     catch(_){six=text.match(/\b\d{6}\b/g)||[];}
+    // Filet CSV : la regex refuse une réf collée à une virgule (anti-décimales),
+    // donc on repêche les tokens EXACTEMENT 6 chiffres après découpe.
+    const tokens=text.split(/[\s,;\t]+/).filter(t=>/^\d{6}$/.test(t));
     const refs=[...new Set([
       ...six,
+      ...tokens,
       ...(text.match(/\b(?:DU|FAB)\d{3,5}\b/gi)||[]).map(r=>r.toUpperCase()),
     ])];
     if(!refs.length){
@@ -3639,6 +3777,15 @@ async function _doImportRefs(){
     if(notFound.length)msg+=`<br><span style="color:#e53e3e">✗ ${notFound.length} introuvable(s) : ${esc(notFound.join(', '))}</span>`;
     result.innerHTML=msg;
     btn.disabled=false;btn.textContent='AJOUTER À LA LISTE';
+    // Flux intuitif (16/07) : des produits trouvés → la popup se ferme et LA
+    // LISTE s'ouvre direct (le récap passe en toast, introuvables comprises).
+    if(found.length){
+      setTimeout(()=>{
+        document.getElementById('import-refs-bg')?.remove();
+        openCartDrawer();
+        toast(found.length+' produit(s) dans la liste'+(notFound.length?' · '+notFound.length+' introuvable(s) : '+notFound.slice(0,5).join(', ')+(notFound.length>5?'…':''):''));
+      },600);
+    }
   }catch(e){
     console.error('Import refs error:',e);
     result.innerHTML='<span style="color:#e53e3e">Erreur lors de la recherche</span>';
@@ -3666,7 +3813,7 @@ function _proformaDesignation(it){
     if(d&&d.length>2)lines.push(d.toUpperCase());
   }
   if(it.gsm)lines.push(`GRAMMAGE : ${it.gsm} g/m²`);
-  if(it.largeurCm)lines.push(`LAIZE${it.format&&/palette/i.test(it.format)?'':'S SOUHAITÉES SELON LAIZE MÈRE'} ${it.format&&/palette/i.test(it.format)?'':'DE '}${it.largeurCm} cm`);
+  if(it.largeurCm)lines.push(`LAIZE${it.format&&/palette/i.test(it.format)?'':'S SOUHAITÉES SELON LAIZE MÈRE'} ${it.format&&/palette/i.test(it.format)?'':'DE '}${it.largeurCm} mm`);
   return lines.filter((l,i,a)=>!(l===''&&(i===0||a[i-1]===''))).join('\n');
 }
 
@@ -4385,7 +4532,7 @@ function renderDrawer(){
     const _isSiderunD=_ref&&/^Photo_DU/i.test(String(_ref));
     const _isFabD=_ref&&/^Photo_FAB/i.test(String(_ref))&&_emp!=='OUR WAREHOUSE';
     const _fallback=_isSiderunD?'/img/siderun-sur-demande.png':_isFabD?'/img/fabrication-sur-demande.png':'/img/no-photo.png';
-    const imgHtml=imgSrc?`<img src="${safeUrl(imgSrc)}" onerror="this.src='${esc(_fallback)}'">`:`<img src="${esc(_fallback)}" alt="">`;
+    const imgHtml=imgSrc?`<img src="${safeUrl(imgSrc)}" loading="lazy" decoding="async" onerror="this.src='${esc(_fallback)}'">`:`<img src="${esc(_fallback)}" alt="" loading="lazy">`;
     return`<div class="ci" id="ci-${numId(p.id)}" onclick="_ciOpenDetail(${numId(p.id)})" style="cursor:pointer">
       <div class="ci-img">${imgHtml}</div>
       <div class="ci-body">
@@ -4602,13 +4749,15 @@ function updateFilterVisibility(){
   // Sidebar
   show('sb-sec-longueur', showLongueur);
   show('sb-sec-mandrin',  showMandrin);
+  show('sb-sec-format',   !onlyBobine);
   const sbLbl=document.getElementById('sb-laize-lbl');
   if(sbLbl) sbLbl.firstChild.textContent=laizeLbl+' ';
   // Mobile drawer
   show('mob-sec-longueur', showLongueur);
   show('mob-sec-mandrin',  showMandrin);
+  show('mob-sec-format',   !onlyBobine);
   const mobLbl=document.getElementById('mob-laize-title');
-  if(mobLbl) mobLbl.textContent=laizeLbl+' (cm)';
+  if(mobLbl) mobLbl.textContent=laizeLbl+' (mm)';
 }
 
 function toggleFbPill(btnId,type){
@@ -4665,9 +4814,7 @@ function toggleMobSearch(){
 function syncFilterPills(){
   // Aligne TOUTES les pills (header + drawer mobile) sur les états sources de vérité.
   // Les comparaisons `''===dataset.x` sont sûres : aucune pill n'a un data-* vide.
-  document.querySelectorAll('.fpill-stock').forEach(b=>b.classList.toggle('active',_stockFilter.has(b.dataset.stock)));
   document.querySelectorAll('.fpill[data-format]').forEach(b=>b.classList.toggle('active',_formatFilter===b.dataset.format));
-  document.querySelectorAll('.fpill-depot').forEach(b=>b.classList.toggle('active',_depotFilter===b.dataset.depot));
   document.querySelectorAll('.fpill-photo').forEach(b=>b.classList.toggle('active',_photoFilter===b.dataset.photo));
 }
 function openFilterDrawer(){

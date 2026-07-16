@@ -259,7 +259,7 @@ async function submitContact(e) {
     // réfs (~350) n'ont pas encore leur photo dans l'album stock.prodi.net
     // (URLs synthétisées par l'import → 404) : on descend la liste par lots —
     // les 404 échouent vite — et on s'arrête dès qu'on a la diversité voulue.
-    const r=await fetch(SURL+'/rest/v1/products?select=*&image_url=not.is.null&image_url=neq.&ref=match.%5EPhoto_%5B0-9%5D%7B6%7D%24&source=neq.inventaire&order=ref.desc',{
+    const r=await fetch(SURL+'/rest/v1/products?select=*&image_url=not.is.null&image_url=neq.&ref=match.%5EPhoto_%5B0-9%5D%7B6%7D%24&source=neq.inventaire&emplacement=eq.OUR%20WAREHOUSE&order=ref.desc',{
       headers:{'apikey':SKEY,'Authorization':'Bearer '+SKEY,'Range':'0-999'}
     });
     const data=await r.json();
@@ -291,7 +291,7 @@ async function submitContact(e) {
     // Filet (ne devrait jamais servir) : compléter avec les réfs anciennes.
     if(verified.length<TARGET){
       try{
-        const r2=await fetch(SURL+'/rest/v1/products?select=*&image_url=not.is.null&image_url=neq.&ref=match.%5EPhoto_%5B0-9%5D%7B6%7D%24&source=neq.inventaire&order=ref.asc',{
+        const r2=await fetch(SURL+'/rest/v1/products?select=*&image_url=not.is.null&image_url=neq.&ref=match.%5EPhoto_%5B0-9%5D%7B6%7D%24&source=neq.inventaire&emplacement=eq.OUR%20WAREHOUSE&order=ref.asc',{
           headers:{'apikey':SKEY,'Authorization':'Bearer '+SKEY,'Range':'0-149'}
         });
         const older=(await r2.json())||[];
@@ -335,7 +335,7 @@ async function submitContact(e) {
     const QL={'R1SC':'Couché 1 face','R2SC':'Couché 2 faces','RADH':'Adhésif','RAFF':'Papier affiche','RBOA':'Carton couché','RBON':'Carton non couché','RBOU':'Bouffant','RCAR':'Autocopiant','RCOL':'Offset couleur','RCUI':'Papier cuisson','RDIV':'Divers / Alu','RFLEX':'Complexe','RKDO':'Papier cadeau','RKRA':'Kraft','RKRABRUN':'Kraft brun','RKRG':'Kraft gomme','RKRR':'Kraft armé','RLINER':'Liner / Testliner','RLUX':'Papier luxe','RLWC':'LWC','RNEW':'Papier journal','ROFF':'Offset','RPAC':'Emballage','RPLA':'Plastique','RSIL':'Silicone / Glassine','RTHERM':'Thermique','RTIS':'Ouate / Tissue','S1SC':'Couché 1 face','S2SC':'Couché 2 faces','SADH':'Adhésif','SAFF':'Papier affiche','SBOA':'Carton couché','SBON':'Carton non couché','SBOU':'Bouffant','SCAR':'Autocopiant','SCOL':'Offset couleur','SCUT':'Ramette','SDIV':'Divers','SENV':'Enveloppes','SKRA':'Kraft','SLUX':'Papier luxe','SNEW':'Papier journal','SOFF':'Offset','SPAC':'Emballage','SPLA':'Plastique','SSBS':'SBS / Carton blanc','SINK':'Encre','UMAC':'Machines','SLWC':'LWC'};
 
     // Render cards (visuel identique aux cartes du catalogue: .pcard)
-    const mmCm=mm=>mm!=null?(+(mm/10).toFixed(1)).toString().replace(/\.0$/,''):null;
+    const mmCm=mm=>mm!=null?String(Math.round(+mm)):null; // 16/07 : tout en mm
     function cardHtml(p){
       const q=p.quality||'';
       const c=q[0];
@@ -343,7 +343,7 @@ async function submitContact(e) {
       const lab=QL[q]||q||'';
       const title=q?`${prefix} — ${lab.toUpperCase()}`:'Produit';
       const isPalette=p.format&&/palette|feuille/i.test(p.format);
-      const dimTag=!isPalette&&p.width?`${mmCm(p.width)} cm`:'';
+      const dimTag=!isPalette&&p.width?`${mmCm(p.width)} mm`:'';
       const paletteDims=isPalette&&(p.width||p.longueur)?[p.width,p.longueur].filter(Boolean).map(mmCm).join('×'):null;
       const _refClean=(p.ref||'').replace(/^Photo_/i,'').trim();
       const _usineClean=p.usine?String(p.usine).replace(/^REF\s*/i,''):null;
@@ -353,7 +353,7 @@ async function submitContact(e) {
       const subtitleHtml=_det.length>2?`<div class="pcard-subtitle">${esc(_det)}</div>`:'';
       const specRows=[
         p.gsm?`${p.gsm} g/m²`:'—',
-        isPalette?(paletteDims?paletteDims+' cm':'—'):(dimTag||'—'),
+        isPalette?(paletteDims?paletteDims+' mm':'—'):(dimTag||'—'),
         p.color||'—'
       ];
       const specsHtml=`<div class="pcard-specs">${specRows.map(v=>`<div class="pcard-spec"><span class="pspec-val">${esc(v)}</span></div>`).join('')}</div>`;

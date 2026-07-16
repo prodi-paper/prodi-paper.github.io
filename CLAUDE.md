@@ -109,6 +109,29 @@ g.innerHTML=`<div onclick="openDetail(${p.id})">${p.name}</div>`;  // ❌
 - `_viewMode` (`'grid'` | `'list'`) persiste entre les changements de page
 - Honeypot fields : `pf-hp` (proforma single), `pfc-hp` (proforma cart), `f-hp` (vitrine contact). Tout submit handler doit checker `document.getElementById('xx-hp')?.value` AVANT envoi et fail-silently si rempli.
 
+## Périmètre & filtres catalogue (refonte 16/07/2026)
+- **Périmètre VERROUILLÉ dans `sbQ()`** (catalogue.js ligne ~16) : toutes les requêtes
+  `products?` reçoivent `emplacement=eq.OUR WAREHOUSE` + exclusion `Photo_DU%` (sideruns)
+  et `Photo_FAB%` (fabrication) en plus de `source=neq.inventaire`. Les blocs filtres
+  Stocklots/Fabrication/Siderun et Notre dépôt/Hors dépôt ont été SUPPRIMÉS (UI + state).
+  La RPC `sum_weight_filtered` (tonnage) porte le MÊME périmètre (supabase_sum_weight_perimetre.sql).
+- **Détails canoniques** : `DETAIL_TAGS` (~80 catégories, regex client `re/excl` +
+  patterns serveur `pats/notPats` en ilike) remplace les ~1 300 valeurs brutes du champ
+  details. Vocabulaire aligné sur le wizard BRS de prodi_arrivages (lib/prodi/listes.ts).
+  CIE arrondi à la valeur canonique la plus proche (`CIE_CANON`, « CIE 161 » → CIE 160).
+  Sentinelles `DETAILS_NONE` (champ vide) et `DETAILS_AUTRES` (aucun motif) en fin de liste.
+- **Familles de formats** : `FORMAT_FAMILLES` (15 ancres ±20 mm `FORMAT_TOL`, sens
+  ignoré via min×max) + `FORMAT_AUTRES`. Menu msd-format (caché si Bobine seule).
+- **Tout en MM** : laize/longueur/Ø — filtres (saisie directe mm, plus de ×10),
+  affichages cartes/fiche/liste/comparateur/PDF/vitrine. `mmToCm` ne convertit PLUS
+  (identité arrondie, nom historique).
+- **Header** : recherche texte remplacée par la plage Réf article (Min seul = réf
+  EXACTE ; `#search-input` reste caché — le scanner QR écrit dedans). Compteur
+  produits/tonnage déplacé dans le header. « Ma Liste » avant le Scanner (icône seule),
+  € = clone du bouton scanner. Album photo (ex-Importer des références) : import
+  Excel cellule par ligne (FS:'\n') + repêchage des tokens 6 chiffres (fix CSV virgule),
+  fermeture auto + ouverture de la liste après import.
+
 ## Règles photos / images produit
 
 ### Priorité d'affichage (pour TOUS les produits)
