@@ -1002,7 +1002,9 @@ const FORMAT_TOL=50;
 const FORMAT_FAMILLES=[[700,1000],[650,920],[520,720],[297,420],[210,297],[630,880],[320,450],[450,640],[580,780],[445,610],[740,1020],[570,870],[963,1342],[580,920],[650,1000],[690,800],[600,640],[480,830],[400,850],[500,1000],[508,616],[215,226],[110,220],[350,505],[105,105],[868,1078],[400,739]];
 const FORMAT_AUTRES='__fmt_autres__';
 const _fmtLbl=f=>f[0]+' × '+f[1]+' mm';
-const FORMAT_OPTIONS=FORMAT_FAMILLES.map(_fmtLbl).concat([FORMAT_AUTRES]);
+// Ordre d'AFFICHAGE : top 5 des familles les plus remplies, puis petit côté
+// croissant (l'ordre de MATCHING reste FORMAT_FAMILLES ci-dessus).
+const FORMAT_OPTIONS=['700 × 1000 mm','650 × 920 mm','520 × 720 mm','297 × 420 mm','450 × 640 mm','105 × 105 mm','110 × 220 mm','210 × 297 mm','215 × 226 mm','320 × 450 mm','350 × 505 mm','400 × 739 mm','400 × 850 mm','445 × 610 mm','480 × 830 mm','500 × 1000 mm','508 × 616 mm','570 × 870 mm','580 × 780 mm','580 × 920 mm','600 × 640 mm','630 × 880 mm','650 × 1000 mm','690 × 800 mm','740 × 1020 mm','868 × 1078 mm','963 × 1342 mm'].concat([FORMAT_AUTRES]);
 function _formatFamilleOf(row){
   if(String(row.format||'')==='Bobine')return null;
   const w=+row.width||0,l=+row.longueur||0;
