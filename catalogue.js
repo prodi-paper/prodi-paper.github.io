@@ -1496,6 +1496,9 @@ function buildMsdOptions(msdId, values, defaultLabel, labelFn, stateId){
 // current selection (Amazon-style facet). Selected values are always shown
 // even when their count hits 0, so the user can always unselect.
 let _detailsCacheKick=false, _detailsLastSig=null;
+// format NULL en base (≈97 réfs) : tout ce qui n'est pas explicitement
+// « Bobine » se traite comme un FORMAT (palette/feuille) — jamais Ø/laize.
+function _estFormat(p){const f=String(p&&p.format||'');return f!=='Bobine';}
 const DETAILS_NONE='__none__'; // sentinel for "no details" option
 const DETAILS_AUTRES='__autres__'; // sentinel « Autres » (détails non reconnus)
 // ── DÉTAILS CANONIQUES (16/07) : 1 272 libellés bruts → ~53 catégories. ──
@@ -2658,7 +2661,7 @@ async function _fetchAndRender(token){
         if(v==='ref_asc')return['ref','asc'];
         if(v==='ref_desc')return['ref','desc'];
         return null;})();
-      const _fmtRank=p=>/palette|feuille/i.test(String(p?.format||''))?1:0;
+      const _fmtRank=p=>_estFormat(p)?1:0;
       _groupsList.sort((a,b)=>{
         const fa=_fmtRank(a._proto),fb=_fmtRank(b._proto);
         if(fa!==fb)return fa-fb;
@@ -2917,7 +2920,7 @@ function decodeQuality(raw){
 
 function formatLabel(p){
   if(!p||!p.format)return null;
-  if(/palette|feuille/i.test(p.format)&&(p.largeur||p.longueur)){
+  if(_estFormat(p)&&(p.largeur||p.longueur)){
     const dims=[p.largeur,p.longueur].filter(Boolean).map(v=>mmToCm(v)).join('×');
     return `Format ${dims}`;
   }
@@ -2928,7 +2931,7 @@ function _productSummary(p){
   const parts=[];
   if(p.couleur)parts.push(p.couleur);
   if(p.grammage)parts.push(p.grammage+' g/m²');
-  const isPalette=p.format&&/palette|feuille/i.test(p.format);
+  const isPalette=_estFormat(p);
   if(isPalette&&(p.largeur||p.longueur)){
     parts.push([mmToCm(p.largeur),p.longueur?mmToCm(p.longueur):null].filter(Boolean).join(' × ')+' mm');
   }else if(p.largeur){
@@ -2962,7 +2965,7 @@ function renderCards(list){
         ?`<img src="${safeUrl(p.image_url)}" alt="${esc(_altTxt)}" loading="lazy" width="300" height="279" onerror="this.src='${esc(_fallbackImg)}';this.className='pcard-nophoto'">`
         :`<img src="${esc(_fallbackImg)}" alt="Photo sur demande" class="pcard-nophoto" width="300" height="279">`;
     const {cls:badgeCls,txt:badgeTxt}=decodeQuality(p.type);
-    const isPalette=p.format&&/palette|feuille/i.test(p.format);
+    const isPalette=_estFormat(p);
     const dimTag=!isPalette&&p.largeur?`${mmToCm(p.largeur)} mm`:'';
     const fmtLabel=p.format?(isPalette?'Format':'Bobine'):null;
     const paletteDims=isPalette&&(p.largeur||p.longueur)?[p.largeur,p.longueur].filter(Boolean).map(v=>mmToCm(v)).join('×'):null;
@@ -3045,7 +3048,7 @@ function renderCards(list){
     </div>`;
   };
   // Bobines d'abord, Formats après — pas de séparateur en grille
-  const _isPalCard=p=>p.format&&/palette|feuille/i.test(p.format);
+  const _isPalCard=p=>_estFormat(p);
   const _sorted=[...list].sort((a,b)=>(_isPalCard(a)?1:0)-(_isPalCard(b)?1:0));
   g.innerHTML=_sorted.map(_renderCard).join('');
   _updatePager();
@@ -3093,7 +3096,7 @@ function renderList(list){
     const addBtn=_isGroupL
       ?`<button class="plist-add plist-grp-pop${_grpAllInL?' added':''}" data-gid="${esc(p._grpKey||'')}" onclick="event.stopPropagation();_openGrpPopover(${attrJs(p._grpKey)},this)" title="${_grpAllInL?('Retirer'):('Configurer')} ${_grpCur}/${numId(p._grpCount)}" aria-label="${_grpAllInL?('Retirer'):('Configurer quantité')}">${_grpAllInL?_ICO_TRASH:'+'}<span class="plist-grp-badge">${_grpCur}/${numId(p._grpCount)}</span></button>`
       :`<button class="plist-add${inCart?' added':''}" id="ladd-${numId(p.id)}" aria-label="${inCart?('Retirer de la liste'):('Ajouter à la liste')}" onclick="event.stopPropagation();addToCart(${numId(p.id)})">${inCart?_ICO_TRASH:'+'}</button>`;
-    const isPalette=p.format&&/palette|feuille/i.test(p.format);
+    const isPalette=_estFormat(p);
     // Dimensions: Bobine → Laize | Ø Diamètre | Mandrin / Palette → Dimensions (laize×long)
     const laize=p.largeur?`${mmToCm(p.largeur)} mm`:'—';
     const dim2=isPalette
@@ -3123,7 +3126,7 @@ function renderList(list){
       <td class="plist-td plist-td-usine plist-col-usine">${esc(_usineTxt)}</td>
     </tr>`;
   };
-  const _isPalListItem=p=>p.format&&/palette|feuille/i.test(p.format);
+  const _isPalListItem=p=>_estFormat(p);
   const _bobs=list.filter(p=>!_isPalListItem(p));
   const _pals=list.filter(_isPalListItem);
   // Headers : Bobine → Laize | Diamètre | Mandrin / Palette → Dimensions (colspan 3)
@@ -3307,13 +3310,13 @@ async function openDetail(id){
   const specDefs=[
     {lbl: 'Couleur',   val: p.couleur},
     {lbl: 'Grammage',                             val: p.grammage?p.grammage+' g/m²':null},
-    {lbl: (p.format&&/palette|feuille/i.test(p.format)&&p.largeur&&p.longueur)?'Dimensions':('Laize'),
-     val: (p.format&&/palette|feuille/i.test(p.format)&&p.largeur&&p.longueur)?mmToCm(p.largeur)+' × '+mmToCm(p.longueur)+' mm':(p.largeur?mmToCm(p.largeur)+' mm':null)},
-    {lbl: 'Longueur', val: p.format&&/palette|feuille/i.test(p.format)&&p.largeur&&p.longueur?null:(p.format==='Palette'&&p.longueur?mmToCm(p.longueur)+' mm':null)},
+    {lbl: (_estFormat(p)&&p.largeur&&p.longueur)?'Dimensions':('Laize'),
+     val: (_estFormat(p)&&p.largeur&&p.longueur)?mmToCm(p.largeur)+' × '+mmToCm(p.longueur)+' mm':(p.largeur?mmToCm(p.largeur)+' mm':null)},
+    {lbl: 'Longueur', val: _estFormat(p)&&p.largeur&&p.longueur?null:(_estFormat(p)&&p.longueur?mmToCm(p.longueur)+' mm':null)},
     // Bobines : la colonne `longueur` stocke le diamètre (mm) — héritage import Sage.
-    {lbl: 'Diamètre',  val: !(p.format&&/palette|feuille/i.test(p.format))&&p.longueur?'Ø '+mmToCm(p.longueur)+' mm':null},
+    {lbl: 'Diamètre',  val: !_estFormat(p)&&p.longueur?'Ø '+mmToCm(p.longueur)+' mm':null},
     {lbl: 'Mandrin',   val: p.noyau?p.noyau+' mm':null},
-    {lbl: 'Condit.',  val: p.qualite!=='UMAC'&&p.qualite!=='UMAN'&&!(p.format&&/palette|feuille/i.test(p.format))?formatLabel(p):null},
+    {lbl: 'Condit.',  val: p.qualite!=='UMAC'&&p.qualite!=='UMAN'&&!_estFormat(p)?formatLabel(p):null},
     {lbl: 'Dépôt',  val: p.zone||p.emplacement},
     {lbl: 'Zone',                                  val: p.allee||'—', always:true},
     {lbl: 'Type',                                 val: p.qualite||null},
@@ -3942,11 +3945,7 @@ function openProdix(){
   d.id='prodix-bg';
   d.style.cssText='position:fixed;top:0;right:0;bottom:0;width:min(460px,100vw);background:#fff;z-index:9000;display:flex;flex-direction:column;box-shadow:-10px 0 34px rgba(0,0,0,.18);transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);';
   d.innerHTML=`
-    <div style="padding:16px 20px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
-      <div>
-        <span style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;">PRODIX</span>
-        <span style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:#FE0000;"> — OFFRE EXPRESS</span>
-      </div>
+    <div style="padding:8px 12px;display:flex;justify-content:flex-start;flex-shrink:0;">
       <button onclick="document.getElementById('prodix-bg').remove()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#999;padding:4px 8px;">✕</button>
     </div>
     <div id="prodix-chat" style="flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:10px;"></div>
@@ -3964,11 +3963,15 @@ function openProdix(){
     empty.id='prodix-empty';
     empty.style.cssText='flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;padding:10px;';
     empty.innerHTML=`
-      <div style="width:64px;height:64px;border-radius:50%;background:#1a1a1a;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;line-height:1;">PRO<br>DIX</div>
-      <div style="font-size:19px;font-weight:700;color:#1a1a1a;">Qu'est-ce qu'on compose aujourd'hui ?</div>
-      <div style="font-size:13.5px;color:#999;max-width:300px;">Dis-moi la qualité, le grammage, bobine ou palette, le tonnage — j'affine et je remplis la liste.</div>`;
+      <img src="/img/prodix.png" alt="PRODIX" style="width:150px;height:150px;object-fit:contain;">
+      <div style="font-size:19px;font-weight:700;color:#1a1a1a;">Bonjour ! Comment puis-je vous aider ?</div>`;
     const sug=document.createElement('div');
-    sug.style.cssText='display:flex;flex-direction:column;gap:8px;width:100%;max-width:340px;';
+    sug.id='prodix-sug';
+    sug.style.cssText='display:flex;flex-direction:column;gap:8px;width:100%;flex-shrink:0;padding-top:6px;';
+    const lbl=document.createElement('div');
+    lbl.textContent='Par exemple :';
+    lbl.style.cssText='font-size:12px;color:#aaa;padding-left:4px;';
+    sug.appendChild(lbl);
     ["Je veux un container d'offset 80 g en bobine","Fais-moi une offre de papier SBS","Il me faut 10 tonnes de kraft brun","Fais-moi un mix de qualités avec des anciennes réfs, 20 tonnes","Je cherche du couché 2 faces en palette, max 600 €/T"].forEach(t=>{
       const b=document.createElement('button');
       b.textContent=t;
@@ -3978,8 +3981,9 @@ function openProdix(){
       b.onclick=()=>{const i=document.getElementById('prodix-input');if(i){i.value=t;_pxSend();}};
       sug.appendChild(b);
     });
-    empty.appendChild(sug);
-    document.getElementById('prodix-chat').appendChild(empty);
+    const chat=document.getElementById('prodix-chat');
+    chat.appendChild(empty);
+    chat.appendChild(sug);
   }
   document.getElementById('prodix-input').focus();
   window.prodiTrack?.('prodix_open',{});
@@ -4005,6 +4009,8 @@ async function _pxSend(){
   if(!msg)return;
   inp.value='';
   document.getElementById('prodix-empty')?.remove();
+  document.getElementById('prodix-sug')?.remove();
+  document.querySelectorAll('.px-choix button').forEach(b=>{b.disabled=true;b.style.opacity='.4';b.style.cursor='default';b.onmouseover=null;b.onmouseout=null;});
   _pxHist.push({role:'user',content:msg});
   _pxBulle('user',msg);
   btn.disabled=true;btn.textContent='…';
@@ -4051,7 +4057,26 @@ async function _pxSend(){
     }else{
       const texte=data.texte||'Tu peux préciser ?';
       _pxHist.push({role:'assistant',content:texte});
-      _pxBulle('assistant',texte);
+      let extra=null;
+      if(Array.isArray(data.choix)&&data.choix.length){
+        extra=document.createElement('div');
+        extra.className='px-choix';
+        extra.style.cssText='display:flex;flex-direction:column;gap:6px;margin-top:10px;';
+        data.choix.forEach((c,i)=>{
+          const b=document.createElement('button');
+          b.style.cssText='display:flex;align-items:center;gap:10px;padding:9px 12px;border:1.5px solid #ddd;border-radius:10px;background:#fff;font-size:13.5px;color:#1a1a1a;cursor:pointer;font-family:inherit;text-align:left;transition:border-color .15s;';
+          const num=document.createElement('span');
+          num.textContent=String(i+1);
+          num.style.cssText='width:20px;height:20px;border-radius:6px;background:#f0ede6;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#888;flex-shrink:0;';
+          b.appendChild(num);
+          b.appendChild(document.createTextNode(c));
+          b.onmouseover=()=>{b.style.borderColor='#1a1a1a';};
+          b.onmouseout=()=>{b.style.borderColor='#ddd';};
+          b.onclick=()=>{const i2=document.getElementById('prodix-input');if(i2){i2.value=c;_pxSend();}};
+          extra.appendChild(b);
+        });
+      }
+      _pxBulle('assistant',texte,extra);
     }
   }catch(e){
     pense?.remove();

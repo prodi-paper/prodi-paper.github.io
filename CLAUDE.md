@@ -178,6 +178,23 @@ g.innerHTML=`<div onclick="openDetail(${p.id})">${p.name}</div>`;  // ❌
   colonne P/T fusionnée J:K par ligne, fond vert/zébrure copié sur la fusion).
 - **Ma Liste** non persistante (rappel) ; prix sans valeur Sage = cellules vides.
 
+## Suite 17/07/2026 (midi)
+- **`_estFormat(p)`** : bobine = SEULEMENT `format==='Bobine'` ; NULL (97 réfs)/
+  Palette/Feuille = format (Dimensions, jamais LAIZE/Ø). Remplace tous les tests
+  `/palette|feuille/i` (fiche, cartes, vue liste, PDF, tri).
+- **Logo PRODIX** (`img/prodix.png`, panda-robot 480 px) : dans le fab flottant
+  (rond 60 px fond blanc liseré noir, plus de texte) et à l'accueil du panneau
+  (150 px).
+- **Panneau PRODIX épuré** : bandeau titre supprimé (juste la croix ✕ à gauche),
+  accueil « Bonjour ! Comment puis-je vous aider ? » sans sous-titre, les
+  5 suggestions déplacées EN BAS collées à la zone de saisie sous un libellé
+  « Par exemple : » (`#prodix-sug`, retiré au 1er message comme `#prodix-empty`).
+- **Questions à CHOIX cliquables façon Claude** : l'API renvoie
+  `{"type":"question","texte","choix":["80 g","90 g","Peu importe"]}` (2-4 options
+  courtes tirées du stock, nettoyées ≤60 car., max 5) ; le panneau les rend en
+  lignes numérotées cliquables sous la bulle (`.px-choix`), clic = envoie la
+  réponse, écriture libre toujours possible, anciens choix grisés à chaque envoi.
+
 ## Règles photos / images produit
 
 ### Priorité d'affichage (pour TOUS les produits)
