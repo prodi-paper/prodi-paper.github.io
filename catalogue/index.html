@@ -83,7 +83,7 @@
 <link rel="preconnect" href="https://bvcgpdoukhcatjibmvnb.supabase.co">
 <link rel="dns-prefetch" href="https://stock.prodi.net">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/catalogue.css?v=371">
+<link rel="stylesheet" href="/catalogue.css?v=374">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4.4.1/dist/email.min.js" integrity="sha384-SALc35EccAf6RzGw4iNsyj7kTPr33K7RoGzYu+7heZhT8s0GZouafRiCg1qy44AS" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -276,10 +276,12 @@
           <div class="msd-panel"></div>
         </div>
       </div>
-      <div class="fg" id="sb-sec-format">
-        <div class="msd" id="sb-msd-format">
-          <button class="msd-btn" data-msd-id="msd-format" onclick="toggleMsd('sb-msd-format')">
-            <span class="msd-btn-label">Formats</span><span class="msd-arrow">▾</span>
+      <!-- Grammage : familles ±5 g (16/07). Min/Max gardés CACHÉS (fb bar/RPC). -->
+      <input type="number" id="f-gmin" style="display:none"><input type="number" id="f-gmax" style="display:none">
+      <div class="fg">
+        <div class="msd" id="sb-msd-grammage">
+          <button class="msd-btn" data-msd-id="msd-grammage" onclick="toggleMsd('sb-msd-grammage')">
+            <span class="msd-btn-label">Grammages</span><span class="msd-arrow">▾</span>
           </button>
           <div class="msd-panel"></div>
         </div>
@@ -292,18 +294,10 @@
           <div class="msd-panel"></div>
         </div>
       </div>
-      <div class="fg" id="sb-sec-mandrin">
-        <div class="msd" id="sb-msd-mandrin">
-          <button class="msd-btn" data-msd-id="msd-mandrin" onclick="toggleMsd('sb-msd-mandrin')"><span class="msd-btn-label">Mandrins</span><span class="msd-arrow">▾</span></button>
-          <div class="msd-panel"></div>
-        </div>
-      </div>
-      <!-- Grammage : familles ±5 g (16/07). Min/Max gardés CACHÉS (fb bar/RPC). -->
-      <input type="number" id="f-gmin" style="display:none"><input type="number" id="f-gmax" style="display:none">
-      <div class="fg">
-        <div class="msd" id="sb-msd-grammage">
-          <button class="msd-btn" data-msd-id="msd-grammage" onclick="toggleMsd('sb-msd-grammage')">
-            <span class="msd-btn-label">Grammages</span><span class="msd-arrow">▾</span>
+      <div class="fg" id="sb-sec-format">
+        <div class="msd" id="sb-msd-format">
+          <button class="msd-btn" data-msd-id="msd-format" onclick="toggleMsd('sb-msd-format')">
+            <span class="msd-btn-label">Formats</span><span class="msd-arrow">▾</span>
           </button>
           <div class="msd-panel"></div>
         </div>
@@ -315,6 +309,12 @@
           <button class="msd-btn" data-msd-id="msd-laize" onclick="toggleMsd('sb-msd-laize')">
             <span class="msd-btn-label">Laizes</span><span class="msd-arrow">▾</span>
           </button>
+          <div class="msd-panel"></div>
+        </div>
+      </div>
+      <div class="fg" id="sb-sec-mandrin">
+        <div class="msd" id="sb-msd-mandrin">
+          <button class="msd-btn" data-msd-id="msd-mandrin" onclick="toggleMsd('sb-msd-mandrin')"><span class="msd-btn-label">Mandrins</span><span class="msd-arrow">▾</span></button>
           <div class="msd-panel"></div>
         </div>
       </div>
@@ -677,12 +677,15 @@
         </div>
       </div>
     </div>
-    <!-- Formats -->
-    <div class="fd-section open" id="mob-sec-format">
-      <div class="fd-section-body" style="margin-top:6px;">
-        <div class="msd" id="msd-format-mob">
-          <button class="msd-btn" data-msd-id="msd-format" onclick="toggleMsd('msd-format-mob')">
-            <span class="msd-btn-label">Formats</span>
+    <!-- Grammage -->
+    <div class="fd-section open">
+      <div class="fd-section-head" onclick="toggleFdSection(this)">
+        <span class="fd-section-title">Grammage (g/m²)</span><span class="fd-section-arrow">▾</span>
+      </div>
+      <div class="fd-section-body" style="padding-top:6px;">
+        <div class="msd" id="msd-grammage-mob">
+          <button class="msd-btn" data-msd-id="msd-grammage" onclick="toggleMsd('msd-grammage-mob')">
+            <span class="msd-btn-label">Grammages</span>
             <span class="msd-arrow">▾</span>
           </button>
           <div class="msd-panel"></div>
@@ -701,34 +704,18 @@
         </div>
       </div>
     </div>
-    <!-- Mandrin -->
-    <div class="fd-section open" id="mob-sec-mandrin">
+    <!-- Formats -->
+    <div class="fd-section open" id="mob-sec-format">
       <div class="fd-section-body" style="margin-top:6px;">
-        <div class="msd" id="msd-mandrin-mob">
-          <button class="msd-btn" data-msd-id="msd-mandrin" onclick="toggleMsd('msd-mandrin-mob')">
-            <span class="msd-btn-label" id="fd-msd-mandrin-label">Mandrins</span>
+        <div class="msd" id="msd-format-mob">
+          <button class="msd-btn" data-msd-id="msd-format" onclick="toggleMsd('msd-format-mob')">
+            <span class="msd-btn-label">Formats</span>
             <span class="msd-arrow">▾</span>
           </button>
           <div class="msd-panel"></div>
         </div>
       </div>
     </div>
-    <!-- Grammage -->
-    <div class="fd-section open">
-      <div class="fd-section-head" onclick="toggleFdSection(this)">
-        <span class="fd-section-title">Grammage (g/m²)</span><span class="fd-section-arrow">▾</span>
-      </div>
-      <div class="fd-section-body" style="padding-top:6px;">
-        <div class="msd" id="msd-grammage-mob">
-          <button class="msd-btn" data-msd-id="msd-grammage" onclick="toggleMsd('msd-grammage-mob')">
-            <span class="msd-btn-label">Grammages</span>
-            <span class="msd-arrow">▾</span>
-          </button>
-          <div class="msd-panel"></div>
-        </div>
-      </div>
-    </div>
-    <!-- Laize -->
     <div class="fd-section open" id="mob-sec-laize">
       <div class="fd-section-head" onclick="toggleFdSection(this)">
         <span class="fd-section-title" id="mob-laize-title">Laize (mm)</span><span class="fd-section-arrow">▾</span>
@@ -737,6 +724,19 @@
         <div class="msd" id="msd-laize-mob">
           <button class="msd-btn" data-msd-id="msd-laize" onclick="toggleMsd('msd-laize-mob')">
             <span class="msd-btn-label">Laizes</span>
+            <span class="msd-arrow">▾</span>
+          </button>
+          <div class="msd-panel"></div>
+        </div>
+      </div>
+    </div>
+    <!-- Laize -->
+    <!-- Mandrin -->
+    <div class="fd-section open" id="mob-sec-mandrin">
+      <div class="fd-section-body" style="margin-top:6px;">
+        <div class="msd" id="msd-mandrin-mob">
+          <button class="msd-btn" data-msd-id="msd-mandrin" onclick="toggleMsd('msd-mandrin-mob')">
+            <span class="msd-btn-label" id="fd-msd-mandrin-label">Mandrins</span>
             <span class="msd-arrow">▾</span>
           </button>
           <div class="msd-panel"></div>
@@ -857,6 +857,6 @@
 <div class="spin-bg" id="spinner"><div class="spin"></div></div>
 
 <script src="/analytics.js?v=1"></script>
-<script src="/catalogue.js?v=399"></script>
+<script src="/catalogue.js?v=408"></script>
 </body>
 </html>

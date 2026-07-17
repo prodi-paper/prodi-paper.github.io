@@ -1149,3 +1149,15 @@ body.drawer-open .fab-contact{right:444px;}
 /* PRODIX (IA offre) : reprend la pastille flottante, en noir Prodi */
 .fab-prodix{background:var(--ink);box-shadow:0 4px 16px rgba(0,0,0,.35);}
 .fab-prodix:hover{background:#000;transform:scale(1.08);box-shadow:0 6px 22px rgba(0,0,0,.45);}
+/* Titres de groupe du menu Détails (familles du wizard) */
+.msd-group-hdr{padding:10px 12px 4px;font-size:10px;font-weight:800;letter-spacing:.9px;color:#a09a90;text-transform:uppercase;border-top:1px solid var(--border);margin-top:4px;}
+.msd-group-hdr:first-of-type{border-top:none;margin-top:0;}
+/* Pager haut : pilule segmentée (17/07) — une capsule, chiffres à plat,
+   page active en pastille noire, chevrons discrets */
+.pager-top{background:#fff;border:1.5px solid var(--border);border-radius:999px;padding:2px 4px;gap:1px !important;}
+.pager-top .pnum,.pager-top .parrow{width:24px !important;height:24px !important;min-width:24px !important;border:none !important;background:transparent !important;border-radius:7px !important;font-size:11px !important;font-weight:700;color:var(--ink2);box-shadow:none !important;}
+.pager-top .pnum:hover:not(.active),.pager-top .parrow:hover:not([disabled]){background:var(--off) !important;color:var(--ink);}
+.pager-top .pnum.active{background:var(--ink) !important;color:#fff !important;cursor:default;}
+.pager-top .parrow{color:var(--ink);font-size:12px !important;}
+.pager-top .parrow[disabled]{color:#c8c4bc;cursor:default;}
+.pager-top .pellipsis{color:#c8c4bc;}
