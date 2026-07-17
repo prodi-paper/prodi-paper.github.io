@@ -1361,6 +1361,8 @@ function toggleMsdOption(el, id) {
     o.classList.toggle('selected', willSelect);
   });
   updateMsdBtn(id);
+  // Le choix d'un Type de papier débloque les filtres bobine/format (17/07).
+  if(id==='msd-type')updateFilterVisibility();
   filterProducts();
 }
 
@@ -1578,7 +1580,7 @@ const DETAIL_TAGS=[
 ];
 // CIE : toute valeur est ARRONDIE à la plus proche de nos valeurs rondes
 // (« CIE 161 » → CIE 160, « CIE 168 » → CIE 170) — demande Ethan 16/07.
-const CIE_CANON=[100,120,130,140,145,150,160,165,170];
+const CIE_CANON=[100,110,120,130,140,150,160,170]; // pas de 10 en 10 (145/165 trop précis)
 function _cieNearest(n){
   let best=CIE_CANON[0];
   for(const c of CIE_CANON){
@@ -1586,6 +1588,17 @@ function _cieNearest(n){
   }
   return best;
 }
+// Groupes LOGIQUES du menu Détails — mêmes familles que le wizard BRS
+// de Prodi Arrivages (teintes, fibres, finitions, dos, codes, qualités…).
+const DETAIL_GROUPES=[
+ {titre:'Blancheur / Teintes',tags:['CIE 100','CIE 110','CIE 120','CIE 130','CIE 140','CIE 150','CIE 160','CIE 170','TEINTÉ']},
+ {titre:'Fibres',tags:['100% RECYCLÉ','FIBRES VIERGES','SILK']},
+ {titre:'Finitions',tags:['LISSE','RUGUEUX','MG','MF','VERGÉ','COUCHÉ','NON COUCHÉ','SATINÉ','MAT','DEMI-MAT','BRILLANT','MARTELÉ','TOILE','GAUFRÉ','CHROMOLUX','ALVÉOLE','LIGNES','OPAQUE']},
+ {titre:'Dos',tags:['DOS BLANC','DOS CRÈME','DOS GRIS','DOS BRUN']},
+ {titre:'Codes carton / formats',tags:['A3','A4','GC1','GC2','GD2','GD3','GT','CKB','SBS','CB','CF','CFB']},
+ {titre:'Qualités papier',tags:['EN RAMES','QUALITÉ A','QUALITÉ B','QUALITÉ C','FABRICATION','INGRAISSABLE','REH','POUR ÉTIQUETTES','REFENTE','CALQUE','PAPIER SÉCURITÉ','TESTLINER','KRAFTLINER','FLUTING','TRANSITION','ENCRE','PAPIER DESSIN','PAPIER CADEAU','PAPIER DÉCOR','NOËL','EXTENSIBLE','CARTE']},
+ {titre:'Matières / spéciaux',tags:['KRAFT','100% PP','BOUFFANT','SILICONE','PLASTIFIÉ / PLASTIQUE','COMPLEXE','ALUMINIUM','LATEX','GLASSINE','NATURE','FILET / ARMÉ','LWC','EMBALLAGE','TR GRAMMAGE']},
+];
 const _detailTagCache=new Map();
 function _detailTagsOf(raw){
   const s=String(raw||'').trim();
@@ -1904,12 +1917,21 @@ function _rebuildDetailsMsd(){
     if(v===DETAILS_NONE||v===DETAILS_AUTRES)return;
     if(!counts.has(v)) counts.set(v,{label:v,n:0});
   });
-  const sorted=[...counts.values()].sort((a,b)=>{
-    const aS=sel.has(a.label)?0:1, bS=sel.has(b.label)?0:1;
-    if(aS!==bS) return aS-bS;
-    if(b.n!==a.n) return b.n-a.n;
-    return a.label.localeCompare(b.label);
+  // Rendu par GROUPES logiques (ordre du wizard) : [{titre?,label,n}...]
+  const rendered=new Set();
+  const items=[];
+  DETAIL_GROUPES.forEach(g=>{
+    const present=g.tags.filter(t=>counts.has(t));
+    if(!present.length)return;
+    items.push({hdr:g.titre});
+    present.forEach(t=>{items.push(counts.get(t));rendered.add(t);});
   });
+  const restants=[...counts.values()].filter(e=>!rendered.has(e.label)).sort((a,b)=>b.n-a.n);
+  if(restants.length){
+    items.push({hdr:'Divers'});
+    restants.forEach(e=>items.push(e));
+  }
+  const sorted=items;
   // Render the same option list into each container (sidebar + mobile drawer)
   containers.forEach(msd=>{
     const panel=msd.querySelector('.msd-panel');
@@ -1924,6 +1946,15 @@ function _rebuildDetailsMsd(){
       panel.querySelectorAll('.msd-option').forEach(opt=>{
         opt.style.display=opt.textContent.toLowerCase().includes(q)?'':'none';
       });
+      // Un titre de groupe reste visible s'il a au moins une option visible
+      panel.querySelectorAll('.msd-group-hdr').forEach(h=>{
+        let el=h.nextElementSibling,vu=false;
+        while(el&&!el.classList.contains('msd-group-hdr')){
+          if(el.classList.contains('msd-option')&&el.style.display!=='none'){vu=true;break;}
+          el=el.nextElementSibling;
+        }
+        h.style.display=vu?'':'none';
+      });
     });
     sw.addEventListener('click',e=>e.stopPropagation());
     const mkOpt=(val,label,n,extraCls)=>{
@@ -1936,7 +1967,16 @@ function _rebuildDetailsMsd(){
       opt.addEventListener('click',()=>toggleMsdOption(opt,'msd-details'));
       panel.appendChild(opt);
     };
-    sorted.forEach(({label,n})=>mkOpt(label,label,n));
+    sorted.forEach(it=>{
+      if(it.hdr){
+        const h=document.createElement('div');
+        h.className='msd-group-hdr';
+        h.textContent=it.hdr;
+        panel.appendChild(h);
+        return;
+      }
+      mkOpt(it.label,it.label,it.n);
+    });
     // « Autres » et « Sans détails » en FIN de liste (16/07).
     if(autresN>0 || sel.has(DETAILS_AUTRES)){
       mkOpt(DETAILS_AUTRES,'Autres',autresN,'msd-option-none');
@@ -3411,6 +3451,7 @@ function resetFilters(){
     // 4. Reset format pills
     document.querySelectorAll('.fpill.active,.fpill-orig.active,.fpill-stock.active,.fpill-depot.active,.fpill-photo.active,.fb-pill.active').forEach(b=>b.classList.remove('active'));
     _photoFilter='';_formatFilter='';_resaFilter='';
+    updateFilterVisibility();
     ['fb-bobine','fb-palette','fb-recyc','fb-fab'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('active');});
 
     // 5. Clear all inputs
@@ -3887,61 +3928,149 @@ async function _extractTextFromFile(file){
   return file.text(); // txt, csv, et tout format texte
 }
 
-// ── PRODIX : l'IA compose une offre (remplit Ma Liste) ──────────────────────
-// « Fais-moi une offre pour du papier SBS » / « un container d'offset 80 g en
-// bobine ». L'API (prodi-arrivages.vercel.app) traduit la demande en critères
-// et renvoie une liste de réfs — on la déverse dans le flux d'import existant.
+// ── PRODIX v2 : agent CONVERSATIONNEL (17/07) ───────────────────────────────
+// Chat multi-tours : PRODIX pose des questions pour affiner (grammage, format,
+// tonnage) en s'appuyant sur le stock live, puis {"type":"offre"} → la liste
+// se remplit sans fermer la conversation (on peut continuer à affiner).
 const PRODIX_API='https://prodi-arrivages.vercel.app/api/prodix-offre';
+let _pxHist=[]; // [{role,content}] — mémoire de la conversation en cours
 function openProdix(){
   const existing=document.getElementById('prodix-bg');
-  if(existing)existing.remove();
+  if(existing){existing.remove();return;}
+  // Panneau latéral plein hauteur (façon ChatGPT) — pas de popup, la page reste visible.
   const d=document.createElement('div');
   d.id='prodix-bg';
-  d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;display:flex;align-items:center;justify-content:center;padding:16px;';
-  d.innerHTML=`<div style="background:#fff;border-radius:16px;padding:32px;max-width:600px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2);">
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;margin-bottom:4px;">PRODIX <span style="color:#FE0000;">— OFFRE EXPRESS</span></div>
-    <div style="font-size:15px;color:#999;margin-bottom:14px;">Dis-moi ce que tu veux, je remplis la liste. Ex : « une offre de papier SBS », « un container d'offset 80 g en bobine », « 10 tonnes de kraft brun ».</div>
-    <textarea id="prodix-input" style="width:100%;min-height:80px;padding:14px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:16px;font-family:'DM Sans',sans-serif;resize:vertical;box-sizing:border-box;" placeholder="Fais-moi une offre pour…"></textarea>
-    <div id="prodix-result" style="font-size:15px;margin-top:8px;min-height:22px;"></div>
-    <div style="display:flex;gap:10px;margin-top:12px;">
-      <button onclick="_doProdix()" id="prodix-btn" style="flex:2;padding:14px;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:1.2px;cursor:pointer;">COMPOSER L'OFFRE</button>
-      <button onclick="document.getElementById('prodix-bg').remove();" style="padding:14px 18px;background:transparent;border:1.5px solid #e0e0e0;border-radius:10px;font-size:16px;cursor:pointer;">Fermer</button>
+  d.style.cssText='position:fixed;top:0;right:0;bottom:0;width:min(460px,100vw);background:#fff;z-index:9000;display:flex;flex-direction:column;box-shadow:-10px 0 34px rgba(0,0,0,.18);transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);';
+  d.innerHTML=`
+    <div style="padding:16px 20px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <div>
+        <span style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;">PRODIX</span>
+        <span style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:#FE0000;"> — OFFRE EXPRESS</span>
+      </div>
+      <button onclick="document.getElementById('prodix-bg').remove()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#999;padding:4px 8px;">✕</button>
     </div>
-  </div>`;
-  d.addEventListener('click',e=>{if(e.target===d)d.remove();});
+    <div id="prodix-chat" style="flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:10px;"></div>
+    <div style="padding:12px 14px 14px;border-top:1px solid #eee;display:flex;gap:8px;flex-shrink:0;background:#fff;">
+      <input id="prodix-input" type="text" placeholder="Demande-moi une offre…" style="flex:1;padding:13px 14px;border:1.5px solid #e0e0e0;border-radius:12px;font-size:15px;font-family:'DM Sans',sans-serif;outline:none;" onkeydown="if(event.key==='Enter')_pxSend()">
+      <button onclick="_pxSend()" id="prodix-btn" style="padding:0 18px;background:#1a1a1a;color:#fff;border:none;border-radius:12px;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;cursor:pointer;">➤</button>
+    </div>`;
   document.body.appendChild(d);
+  requestAnimationFrame(()=>{d.style.transform='translateX(0)';});
+  if(_pxHist.length){
+    _pxHist.forEach(m=>_pxBulle(m.role,m.content));
+  }else{
+    // Accueil centré façon ChatGPT : gros titre + suggestions empilées.
+    const empty=document.createElement('div');
+    empty.id='prodix-empty';
+    empty.style.cssText='flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;padding:10px;';
+    empty.innerHTML=`
+      <div style="width:64px;height:64px;border-radius:50%;background:#1a1a1a;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;line-height:1;">PRO<br>DIX</div>
+      <div style="font-size:19px;font-weight:700;color:#1a1a1a;">Qu'est-ce qu'on compose aujourd'hui ?</div>
+      <div style="font-size:13.5px;color:#999;max-width:300px;">Dis-moi la qualité, le grammage, bobine ou palette, le tonnage — j'affine et je remplis la liste.</div>`;
+    const sug=document.createElement('div');
+    sug.style.cssText='display:flex;flex-direction:column;gap:8px;width:100%;max-width:340px;';
+    ["Je veux un container d'offset 80 g en bobine","Fais-moi une offre de papier SBS","Il me faut 10 tonnes de kraft brun","Fais-moi un mix de qualités avec des anciennes réfs, 20 tonnes","Je cherche du couché 2 faces en palette, max 600 €/T"].forEach(t=>{
+      const b=document.createElement('button');
+      b.textContent=t;
+      b.style.cssText='padding:11px 14px;border:1.5px solid #e4e0d8;border-radius:12px;background:#faf8f4;font-size:13.5px;color:#444;cursor:pointer;font-family:inherit;text-align:left;transition:border-color .15s,background .15s;';
+      b.onmouseover=()=>{b.style.borderColor='#1a1a1a';b.style.background='#fff';};
+      b.onmouseout=()=>{b.style.borderColor='#e4e0d8';b.style.background='#faf8f4';};
+      b.onclick=()=>{const i=document.getElementById('prodix-input');if(i){i.value=t;_pxSend();}};
+      sug.appendChild(b);
+    });
+    empty.appendChild(sug);
+    document.getElementById('prodix-chat').appendChild(empty);
+  }
   document.getElementById('prodix-input').focus();
   window.prodiTrack?.('prodix_open',{});
 }
-async function _doProdix(){
+function _pxBulle(role,texte,extra){
+  const chat=document.getElementById('prodix-chat');
+  if(!chat)return null;
+  const b=document.createElement('div');
+  const isUser=role==='user';
+  b.style.cssText='max-width:85%;padding:10px 14px;border-radius:14px;font-size:15px;line-height:1.45;white-space:pre-wrap;'+
+    (isUser?'align-self:flex-end;background:#1a1a1a;color:#fff;border-bottom-right-radius:4px;'
+           :'align-self:flex-start;background:#f3f1ec;color:#1a1a1a;border-bottom-left-radius:4px;');
+  b.textContent=texte;
+  if(extra)b.appendChild(extra);
+  chat.appendChild(b);
+  chat.scrollTop=chat.scrollHeight;
+  return b;
+}
+async function _pxSend(){
   const inp=document.getElementById('prodix-input');
-  const out=document.getElementById('prodix-result');
   const btn=document.getElementById('prodix-btn');
   const msg=(inp?.value||'').trim();
-  if(!msg){toast('Dis-moi ce que tu cherches !');return;}
-  btn.disabled=true;btn.textContent='PRODIX RÉFLÉCHIT…';
-  out.innerHTML='<span style="color:#999">Analyse de la demande + sélection au stock…</span>';
+  if(!msg)return;
+  inp.value='';
+  document.getElementById('prodix-empty')?.remove();
+  _pxHist.push({role:'user',content:msg});
+  _pxBulle('user',msg);
+  btn.disabled=true;btn.textContent='…';
+  const pense=_pxBulle('assistant','PRODIX réfléchit…');
   try{
-    const r=await fetch(PRODIX_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg})});
+    const r=await fetch(PRODIX_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:_pxHist})});
     const data=await r.json();
+    pense?.remove();
     if(!r.ok)throw new Error(data?.error||('HTTP '+r.status));
-    if(!data.refs||!data.refs.length){
-      out.innerHTML='<span style="color:#e53e3e">Rien trouvé au stock pour cette demande — précise la qualité, le grammage ou le format.</span>';
-      btn.disabled=false;btn.textContent='COMPOSER L\'OFFRE';
-      return;
+    if(data.type==='offre'&&data.refs&&data.refs.length){
+      const texte=(data.texte?data.texte+'\n':'')+'✓ '+data.resume;
+      _pxHist.push({role:'assistant',content:texte});
+      // Bouton « Voir la liste » dans la bulle
+      const btnVoir=document.createElement('div');
+      btnVoir.style.cssText='display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;';
+      const mkBtn=(label,fn,dark)=>{
+        const b=document.createElement('button');
+        b.textContent=label;
+        b.style.cssText='padding:8px 14px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;'+
+          (dark?'background:#1a1a1a;color:#fff;border:none;':'background:#fff;color:#1a1a1a;border:1.5px solid #ccc;');
+        b.onclick=fn;
+        return b;
+      };
+      btnVoir.appendChild(mkBtn('Voir la liste →',()=>{document.getElementById('prodix-bg')?.remove();openCartDrawer();},true));
+      btnVoir.appendChild(mkBtn('Copier le lien client',async(ev)=>{
+        const btn=ev.target;
+        try{
+          const code=_shortCode();
+          const ids=data.refs.map(x=>'Photo_'+x).join(',');
+          await sbQ('shared_carts',{method:'POST',body:{code,cart_ids:ids},headers:{'Prefer':'return=minimal'}});
+          const lien=location.origin+location.pathname+'?s='+code;
+          await navigator.clipboard.writeText(lien);
+          btn.textContent='Lien copié ✓';
+          window.prodiTrack?.('panier_partage',{code,nb:data.refs.length,via:'prodix'});
+        }catch(_){btn.textContent='Erreur lien';}
+      },false));
+      btnVoir.appendChild(mkBtn('Excel',(ev)=>{exportListExcelTest(ev.target).catch(()=>toast('Erreur export'));},false));
+      _pxBulle('assistant',texte,btnVoir);
+      window.prodiTrack?.('prodix_offre',{nb:data.refs.length,q:msg.slice(0,80)});
+      // Remplit la liste EN FOND (remplace la sélection précédente de PRODIX)
+      cart=[];
+      await _pxRemplir(data.refs);
+      toast('PRODIX : '+data.resume);
+    }else{
+      const texte=data.texte||'Tu peux préciser ?';
+      _pxHist.push({role:'assistant',content:texte});
+      _pxBulle('assistant',texte);
     }
-    out.innerHTML='<span style="color:#1a9e5c;font-weight:600">✓ '+esc(data.resume||data.refs.length+' articles')+' — ajout à la liste…</span>';
-    window.prodiTrack?.('prodix_offre',{nb:data.refs.length,q:msg.slice(0,80)});
-    // Déversement dans le flux d'import existant (recherche catalogue + liste)
-    document.getElementById('prodix-bg')?.remove();
-    openImportRefs();
-    const t=document.getElementById('import-refs-input');
-    if(t){t.value=data.refs.join('\n');await _doImportRefs();}
-    toast('PRODIX : '+(data.resume||data.refs.length+' articles'));
   }catch(e){
-    out.innerHTML='<span style="color:#e53e3e">'+esc(e.message||'Erreur')+'</span>';
-    btn.disabled=false;btn.textContent='COMPOSER L\'OFFRE';
+    pense?.remove();
+    _pxBulle('assistant','Oups : '+(e.message||'erreur réseau')+' — réessaie.');
+  }finally{
+    btn.disabled=false;btn.textContent='ENVOYER';
+    inp.focus();
   }
+}
+// Remplit la liste depuis des réfs SANS ouvrir la modal d'import (fond de tâche).
+async function _pxRemplir(refs){
+  try{
+    const r=await sbQ('products?ref=in.('+refs.map(x=>'Photo_'+x).map(encodeURIComponent).join(',')+')&select=*&limit=200');
+    (r.data||[]).forEach(p=>{
+      if(!cart.find(c=>c.id===p.id))cart.push(rowToUi(p));
+    });
+    localStorage.setItem('prodi_cart',JSON.stringify(cart));
+    updateCartBadge();renderDrawer();
+  }catch(_){/* la liste restera vide, le toast a déjà informé */}
 }
 
 async function _importRefsFromFile(file){
@@ -4993,8 +5122,12 @@ function updateFilterVisibility(){
   // Both or neither → show all
   const onlyBobine = bobine && !palette;
   const onlyPalette = palette && !bobine;
-  const showLongueur = !onlyBobine;
-  const showMandrin  = !onlyPalette;
+  // Les filtres SPÉCIFIQUES bobine/format restent CACHÉS tant qu'on n'a pas
+  // choisi Bobine, Format ou un Type de papier (17/07).
+  const typeChoisi = !!(msdState['msd-type'] && msdState['msd-type'].size > 0);
+  const unlocked = bobine || palette || typeChoisi;
+  const showLongueur = unlocked && !onlyBobine;
+  const showMandrin  = unlocked && !onlyPalette;
   const laizeLbl = onlyPalette ? 'Largeur' : 'Laize';
   // Filter bar
   const show = (id,v) => { const el=document.getElementById(id); if(el) el.style.display=v?'':'none'; };
@@ -5006,17 +5139,17 @@ function updateFilterVisibility(){
   const fbLaizeLbl=document.getElementById('fb-laize-lbl');
   if(fbLaizeLbl) fbLaizeLbl.textContent=laizeLbl;
   // Sidebar
-  show('sb-sec-longueur', !onlyPalette);
+  show('sb-sec-longueur', unlocked && !onlyPalette);
   show('sb-sec-mandrin',  showMandrin);
-  show('sb-sec-format',   !onlyBobine);
-  show('sb-sec-laize',    !onlyPalette);
+  show('sb-sec-format',   unlocked && !onlyBobine);
+  show('sb-sec-laize',    unlocked && !onlyPalette);
   const sbLbl=document.getElementById('sb-laize-lbl');
   if(sbLbl) sbLbl.firstChild.textContent=laizeLbl+' ';
   // Mobile drawer
-  show('mob-sec-longueur', !onlyPalette);
+  show('mob-sec-longueur', unlocked && !onlyPalette);
   show('mob-sec-mandrin',  showMandrin);
-  show('mob-sec-format',   !onlyBobine);
-  show('mob-sec-laize',    !onlyPalette);
+  show('mob-sec-format',   unlocked && !onlyBobine);
+  show('mob-sec-laize',    unlocked && !onlyPalette);
   const mobLbl=document.getElementById('mob-laize-title');
   if(mobLbl) mobLbl.textContent=laizeLbl+' (mm)';
 }
@@ -5586,9 +5719,12 @@ async function exportListExcelTest(btn){
     }
 
     const HEAD=(labelsFr,labelsEn)=>{
+      const _sp=labelsFr.length===10; // formats : la dernière colonne s'étale J:K
       const row1=ws.getRow(r); labelsFr.forEach((l,i)=>{const c=row1.getCell(i+1);c.value=l;box(c,{bold:true,size:13,color:INK,bg:BLEU,align:'center'});c.border=_darkBorders;});
+      if(_sp){ws.mergeCells(`J${r}:K${r}`);ws.getCell(`K${r}`).border=_darkBorders;}
       ws.getRow(r).height=32; r++;
       const row2=ws.getRow(r); labelsEn.forEach((l,i)=>{const c=row2.getCell(i+1);c.value=l;box(c,{bold:true,size:11,color:RED,bg:BLEU,align:'center'});c.border=_darkBorders;});
+      if(_sp){ws.mergeCells(`J${r}:K${r}`);ws.getCell(`K${r}`).border=_darkBorders;}
       ws.getRow(r).height=24; r++;
     };
     // Chiffres stockés en NOMBRE (sinon Excel affiche « nombre sous forme de texte »)
@@ -5596,6 +5732,7 @@ async function exportListExcelTest(btn){
     const DATA=(d,cells,idx)=>{
       const row=ws.getRow(r);
       const zeb=(idx%2===1)?ZEBRA:null; // 1 ligne sur 2 (lisibilité)
+      const _sp=cells.length===10; // formats : prix étalé J:K (même largeur que bobines)
       cells.forEach((v,i)=>{
         const c=row.getCell(i+1); c.value=_num(v);
         box(c,{size:13,align:(i===1||i===2)?'left':'center',border:true,bg:zeb});
@@ -5603,6 +5740,13 @@ async function exportListExcelTest(btn){
       });
       // Auto-hauteur : le DÉTAIL (colonne C) peut wrapper sur 2-3 lignes → on
       // estime le nombre de lignes pour que rien ne soit coupé (col C ≈ 46 car/ligne).
+      if(_sp){
+        ws.mergeCells(`J${r}:K${r}`);
+        const ck=row.getCell(11); ck.border=allBorders;
+        const cj=row.getCell(10);
+        if(cj.fill)ck.fill=cj.fill; // vert du prix (ou zébrure) sur toute la fusion
+        else if(zeb)ck.fill={type:'pattern',pattern:'solid',fgColor:{argb:zeb}};
+      }
       const _det=String(cells[2]||'');
       const _lines=Math.max(1,Math.ceil(_det.length/30),Math.ceil(String(cells[1]||'').length/30));
       row.height=Math.max(row.height||0,12+_lines*17);

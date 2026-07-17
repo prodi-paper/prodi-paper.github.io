@@ -154,6 +154,30 @@ g.innerHTML=`<div onclick="openDetail(${p.id})">${p.name}</div>`;  // ❌
 - **Prix** : la base est en €/KG → tout affichage €/T multiplie ×1000 ; ~400
   produits sans prix Sage = cellules vides normales.
 
+## Suite 17/07/2026 (matin)
+- **Filtres spécifiques MASQUÉS au départ** : Formats/Laizes/Ø/Mandrins n'apparaissent
+  qu'après choix de Bobine, Format ou d'un Type de papier (`updateFilterVisibility`,
+  hook sur `toggleMsdOption('msd-type')` + reset). Ordre du panneau : Type, Détails,
+  Grammages, Couleurs, Formats, Laizes, Mandrins, Ø, Poids, Réf usine.
+- **Menu Détails GROUPÉ** par familles du wizard BRS (`DETAIL_GROUPES` : Blancheur/
+  Teintes, Fibres, Finitions, Dos, Codes carton, Qualités papier, Matières + Divers),
+  titres `.msd-group-hdr`, recherche qui masque les groupes vides. CIE arrondi de
+  10 en 10 (`CIE_CANON` 100→170, plus de 145/165).
+- **Pager haut** : pilule segmentée compacte (capsule blanche, cases 24 px, page
+  active pastille noire).
+- **PRODIX v2 conversationnel** : PANNEAU LATÉRAL droit façon ChatGPT (460 px,
+  translateX, accueil centré + 5 suggestions conversationnelles cliquables),
+  historique `_pxHist` multi-tours envoyé en `{messages}`, bulles user/assistant ;
+  l'offre remplit Ma Liste EN FOND (`_pxRemplir`, remplace la sélection PRODIX
+  précédente) sans fermer le chat + boutons bulle « Voir la liste / Copier le lien
+  client (shared_carts) / Excel ». Backend (app arrivages) : snapshot stock live
+  agrégé (cache 10 min, pages parallèles), questions d'affinage, critères
+  anciennete/varier/prix_max_t, ventilation par qualité, traqueur `prodix_tour`
+  dans site_events (visitor_id requis par la policy).
+- **Excel offre** : section FORMATS à la même largeur que BOBINES (dernière
+  colonne P/T fusionnée J:K par ligne, fond vert/zébrure copié sur la fusion).
+- **Ma Liste** non persistante (rappel) ; prix sans valeur Sage = cellules vides.
+
 ## Règles photos / images produit
 
 ### Priorité d'affichage (pour TOUS les produits)
