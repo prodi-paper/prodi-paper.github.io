@@ -194,6 +194,11 @@ g.innerHTML=`<div onclick="openDetail(${p.id})">${p.name}</div>`;  // ❌
   courtes tirées du stock, nettoyées ≤60 car., max 5) ; le panneau les rend en
   lignes numérotées cliquables sous la bulle (`.px-choix`), clic = envoie la
   réponse, écriture libre toujours possible, anciens choix grisés à chaque envoi.
+- **Fab PRODIX 69 px** (+15 %).
+- **Tiroir Ma Liste : UN SEUL bouton d'export** — « Liste » avec icône Excel
+  verte (#21a366) → `exportListExcelTest` ; le bouton PDF (`printSelection`)
+  retiré du footer (la fonction existe toujours).
+- **Header : icône bloc-notes** (clipboard à lignes) à gauche du texte « Liste ».
 
 ## Règles photos / images produit
 

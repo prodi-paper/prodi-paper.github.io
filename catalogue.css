@@ -1147,7 +1147,7 @@ body.drawer-open .fab-contact{right:444px;}
   .rbar-inner .pager.pager-top{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);margin:0;}
 }
 /* PRODIX (IA offre) : reprend la pastille flottante, en noir Prodi */
-.fab-prodix{background:#fff;padding:0;overflow:hidden;width:60px;height:60px;border:2px solid var(--ink);box-shadow:0 4px 16px rgba(0,0,0,.3);}
+.fab-prodix{background:#fff;padding:0;overflow:hidden;width:69px;height:69px;border:2px solid var(--ink);box-shadow:0 4px 16px rgba(0,0,0,.3);}
 .fab-prodix:hover{transform:scale(1.08);box-shadow:0 6px 22px rgba(0,0,0,.4);}
 /* Titres de groupe du menu Détails (familles du wizard) */
 .msd-group-hdr{padding:10px 12px 4px;font-size:10px;font-weight:800;letter-spacing:.9px;color:#a09a90;text-transform:uppercase;border-top:1px solid var(--border);margin-top:4px;}
