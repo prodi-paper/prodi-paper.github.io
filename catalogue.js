@@ -5337,10 +5337,10 @@ if(_sharedMode)_sharedViewUI(true);
 {
   const _thq=new URLSearchParams(window.location.search);
   if(_thq.get('amazon')!=='1'&&_thq.get('zara')!=='1'&&_thq.get('etiquette')!=='1')document.body.classList.add('apple-view');
-  // Essai ?haut=1 (18/07) : panneau de filtres en BARRE HORIZONTALE en haut.
-  // Une seule ligne : tri compact ⇅ (menu déroulant), + page et pager
-  // rejoignent la barre ; la rangée results-bar disparaît.
-  if(_thq.get('haut')==='1'){
+  // TOPBAR = LE catalogue (défaut depuis le 18/07 soir — « on oublie tout
+  // le reste »). Desktop/tablette uniquement : le mobile garde son parcours
+  // dédié (tiroir de filtres). ?haut=1 accepté mais plus nécessaire.
+  if(!_sharedMode&&window.matchMedia('(min-width:769px)').matches){
     document.body.classList.add('topbar-view');
     const _fp=document.getElementById('filters-panel');
     const _sel=document.getElementById('sort-sel');

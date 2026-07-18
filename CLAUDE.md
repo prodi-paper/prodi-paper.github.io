@@ -246,8 +246,9 @@ La page ouverte par un lien `?s=CODE` est une VUE CLIENT dédiée (`body.shared-
 
 ## REFONTE TOPBAR + HERO PRODIX (18/07/2026 soir, poussée 18/07)
 
-**Tout est derrière le flag `?haut=1`** (body.topbar-view) — le catalogue nu
-garde la vue classique panneau gauche. Contenu du mode :
+**C'EST LE CATALOGUE PAR DÉFAUT depuis le 18/07 soir** (desktop/tablette
+≥769px ; le mobile garde son parcours tiroir). L'ancienne vue panneau gauche
+est du code dormant. Contenu du mode (body.topbar-view) :
 - **Barre de filtres horizontale** centrée : Type de papier · Grammages ·
   Couleurs · (menus bobine/format selon le STOCK réel du type choisi, format
   NULL ignoré comme bruit) · Détails · Filtres avancés. Deux gabarits de
