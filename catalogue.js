@@ -4909,8 +4909,12 @@ let _sharedMode=!!_shareParam||!!_shareCode;
 // Vue client (lien partagé) : pas de panneau filtres — pilotée par .shared-view
 function _sharedViewUI(on){document.body.classList.toggle('shared-view',on);}
 if(_sharedMode)_sharedViewUI(true);
-// Essai thème « Apple » (18/07) : &apple=1 sur un lien client → palette Apple
-if(_sharedMode&&new URLSearchParams(window.location.search).get('apple')==='1')document.body.classList.add('apple-view');
+// Thème APPLE = DÉFAUT de la vue client (validé 18/07). &etiquette=1 rend
+// l'ancien style cadre noir ; &amazon=1 / &zara=1 restent des essais.
+{
+  const _thq=new URLSearchParams(window.location.search);
+  if(_sharedMode&&_thq.get('amazon')!=='1'&&_thq.get('zara')!=='1'&&_thq.get('etiquette')!=='1')document.body.classList.add('apple-view');
+}
 // Essai titres Bebas épaissis (18/07) : &bebas=1 (cumulable avec &apple=1)
 if(_sharedMode&&new URLSearchParams(window.location.search).get('bebas')==='1')document.body.classList.add('bebas-view');
 // Essai thème « Zara » (18/07) : &zara=1 sur un lien client
