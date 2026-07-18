@@ -1161,3 +1161,431 @@ body.drawer-open .fab-contact{right:444px;}
 .pager-top .parrow{color:var(--ink);font-size:12px !important;}
 .pager-top .parrow[disabled]{color:#c8c4bc;cursor:default;}
 .pager-top .pellipsis{color:#c8c4bc;}
+
+/* ── Vue client (lien partagé ?s=) : catalogue sans panneau filtres ── */
+body.shared-view .sidebar-col{display:none !important;}
+body.shared-view .body-wrap{grid-template-columns:1fr !important;max-width:none !important;padding:0 10px 32px !important;}
+body.shared-view .pbig-list{display:flex;flex-direction:column;gap:14px;}
+.pbig-card{display:grid;grid-template-columns:150px 1fr;padding:0;overflow:hidden;}
+.pbig-img{position:relative;background:#f4f2ee;aspect-ratio:3/4;}
+.pbig-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
+.pbig-ref{position:absolute;left:8px;bottom:8px;background:var(--ink);color:#fff;font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px;padding:3px 8px;border-radius:5px;}
+.pbig-usine{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.72);color:#fff;font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:.5px;padding:3px 7px;border-radius:5px;}
+.pbig-body{padding:14px 18px;display:flex;flex-direction:column;gap:8px;}
+.pbig-name{font-size:20px;line-height:1.1;}
+.pbig-sub{font-size:13px;color:#777;margin-top:-3px;}
+.pbig-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.pbig-chip{border:1.5px solid var(--border);border-radius:8px;background:#faf8f4;padding:5px 10px;font-size:13px;font-weight:600;color:#333;}
+.pbig-price{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;}
+.pbig-foot{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid var(--border);padding-top:8px;}
+@media(max-width:760px){
+  .pbig-card{grid-template-columns:1fr;}
+  .pbig-img{min-height:260px;aspect-ratio:4/3;}
+  .pbig-body{padding:16px 18px;}
+}
+body.shared-view .plist-thumb{width:67px;height:55px;cursor:zoom-in;}
+.plist-total{margin-top:10px;padding:12px 18px;background:var(--ink);color:#fff;font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:1.5px;border-radius:10px;display:flex;justify-content:flex-end;gap:26px;}
+body.shared-view .plist-th-add,body.shared-view .plist-td-add,body.shared-view .add-page-btn{display:none !important;}
+body.shared-view #f-refmax-top,body.shared-view .btn-head-scan{display:none !important;}
+
+/* ── Vue client : tableau façon EXCEL (quadrillage + en-têtes bleu pastel du modèle offre) ── */
+body.shared-view .plist-table{min-width:0;font-size:13.5px;}
+body.shared-view .plist-table thead th{background:#b4c6e7;color:#000;border:1px solid #8ea9d2;border-bottom:1px solid #8ea9d2;padding:7px 8px;text-align:center;font-size:11px;}
+body.shared-view .plist-td{border:1px solid #d9d9d9;padding:5px 8px;text-align:center;}
+body.shared-view .plist-table tbody tr{border-bottom:none;}
+body.shared-view .plist-table tbody tr:hover{background:#eef2fa;}
+body.shared-view .plist-td-title,body.shared-view .plist-td-details{text-align:left;}
+body.shared-view .plist-gsm{font-family:'DM Sans',sans-serif;font-size:13.5px;font-weight:600;letter-spacing:0;}
+body.shared-view .plist-ref-badge{background:transparent;border:none;padding:0;font-family:'DM Sans',sans-serif;font-size:13.5px;font-weight:700;color:#000;}
+body.shared-view .plist-qtitle{font-family:'DM Sans',sans-serif;font-size:13.5px;font-weight:700;letter-spacing:0;}
+body.shared-view .plist-price{background:#a9d08e;font-weight:700;}
+body.shared-view .plist-section-title{font-size:18px;border-bottom:none;padding-left:0;}
+body.shared-view .plist-table tbody tr:nth-child(even){background:#f3f6fb;}
+body.shared-view .plist-table tbody tr:hover{background:#e2eaf7;}
+body.shared-view .body-wrap>div:last-child{padding-left:0 !important;}
+body.shared-view .fab-prodix{display:none !important;}
+.sc-body{padding:0;}
+.sc-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.6px;line-height:1.1;padding:7px 8px;}
+.sc-grid{display:grid;grid-template-columns:repeat(4,1fr);border:2px solid #000;border-radius:0 0 10px 10px;overflow:hidden;}
+.sc-cell{border:.5px solid #000;padding:7px 5px;min-width:0;}
+.sc-cap{font-size:9px;font-weight:700;letter-spacing:.3px;color:#222;white-space:nowrap;overflow:hidden;}
+.sc-val{font-weight:800;font-size:15.5px;color:#000;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sc-val small{font-size:10px;font-weight:700;}
+.load-spin{width:34px;height:34px;border:3px solid #ddd;border-top-color:var(--ink);border-radius:50%;margin:0 auto 14px;animation:loadspin 1s linear infinite;}
+@keyframes loadspin{to{transform:rotate(360deg)}}
+/* Vue client : la fiche produit reprend aussi le quadrillage étiquette */
+body.shared-view .dspecs{grid-template-columns:repeat(3,1fr);gap:0;border:2px solid #000;border-radius:10px;overflow:hidden;}
+body.shared-view .dspec-item{background:#fff;border:.5px solid #000;border-radius:0;padding:8px 10px;}
+body.shared-view .dspec-lbl{color:#222;font-size:10px;letter-spacing:.5px;margin-bottom:2px;}
+body.shared-view .dspec-val{font-size:19px;font-weight:800;}
+
+/* ── Intro lien client : le semi recule, UN chariot décharge carte par carte,
+   chaque carte monte se ranger AU-DESSUS du container. ── */
+#ctn-splash{position:fixed;inset:0;z-index:12000;background:#fff;display:flex;align-items:center;justify-content:center;transition:opacity .5s ease,transform .5s ease;cursor:pointer;overflow:hidden;}
+#ctn-splash.out{opacity:0;transform:scale(1.025);pointer-events:none;}
+@media(prefers-reduced-motion:reduce){#ctn-splash{display:none;}}
+.ctn-scene{position:relative;width:1360px;height:960px;transform-origin:center;flex-shrink:0;transform:translateX(-50px) scale(1.1);}
+@media(max-width:1450px),(max-height:1050px){.ctn-scene{transform:translateX(-50px) scale(.79);}}
+@media(max-width:1000px){.ctn-scene{transform:translateX(-50px) scale(.57);}}
+@media(max-width:640px){.ctn-scene{transform:translateX(-50px) scale(.4);}}
+/* — Camion — */
+.ctn-truck{position:absolute;left:30px;bottom:26px;width:830px;height:420px;animation:ctnIn 1.1s cubic-bezier(.16,.8,.24,1) both;will-change:transform;z-index:2;}
+@keyframes ctnIn{0%{transform:translate3d(-130vw,0,0);}80%{transform:translate3d(14px,0,0);}91%{transform:translate3d(-5px,0,0);}100%{transform:translate3d(0,0,0);}}
+.ctn-cab{position:absolute;left:8px;bottom:40px;width:150px;height:170px;background:#fe0000;border:5px solid #111;border-radius:14px 10px 6px 6px;}
+.ctn-cab-win{position:absolute;left:14px;top:14px;width:58px;height:52px;background:#f1efe9;border:4px solid #111;border-radius:6px;display:block;}
+.ctn-trailer{position:absolute;left:150px;bottom:52px;width:672px;height:30px;background:#222;border:5px solid #111;border-radius:6px;}
+.ctn-box{position:absolute;left:160px;bottom:84px;width:650px;height:300px;background:repeating-linear-gradient(90deg,#fe0000 0 48px,#ee0000 48px 96px);border:6px solid #111;border-radius:12px;display:flex;align-items:center;justify-content:center;}
+.ctn-logo{background:#fff;border:4px solid #111;border-radius:12px;padding:16px 30px;display:flex;align-items:center;box-shadow:0 6px 0 rgba(0,0,0,.16);}
+.ctn-logo img{height:76px;display:block;}
+.ctn-box::after{content:'';position:absolute;right:-6px;top:-6px;bottom:-6px;width:52px;background:#d40000;border:6px solid #111;border-radius:0 12px 12px 0;animation:ctnDoor .5s ease .95s both;}
+@keyframes ctnDoor{from{transform:translateX(0);background:#d40000;}to{transform:translateX(10px);background:#9c0000;}}
+.ctn-wheel{position:absolute;bottom:8px;width:58px;height:58px;border-radius:50%;background:radial-gradient(circle,#fff 0 11%,#111 11% 100%);border:4px solid #000;display:block;animation:ctnWheel 1.1s linear both;}
+@keyframes ctnWheel{from{transform:rotate(-660deg);}to{transform:rotate(0deg);}}
+/* — LE chariot : navette porte ↔ recul, 3 prises, puis se gare — */
+.ctn-fk{position:absolute;left:1560px;bottom:26px;width:300px;height:400px;--pick:-442px;--out:-332px;--park:-340px;animation:fkShuttle 4.6s cubic-bezier(.45,.1,.45,.9) 1s both;will-change:transform;z-index:3;}
+@keyframes fkShuttle{
+  0%{transform:translate3d(0,0,0);opacity:0;}
+  5%{opacity:1;}
+  13%{transform:translate3d(var(--pick),0,0);}
+  28%{transform:translate3d(var(--pick),0,0);}
+  36%{transform:translate3d(var(--out),0,0);}
+  44%{transform:translate3d(var(--pick),0,0);}
+  57%{transform:translate3d(var(--pick),0,0);}
+  64%{transform:translate3d(var(--out),0,0);}
+  71%{transform:translate3d(var(--pick),0,0);}
+  84%{transform:translate3d(var(--pick),0,0);}
+  100%{transform:translate3d(var(--park),0,0);}
+}
+.ctn-fk-body{position:absolute;left:46px;bottom:60px;width:210px;height:115px;background:#f7b500;border:4px solid #111;border-radius:10px 14px 6px 6px;}
+.ctn-fk-guard{position:absolute;left:79px;bottom:165px;width:130px;height:117px;border:4px solid #111;border-radius:8px 8px 0 0;background:transparent;}
+.ctn-fk-mast{position:absolute;left:13px;bottom:55px;width:20px;height:290px;background:#111;border-radius:3px;}
+.ctn-fk-mast::after{content:'';position:absolute;left:-165px;bottom:10px;width:165px;height:16px;background:#111;border-radius:3px 0 0 3px;}
+.ctn-fk-wheel{position:absolute;bottom:14px;width:82px;height:82px;border-radius:50%;background:radial-gradient(circle,#fff 0 11%,#111 11% 100%);border:4px solid #000;display:block;animation:fkWheel .55s linear 1s 9;}
+@keyframes fkWheel{from{transform:rotate(0);}to{transform:rotate(-360deg);}}
+/* — Les cartes : posées sur les fourches à la porte, puis montent se ranger — */
+.ctn-slide{position:absolute;left:420px;bottom:104px;width:200px;height:270px;opacity:0;animation:cardSlide .6s cubic-bezier(.3,.5,.4,1) forwards;will-change:transform;z-index:1;}
+.ctn-s0{animation-delay:1.65s;}
+.ctn-s1{animation-delay:2.95s;}
+.ctn-s2{animation-delay:4.3s;}
+@keyframes cardSlide{0%{opacity:1;transform:translate3d(0,0,0);}97%{opacity:1;}100%{opacity:0;transform:translate3d(520px,0,0);}}
+.ctn-drop{position:absolute;left:940px;bottom:104px;width:200px;height:270px;opacity:0;transform-origin:bottom center;animation:cardHand .01s linear both,cardFly .85s cubic-bezier(.3,.65,.3,1) both;will-change:transform;z-index:4;}
+.ctn-d0{--cx:-790px;--cy:-346px;animation-delay:2.25s,2.5s;}
+.ctn-d1{--cx:-525px;--cy:-346px;animation-delay:3.55s,3.8s;}
+.ctn-d2{--cx:-260px;--cy:-346px;animation-delay:4.9s,5.1s;}
+@keyframes cardHand{from{opacity:0;}to{opacity:1;}}
+@keyframes cardFly{0%{transform:translate3d(0,0,0) scale(1);}55%{transform:translate3d(calc(var(--cx)*.6),calc(var(--cy) - 46px),0) scale(1.16);}100%{transform:translate3d(var(--cx),var(--cy),0) scale(1.32);}}
+/* — Carte produit miniature — */
+.ctn-item{width:100%;height:100%;border-radius:12px;border:4px solid #111;background:#fff;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 8px 18px rgba(0,0,0,.16);}
+.ctn-card-img{flex:1;background:linear-gradient(160deg,#c9ab7f 0%,#b8946a 55%,#a98457 100%);border-bottom:3px solid #111;min-height:0;}
+.ctn-card-bot{background:#fff;}
+.ctn-card-title{font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:.5px;line-height:1;padding:7px 9px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:19px;}
+.ctn-card-cells{display:grid;grid-template-columns:1fr 1fr 1fr;border-top:2px solid #111;}
+.ctn-cc{border:.5px solid #111;padding:6px 4px;text-align:center;min-height:29px;}
+.ctn-cc b{font-size:14px;font-weight:800;color:#000;white-space:nowrap;}
+
+body.shared-view .body-wrap{grid-template-columns:1fr !important;}
+@media(max-width:900px){body.shared-view .body-wrap{grid-template-columns:1fr !important;}}
+#shared-info{position:sticky;top:76px;height:fit-content;display:flex;flex-direction:column;gap:12px;padding:16px 0 0 4px;}
+.si-card{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:14px 16px;}
+.si-title{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1.5px;border-bottom:2px solid var(--ink);padding-bottom:6px;margin-bottom:10px;}
+.si-big{font-family:'Bebas Neue',sans-serif;font-size:32px;line-height:1.1;}
+.si-big small{font-size:15px;letter-spacing:1px;color:#888;}
+.si-row{display:flex;justify-content:space-between;gap:8px;font-size:13.5px;padding:3px 0;}
+.si-row b{font-weight:700;white-space:nowrap;}
+.si-btn{display:block;text-align:center;padding:9px 10px;border:1.5px solid var(--ink);border-radius:9px;font-weight:700;font-size:13.5px;color:var(--ink);text-decoration:none;margin-bottom:7px;transition:background .15s;}
+.si-btn:hover{background:var(--off);}
+.si-wa{background:#25D366;border-color:#25D366;color:#fff;}
+.si-wa:hover{background:#1fb457;}
+.sc-count{position:absolute;top:10px;left:10px;background:#111;color:#fff;font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:1px;padding:4px 11px;border-radius:7px;}
+/* Fiche vue client : quadrillage copié de l'étiquette + reste en bas */
+body.shared-view .dspecs{display:block;border:none;overflow:visible;}
+.det-etq{display:grid;grid-template-columns:repeat(4,1fr);border:2.5px solid #000;border-radius:10px;overflow:hidden;}
+.det-etq-cell{border:.5px solid #000;padding:9px 12px;min-width:0;}
+.det-etq-lbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#222;white-space:nowrap;}
+.det-etq-val{font-size:22px;font-weight:800;color:#000;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.det-reste{margin-top:12px;display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:#666;}
+.det-reste-item b{font-weight:700;color:#333;text-transform:uppercase;font-size:11.5px;letter-spacing:.5px;margin-right:4px;}
+@media(max-width:700px){.det-etq{grid-template-columns:repeat(2,1fr);}}
+body.shared-view #det-summary{display:none !important;}
+body.shared-view #det-name{display:none;}
+.det-etq-title{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:.8px;line-height:1.05;padding:12px 14px 9px;white-space:normal;}
+/* Vue client : la fiche = LA CARTE EN GRAND (photo dessus, cadre étiquette dessous) */
+body.shared-view .dmodal{flex-direction:column;max-width:660px;height:auto;max-height:94vh;overflow-y:auto;}
+body.shared-view .dimg-col{width:100%;height:460px;flex-shrink:0;position:relative;}
+body.shared-view .dmain{height:460px;}
+body.shared-view .dmain img{width:100%;height:100%;object-fit:contain;position:relative;z-index:1;}
+body.shared-view .dmain{background:#111;overflow:hidden;}
+body.shared-view .det-blur{position:absolute;inset:0;background-size:cover;background-position:center;filter:blur(24px) brightness(.72);transform:scale(1.18);}
+body.shared-view .dbody{width:100%;height:auto;padding:0;overflow:visible;}
+body.shared-view .det-etq{border-radius:0;border:none;border-top:3px solid #000;}
+body.shared-view .det-etq-cell{border-width:1px;}
+body.shared-view .det-reste{padding:10px 16px 4px;margin-top:0;}
+body.shared-view .d-actions{padding:10px 16px 16px;}
+body.shared-view .dhead-actions{position:absolute;top:12px;right:12px;z-index:12;}
+body.shared-view .dprice-row{padding:0 16px;}
+.det-etq-wrap .det-etq-val{white-space:normal;overflow:visible;text-overflow:clip;font-size:17px;line-height:1.3;font-weight:700;}
+.sc-wrap .sc-val{white-space:normal;overflow:hidden;text-overflow:clip;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:11.5px;line-height:1.25;}
+body.shared-view .dmodal{max-width:840px;}
+body.shared-view .dimg-col,body.shared-view .dmain{height:56vh;max-height:600px;}
+body.shared-view .det-etq-title{font-size:29px;padding:10px 14px 8px;}
+body.shared-view .det-etq-cell{padding:8px 12px;}
+body.shared-view .det-etq .det-etq-val{font-size:19px;}
+body.shared-view .det-etq .det-etq-wrap .det-etq-val{font-size:16px;}
+
+/* Vue client : fond BLANC épuré (fini le crème) */
+body.shared-view{background:#fff;}
+body.shared-view #results-bar,body.shared-view .rbar-inner{background:#fff;}
+
+/* ── Vue client, passe ÉPURÉ (18/07) ──
+   1. Fini les doubles cadres : la carte = photo nue + cadre noir, sans bordure
+      grise ni ombre autour. 2. Valeurs recalibrées (tabulaires, plus de «1000…»).
+   3. Détail à hauteur fixe 2 lignes → cadres alignés d'une carte à l'autre.
+   4. Respiration verticale + tri discret. */
+body.shared-view .sc-card,body.shared-view .sc-card:hover{border:none;box-shadow:none;background:transparent;transform:none;}
+body.shared-view .pgrid{gap:26px 18px;}
+body.shared-view .sc-cell{padding:6px 6px;}
+body.shared-view .sc-cap{font-size:8.5px;letter-spacing:.3px;}
+body.shared-view .sc-val{font-size:14px;letter-spacing:-.2px;font-variant-numeric:tabular-nums;}
+body.shared-view .sc-val small{font-size:9.5px;}
+body.shared-view .sc-title{font-size:20px;padding:7px 9px 5px;}
+body.shared-view .sc-wrap .sc-val{min-height:2.55em;font-size:11.5px;}
+body.shared-view .rbar-sel{background:#fff;border:1.5px solid #e4e4e4;border-radius:9px;font-size:13px;color:#555;}
+body.shared-view .pbig-ref{font-size:17px;padding:4px 10px;background:rgba(0,0,0,.82);}
+body.shared-view .pbig-usine{background:rgba(0,0,0,.55);}
+body.shared-view .dnav-inline{display:none !important;}
+body.shared-view .modal-bg.show .dmod-nav{display:flex !important;background:rgba(255,255,255,.92);color:#111;box-shadow:0 4px 14px rgba(0,0,0,.2);}
+body.shared-view .dmod-prev{left:calc(50% - 530px);}
+body.shared-view .dmod-next{right:calc(50% - 530px);}
+@media(max-width:900px){body.shared-view .dmod-prev{left:8px;}body.shared-view .dmod-next{right:8px;}}
+body.shared-view .dhead-actions{position:fixed;top:16px;right:16px;z-index:9999;}
+body.shared-view .dhead-actions .dclose{background:#fff;width:44px;height:44px;box-shadow:0 4px 14px rgba(0,0,0,.25);}
+body.shared-view .dmodal .d-actions{display:none;}
+body.shared-view .det-reste{padding:12px 16px 6px;}
+body.shared-view .pgrid{grid-template-columns:repeat(4,1fr);}
+body.shared-view .sc-val{font-size:15.5px;}
+body.shared-view .sc-cap{font-size:9.5px;}
+body.shared-view .sc-title{font-size:23px;}
+body.shared-view .sc-wrap .sc-val{font-size:12.5px;}
+@media(max-width:900px){body.shared-view .pgrid{grid-template-columns:repeat(2,1fr);}}
+body.shared-view .sc-val{font-size:19px;}
+body.shared-view .sc-val small{font-size:11px;}
+body.shared-view .sc-wrap .sc-val{font-size:14px;}
+body.shared-view #lang-fr,body.shared-view #lang-fr-m{display:none !important;}
+
+/* ── Thème APPLE (essai, &apple=1 sur lien client) — palette apple.com :
+   fond #f5f5f7, cartes blanches sans bordure à grands arrondis, filets
+   #d2d2d7, texte #1d1d1f / #6e6e73, accent #0071e3. ── */
+body.apple-view{background:#f5f5f7;}
+body.apple-view #results-bar,body.apple-view .rbar-inner{background:#f5f5f7;}
+body.apple-view header{background:#f5f5f7;border-bottom:none;}
+body.apple-view .sc-card,body.apple-view .sc-card:hover{background:#fff;border:none;border-radius:18px;box-shadow:0 4px 22px rgba(0,0,0,.05);overflow:hidden;transform:none;}
+body.apple-view .sc-grid{border:none;border-radius:0;background:#fff;}
+body.apple-view .sc-cell{border:none;border-top:1px solid #e8e8ed;border-left:1px solid #e8e8ed;}
+body.apple-view .sc-grid>.sc-cell:nth-child(-n+1){border-left:none;}
+body.apple-view .sc-title{border-left:none;border-top:none;font-family:'DM Sans',sans-serif;font-weight:700;font-size:19px;letter-spacing:-.3px;text-transform:none;color:#1d1d1f;padding:12px 14px 8px;}
+body.apple-view .sc-cap{color:#6e6e73;font-weight:600;}
+body.apple-view .sc-val{color:#1d1d1f;font-weight:700;}
+body.apple-view .pbig-ref{background:rgba(255,255,255,.88);color:#1d1d1f;backdrop-filter:blur(8px);font-family:'DM Sans',sans-serif;font-weight:700;font-size:14px;border-radius:999px;}
+body.apple-view .pbig-usine{background:rgba(29,29,31,.65);backdrop-filter:blur(8px);border-radius:999px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;}
+body.apple-view .sc-count{background:#0071e3;border-radius:999px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;}
+body.apple-view .rbar-sel{border:none;background:#fff;border-radius:999px;box-shadow:0 2px 10px rgba(0,0,0,.06);padding:9px 14px;color:#1d1d1f;}
+body.apple-view .btn-head{border:none;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.06);border-radius:999px;}
+body.apple-view #f-refmin-top{border:none !important;box-shadow:0 2px 10px rgba(0,0,0,.06);border-radius:999px !important;}
+body.apple-view .dmodal{border-radius:22px;}
+body.apple-view .det-etq{border-top:1px solid #e8e8ed;}
+body.apple-view .det-etq-cell{border:none;border-top:1px solid #e8e8ed;border-left:1px solid #e8e8ed;padding:10px 14px;}
+body.apple-view .det-etq-title{border:none;font-family:'DM Sans',sans-serif;font-weight:700;font-size:24px;letter-spacing:-.4px;text-transform:none;color:#1d1d1f;}
+body.apple-view .det-etq-lbl{color:#6e6e73;}
+body.apple-view .det-etq-val{color:#1d1d1f;}
+body.apple-view .det-reste{color:#6e6e73;}
+body.apple-view .dhead-actions .dclose,body.apple-view .modal-bg.show .dmod-nav{background:rgba(255,255,255,.9);backdrop-filter:blur(8px);box-shadow:0 2px 12px rgba(0,0,0,.12);}
+body.apple-view .logo-img{filter:grayscale(0);}
+
+/* ── Thème AMAZON (essai, &amazon=1 sur lien client) — codes amazon.fr :
+   header navy #131921, page blanche dense, hairlines #e7e7e7, texte #0F1111 /
+   #565959, liens #007185, accents orange #FF9900, CTA jaune #FFD814. ── */
+body.amazon-view{background:#fff;}
+body.amazon-view header{background:#131921;border-bottom:none;}
+body.amazon-view header *{color:#fff;}
+body.amazon-view header input{color:#0F1111;background:#fff;}
+body.amazon-view .btn-head{background:#fff;border:1px solid #d5d9d9;border-radius:8px;box-shadow:0 2px 5px rgba(15,17,17,.15);}
+body.amazon-view .btn-head-panier{background:#FFD814;border:1px solid #FCD200;}
+body.amazon-view .btn-panier-txt{color:#0F1111 !important;}
+body.amazon-view #f-refmin-top{border:2px solid #FF9900 !important;border-radius:8px !important;}
+body.amazon-view #results-bar,body.amazon-view .rbar-inner{background:#fff;}
+body.amazon-view .rbar-sel{background:#f0f2f2;border:1px solid #d5d9d9;border-radius:8px;box-shadow:0 2px 5px rgba(15,17,17,.08);font-size:13px;color:#0F1111;}
+body.amazon-view #rbar-refs,body.amazon-view #rbar-tons{color:#fff;}
+body.amazon-view #results-bar *{color:#0F1111;}
+body.amazon-view .sc-card,body.amazon-view .sc-card:hover{background:#fff;border:1px solid #e7e7e7;border-radius:8px;box-shadow:none;transform:none;overflow:hidden;}
+body.amazon-view .sc-grid{border:none;border-radius:0;}
+body.amazon-view .sc-cell{border:none;border-top:1px solid #e7e7e7;border-left:1px solid #e7e7e7;}
+body.amazon-view .sc-title{border-left:none;font-family:'DM Sans',sans-serif;font-weight:700;font-size:17px;letter-spacing:0;text-transform:none;color:#007185;padding:10px 12px 7px;}
+body.amazon-view .sc-cap{color:#565959;font-weight:600;}
+body.amazon-view .sc-val{color:#0F1111;}
+body.amazon-view .pbig-ref{background:#232f3e;border-radius:3px;font-family:'DM Sans',sans-serif;font-size:13.5px;font-weight:700;}
+body.amazon-view .pbig-usine{background:#FF9900;color:#131921;border-radius:3px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:800;}
+body.amazon-view .sc-count{background:#CC0C39;border-radius:3px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:800;}
+body.amazon-view .dmodal{border-radius:8px;}
+body.amazon-view .det-etq{border-top:1px solid #e7e7e7;}
+body.amazon-view .det-etq-cell{border:none;border-top:1px solid #e7e7e7;border-left:1px solid #e7e7e7;padding:10px 14px;}
+body.amazon-view .det-etq-title{border:none;font-family:'DM Sans',sans-serif;font-weight:700;font-size:22px;text-transform:none;color:#0F1111;}
+body.amazon-view .det-etq-lbl{color:#565959;}
+body.amazon-view .det-etq-val{color:#0F1111;}
+body.amazon-view .dhead-actions .dclose,body.amazon-view .modal-bg.show .dmod-nav{background:#fff;border:1px solid #d5d9d9;box-shadow:0 2px 5px rgba(15,17,17,.15);color:#0F1111;}
+
+/* ── Thème ZARA (essai, &zara=1 sur lien client) — éditorial minimal : blanc
+   absolu, AUCUN cadre, photos nues, petites capitales espacées, infos en une
+   ligne de texte, poids en pavé rouge façon prix soldé, CTA noir carré. ── */
+body.zara-view{background:#fff;}
+body.zara-view header{background:#fff;border-bottom:none;}
+body.zara-view #results-bar,body.zara-view .rbar-inner{background:#fff;}
+body.zara-view .pgrid{gap:56px 22px;}
+body.zara-view .sc-card,body.zara-view .sc-card:hover{background:#fff;border:none;border-radius:0;box-shadow:none;transform:none;}
+body.zara-view .pcard-img{border-radius:0;}
+body.zara-view .sc-grid{display:block;border:none;border-radius:0;padding:12px 2px 0;}
+body.zara-view .sc-title{display:block;border:none;padding:0 0 6px;font-family:'DM Sans',sans-serif;font-weight:500;font-size:12.5px;letter-spacing:1.2px;text-transform:uppercase;color:#000;white-space:normal;}
+body.zara-view .sc-cell{display:inline;border:none;padding:0;}
+body.zara-view .sc-cap{display:none;}
+body.zara-view .sc-val{display:inline;font-size:12px;font-weight:400;color:#000;letter-spacing:.4px;white-space:normal;}
+body.zara-view .sc-val small{font-size:10px;}
+body.zara-view .sc-cell:not(:last-child) .sc-val::after{content:'  ·  ';color:#999;}
+body.zara-view .sc-grid>.sc-cell:nth-child(7){background:#e10600;padding:1px 7px 2px;margin-left:4px;}
+body.zara-view .sc-grid>.sc-cell:nth-child(7) .sc-val{color:#fff;font-weight:600;}
+body.zara-view .sc-grid>.sc-cell:nth-child(7) .sc-val::after{content:'';}
+body.zara-view .sc-wrap .sc-val{min-height:0;display:inline;-webkit-line-clamp:none;font-size:11px;color:#666;}
+body.zara-view .pbig-ref{background:#fff;color:#000;border-radius:0;font-family:'DM Sans',sans-serif;font-size:11.5px;font-weight:600;letter-spacing:1.5px;padding:4px 8px;}
+body.zara-view .pbig-usine{background:#000;color:#fff;border-radius:0;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:600;letter-spacing:1.5px;}
+body.zara-view .sc-count{background:#000;border-radius:0;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;}
+body.zara-view .btn-head{border:1px solid #000;background:#fff;border-radius:0;box-shadow:none;}
+body.zara-view .btn-head-panier{background:#000;border:1px solid #000;}
+body.zara-view .btn-panier-txt{color:#fff !important;font-family:'DM Sans',sans-serif !important;font-weight:500 !important;letter-spacing:1.5px;text-transform:uppercase;font-size:12px !important;}
+body.zara-view #f-refmin-top{border:none !important;border-bottom:1px solid #000 !important;border-radius:0 !important;background:#fff;}
+body.zara-view .rbar-sel{border:none;border-bottom:1px solid #000;border-radius:0;background:#fff;font-size:11.5px;letter-spacing:1px;text-transform:uppercase;box-shadow:none;}
+body.zara-view .dmodal{border-radius:0;}
+body.zara-view .det-etq{border:none;border-top:1px solid #000;}
+body.zara-view .det-etq-cell{border:none;border-top:1px solid #eee;border-left:1px solid #eee;padding:12px 16px;}
+body.zara-view .det-etq-title{border:none;font-family:'DM Sans',sans-serif;font-weight:500;font-size:16px;letter-spacing:2px;text-transform:uppercase;}
+body.zara-view .det-etq-lbl{color:#999;font-weight:500;letter-spacing:1px;}
+body.zara-view .det-etq-val{font-weight:500;font-size:17px;}
+body.zara-view .dhead-actions .dclose,body.zara-view .modal-bg.show .dmod-nav{background:#fff;border:1px solid #000;border-radius:0;box-shadow:none;color:#000;}
+body.shared-view .rbar-sort,body.shared-view .sort-wrap{display:none !important;}
+/* Apple : lisibilité max (valeurs bien grasses, légendes plus sombres) */
+body.apple-view .sc-title{font-weight:800;color:#000;}
+body.apple-view .sc-cap{color:#48484a;font-weight:700;}
+body.apple-view .sc-val{font-weight:800;color:#000;}
+body.apple-view .sc-wrap .sc-val{font-weight:700;font-size:14.5px;}
+body.apple-view .det-etq-title{font-weight:800;font-size:26px;color:#000;}
+body.apple-view .det-etq-lbl{color:#48484a;font-weight:700;}
+body.apple-view .det-etq-val{font-weight:800;font-size:23px;color:#000;}
+body.apple-view .det-etq-wrap .det-etq-val{font-size:18px;font-weight:700;}
+body.apple-view .det-reste{color:#48484a;}
+body.apple-view .det-reste-item b{color:#000;}
+/* Apple : cran au-dessus (+5 % de carte accepté) */
+body.apple-view .sc-cell{padding:8px 8px;}
+body.apple-view .sc-cap{font-size:10.5px;}
+body.apple-view .sc-val{font-size:21px;}
+body.apple-view .sc-val small{font-size:12px;}
+body.apple-view .sc-title{font-size:21px;padding:13px 14px 9px;}
+body.apple-view .sc-wrap .sc-val{font-size:15.5px;}
+body.apple-view .sc-cell{padding:8px 5px 8px 8px;}
+body.apple-view .sc-val{font-size:19.5px;letter-spacing:-.5px;}
+body.apple-view .sc-cell{border-top:1px solid #c9c9ce;border-left:1px solid #c9c9ce;}
+body.apple-view .det-etq{border-top:1px solid #c9c9ce;}
+body.apple-view .det-etq-cell{border-top:1px solid #c9c9ce;border-left:1px solid #c9c9ce;}
+body.apple-view .sc-cap,body.apple-view .det-etq-lbl{font-weight:800;color:#3a3a3c;}
+/* Bouton Télécharger liste : plus de rouge — contrastes noirs/gris au survol/appui */
+body.shared-view:not(.amazon-view):not(.zara-view) .btn-head-panier{background:#fff;border-color:#d2d2d7;}
+body.shared-view:not(.amazon-view):not(.zara-view) .btn-head-panier .btn-panier-txt{color:#111 !important;}
+body.shared-view:not(.amazon-view):not(.zara-view) .btn-head-panier:hover{border-color:#111;background:#f5f5f5;}
+body.shared-view:not(.amazon-view):not(.zara-view) .btn-head-panier:active{border-color:#111;background:#e4e4e4;}
+body.shared-view .btn-head-panier:focus,body.shared-view .btn-head-panier:focus-visible{outline:2px solid #111;outline-offset:1px;box-shadow:none;}
+body.apple-view .sc-cap,body.apple-view .det-etq-lbl{font-size:12px;font-weight:900;color:#000;letter-spacing:.4px;}
+/* Apple : fermer le cadre (droite + bas manquaient) */
+body.apple-view .sc-grid{border-right:1px solid #c9c9ce;border-bottom:1px solid #c9c9ce;}
+body.apple-view .det-etq{border-right:1px solid #c9c9ce;border-bottom:1px solid #c9c9ce;}
+
+/* Apple : bas de page façon apple.com — gris clair, petits liens, filets fins */
+body.apple-view footer{background:#f5f5f7;border-top:1px solid #d2d2d7;padding:24px 24px 30px;}
+body.apple-view .footer-col-title{font-family:'DM Sans',sans-serif;font-weight:700;font-size:12px;letter-spacing:0;text-transform:none;color:#1d1d1f;}
+body.apple-view .footer-col a,body.apple-view .footer-col span{font-size:12px;color:#424245;}
+body.apple-view .footer-col a:hover{color:#1d1d1f;text-decoration:underline;}
+body.apple-view .footer-bottom{border-top:1px solid #d2d2d7;color:#6e6e73;}
+body.apple-view .footer-bottom *{color:#6e6e73;font-size:12px;font-family:'DM Sans',sans-serif;letter-spacing:0;}
+body.apple-view .footer-bottom a{color:#6e6e73 !important;font-family:'DM Sans',sans-serif !important;font-size:12px !important;font-weight:700;letter-spacing:0 !important;}
+/* Apple : cadre extérieur complet qui suit les coins arrondis de la carte */
+body.apple-view .sc-grid{border:1px solid #c9c9ce;border-radius:0 0 17px 17px;overflow:hidden;}
+body.apple-view .det-etq{border:1px solid #c9c9ce;border-radius:0 0 20px 20px;overflow:hidden;}
+/* Apple : teinte unifiée page/footer + logo centré en bas */
+html:has(body.apple-view){background:#f5f5f7;}
+body.apple-view,body.apple-view .body-wrap,body.apple-view footer{background:#f5f5f7 !important;}
+body.apple-view .footer-bottom{flex-direction:column;align-items:center;gap:10px;text-align:center;}
+body.apple-view .footer-bottom a{display:block;width:170px;height:28px;background:url('/img/logo.png?v=2') center/contain no-repeat;font-size:0 !important;color:transparent !important;overflow:hidden;}
+/* Entrée en cascade des cartes à la fin de l'animation d'intro */
+.card-in{opacity:0;animation:cardIn .55s cubic-bezier(.2,.7,.3,1) forwards;}
+@keyframes cardIn{from{opacity:0;transform:translateY(28px) scale(.97);}to{opacity:1;transform:translateY(0) scale(1);}}
+/* Apple : traits uniformes (technique fond + gap 1px — plus aucun bord doublé) */
+body.apple-view .sc-grid{background:#c9c9ce;gap:1px;border:1px solid #c9c9ce;}
+body.apple-view .sc-cell,body.apple-view .sc-title{border:none !important;background:#fff;}
+body.apple-view .det-etq{background:#c9c9ce;gap:1px;border:1px solid #c9c9ce;}
+body.apple-view .det-etq-cell{border:none !important;background:#fff;}
+body.shared-view .footer-grid{display:none !important;}
+body.shared-view .footer-bottom{border-top:none;margin-top:0;padding-top:4px;}
+/* Apple : la FICHE reprend exactement la typo des cartes (gras/noir/contrastes) */
+body.apple-view .det-etq-title{font-weight:800;color:#000;letter-spacing:-.4px;}
+body.apple-view .det-etq-lbl{font-size:13px;font-weight:900;color:#000;letter-spacing:.4px;}
+body.apple-view .det-etq-val{font-weight:800;font-size:26px;color:#000;letter-spacing:-.5px;}
+body.apple-view .det-etq-wrap .det-etq-val{font-size:19px;font-weight:800;letter-spacing:0;}
+body.apple-view .det-reste,body.apple-view .det-reste-item b{color:#000;}
+/* Apple : resserrage vertical (~7 %) — paddings seulement, tailles intactes */
+body.apple-view .sc-cell{padding-top:6px;padding-bottom:6px;}
+body.apple-view .sc-title{padding-top:10px;padding-bottom:7px;}
+body.apple-view .sc-wrap .sc-val{min-height:1.9em;}
+body.apple-view .det-etq-cell{padding-top:8px;padding-bottom:8px;}
+/* Essai &bebas=1 : titres en Bebas Neue ÉPAISSIE (trait renforcé) */
+body.bebas-view .sc-title,body.apple-view .sc-title{font-family:'Bebas Neue',sans-serif !important;font-weight:400 !important;font-size:27px !important;letter-spacing:.8px !important;text-transform:uppercase !important;-webkit-text-stroke:.7px #000;padding-top:8px !important;padding-bottom:4px !important;}
+body.bebas-view .det-etq-title,body.apple-view .det-etq-title{font-family:'Bebas Neue',sans-serif !important;font-weight:400 !important;font-size:36px !important;letter-spacing:1px !important;text-transform:uppercase !important;-webkit-text-stroke:.9px #000;}
+.det-etq-val small{font-size:13px;font-weight:800;}
+body.apple-view .det-etq-val small{font-size:14px;}
+
+/* ── Popup récap de l'offre (après l'animation d'intro) ── */
+#recap-bg{position:fixed;inset:0;z-index:11000;background:rgba(0,0,0,.45);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;animation:recapFade .35s ease;}
+.recap-card{background:#fff;border-radius:22px;padding:30px 34px 26px;width:480px;max-width:94vw;box-shadow:0 30px 80px rgba(0,0,0,.35);animation:recapUp .45s cubic-bezier(.2,.7,.3,1);}
+.recap-title{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:1px;-webkit-text-stroke:.8px #000;margin-bottom:16px;text-align:center;}
+.recap-stats{display:flex;justify-content:center;gap:30px;margin-bottom:16px;}
+.recap-stat{text-align:center;}
+.recap-stat b{display:block;font-size:40px;font-weight:800;letter-spacing:-1px;line-height:1.05;color:#000;}
+.recap-stat span{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#555;}
+.recap-prix b{color:var(--red);}
+.recap-quals{border-top:1px solid #e3e3e6;padding-top:12px;margin-bottom:18px;}
+.recap-q{display:flex;justify-content:space-between;font-size:14.5px;padding:4px 0;font-weight:600;color:#222;}
+.recap-q b{font-weight:800;color:#000;}
+.recap-go{width:100%;padding:14px;background:#111;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:.5px;transition:background .15s;}
+.recap-go:hover{background:#000;}
+@keyframes recapUp{from{opacity:0;transform:translateY(26px) scale(.96);}to{opacity:1;transform:none;}}
+@keyframes recapFade{from{opacity:0;}to{opacity:1;}}
+/* Apple : badges réf/usine de la FICHE alignés sur ceux des cartes */
+body.apple-view #det-ref-badge{background:rgba(255,255,255,.9) !important;color:#1d1d1f !important;backdrop-filter:blur(8px);border-radius:999px !important;font-weight:700 !important;font-size:14.5px !important;padding:7px 14px !important;}
+body.apple-view #det-usine-badge{background:rgba(29,29,31,.68) !important;backdrop-filter:blur(8px);border-radius:999px !important;padding:7px 14px !important;}
+body.apple-view #det-usine-badge span:first-child{font-size:11px !important;font-weight:700 !important;letter-spacing:1px !important;}
+body.apple-view #det-usine-num{font-family:'DM Sans',sans-serif !important;font-size:16px !important;font-weight:800 !important;letter-spacing:0 !important;}
+.recap-q{align-items:center;}
+.recap-q-name{display:flex;flex-direction:column;line-height:1.25;}
+.recap-q-name small{font-size:12px;font-weight:600;color:#8a8a8e;}
+/* Apple : badges en vrai « matériau » Apple (verre dépoli saturé, texte SF-like) */
+body.apple-view .pbig-ref,body.apple-view #det-ref-badge{background:rgba(255,255,255,.72) !important;-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);color:#1d1d1f !important;font-size:13px !important;font-weight:600 !important;letter-spacing:.2px !important;padding:6px 12px !important;box-shadow:0 1px 4px rgba(0,0,0,.14);border-radius:999px !important;}
+body.apple-view .pbig-usine,body.apple-view #det-usine-badge{background:rgba(28,28,30,.55) !important;-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);border-radius:999px !important;padding:6px 12px !important;font-size:12px !important;font-weight:600 !important;letter-spacing:.2px !important;}
+body.apple-view #det-usine-badge span:first-child{font-size:10px !important;font-weight:600 !important;letter-spacing:.8px !important;color:rgba(255,255,255,.75) !important;}
+body.apple-view #det-usine-num{font-size:13px !important;font-weight:700 !important;}
+
+/* Onglets segmentés façon Apple (vue client) */
+#shared-tabs{display:inline-flex;background:#ebebee;border-radius:999px;padding:4px;margin:4px 0 20px;gap:2px;}
+#shared-tabs button{border:none;background:transparent;padding:9px 20px;border-radius:999px;font-size:14px;font-weight:600;color:#1d1d1f;cursor:pointer;font-family:inherit;transition:background .18s,color .18s;white-space:nowrap;}
+#shared-tabs button.on{background:#1d1d1f;color:#fff;}
+#shared-tabs button:not(.on):hover{color:#000;}
+/* Popup récap : gabarit modale Apple */
+.recap-card{text-align:left;position:relative;padding:36px 40px 30px;}
+.recap-x{position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;background:#e8e8ed;border:none;color:#4b4b4f;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;}
+.recap-x:hover{background:#dededf;}
+.recap-eyebrow{font-size:14px;font-weight:600;color:#6e6e73;margin-bottom:10px;}
+.recap-stats{justify-content:flex-start;}
+.recap-stat{text-align:left;}

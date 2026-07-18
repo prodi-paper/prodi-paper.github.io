@@ -200,6 +200,49 @@ g.innerHTML=`<div onclick="openDetail(${p.id})">${p.name}</div>`;  // ❌
   retiré du footer (la fonction existe toujours).
 - **Header : icône bloc-notes** (clipboard à lignes) à gauche du texte « Liste ».
 
+## VUE CLIENT (lien partagé ?s=) — refonte 18/07/2026
+La page ouverte par un lien `?s=CODE` est une VUE CLIENT dédiée (`body.shared-view`,
+`_sharedViewUI`) totalement distincte du catalogue :
+- **Épurée** : pas de panneau filtres (masqué + `.body-wrap` 1 colonne), pas de
+  scanner/€/tri/pager, champ Réf article seul (filtre local, Min = réf exacte),
+  fond BLANC, footer réduit (logo centré + copyright, sans B2B).
+- **Header** : compteur « 12 bobines • 6 formats • 12.2 T » (`_rbarSharedCounts`),
+  bouton « Télécharger liste » = export Excel DIRECT (logo Excel SVG 30 px à
+  droite, sans badge) — câblé dans loadSharedQuote sur #cart-btn.
+- **Cartes** (vue unique, tableau retiré) : 4/rangée, corps structuré comme
+  l'ÉTIQUETTE imprimée (renderSharedCards : titre pleine largeur puis grille
+  FIXE universelle — GRAMMAGE|LAIZE|DIAMÈTRE|MANDRIN (bobine) ou
+  GRAMMAGE|DIMENSIONS×3 (format), COULEUR½|POIDS½, DÉTAIL pleine ligne
+  wrap 2 lignes) ; unités en <small> ; badge «× N» si groupé (assemblé DÉBRANCHÉ
+  pour l'instant — une ligne à réactiver dans loadSharedQuote).
+- **Fiche produit** = la carte en GRAND (verticale 840 px, photo entière sur
+  fond noir + copie floutée .det-blur, cadre étiquette identique, Zone/Type/
+  Code douanier en ligne grise, sans Retirer, croix fixée à l'écran, grandes
+  flèches extérieures conservées).
+- **Onglets segmentés** Tous les produits / Bobines / Formats (`_buildSharedTabs`,
+  seulement si les 2 types existent).
+- **Intro animée** (`_ctnSplash`) : semi-remorque Prodiconseil recule (logo réel
+  ?v=2), porte s'ouvre, cartes GLISSENT hors du container (z1 sous le camion)
+  sur les fourches d'UN chariot qui navette, puis montent se ranger ×1,32
+  au-dessus du container. Vraies photos/valeurs via `_ctnFill` (data-card).
+  Min 6 s, clic pour passer, filet 8 s, désactivée si prefers-reduced-motion.
+- **Popup récap** après l'intro (`_sharedRecap`, gabarit modale Apple) : chapeau
+  « Votre sélection », grands chiffres bobines/formats/tonnes(/€ si p=1),
+  synthèse ASSEMBLÉE par qualité (unités + plage grammages + tonnage), bouton
+  « Voir la liste » → cascade d'entrée des cartes (`card-in`, délais 70 ms).
+- **Spinner de chargement** global (`_loadingProducts`) : plus de « Aucun
+  résultat » pendant le fetch (catalogue aussi).
+- **THÈMES d'essai par URL** (cumulables avec ?s=) : `&apple=1` (fond #f5f5f7,
+  cartes blanches sans bordure, filets par technique fond+gap 1px #c9c9ce,
+  titres Bebas épaissis text-stroke, badges verre dépoli blur+saturate, footer
+  clair, popup/onglets Apple) · `&amazon=1` (header navy, CTA jaune, hairlines)
+  · `&zara=1` (éditorial blanc, infos en ligne, poids en pavé rouge) ·
+  `&bebas=1` (titres Bebas seuls). Le lien NU garde le style étiquette noire.
+  ⚠️ Les liens générés par « Copier le lien » ne portent PAS ces flags.
+- Traqueurs ajoutés : whatsapp_click/tel_click/email_click (panneau info retiré
+  mais code conservé `_buildSharedInfo`), shared_tab.
+- logo.png rendu TRANSPARENT (original : img/logo_fond_blanc.png), servi en ?v=2.
+
 ## Règles photos / images produit
 
 ### Priorité d'affichage (pour TOUS les produits)

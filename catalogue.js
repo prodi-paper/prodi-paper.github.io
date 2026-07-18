@@ -2221,8 +2221,17 @@ function _filterSharedLocal(){
   const formats=new Set([...document.querySelectorAll('.fpill.active:not(.fpill-orig):not(.fpill-stock):not(.fpill-depot):not(.fpill-photo):not(.fpill-resa)')].map(b=>b.dataset.format));
   const typeCodes=types.size>0?[...types].flatMap(c=>TYPE_MAP[c]||[c]):[];
 
+  const _rmin=+((document.getElementById('f-refmin-top')||document.getElementById('f-refmin'))?.value)||0;
+  const _rmax=+((document.getElementById('f-refmax-top')||document.getElementById('f-refmax'))?.value)||0;
   let filtered=_sharedAll.filter(p=>{
     if(q){const s=[p.name,p.quality,p.couleur,p.details,p.ref].join(' ').toLowerCase();if(!s.includes(q))return false;}
+    if(_rmin||_rmax){
+      const _rn=+String(p.ref||'').replace(/^Photo_/i,'');
+      if(!_rn)return false;
+      if(_rmin&&!_rmax&&_rn!==_rmin)return false; // Min seul = réf exacte
+      if(_rmin&&_rmax&&(_rn<_rmin||_rn>_rmax))return false;
+      if(!_rmin&&_rmax&&_rn>_rmax)return false;
+    }
     if(gn&&(p.grammage||0)<gn)return false;
     if(gx&&(p.grammage||0)>gx)return false;
     if(lmin&&(p.largeur||0)<lmin)return false;
@@ -2250,15 +2259,15 @@ function _filterSharedLocal(){
 
   all=filtered;
   _totalCount=filtered.length;
-  _maxKnownPage=Math.max(1,Math.ceil(filtered.length/PAGE));
+  _maxKnownPage=1;
   currentPage=1;
-  const totalKg=filtered.reduce((s,p)=>s+(+p.weight||0),0);
+  const totalKg=filtered.reduce((s,p)=>s+(+p._grpTotalWeight||+p.weight||0),0);
   const rbarRefs=document.getElementById('rbar-refs');
   const rbarTons=document.getElementById('rbar-tons');
-  if(rbarRefs)rbarRefs.textContent=filtered.length.toLocaleString('fr-FR');
+  _rbarSharedCounts(filtered);
   if(rbarTons)rbarTons.textContent=(totalKg/1000).toFixed(1);
   updateFilterChips();
-  render(filtered.slice(0,PAGE));
+  render(filtered);
   _updatePager();
   if(typeof _updateAddPageBtn==='function')_updateAddPageBtn();
 }
@@ -2332,6 +2341,7 @@ async function _fetchAndRenderFeatured(token){
     if(rbarReset)rbarReset.style.display='none';
     updateMobFilterBadge();
     updateFilterChips();
+    _loadingProducts=false;
     render(all);
     _updatePager();
   }catch(e){if(_reqToken===token)await _fetchAndRender(token);}
@@ -2769,6 +2779,7 @@ function _updatePager(){
     const pager=document.getElementById('pager');
     const pagerTop=document.getElementById('pager-top');
     if(!pager)return;
+    if(_sharedMode){pager.style.display='none';if(pagerTop)pagerTop.style.display='none';return;}
     const isLast=all.length<PAGE||(_totalCount>0&&currentPage*PAGE>=_totalCount);
     if(isLast&&currentPage===1){
       // Definitively only one page — ignore any stale _maxKnownPage
@@ -3056,6 +3067,7 @@ function renderCards(list){
 }
 
 let _viewMode='grid';
+let _loadingProducts=true;
 const _SVG_GRID='<svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="6" height="6" rx="1"/><rect x="8" y="0" width="6" height="6" rx="1"/><rect x="0" y="8" width="6" height="6" rx="1"/><rect x="8" y="8" width="6" height="6" rx="1"/></svg>';
 const _SVG_LIST='<svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="14" height="2.5" rx="1"/><rect x="0" y="5.5" width="14" height="2.5" rx="1"/><rect x="0" y="11" width="14" height="2.5" rx="1"/></svg>';
 const _ICO_TRASH='<svg class="ico-trash" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
@@ -3113,7 +3125,7 @@ function renderList(list){
     return`<tr onclick="openDetail(${numId(p.id)})" class="${isPalette?'plist-palette':'plist-bobine'}">
       <td class="plist-td plist-td-add">${addBtn}</td>
       <td class="plist-td plist-thumb-wrap">${thumb}</td>
-      <td class="plist-td plist-td-ref plist-col-ref">${p.ref?`<span class="plist-ref-badge">${esc(p.ref.replace(/^Photo_/i,'').toUpperCase())}</span>`:'—'}</td>
+      <td class="plist-td plist-td-ref plist-col-ref">${_sharedMode&&_isGroupL?`<span class="plist-ref-badge">${numId(p._grpCount)} unités</span>`:(p.ref?`<span class="plist-ref-badge">${esc(p.ref.replace(/^Photo_/i,'').toUpperCase())}</span>`:'—')}</td>
       <td class="plist-td plist-td-title"><strong class="plist-qtitle">${esc(title)}</strong></td>
       <td class="plist-td plist-td-details">${detailsTxt||'—'}</td>
       <td class="plist-td">${esc(p.couleur||'—')}</td>
@@ -3158,6 +3170,11 @@ function renderList(list){
   } else {
     html+=_buildTable(_pals.map(_renderRow).join(''),_palHead);
   }
+  if(_sharedMode){
+    const _tkg=list.reduce((s,p)=>s+(+p._grpTotalWeight||+p.poids_net||0),0);
+    const _tn=list.reduce((s,p)=>s+(p._grpCount||1),0);
+    html+=`<div class="plist-total"><span>TOTAL</span><span>${_tn} produit${_tn>1?'s':''}</span><span>${Math.round(_tkg).toLocaleString('fr-FR')} kg · ${(_tkg/1000).toFixed(1)} T</span></div>`;
+  }
   html+='</div>';
   g.innerHTML=html;
   _updatePager();
@@ -3170,6 +3187,13 @@ function render(list){
   g._lastList=list;
   if(!list||list.length===0){
     g.className='pgrid';
+    if(_loadingProducts){
+      g.innerHTML=`<div class="empty" style="grid-column:1/-1">
+        <div class="load-spin"></div>
+        <div class="empty-lbl">Chargement du stock…</div>
+      </div>`;
+      return;
+    }
     // If the query matched filter category names, guide the user to those filters
     const _fi=_lastFilterIntents&&_lastFilterIntents.length?_lastFilterIntents:null;
     const filterHints=_fi?_fi.map((fi,i)=>{
@@ -3188,9 +3212,58 @@ function render(list){
     return;
   }
   if(_viewMode==='list') renderList(list);
+  else if(_sharedMode) renderSharedCards(list);
   else renderCards(list);
 }
 
+// Vue client, mode fiches : corps de carte structuré comme l'étiquette
+// imprimée par prodi_arrivages (désignation + cases légendées), sans Retirer.
+function renderSharedCards(list){
+  const g=document.getElementById('pgrid');
+  if(!g)return;
+  g.className='pgrid';
+  const cell=(cap,val,span,cls)=>`<div class="sc-cell${cls?' '+cls:''}"${span?' style="grid-column:span '+span+';"':''}><div class="sc-cap">${cap}</div><div class="sc-val">${val}</div></div>`;
+  const card=p=>{
+    const title=formatProductTitle(p.qualite,p.type);
+    const _isSiderun=p.ref&&/^Photo_DU/i.test(String(p.ref));
+    const fallback=_isSiderun?'/img/siderun-sur-demande.png':'/img/no-photo.png';
+    const img=p.image_url
+      ?`<img src="${safeUrl(p.image_url)}" alt="${esc(title)}" loading="lazy" onerror="this.src='${esc(fallback)}'">`
+      :`<img src="${esc(fallback)}" alt="">`;
+    const isPal=_estFormat(p);
+    const _det=p.details?p.details.replace(/[-–—\s]+/g,' ').trim():'';
+    let cells='';
+    cells+=cell('GRAMMAGE',p.grammage?esc(p.grammage)+' <small>g/m²</small>':'—');
+    if(isPal){
+      cells+=cell('DIMENSIONS',p.largeur&&p.longueur?esc(mmToCm(p.largeur)+' × '+mmToCm(p.longueur))+' <small>mm</small>':(p.largeur?esc(mmToCm(p.largeur))+' <small>mm</small>':'—'),3);
+    }else{
+      cells+=cell('LAIZE',p.largeur?esc(mmToCm(p.largeur))+' <small>mm</small>':'—');
+      cells+=cell('DIAMÈTRE',p.longueur?esc(mmToCm(p.longueur))+' <small>mm</small>':'—');
+      cells+=cell('MANDRIN',p.noyau?esc(p.noyau)+' <small>mm</small>':'—');
+    }
+    cells+=cell('COULEUR',esc(p.couleur||'—'),2);
+    const _w=p._grpTotalWeight||p.poids_net;
+    cells+=cell(p._grpCount>1?'POIDS TOTAL':'POIDS NET',_w?esc(Math.round(_w).toLocaleString('fr-FR'))+' <small>kgs</small>':'—',2);
+    cells+=cell('DÉTAIL',_det?esc(_det):'—',4,'sc-wrap');
+    const prix=_priceMode&&p.price?cell('PRIX',esc(Math.round(p.price*1000).toLocaleString('fr-FR'))+' <small>€/T</small>',4):'';
+    return`<div class="pcard sc-card" onclick="openDetail(${numId(p.id)})">
+      <div class="pcard-img">${img}
+        ${p.ref?`<span class="pbig-ref">${esc(p.ref.replace(/^Photo_/i,'').toUpperCase())}</span>`:''}
+        ${p.usine?`<span class="pbig-usine">USINE ${esc(String(p.usine).replace(/^REF\s*/i,''))}</span>`:''}
+        ${p._grpCount>1?`<span class="sc-count">× ${numId(p._grpCount)}</span>`:''}
+      </div>
+      <div class="sc-body">
+        <div class="sc-grid">
+          <div class="sc-cell sc-title" style="grid-column:span 4;">${esc(title)}</div>
+          ${cells}${prix}
+        </div>
+      </div>
+    </div>`;
+  };
+  const sorted=[...list].sort((a,b)=>(_estFormat(a)?1:0)-(_estFormat(b)?1:0));
+  g.innerHTML=sorted.map(card).join('');
+  _updatePager();
+}
 
 const _DET_NO_PHOTO=`<img src="/img/photos-sur-demande.png" alt="Photos sur demande" style="width:100%;height:100%;object-fit:contain;background:#fff;">`;
 const _DET_FAB_PHOTO=`<img src="/img/fabrication-sur-demande.png" alt="Fabrication sur demande" style="width:100%;height:100%;object-fit:contain;">`;
@@ -3252,7 +3325,7 @@ async function openDetail(id){
   const _isSiderunD=p.ref&&/^Photo_DU/i.test(String(p.ref));
   const _DET_SIDERUN_PHOTO=`<img src="/img/siderun-sur-demande.png" alt="Siderun" style="width:100%;height:100%;object-fit:contain;">`;
   const _detFallback=_isSiderunD?_DET_SIDERUN_PHOTO:_isFab?_DET_FAB_PHOTO:_DET_NO_PHOTO;
-  mi.innerHTML=p.image_url?`<img src="${safeUrl(p.image_url)}" loading="lazy" alt="${esc(_detAlt)}" style="cursor:zoom-in;" onclick="event.stopPropagation();openImageLightbox(this.src,this.alt)" onerror="this.onerror=null;this.parentNode.innerHTML=document.getElementById('det-fallback').innerHTML;">`
+  mi.innerHTML=p.image_url?`${_sharedMode?`<div class="det-blur" style="background-image:url('${safeUrl(p.image_url)}')"></div>`:''}<img src="${safeUrl(p.image_url)}" loading="lazy" alt="${esc(_detAlt)}" style="cursor:zoom-in;" onclick="event.stopPropagation();openImageLightbox(this.src,this.alt)" onerror="this.onerror=null;this.parentNode.innerHTML=document.getElementById('det-fallback').innerHTML;">`
     :_detFallback;
   // Store fallback for onerror
   let _dfEl=document.getElementById('det-fallback');if(!_dfEl){_dfEl=document.createElement('div');_dfEl.id='det-fallback';_dfEl.style.display='none';document.body.appendChild(_dfEl);}_dfEl.innerHTML=_detFallback;
@@ -3323,9 +3396,32 @@ async function openDetail(id){
     {lbl: 'Code douanier',                        val: _toCN8(getHsCode(p.qualite,p.grammage,p.format,p.couleur,p.details))},
     {lbl: 'Poids',          val: p.poids_net?fmt(p.poids_net):null},
   ].filter(s=>s.val||s.always);
-  document.getElementById('det-specs').innerHTML=specDefs.map(s=>
-    `<div class="dspec-item"><div class="dspec-lbl">${esc(s.lbl)}</div><div class="dspec-val">${esc(s.val)}</div></div>`
-  ).join('');
+  if(_sharedMode){
+    // Vue client : fiche calquée sur l'ÉTIQUETTE imprimée (même ordre, mêmes
+    // cases) — le reste (condit., dépôt, zone, type, code douanier) descend
+    // dans un bloc secondaire discret.
+    const isPal=_estFormat(p);
+    const et=[];
+    et.push({lbl:'Grammage',val:p.grammage?esc(p.grammage)+' <small>g/m²</small>':'—'});
+    if(isPal){
+      et.push({lbl:'Dimensions',val:p.largeur&&p.longueur?esc(mmToCm(p.largeur)+' × '+mmToCm(p.longueur))+' <small>mm</small>':(p.largeur?esc(mmToCm(p.largeur))+' <small>mm</small>':'—'),span:3});
+    }else{
+      et.push({lbl:'Laize',val:p.largeur?esc(mmToCm(p.largeur))+' <small>mm</small>':'—'});
+      et.push({lbl:'Diamètre',val:p.longueur?esc(mmToCm(p.longueur))+' <small>mm</small>':'—'});
+      et.push({lbl:'Mandrin',val:p.noyau?esc(p.noyau)+' <small>mm</small>':'—'});
+    }
+    et.push({lbl:'Couleur',val:esc(p.couleur||'—'),span:2});
+    et.push({lbl:'Poids net',val:p.poids_net?esc(Math.round(p.poids_net).toLocaleString('fr-FR'))+' <small>kgs</small>':'—',span:2});
+    et.push({lbl:'Détail',val:esc((p.details||'').replace(/[-–—\s]+/g,' ').trim()||'—'),full:true});
+    const reste=specDefs.filter(s=>['Zone','Type','Code douanier'].includes(s.lbl));
+    document.getElementById('det-specs').innerHTML=
+      `<div class="det-etq"><div class="det-etq-cell det-etq-title" style="grid-column:1/-1;">${esc(formatProductTitle(p.qualite,p.name||'Produit'))}</div>${et.map(s=>`<div class="det-etq-cell${s.full?' det-etq-wrap':''}"${s.full?' style="grid-column:1/-1;"':(s.span?' style="grid-column:span '+s.span+';"':'')}><div class="det-etq-lbl">${esc(s.lbl)}</div><div class="det-etq-val">${s.val}</div></div>`).join('')}</div>`+
+      (reste.length?`<div class="det-reste">${reste.map(s=>`<span class="det-reste-item"><b>${esc(s.lbl)}</b> ${esc(s.val)}</span>`).join('')}</div>`:'');
+  }else{
+    document.getElementById('det-specs').innerHTML=specDefs.map(s=>
+      `<div class="dspec-item"><div class="dspec-lbl">${esc(s.lbl)}</div><div class="dspec-val">${esc(s.val)}</div></div>`
+    ).join('');
+  }
 
   // Détails texte masqué (déjà affiché comme sous-titre)
   const dd=document.getElementById('det-details');
@@ -4810,6 +4906,73 @@ const _shareCode=new URLSearchParams(window.location.search).get('s');
 // pré-ouvre la fiche détail du produit correspondant.
 const _refParam=new URLSearchParams(window.location.search).get('ref');
 let _sharedMode=!!_shareParam||!!_shareCode;
+// Vue client (lien partagé) : pas de panneau filtres — pilotée par .shared-view
+function _sharedViewUI(on){document.body.classList.toggle('shared-view',on);}
+if(_sharedMode)_sharedViewUI(true);
+// Essai thème « Apple » (18/07) : &apple=1 sur un lien client → palette Apple
+if(_sharedMode&&new URLSearchParams(window.location.search).get('apple')==='1')document.body.classList.add('apple-view');
+// Essai titres Bebas épaissis (18/07) : &bebas=1 (cumulable avec &apple=1)
+if(_sharedMode&&new URLSearchParams(window.location.search).get('bebas')==='1')document.body.classList.add('bebas-view');
+// Essai thème « Zara » (18/07) : &zara=1 sur un lien client
+if(_sharedMode&&new URLSearchParams(window.location.search).get('zara')==='1')document.body.classList.add('zara-view');
+// Essai thème « Amazon » (18/07) : &amazon=1 sur un lien client
+if(_sharedMode&&new URLSearchParams(window.location.search).get('amazon')==='1')document.body.classList.add('amazon-view');
+// Intro vue client : un container Prodiconseil arrive, les bobines en sortent.
+// Couvre le temps de chargement ; clic = passer ; filet 8 s.
+function _ctnSplash(){
+  const d=document.createElement('div');
+  d.id='ctn-splash';
+  const _card=`<div class="ctn-item"><div class="ctn-card-img"></div><div class="ctn-card-bot"><div class="ctn-card-title"></div><div class="ctn-card-cells"><div class="ctn-cc"><b class="ctn-v1"></b></div><div class="ctn-cc"><b class="ctn-v2"></b></div><div class="ctn-cc"><b class="ctn-v3"></b></div></div></div></div>`;
+  d.innerHTML=`
+    <div class="ctn-scene">
+      <div class="ctn-truck">
+        <div class="ctn-cab"><i class="ctn-cab-win"></i></div>
+        <div class="ctn-trailer"></div>
+        <div class="ctn-box"><span class="ctn-logo"><img src="/img/logo.png?v=2" alt="Prodiconseil"></span></div>
+        <i class="ctn-wheel" style="left:36px"></i><i class="ctn-wheel" style="left:118px"></i><i class="ctn-wheel" style="left:610px"></i><i class="ctn-wheel" style="left:680px"></i><i class="ctn-wheel" style="left:750px"></i>
+      </div>
+      ${[0,1,2].map(i=>`<div class="ctn-slide ctn-s${i}" data-card="${i}">${_card}</div>`).join('')}
+      ${[0,1,2].map(i=>`<div class="ctn-drop ctn-d${i}" data-card="${i}">${_card}</div>`).join('')}
+      <div class="ctn-fk">
+        <div class="ctn-fk-mast"></div>
+        <div class="ctn-fk-body"></div>
+        <div class="ctn-fk-guard"></div>
+        <i class="ctn-fk-wheel" style="left:54px"></i><i class="ctn-fk-wheel" style="left:206px"></i>
+      </div>
+    </div>`;
+  document.body.appendChild(d);
+  // Les vraies photos de la liste remplacent le kraft dès qu'elles arrivent
+  window._ctnFill=prods=>{
+    if(!prods.length)return;
+    d.querySelectorAll('[data-card]').forEach(w=>{
+      const it=w.querySelector('.ctn-item');
+      const p=prods[(+w.dataset.card)%prods.length];
+      if(!p||!it)return;
+      if(p.image_url)it.querySelector('.ctn-card-img').style.background="url('"+p.image_url+"') center/cover";
+      const t=it.querySelector('.ctn-card-title');
+      if(t)t.textContent=formatProductTitle(p.qualite,p.type||p.format||'');
+      const v=(cls,txt)=>{const e=it.querySelector(cls);if(e)e.textContent=txt;};
+      v('.ctn-v1',p.grammage?p.grammage+' g':'');
+      v('.ctn-v2',p.largeur?p.largeur+' mm':'');
+      v('.ctn-v3',p.poids_net?Math.round(p.poids_net)+' kg':'');
+    });
+  };
+  let minOk=false,dataOk=false;
+  // À la fin du splash, les cartes de la liste ENTRENT en cascade (fondu + remontée)
+  const reveal=()=>{
+    document.querySelectorAll('#pgrid .pcard').forEach((c,i)=>{
+      c.style.animationDelay=Math.min(i*70,1400)+'ms';
+      c.classList.add('card-in');
+    });
+  };
+  window._ctnReveal=reveal;
+  const out=()=>{if(minOk&&dataOk&&d.parentNode){d.classList.add('out');setTimeout(()=>d.remove(),450);setTimeout(()=>_sharedRecap(),320);}};
+  setTimeout(()=>{minOk=true;out();},6000);
+  window._ctnDone=()=>{dataOk=true;out();};
+  d.onclick=()=>{d.remove();_sharedRecap();};
+  setTimeout(()=>{d.parentNode&&d.remove();},8000);
+}
+if(_sharedMode)_ctnSplash();
 let _sharedAll=[];
 if(new URLSearchParams(window.location.search).get('p')==='1')togglePriceMode(true);
 else if(_priceMode)togglePriceMode(true);
@@ -4830,42 +4993,59 @@ async function loadSharedQuote(idsOverride){
       sqb.innerHTML='<div class="sq-inner sq-slim"><span class="sq-slim-label">⚠️ Ce lien a expiré — merci de contacter votre commercial pour une nouvelle liste.</span></div>';
       sqb.style.display='block';
     }
-    _sharedMode=false;
+    _sharedMode=false;_sharedViewUI(false);_loadingProducts=true;window._ctnDone?.();
     _doFilter();
     return;
   }
   const products=r.data;
+  _loadingProducts=false;
+  window._ctnFill?.(products.filter(p=>p.image_url).slice(0,5).map(rowToUi));
 
-  // Override the product grid directly — no modal, no banner
-  all=products.map(rowToUi);
-  _sharedAll=all.slice(); // keep full list for local pagination
+  // Vue client : une ligne par unité (l'assemblé est débranché pour le moment —
+  // pour le remettre : groupProducts(units) → protos enrichis _grp*).
+  const units=products.map(rowToUi);
+  all=units.slice();
+  _sharedAll=all.slice();
   _totalCount=all.length;
-  _maxKnownPage=Math.max(1,Math.ceil(all.length/PAGE));
+  _maxKnownPage=1; // vue client : tout sur UNE page (listes 40-60 T)
   currentPage=1;
+  _viewMode='grid'; // vue fiches uniquement (tableau retiré 18/07)
 
-  const totalKg=all.reduce((s,p)=>s+(+p.weight||0),0);
+  const totalKg=units.reduce((s,p)=>s+(+p.weight||0),0);
   const rbarRefs=document.getElementById('rbar-refs');
   const rbarTons=document.getElementById('rbar-tons');
-  if(rbarRefs)rbarRefs.textContent=all.length.toLocaleString('fr-FR');
+  _rbarSharedCounts(units);
   if(rbarTons)rbarTons.textContent=(totalKg/1000).toFixed(1);
 
   // Show a subtle top label (not a big banner)
   const sqb=document.getElementById('shared-quote-banner');
-  if(sqb){
-    const _sqTon=(totalKg/1000).toFixed(1);
-    const _sqPrix=_priceMode?all.reduce((s,p)=>s+(p.poids_net||0)*(p.price||0),0):0;
-    sqb.innerHTML=`<div class="sq-inner sq-slim"><span class="sq-slim-label">⭐ Liste exclusive client · ${all.length} produit${all.length>1?'s':''} · ${_sqTon} T${_priceMode&&_sqPrix?' · <strong style="color:var(--red)">'+_sqPrix.toLocaleString('fr-FR',{maximumFractionDigits:0})+' €</strong>':''}</span><span class="sq-slim-hint">Retirez les produits qui ne vous intéressent pas et renvoyez-nous la liste.</span></div>`;
-    sqb.style.display='block';
-  }
+  if(sqb)sqb.style.display='none';
 
   window._sharedProducts=products;
   // Auto-populate client's selection with shared products
-  cart=all.map(p=>({id:p.id,name:p.name,ref:p.ref,type:p.type,qualite:p.qualite||null,details:p.details||null,grammage:p.grammage,largeur:p.largeur,format:p.format,poids_net:p.poids_net,price:p.price||null,img:p.image_url||null,couleur:p.couleur||null,usine:p.usine||null,zone:p.zone||null,emplacement:p.emplacement||null,allee:p.allee||null}));
+  cart=units.map(p=>({id:p.id,name:p.name,ref:p.ref,type:p.type,qualite:p.qualite||null,details:p.details||null,grammage:p.grammage,largeur:p.largeur,format:p.format,poids_net:p.poids_net,price:p.price||null,img:p.image_url||null,couleur:p.couleur||null,usine:p.usine||null,zone:p.zone||null,emplacement:p.emplacement||null,allee:p.allee||null}));
   localStorage.setItem('prodi_cart',JSON.stringify(cart));
   updateCartBadge();
   renderDrawer();
-  render(all.slice(0,PAGE));
+  render(all);
   _updatePager();
+  _buildSharedTabs();
+  // Header vue client : le bouton Liste devient l'export Excel direct
+  const _cb=document.getElementById('cart-btn');
+  if(_cb){
+    _cb.onclick=function(){exportListExcelTest(this).catch(()=>toast('Erreur export'));};
+    _cb.title='Télécharger la liste Excel';
+    const _cbSvg=_cb.querySelector('svg');
+    if(_cbSvg)_cbSvg.outerHTML='<svg width="30" height="30" viewBox="0 0 32 32" style="flex-shrink:0;"><rect x="9" y="2" width="21" height="14" rx="3.5" fill="#8bd47e"/><rect x="20" y="2" width="10" height="14" rx="3.5" fill="#b9e695"/><path d="M9 9h17.5A3.5 3.5 0 0 1 30 12.5V26.5a3.5 3.5 0 0 1-3.5 3.5H12.5A3.5 3.5 0 0 1 9 26.5Z" fill="#2f9e55"/><rect x="2" y="12" width="16" height="16" rx="3.5" fill="#185c37"/><path d="M6.4 16.5h2.7l1.8 3.2 1.8-3.2h2.7l-3.1 4.7 3.2 4.8h-2.8l-1.8-3.3-1.9 3.3H6.2l3.2-4.8z" fill="#fff"/></svg>';
+    const _cbTxt=_cb.querySelector('.btn-panier-txt');
+    if(_cbTxt){_cbTxt.textContent='Télécharger liste';_cbTxt.style.fontSize='16px';_cbTxt.style.whiteSpace='nowrap';}
+    const _cbSv2=_cb.querySelector('svg');
+    if(_cbSv2)_cb.appendChild(_cbSv2); // logo à DROITE du texte
+    const _cbBdg=_cb.querySelector('.cart-badge');
+    if(_cbBdg)_cbBdg.style.display='none'; // plus de pastille compteur
+  }
+  // _buildSharedInfo(units); // panneau infos retiré (18/07) — code conservé
+  window._ctnDone?.();
 
   // Lock shared mode — filters & search work only within the selection
 }
@@ -5100,10 +5280,10 @@ window.addEventListener('load',async()=>{
         loadSharedQuote(r.data[0].cart_ids);
       } else {
         // Code not found — fallback to normal catalogue
-        _sharedMode=false;
+        _sharedMode=false;_sharedViewUI(false);_loadingProducts=true;window._ctnDone?.();
         _doFilter();
       }
-    }catch(e){ _sharedMode=false; _doFilter(); }
+    }catch(e){ _sharedMode=false;_sharedViewUI(false);_loadingProducts=true;window._ctnDone?.(); _doFilter(); }
   } else if(_shareParam){
     loadSharedQuote();
   } else if(_refParam){
@@ -5829,3 +6009,167 @@ async function exportListExcelTest(btn){
     if(btn)btn.disabled=false;
   }
 }
+
+
+// Panneau gauche vue client : récap de la sélection, ventilation par qualité,
+// contact direct et infos logistiques (remplace le panneau filtres).
+// Compteur header vue client : « 12 bobines • 6 formats » au lieu de « 18 articles »
+function _rbarSharedCounts(list){
+  const b=list.reduce((s,p)=>s+(!_estFormat(p)?(p._grpCount||1):0),0);
+  const f=list.reduce((s,p)=>s+(_estFormat(p)?(p._grpCount||1):0),0);
+  const parts=[];
+  if(b)parts.push(b+(b>1?' bobines':' bobine'));
+  if(f)parts.push(f+(f>1?' formats':' format'));
+  const el=document.getElementById('rbar-refs');
+  const lbl=document.getElementById('rbar-refs-lbl');
+  if(el)el.textContent=parts.join(' • ')||'0 article';
+  if(lbl)lbl.textContent='';
+}
+// Onglets segmentés façon Apple : Tous les produits / Bobines / Formats
+function _sharedTab(mode,btn){
+  document.querySelectorAll('#shared-tabs button').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  const list=mode==='all'?_sharedAll.slice():_sharedAll.filter(p=>mode==='bob'?!_estFormat(p):_estFormat(p));
+  render(list);
+  window.prodiTrack?.('shared_tab',{mode});
+}
+function _buildSharedTabs(){
+  if(document.getElementById('shared-tabs'))return;
+  const bobs=_sharedAll.filter(p=>!_estFormat(p)).length;
+  const fmts=_sharedAll.length-bobs;
+  if(!bobs||!fmts)return;
+  const d=document.createElement('div');
+  d.id='shared-tabs';
+  d.innerHTML=`<button class="on" onclick="_sharedTab('all',this)">Tous les produits</button><button onclick="_sharedTab('bob',this)">Bobines</button><button onclick="_sharedTab('fmt',this)">Formats</button>`;
+  const g=document.getElementById('pgrid');
+  if(g)g.parentNode.insertBefore(d,g);
+}
+// Popup récap après l'animation : résumé de l'offre avant de découvrir la liste.
+function _sharedRecap(){
+  if(document.getElementById('recap-bg'))return;
+  const list=cart;
+  if(!list||!list.length){window._ctnReveal?.();return;}
+  const tot=list.reduce((s,p)=>s+(+p.poids_net||0),0);
+  const bobs=list.filter(p=>!_estFormat(p)).length;
+  const fmts=list.length-bobs;
+  // Synthèse ASSEMBLÉE par qualité : unités, plage de grammages, tonnage
+  const qmap={};
+  list.forEach(p=>{
+    const t=formatProductTitle(p.qualite,p.type)||'Autre';
+    const k=(t.split('—')[1]||t).trim();
+    const g=qmap[k]=qmap[k]||{kg:0,nBob:0,nFmt:0,gMin:null,gMax:null};
+    g.kg+=(+p.poids_net||0);
+    if(_estFormat(p))g.nFmt++;else g.nBob++;
+    const gr=+p.grammage||0;
+    if(gr){g.gMin=g.gMin==null?gr:Math.min(g.gMin,gr);g.gMax=g.gMax==null?gr:Math.max(g.gMax,gr);}
+  });
+  const qrows=Object.entries(qmap).sort((a,b)=>b[1].kg-a[1].kg);
+  const _qSub=g=>{
+    const parts=[];
+    if(g.nBob)parts.push(g.nBob+(g.nBob>1?' bobines':' bobine'));
+    if(g.nFmt)parts.push(g.nFmt+(g.nFmt>1?' formats':' format'));
+    let txt=parts.join(' + ');
+    if(g.gMin)txt+=' · '+(g.gMin===g.gMax?g.gMin:g.gMin+'–'+g.gMax)+' g/m²';
+    return txt;
+  };
+  const prix=_priceMode?list.reduce((s,p)=>s+(p.poids_net||0)*(p.price||0),0):0;
+  const d=document.createElement('div');
+  d.id='recap-bg';
+  d.innerHTML=`<div class="recap-card">
+    <button class="recap-x" onclick="document.getElementById('recap-bg').remove();window._ctnReveal?.()" aria-label="Fermer">✕</button>
+    <div class="recap-eyebrow">Votre sélection</div>
+    <div class="recap-stats">
+      ${bobs?`<div class="recap-stat"><b>${bobs}</b><span>bobine${bobs>1?'s':''}</span></div>`:''}
+      ${fmts?`<div class="recap-stat"><b>${fmts}</b><span>format${fmts>1?'s':''}</span></div>`:''}
+      <div class="recap-stat"><b>${(tot/1000).toFixed(1)}</b><span>tonnes</span></div>
+      ${prix?`<div class="recap-stat recap-prix"><b>${Math.round(prix).toLocaleString('fr-FR')}</b><span>€</span></div>`:''}
+    </div>
+    <div class="recap-quals">
+      ${qrows.slice(0,5).map(([k,g])=>`<div class="recap-q"><span class="recap-q-name">${esc(k)}<small>${esc(_qSub(g))}</small></span><b>${(g.kg/1000).toFixed(1)} T</b></div>`).join('')}
+      ${qrows.length>5?`<div class="recap-q" style="color:#999"><span>+ ${qrows.length-5} autres qualités</span><b></b></div>`:''}
+    </div>
+    <button class="recap-go" onclick="document.getElementById('recap-bg').remove();window._ctnReveal?.()">Voir la liste</button>
+  </div>`;
+  d.onclick=e=>{if(e.target===d){d.remove();window._ctnReveal?.();}};
+  document.body.appendChild(d);
+}
+function _buildSharedInfo(list){
+  document.getElementById('shared-info')?.remove();
+  const bw=document.querySelector('.body-wrap');
+  if(!bw||!list.length)return;
+  const tot=list.reduce((s,p)=>s+(+p.poids_net||0),0);
+  const bobs=list.filter(p=>!_estFormat(p)).length;
+  const fmts=list.length-bobs;
+  const qmap={};
+  list.forEach(p=>{
+    const t=formatProductTitle(p.qualite,p.type)||'Autre';
+    const k=(t.split('—')[1]||t).trim();
+    (qmap[k]=qmap[k]||{n:0,kg:0});qmap[k].n++;qmap[k].kg+=(+p.poids_net||0);
+  });
+  const qrows=Object.entries(qmap).sort((a,b)=>b[1].kg-a[1].kg);
+  const prix=_priceMode?list.reduce((s,p)=>s+(p.poids_net||0)*(p.price||0),0):0;
+  const d=document.createElement('div');
+  d.id='shared-info';
+  d.innerHTML=`
+    <div class="si-card">
+      <div class="si-title">Votre sélection</div>
+      <div class="si-big">${list.length} <small>produits</small></div>
+      <div class="si-big">${(tot/1000).toFixed(1)} <small>tonnes</small></div>
+      ${prix?`<div class="si-big" style="color:var(--red)">${Math.round(prix).toLocaleString('fr-FR')} <small>€</small></div>`:''}
+      <div class="si-row"><span>Bobines</span><b>${bobs}</b></div>
+      <div class="si-row"><span>Formats</span><b>${fmts}</b></div>
+    </div>
+    <div class="si-card">
+      <div class="si-title">Par qualité</div>
+      ${qrows.slice(0,6).map(([k,v])=>`<div class="si-row"><span>${esc(k)}</span><b>${(v.kg/1000).toFixed(1)} T</b></div>`).join('')}
+      ${qrows.length>6?`<div class="si-row" style="color:#999"><span>+ ${qrows.length-6} autres qualités</span></div>`:''}
+    </div>
+    <div class="si-card">
+      <div class="si-title">Une question ?</div>
+      <a class="si-btn si-wa" href="https://wa.me/33609997407" target="_blank" rel="noopener noreferrer" onclick="window.prodiTrack?.('whatsapp_click',{via:'shared'})">WhatsApp</a>
+      <a class="si-btn" href="tel:+33609997407" onclick="window.prodiTrack?.('tel_click',{via:'shared'})">+33 6 09 99 74 07</a>
+      <a class="si-btn" href="mailto:contact@prodi.com" onclick="window.prodiTrack?.('email_click',{via:'shared'})">contact@prodi.com</a>
+      <div class="si-row" style="color:#999"><span>Lun – Ven · 9h – 18h</span></div>
+    </div>
+    <div class="si-card">
+      <div class="si-title">Logistique</div>
+      <div class="si-row"><span>Devis</span><b>sous 24 h</b></div>
+      <div class="si-row"><span>Chargement Europe</span><b>24 – 48 h</b></div>
+      <div class="si-row"><span>EUR1, COO</span><b>sur demande</b></div>
+    </div>`;
+  bw.insertBefore(d,bw.firstElementChild);
+}
+
+// Vue client : aperçu photo flottant au survol de la vignette du tableau —
+// la photo compte mais le tableau reste dense. Tap mobile = fiche (openDetail).
+(function(){
+  let peek=null;
+  function ensure(){
+    if(peek)return peek;
+    peek=document.createElement('div');
+    peek.id='photo-peek';
+    peek.style.cssText='position:fixed;z-index:9500;pointer-events:none;display:none;background:#fff;border:2px solid var(--ink);border-radius:10px;padding:4px;box-shadow:0 10px 30px rgba(0,0,0,.25);';
+    peek.innerHTML='<img style="display:block;max-width:380px;max-height:460px;border-radius:7px;">';
+    document.body.appendChild(peek);
+    return peek;
+  }
+  document.addEventListener('mouseover',e=>{
+    if(!_sharedMode||!e.target.closest)return;
+    const t=e.target.closest('.plist-thumb');
+    if(!t||!t.src||/no-photo|sur-demande/.test(t.src))return;
+    const pk=ensure();
+    pk.querySelector('img').src=t.src;
+    pk.style.display='block';
+  });
+  document.addEventListener('mousemove',e=>{
+    if(!peek||peek.style.display==='none')return;
+    if(!e.target.closest||!e.target.closest('.plist-thumb')){peek.style.display='none';return;}
+    const w=400,h=480;
+    let x=e.clientX+18,y=Math.min(Math.max(10,e.clientY-h/2),innerHeight-h-10);
+    if(x+w>innerWidth-10)x=e.clientX-w-18;
+    peek.style.left=x+'px';peek.style.top=y+'px';
+  });
+  document.addEventListener('mouseout',e=>{
+    if(peek&&e.target.closest&&e.target.closest('.plist-thumb'))peek.style.display='none';
+  });
+})();

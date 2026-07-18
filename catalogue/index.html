@@ -83,7 +83,7 @@
 <link rel="preconnect" href="https://bvcgpdoukhcatjibmvnb.supabase.co">
 <link rel="dns-prefetch" href="https://stock.prodi.net">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/catalogue.css?v=376">
+<link rel="stylesheet" href="/catalogue.css?v=472">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4.4.1/dist/email.min.js" integrity="sha384-SALc35EccAf6RzGw4iNsyj7kTPr33K7RoGzYu+7heZhT8s0GZouafRiCg1qy44AS" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -100,11 +100,11 @@
 <header>
   <div class="header-inner">
     <a class="logo-link" href="#" onclick="if(typeof _sharedMode!=='undefined'&&_sharedMode){window.location.href=window.location.href;}else{location.reload();}return false;">
-      <img src="/img/logo.png" alt="Prodiconseil" class="logo-img logo-full">
-      <img src="/img/panda.png" alt="Prodiconseil" class="logo-img logo-mob">
+      <img src="/img/logo.png?v=2" alt="Prodiconseil" class="logo-img logo-full">
+      <img src="/img/panda.png?v=2" alt="Prodiconseil" class="logo-img logo-mob">
     </a>
     <div class="header-search-group">
-    <div class="header-search" style="background:none;border:none;box-shadow:none;border-radius:0;display:flex;gap:8px;padding:0;max-width:330px;">
+    <div class="header-search" style="background:none;border:none;box-shadow:none;border-radius:0;display:flex;gap:8px;padding:0;max-width:264px;">
       <!-- Barre texte remplacée par la plage Réf article (16/07). Le champ
            search-input reste CACHÉ : le scanner QR et le mode partagé écrivent
            dedans (12 points d'accroche JS). -->
@@ -121,7 +121,7 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><circle cx="8" cy="6" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="16" cy="12" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="8" cy="18" r="2" fill="currentColor" stroke="none"/></svg>
     </button>
     <div class="rbar-count" id="rbar-count" role="status" aria-live="polite" style="margin-left:auto;margin-right:auto;">
-      <span id="rbar-refs">—</span>&nbsp;<span id="rbar-refs-lbl">produits</span> • <span style="white-space:nowrap"><span id="rbar-tons">—</span>&nbsp;t</span>
+      <span id="rbar-refs">—</span>&nbsp;<span id="rbar-refs-lbl">articles</span> • <span style="white-space:nowrap"><span id="rbar-tons">—</span>&nbsp;t</span>
       <span id="correction-note"></span>
     </div>
     <div class="hright">
@@ -403,8 +403,8 @@
           <select class="rbar-sel" id="sort-sel" onchange="filterProducts()">
             <option value="price_asc">Prix : moins cher d’abord</option>
             <option value="price_desc">Prix : plus cher d’abord</option>
-            <option value="gsm_asc" selected>Grammage : léger → lourd</option>
-            <option value="gsm_desc">Grammage : lourd → léger</option>
+            <option value="gsm_asc" selected>Grammage croissant</option>
+            <option value="gsm_desc">Grammage décroissant</option>
             <option value="ref_asc">Arrivage : plus anciens</option>
             <option value="ref_desc">Arrivage : plus récents</option>
           </select>
@@ -419,8 +419,8 @@
         <select class="sort-sel" id="sort-select" onchange="filterProducts()">
           <option value="prix_asc">Prix : moins cher d’abord</option>
           <option value="prix_desc">Prix : plus cher d’abord</option>
-          <option value="grammage_asc" selected>Grammage : léger → lourd</option>
-          <option value="grammage_desc">Grammage : lourd → léger</option>
+          <option value="grammage_asc" selected>Grammage croissant</option>
+          <option value="grammage_desc">Grammage décroissant</option>
           <option value="ref_asc">Arrivage : plus anciens</option>
           <option value="ref_desc">Arrivage : plus récents</option>
         </select>
@@ -508,7 +508,7 @@
   <div class="drawer-footer" id="drawer-footer" style="display:none">
     <div class="drawer-actions">
       <button class="da-action" id="btn-export-excel" onclick="exportListExcelTest(this)" title="Exporter l'offre en Excel">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#21a366" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="17"/><line x1="16" y1="13" x2="8" y2="17"/></svg>
+        <svg width="17" height="17" viewBox="0 0 32 32" style="flex-shrink:0;"><rect x="9" y="2" width="21" height="14" rx="3.5" fill="#8bd47e"/><rect x="20" y="2" width="10" height="14" rx="3.5" fill="#b9e695"/><path d="M9 9h17.5A3.5 3.5 0 0 1 30 12.5V26.5a3.5 3.5 0 0 1-3.5 3.5H12.5A3.5 3.5 0 0 1 9 26.5Z" fill="#2f9e55"/><rect x="2" y="12" width="16" height="16" rx="3.5" fill="#185c37"/><path d="M6.4 16.5h2.7l1.8 3.2 1.8-3.2h2.7l-3.1 4.7 3.2 4.8h-2.8l-1.8-3.3-1.9 3.3H6.2l3.2-4.8z" fill="#fff"/></svg>
         <span>Liste</span>
       </button>
     </div>
@@ -604,7 +604,7 @@
     <div class="footer-grid">
       <div class="footer-col">
         <a href="./" class="footer-col-title" style="text-decoration:none;color:inherit;">PRODICONSEIL</a>
-        <span>Négoce papier &amp; carton B2B</span>
+        <span>Négoce papier &amp; carton</span>
         <span>Stock Europe</span>
         <span>Stocklots, Side runs</span>
         <span>Fabrication</span>
@@ -625,7 +625,7 @@
     </div>
     <div class="footer-bottom">
       <a href="./" style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:#fff;text-decoration:none;">PRODICONSEIL</a>
-      <div class="f-sub">© 2026 Prodiconseil · Stock papier &amp; carton B2B</div>
+      <div class="f-sub">© 2026 Prodiconseil · Stock papier &amp; carton</div>
     </div>
   </div>
 </footer>
@@ -854,6 +854,6 @@
 <div class="spin-bg" id="spinner"><div class="spin"></div></div>
 
 <script src="/analytics.js?v=1"></script>
-<script src="/catalogue.js?v=415"></script>
+<script src="/catalogue.js?v=472"></script>
 </body>
 </html>
