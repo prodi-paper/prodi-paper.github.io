@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://stock.prodi.net https://paper.prodi.com https://prodi-paper.github.io https://images.unsplash.com; connect-src 'self' https://bvcgpdoukhcatjibmvnb.supabase.co https://prodi-arrivages.vercel.app https://api.emailjs.com https://cdn.jsdelivr.net https://stock.prodi.net https://images.weserv.nl; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://stock.prodi.net https://paper.prodi.com https://prodi-paper.github.io https://images.unsplash.com https://images.weserv.nl; connect-src 'self' https://bvcgpdoukhcatjibmvnb.supabase.co https://prodi-arrivages.vercel.app https://api.emailjs.com https://cdn.jsdelivr.net https://stock.prodi.net https://images.weserv.nl; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <link rel="icon" type="image/png" href="/img/panda.png">
@@ -81,22 +81,16 @@
 }
 </script>
 <link rel="preconnect" href="https://bvcgpdoukhcatjibmvnb.supabase.co">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://images.weserv.nl">
 <link rel="dns-prefetch" href="https://stock.prodi.net">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/catalogue.css?v=573">
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4.4.1/dist/email.min.js" integrity="sha384-SALc35EccAf6RzGw4iNsyj7kTPr33K7RoGzYu+7heZhT8s0GZouafRiCg1qy44AS" crossorigin="anonymous"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/catalogue.css?v=604">
+<!-- EmailJS : chargé À LA DEMANDE par _ejsReady() (perf 18/07) -->
 </head>
 <body>
 
 <div class="load-bar-wrap" id="load-bar-wrap" style="display:none"><div class="load-bar" id="load-bar"></div></div>
-<div class="slow-overlay" id="slow-overlay">
-  <div class="slow-title">⏳ Chargement en cours…</div>
-  <div class="slow-sub">Le stock met plus de temps à charger que prévu. Vérifiez votre connexion ou contactez-nous directement.</div>
-  <div class="slow-btns">
-    <button class="btn-reload" onclick="location.reload()">↺ Rafraîchir</button>
-    <button class="btn-wa" onclick="window.open('https://wa.me/33609997407?text=Bonjour%2C%20je%20voudrais%20recevoir%20une%20offre%20pour%20du%20papier%20%2F%20carton.','_blank')">💬 WhatsApp</button>
-  </div>
-</div>
 <header>
   <div class="header-inner">
     <a class="logo-link" href="#" onclick="if(typeof _sharedMode!=='undefined'&&_sharedMode){window.location.href=window.location.href;}else{location.reload();}return false;">
@@ -223,12 +217,6 @@
   </div>
 </div>
 
-<div class="stats-bar">
-  <div class="stats-inner">
-    <div class="stat"><div class="stat-ico">📊</div><div><div class="stat-val" id="s-ton"><div class="stat-shimmer"></div></div><div class="stat-lbl">Poids total</div></div></div>
-    <div class="stat" style="border-right:none"><div class="stat-ico">🚚</div><div><div class="stat-val">24-48H</div><div class="stat-lbl">Chargement</div></div></div>
-  </div>
-</div>
 
 <!-- FILTER CHIPS (active filters) -->
 <div class="filter-chips" id="filter-chips"></div>
@@ -825,11 +813,6 @@
 <div id="search-suggest" class="search-suggest"></div>
 
 <!-- FLOATING COMPARE BAR -->
-<div class="cmp-bar" id="cmp-bar">
-  <div class="cmp-bar-items" id="cmp-bar-items"></div>
-  <button class="btn-cmp-go" onclick="openCmpModal()"><span>Comparer</span> <span id="cmp-bar-count">0</span> <span>produits →</span></button>
-  <button class="btn-cmp-clear" onclick="clearCompare()" title="Vider">✕</button>
-</div>
 
 <!-- COMPARE MODAL -->
 <div class="cmp-modal-bg" id="cmp-modal-bg" onclick="if(event.target===this)closeCmpModal()">
@@ -846,6 +829,6 @@
 <div class="spin-bg" id="spinner"><div class="spin"></div></div>
 
 <script src="/analytics.js?v=1"></script>
-<script src="/catalogue.js?v=550"></script>
+<script src="/catalogue.js?v=603"></script>
 </body>
 </html>

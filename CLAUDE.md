@@ -291,6 +291,40 @@ est du code dormant. Contenu du mode (body.topbar-view) :
   auto-apprenante (prodix_gaps/hints, distillation nocturne). Traqueurs front
   prodix_* partout.
 
+## PERF + RESPONSIVE + TRANCHES (19/07/2026, poussé)
+
+- **Réseau landing ~25 Mo → 235 Ko en visite courante** : zéro pré-vérif
+  photos, facettes (7 200 lignes) en CACHE JOURNALIER localStorage
+  `prodi_facets:<jour-de-stock>` (jour de stock bascule à 8h30 Paris,
+  pages parallèles, colonnes réduites), featured 200 lignes/colonnes utiles,
+  EmailJS lazy (`_ejsReady`), fonts sans Space Grotesk + DM Sans 700 réel,
+  preconnect gstatic/weserv.
+- **`imgThumb(u,w)`** (après safeUrl) : TOUTES les photos passent par
+  images.weserv.nl (cartes 560, tiroir 160, rails hero 420, intro client 360)
+  avec chaîne de repli vignette→originale→placeholder. La FICHE garde
+  l'originale. CSP img-src inclut images.weserv.nl.
+- **JS mort coupé** (récupérable via git) : printSelection+askText+
+  _proformaDesignation (PDF proforma), chaîne openImportRefs, comparateur,
+  ~780 lignes. CSS : thèmes amazon/zara supprimés. HTML : slow-overlay,
+  stats-bar, cmp-bar.
+- **Laizes/Ø EN TRANCHES** façon Poids (LAIZE_TRANCHES/DIAM_TRANCHES,
+  _laizePgT/_diamPgT gte/lt) — plus de familles fines ; « Autres » = valeur
+  null. Les deux vivent dans FILTRES AVANCÉS avec Mandrin/Poids/Photo/Résa/
+  Usine.
+- **Compteurs croisés** : la signature de cache des facettes inclut TOUTES
+  les sélections de menus (champ `ms:` de _detailsFiltersSig) — un grammage
+  coché invalide les compteurs de Couleurs, etc.
+- **RESPONSIVE topbar/hero partout** : mobile = header capsule GRID
+  [logo|Liste bleu]+[Réf/Max], barre filtres + tags défilantes au doigt,
+  hero/conversation plein écran, cartes 2 col ; tablette 3 col. L'ancien
+  parcours tiroir mobile est désactivé en topbar.
+- ⚠️ LEÇONS : sed sans correspondance = no-op SILENCIEUX (toujours vérifier
+  le fichier après bump de version) ; le vieux headless Chrome plafonne la
+  fenêtre à ~500 px (captures « mobile » tronquées) → utiliser CDP
+  Emulation.setDeviceMetricsOverride (scripts /tmp/cdp_shot.mjs,
+  /tmp/cdp_net.mjs pour profiler le réseau).
+- Pastille panda retirée de l'accueil (le hero = saisie + rails).
+
 ## Règles photos / images produit
 
 ### Priorité d'affichage (pour TOUS les produits)
