@@ -27,7 +27,7 @@ MGMT_TOKEN = os.environ["SUPABASE_MGMT_TOKEN"]
 # service_role bypasses RLS — required for DELETE/INSERT since RLS hardening (2026-05-01)
 SERVICE_ROLE = os.environ["SUPABASE_SERVICE_ROLE"]
 
-ALL_KEYS = ['quality','color','details','gsm','width','longueur','noyau','weight','price','ref','usine','emplacement','zone','format','image_url','source','reserve_client','reserve_piece']
+ALL_KEYS = ['quality','color','details','gsm','width','longueur','noyau','weight','price','ref','usine','emplacement','zone','format','image_url','source','reserve_client','reserve_piece','promo']
 
 DRY_RUN = '--dry' in sys.argv
 
@@ -210,6 +210,13 @@ def parse_dov(files):
         # pour les réfs numériques (le site gère les 404 par fallback visuel).
         image_url = f"https://stock.prodi.net/albums/photo/{ref}.jpg" if ref.isdigit() else None
 
+        # Règle PROMO (18/07/2026, Ethan) : toute réf numérique < 900000 est du
+        # vieux stock re-listé — JAMAIS une vraie réservation (les CODE_CLI
+        # qu'on y trouve sont des scories) → promo, prix -30 %, résa levée.
+        promo = ref.isdigit() and int(ref) < 900000
+        prix = num(g(row, 'PUNET'))
+        if promo and prix:
+            prix = round(prix * 0.7, 4)
         by_ref[ref] = (qty, {
             'ref': f"Photo_{ref}",
             'quality': fam_code,
@@ -220,7 +227,7 @@ def parse_dov(files):
             'longueur': int(longueur) if longueur else None,
             'noyau': int(num(g(row, 'MANDRIN')) or 0) or None,
             'weight': num(g(row, 'PNET')),
-            'price': num(g(row, 'PUNET')),
+            'price': prix,
             'usine': extract_usine(clean(g(row, 'EMPLACEMENT'))),
             'emplacement': emplacement,
             'zone': zone,
@@ -230,8 +237,9 @@ def parse_dov(files):
             # Réservation Sage : code client + bon de préparation (BPxxxxx).
             # (QTRES existe dans le fichier mais reste à 0 — la réservation
             # s'exprime par CODE_CLI/CODE_PIECE.)
-            'reserve_client': clean(g(row, 'CODE_CLI')) or None,
-            'reserve_piece': clean(g(row, 'CODE_PIECE')) or None,
+            'reserve_client': None if promo else (clean(g(row, 'CODE_CLI')) or None),
+            'reserve_piece': None if promo else (clean(g(row, 'CODE_PIECE')) or None),
+            'promo': promo,
         })
     wb.close()
 
