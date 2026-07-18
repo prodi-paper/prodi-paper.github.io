@@ -3,7 +3,22 @@
 const EJS_PUB = 'e3aqMGO-mZiAECrb5';
 const EJS_SVC = 'service_k3060so';
 const EJS_TPL = 'template_atcwwc2';
-(function(){ try{ emailjs.init({ publicKey: EJS_PUB }); } catch(_){} })();
+// EmailJS À LA DEMANDE (perf 18/07) : ~30 KB sortis du chemin critique.
+let _ejsP=null;
+function _ejsReady(){
+  if(window.emailjs){try{if(!_ejsP){emailjs.init({publicKey:EJS_PUB});_ejsP=Promise.resolve();}}catch(_){}return _ejsP||Promise.resolve();}
+  if(_ejsP)return _ejsP;
+  _ejsP=new Promise((res,rej)=>{
+    const s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/@emailjs/browser@4.4.1/dist/email.min.js';
+    s.integrity='sha384-SALc35EccAf6RzGw4iNsyj7kTPr33K7RoGzYu+7heZhT8s0GZouafRiCg1qy44AS';
+    s.crossOrigin='anonymous';
+    s.onload=()=>{try{emailjs.init({publicKey:EJS_PUB});}catch(_){}res();};
+    s.onerror=rej;
+    document.head.appendChild(s);
+  });
+  return _ejsP;
+}
 
 const SURL='https://bvcgpdoukhcatjibmvnb.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2Y2dwZG91a2hjYXRqaWJtdm5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNzg5MjgsImV4cCI6MjA4Nzg1NDkyOH0.Ip3ykSUS9sajTH04yXBerOG1haBKMD1kAvMQNjnGL1Q';
@@ -30,11 +45,19 @@ async function sbQ(path,opts={}){
 // ─── SECURITY HELPERS — XSS escape for product fields injected via innerHTML ───
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // safeUrl: whitelist http(s) and trusted hosts; returns empty string for anything else (data:, javascript:, etc.)
+// Vignette CDN (perf 19/07) : les photos brutes font 0,1-3 Mo, les cartes
+// les affichent en ~300px. weserv redimensionne ; onerror = original.
 const safeUrl = u => {
   const s = String(u||'').trim();
   if (!/^https?:\/\//i.test(s)) return '';
   return esc(s);
 };
+function imgThumb(u,w){
+  const s=safeUrl(u);
+  if(!s)return '';
+  return 'https://images.weserv.nl/?url='+encodeURIComponent(s.replace(/^https?:\/\//,''))+'&w='+(w||560)+'&q=72';
+}
+
 // attrJs: produces a valid HTML-attribute-safe JS string literal (use WITHOUT surrounding quotes in onclick)
 const attrJs = s => esc(JSON.stringify(String(s ?? '')));
 // numId: coerce id to integer for use in onclick handlers (prevents JS injection if id is non-numeric string)
@@ -255,18 +278,46 @@ function _stem(w){
 
 // ============ FUZZY SEARCH (client-side fallback) ============
 let _allProductsCache=null,_allProductsLoading=null;
+// Jour de stock effectif : l'import remplace la base à ~8h15 Paris — avant
+// 8h30 le stock est encore celui de la veille (clé de cache facettes).
+const STOCK_DAY=(()=>{try{
+  const p=new Date(new Date().toLocaleString('en-US',{timeZone:'Europe/Paris'}));
+  if(p.getHours()<8||(p.getHours()===8&&p.getMinutes()<30))p.setDate(p.getDate()-1);
+  return p.toISOString().slice(0,10);
+}catch(_){return new Date().toISOString().slice(0,10);}})();
 async function _loadAllProducts(){
   if(_allProductsCache)return _allProductsCache;
   if(_allProductsLoading)return _allProductsLoading;
   _allProductsLoading=(async()=>{
+    // CACHE JOURNALIER (perf 19/07) : le stock ne change qu'à l'import du
+    // matin — 3,4 Mo de JSON économisés à chaque visite suivante.
+    const CK='prodi_facets:'+STOCK_DAY;
+    try{
+      const hit=localStorage.getItem(CK);
+      if(hit){const rows=JSON.parse(hit);if(Array.isArray(rows)&&rows.length>100){_allProductsCache=rows;return rows;}}
+    }catch(_){}
     const CHUNK=1000;
-    // select=* so fuzzy results carry image_url, fournisseur, origine, type_produit, etc.
-    // — same shape rowToUi expects from the server path. Missing any of these caused
-    // missing photos and 0T tonnage in fuzzy-fallback results.
-    let all=[],offset=0;
+    // Colonnes = celles de rowToUi (le fuzzy-fallback réutilise ce cache) —
+    // on ne laisse dehors que created_at/source/reserve_piece.
+    const SEL='select=ref,quality,color,details,gsm,width,longueur,noyau,weight,price,usine,emplacement,zone,format,image_url,reserve_client,promo,id';
+    // Pages en PARALLÈLE (l'un après l'autre prenait 8 allers-retours).
+    const pages=await Promise.all(Array.from({length:10},(_,i)=>
+      sbQ('products?'+SEL,{headers:{'Range-Unit':'items','Range':(i*CHUNK)+'-'+(i*CHUNK+CHUNK-1)}})
+        .then(r=>r.data||[]).catch(()=>[])));
+    let all=pages.flat();
+    {
+      // stocke pour les prochaines visites du jour (quota dépassé = tant pis)
+      try{
+        Object.keys(localStorage).filter(k=>k.startsWith('prodi_facets:')&&k!==CK).forEach(k=>localStorage.removeItem(k));
+        localStorage.setItem(CK,JSON.stringify(all));
+      }catch(_){}
+      _allProductsCache=all;
+      return all;
+    }
+    let offset=0;
     for(let i=0;i<20;i++){
       const to=offset+CHUNK-1;
-      const r=await sbQ('products?select=*',{headers:{'Range-Unit':'items','Range':offset+'-'+to}});
+      const r=await sbQ('products?'+SEL,{headers:{'Range-Unit':'items','Range':offset+'-'+to}});
       const rows=r.data||[];
       all=all.concat(rows);
       if(rows.length<CHUNK)break;
@@ -818,83 +869,6 @@ function rowToUi(r){
 }
 
 // ===== COMPARE =====
-const cmpSet = new Set();
-function toggleCompare(id){
-  id = +id;
-  const btn = document.getElementById('cmp-'+id);
-  if(cmpSet.has(id)){
-    cmpSet.delete(id);
-    if(btn){btn.textContent='⊕';btn.classList.remove('cmp-active');}
-  } else {
-    if(cmpSet.size>=3){toast('Maximum 3 produits à comparer');return;}
-    cmpSet.add(id);
-    if(btn){btn.textContent='✓';btn.classList.add('cmp-active');}
-  }
-  updateCmpBar();
-}
-function updateCmpBar(){
-  const bar=document.getElementById('cmp-bar');
-  const items=document.getElementById('cmp-bar-items');
-  const cnt=document.getElementById('cmp-bar-count');
-  if(!bar)return;
-  cnt.textContent=cmpSet.size;
-  bar.classList.toggle('show',cmpSet.size>=2);
-  const slots=Array.from({length:3},(_,i)=>{
-    const id=[...cmpSet][i];
-    if(!id)return`<div class="cmp-thumb-empty">+</div>`;
-    const p=all.find(x=>x.id===+id);
-    return p&&p.image_url?`<img class="cmp-thumb" loading="lazy" decoding="async" src="${safeUrl(p.image_url)}" title="${esc(p.name)}">`:`<div class="cmp-thumb-empty" style="color:#aaa;font-size:10px">${esc(p?.name?.substring(0,6)||'?')}</div>`;
-  });
-  items.innerHTML=slots.join('');
-}
-function clearCompare(){
-  cmpSet.clear();
-  document.querySelectorAll('.btn-cmp-card.cmp-active').forEach(b=>{b.textContent='⊕';b.classList.remove('cmp-active');});
-  updateCmpBar();
-}
-function openCmpModal(){
-  const products=[...cmpSet].map(id=>all.find(x=>x.id===+id)).filter(Boolean);
-  if(products.length<2){toast('Sélectionnez au moins 2 produits');return;}
-  const specs=[
-    {lbl:'Image',key:'img'},
-    {lbl:'Référence',key:'ref'},
-    {lbl:'Type',key:'_type'},
-    {lbl:'Couleur',key:'couleur'},
-    {lbl:'Grammage',key:'grammage',unit:'g/m²'},
-    {lbl:'Laize',key:'largeur',unit:'mm',transform:v=>Math.round(v)},
-    {lbl:'Longueur',key:'longueur',unit:'mm'},
-    {lbl:'Mandrin',key:'noyau',unit:'mm'},
-    {lbl:'Condit.',key:'_format'},
-    {lbl:'Poids',key:'poids_net',unit:'kg'},
-    // PRIX_MASQUÉ: {lbl:'Prix',key:'price',unit:'€/T'},
-  ];
-  // header
-  let html=`<thead><tr><th>Spec</th>${products.map(p=>`<th><div style="font-size:13px;font-weight:700;color:var(--ink)">${esc(p.name)}</div><div style="font-size:11px;color:var(--gray);margin-top:2px">${esc(p.ref&&!p.ref.startsWith('Photo_')?p.ref:'')}</div></th>`).join('')}</tr></thead><tbody>`;
-  specs.forEach(({lbl,key,unit,transform})=>{
-    const vals=products.map(p=>{
-      // 'img' key returns pre-built HTML with safeUrl; mark as trusted for downstream esc skip
-      if(key==='img')return p.image_url?`<img src="${safeUrl(p.image_url)}" style="max-height:80px;max-width:100px;object-fit:cover;border-radius:4px">`:'—';
-      if(key==='_type')return Object.entries(TYPE_MAP).find(([,v])=>v.includes(p.quality))?.[0]||p.quality||'—';
-      if(key==='_format')return formatLabel(p)||p.format||'—';
-      if(key==='ref')return(p.ref&&!p.ref.startsWith('Photo_'))?p.ref:'—';
-      let v=p[key];
-      if(v===null||v===undefined||v==='')return'—';
-      if(transform)v=transform(v);
-      return unit?v+' '+unit:v;
-    });
-    // highlight differences
-    const unique=new Set(vals.filter(v=>v!=='—'));
-    const diff=unique.size>1;
-    html+=`<tr><td class="cmp-label">${esc(lbl)}</td>${vals.map((v,i)=>`<td class="${diff&&v!=='—'?'cmp-diff':''}">${key==='img'?v:esc(v)}</td>`).join('')}</tr>`;
-  });
-  // CTA row
-  html+=`<tr><td class="cmp-label">Action</td>${products.map(p=>`<td><button class="btn-add-cart" style="width:auto;padding:7px 14px" onclick="addToCart(${numId(p.id)})">+ ${'Ajouter'}</button></td>`).join('')}</tr>`;
-  html+='</tbody>';
-  document.getElementById('cmp-table').innerHTML=html;
-  document.getElementById('cmp-modal-bg').classList.add('show');
-}
-function closeCmpModal(){document.getElementById('cmp-modal-bg').classList.remove('show');}
-
 function cardWa(id){
   const p=all.find(x=>x.id===+id);
   if(!p)return;
@@ -1065,46 +1039,47 @@ function _grammageFamilleOf(row){
 function _gsmPg(a){
   return `and(gsm.gte.${a-GRAMMAGE_TOL},gsm.lte.${a+GRAMMAGE_TOL})`;
 }
-// ── FAMILLES DE LAIZES bobines (16/07) : ±15 mm — le grain du métier
-// (900 rejoint 915, mais 1000 et 1020 restent séparées). Bobines uniquement.
-const LAIZE_TOL=10;
-const LAIZE_FAMILLES=[105,180,200,250,300,330,380,400,420,450,480,500,533,560,580,610,650,670,700,720,762,800,850,880,915,960,980,1000,1020,1050,1160,1200,1220,1236,1280,1320,1370,1473,1500,1710,2018,2045];
+// ── LAIZES bobines : TRANCHES façon Poids (19/07, Ethan — fini les 40
+// familles fines, même catégorisation que les tranches logistiques).
+const LAIZE_TRANCHES=[
+ {label:'< 500 mm',min:0,max:500},
+ {label:'500 – 800 mm',min:500,max:800},
+ {label:'800 – 1000 mm',min:800,max:1000},
+ {label:'1000 – 1300 mm',min:1000,max:1300},
+ {label:'1300 – 1600 mm',min:1300,max:1600},
+ {label:'> 1600 mm',min:1600,max:99999},
+];
 const LAIZE_AUTRES='__laize_autres__';
-const _laizeLbl=v=>v+' mm';
-const LAIZE_OPTIONS=[915,1050,1000,850,450].map(_laizeLbl)
-  .concat(LAIZE_FAMILLES.filter(v=>![915,1050,1000,850,450].includes(v)).map(_laizeLbl))
-  .concat([LAIZE_AUTRES]);
+const LAIZE_OPTIONS=LAIZE_TRANCHES.map(t=>t.label).concat([LAIZE_AUTRES]);
 function _laizeFamilleOf(row){
   if(String(row.format||'')!=='Bobine')return null;
   const w=+row.width||0;
   if(!w)return LAIZE_AUTRES;
-  for(const a of LAIZE_FAMILLES){
-    if(Math.abs(w-a)<=LAIZE_TOL)return _laizeLbl(a);
-  }
-  return LAIZE_AUTRES;
+  const t=LAIZE_TRANCHES.find(t=>w>=t.min&&w<t.max);
+  return t?t.label:LAIZE_AUTRES;
 }
-function _laizePg(a){
-  return `and(format.eq.Bobine,width.gte.${a-LAIZE_TOL},width.lte.${a+LAIZE_TOL})`;
+function _laizePgT(t){
+  return `and(format.eq.Bobine,width.gte.${t.min},width.lt.${t.max})`;
 }
-// ── DIAMÈTRES bobines (16/07) : ±25 mm — les Ø sont standardisés (1000, 1200…).
-const DIAM_TOL=25;
-const DIAM_FAMILLES=[150,300,350,400,450,500,550,600,650,700,750,800,850,900,940,1000,1050,1100,1150,1200,1250,1300,1350,1400,1470,1500,1950];
+// ── DIAMÈTRES bobines : TRANCHES (19/07).
+const DIAM_TRANCHES=[
+ {label:'< 600 mm',min:0,max:600},
+ {label:'600 – 800 mm',min:600,max:800},
+ {label:'800 – 1000 mm',min:800,max:1000},
+ {label:'1000 – 1200 mm',min:1000,max:1200},
+ {label:'> 1200 mm',min:1200,max:99999},
+];
 const DIAM_AUTRES='__diam_autres__';
-const _diamLbl=v=>'Ø '+v+' mm';
-const DIAM_OPTIONS=[1000,1200,1250,940,1100].map(_diamLbl)
-  .concat(DIAM_FAMILLES.filter(v=>![1000,1200,1250,940,1100].includes(v)).map(_diamLbl))
-  .concat([DIAM_AUTRES]);
+const DIAM_OPTIONS=DIAM_TRANCHES.map(t=>t.label).concat([DIAM_AUTRES]);
 function _diamFamilleOf(row){
   if(String(row.format||'')!=='Bobine')return null;
   const d=+row.longueur||0;
   if(!d)return DIAM_AUTRES;
-  for(const a of DIAM_FAMILLES){
-    if(Math.abs(d-a)<=DIAM_TOL)return _diamLbl(a);
-  }
-  return DIAM_AUTRES;
+  const t=DIAM_TRANCHES.find(t=>d>=t.min&&d<t.max);
+  return t?t.label:DIAM_AUTRES;
 }
-function _diamPg(a){
-  return `and(format.eq.Bobine,longueur.gte.${a-DIAM_TOL},longueur.lte.${a+DIAM_TOL})`;
+function _diamPgT(t){
+  return `and(format.eq.Bobine,longueur.gte.${t.min},longueur.lt.${t.max})`;
 }
 // ── POIDS : tranches logistiques fixes (manutention / conteneur).
 const POIDS_TRANCHES=[
@@ -1903,6 +1878,10 @@ function _detailsFiltersSig(){
     lgmax:document.getElementById('f-longmax')?.value||'',
     wmin:document.getElementById('f-wmin')?.value||'',
     wmax:document.getElementById('f-wmax')?.value||'',
+    // TOUTES les sélections de menus (19/07 — un grammage coché doit
+    // invalider les compteurs de Couleurs, etc.) ; msd-details exclu par
+    // design (le panneau Détails s'auto-exclut), réinjecté par les facettes.
+    ms:Object.keys(msdState).filter(k=>k!=='msd-details').map(k=>k+':'+[...msdState[k]].sort().join('|')).join(';'),
     ph:_photoFilter, rsv:_resaFilter||0,
     ref:document.getElementById('f-ref-code')?.value||'',
     rmin:document.getElementById('f-refmin')?.value||'',
@@ -1921,11 +1900,17 @@ function _rebuildDetailsMsd(){
   if(!_allProductsCache){
     if(!_detailsCacheKick){
       _detailsCacheKick=true;
-      _loadAllProducts().then(()=>{
+      // Perf 18/07 : chargé en IDLE (3,4 Mo de JSON) — hors chemin critique.
+      const _kick=()=>_loadAllProducts().then(()=>{
         _detailsLastSig=null;
         Object.keys(_facetSig).forEach(k=>delete _facetSig[k]);
         _refreshAllFacets();
+        // le cache conditionne la déduction bobine/format des menus : la
+        // recalculer maintenant (un type a pu être choisi avant l'arrivée)
+        updateFilterVisibility();
       }).catch(()=>{});
+      if('requestIdleCallback' in window)requestIdleCallback(_kick,{timeout:5000});
+      else setTimeout(_kick,2500);
     }
     containers.forEach(msd=>{
       const p=msd.querySelector('.msd-panel');
@@ -2451,12 +2436,13 @@ async function _fetchAndRenderFeatured(token){
     // Le tri lex .desc équivaut au tri numérique car longueur fixe ; les Photo_FAB*,
     // Photo_DU*, Photo_PM*, etc. sont exclus du regex pour éviter qu'ils sortent
     // en tête (lex 'F'/'D'/... > '9').
-    const p=new URLSearchParams({select:'*','image_url':'not.is.null',order:'ref.desc'});
+    // Perf 18/07 : 200 lignes suffisent et seulement les colonnes de rowToUi.
+    const p=new URLSearchParams({select:'ref,quality,color,details,gsm,width,longueur,noyau,weight,price,usine,emplacement,zone,format,image_url,reserve_client,promo,id','image_url':'not.is.null',order:'ref.desc'});
     p.append('image_url','neq.');
     p.append('ref','match.^Photo_[0-9]{6}$');
     // Fetch featured products AND real total count + weight in parallel
     const [imgRes, countRes, wRes]=await Promise.all([
-      sbQ('products?'+p,{headers:{'Range':'0-799'}}),
+      sbQ('products?'+p,{headers:{'Range':'0-199'}}),
       sbQ('products?select=id',{headers:{'Prefer':'count=exact','Range':'0-0'}}),
       sbQ('rpc/sum_weight_filtered',{method:'POST',body:{}})
     ]);
@@ -2468,15 +2454,9 @@ async function _fetchAndRenderFeatured(token){
     // Filter products with image_url, then verify images actually load
     const candidates=data.filter(r=>r.image_url&&r.image_url.trim().length>10);
     candidates.sort(()=>Math.random()-.5);
-    const toCheck=candidates.slice(0,200);
-    const verified=[];
-    await Promise.all(toCheck.map(r=>new Promise(resolve=>{
-      const img=new Image();
-      img.onload=()=>{verified.push(r);resolve();};
-      img.onerror=()=>resolve();
-      img.src=r.image_url;
-      setTimeout(resolve,4000);
-    })));
+    // Perf 18/07 : AUCUNE pré-vérification photo (c'était jusqu'à 24 Mo de
+    // téléchargements plein format) — rails et cartes ont un onerror.
+    const verified=candidates;
     if(_reqToken!==token)return;
     if(!verified.length){await _fetchAndRender(token);return;}
     // Group by quality, pick 2-3 per group at random, then shuffle all
@@ -2681,10 +2661,9 @@ async function _fetchAndRender(token){
   const lzSel=getMsdValues('msd-laize');
   if(lzSel.size>0){
     const _lcl=[];
-    LAIZE_FAMILLES.forEach(a=>{if(lzSel.has(_laizeLbl(a)))_lcl.push(_laizePg(a));});
+    LAIZE_TRANCHES.forEach(t=>{if(lzSel.has(t.label))_lcl.push(_laizePgT(t));});
     if(lzSel.has(LAIZE_AUTRES)){
-      const t=LAIZE_TOL;
-      _lcl.push(`and(format.eq.Bobine,or(width.is.null,and(${LAIZE_FAMILLES.map(a=>`or(width.lt.${a-t},width.gt.${a+t})`).join(',')})))`);
+      _lcl.push('and(format.eq.Bobine,width.is.null)');
     }
     if(_lcl.length)p.append('or',`(${_lcl.join(',')})`);
   }
@@ -2696,10 +2675,9 @@ async function _fetchAndRender(token){
   const dmSel=getMsdValues('msd-diametre');
   if(dmSel.size>0){
     const _dcl=[];
-    DIAM_FAMILLES.forEach(a=>{if(dmSel.has(_diamLbl(a)))_dcl.push(_diamPg(a));});
+    DIAM_TRANCHES.forEach(t=>{if(dmSel.has(t.label))_dcl.push(_diamPgT(t));});
     if(dmSel.has(DIAM_AUTRES)){
-      const t=DIAM_TOL;
-      _dcl.push(`and(format.eq.Bobine,or(longueur.is.null,and(${DIAM_FAMILLES.map(a=>`or(longueur.lt.${a-t},longueur.gt.${a+t})`).join(',')})))`);
+      _dcl.push('and(format.eq.Bobine,longueur.is.null)');
     }
     if(_dcl.length)p.append('or',`(${_dcl.join(',')})`);
   }
@@ -2789,8 +2767,9 @@ async function _fetchAndRender(token){
     return;
   }
 
-  // Recalculate weight using same filters as main query (paginated)
-  if(_reqToken===token){
+  // Recalculate weight using same filters as main query (paginated).
+  // Perf 18/07 : seulement si des filtres sont actifs (RPC juste sinon).
+  if(_reqToken===token&&_anyFilterActive()){
     try{
       const _wp=new URLSearchParams(p);
       _wp.set('select','weight');
@@ -3154,7 +3133,7 @@ function renderCards(list){
     const _isSiderun=p.ref&&/^Photo_DU/i.test(String(p.ref));
     const _fallbackImg=_isSiderun?'/img/siderun-sur-demande.png':_isFab?'/img/fabrication-sur-demande.png':'/img/no-photo.png';
     const imgHtml=p.image_url
-        ?`<img src="${safeUrl(p.image_url)}" alt="${esc(_altTxt)}" loading="lazy" width="300" height="279" onerror="this.src='${esc(_fallbackImg)}';this.className='pcard-nophoto'">`
+        ?`<img src="${imgThumb(p.image_url,560)}" alt="${esc(_altTxt)}" loading="lazy" width="300" height="279" onerror="if(!this._o){this._o=1;this.src='${safeUrl(p.image_url)}';}else{this.src='${esc(_fallbackImg)}';this.className='pcard-nophoto';}">`
         :`<img src="${esc(_fallbackImg)}" alt="Photo sur demande" class="pcard-nophoto" width="300" height="279">`;
     const {cls:badgeCls,txt:badgeTxt}=decodeQuality(p.type);
     const isPalette=_estFormat(p);
@@ -3253,7 +3232,7 @@ function renderCards(list){
       const prixCell=_priceMode&&p.price?cell('PRIX',esc(Math.round(p.price*1000).toLocaleString('fr-FR'))+' <small>€/T</small>',4):'';
       const foot='';
       return`<div class="pcard sc-card" onclick="openDetail(${numId(p.id)})">
-        <div class="pcard-img">${imgHtml}${resaOverlay}${p.promo?'<div class="pcard-promo-overlay">PROMO −30%</div>':''}
+        <div class="pcard-img">${imgHtml}${resaOverlay}${p.promo?'<div class="pcard-promo-overlay">PROMO</div>':''}
           ${_refClean?`<span class="pbig-ref">${esc(_refClean.toUpperCase())}</span>`:''}
           ${_usineLbl?`<span class="pbig-usine">USINE ${esc(_usineLbl)}</span>`:''}
           ${_isGroup?`<span class="sc-count">× ${numId(p._grpCount)}</span>`:''}
@@ -3447,7 +3426,7 @@ function renderSharedCards(list){
     const _isSiderun=p.ref&&/^Photo_DU/i.test(String(p.ref));
     const fallback=_isSiderun?'/img/siderun-sur-demande.png':'/img/no-photo.png';
     const img=p.image_url
-      ?`<img src="${safeUrl(p.image_url)}" alt="${esc(title)}" loading="lazy" onerror="this.src='${esc(fallback)}'">`
+      ?`<img src="${imgThumb(p.image_url,560)}" alt="${esc(title)}" loading="lazy" onerror="if(!this._o){this._o=1;this.src='${safeUrl(p.image_url)}';}else{this.src='${esc(fallback)}';}">`
       :`<img src="${esc(fallback)}" alt="">`;
     const isPal=_estFormat(p);
     const _det=p.details?p.details.replace(/[-–—\s]+/g,' ').trim():'';
@@ -3755,7 +3734,7 @@ async function sendProforma(){
     const box=document.querySelector('#proforma-bg .pf-box');
     if(box)box.innerHTML=`<div class="pf-success"><div class="pf-success-ico">✅</div><div class="pf-success-t">Demande envoyée</div><div class="pf-success-s">Nous vous recontacterons rapidement.</div><button class="btn-pf-close" onclick="closeProforma();document.querySelector('#proforma-bg .pf-box').innerHTML=''">Fermer</button></div>`;
     toast('✅ Demande envoyée');
-    try{ emailjs.send(EJS_SVC, EJS_TPL, { from_name:nom, message:`Proforma produit\nProduit: ${cur?.name||''}${cur?.ref?' ('+cur.ref+')':''}\nTél: ${tel}\nMsg: ${msg}` }); }catch(_){}
+    try{ _ejsReady().then(()=>emailjs.send(EJS_SVC, EJS_TPL, { from_name:nom, message:`Proforma produit\nProduit: ${cur?.name||''}${cur?.ref?' ('+cur.ref+')':''}\nTél: ${tel}\nMsg: ${msg}` })); }catch(_){}
     ['pf-nom','pf-tel','pf-msg'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   }catch(err){
     btn.disabled=false;btn.textContent='➤';
@@ -4192,32 +4171,6 @@ function removeFromCart(id){
 function _shortCode(){
   return Array.from(crypto.getRandomValues(new Uint8Array(6)),b=>'0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'[b%62]).join('');
 }
-function openImportRefs(){
-  const existing=document.getElementById('import-refs-bg');
-  if(existing)existing.remove();
-  const d=document.createElement('div');
-  d.id='import-refs-bg';
-  d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;display:flex;align-items:center;justify-content:center;padding:16px;';
-  d.innerHTML=`<div style="background:#fff;border-radius:22px;padding:36px;max-width:650px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2);">
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:29px;letter-spacing:2px;margin-bottom:5px;-webkit-text-stroke:.7px #000;">ALBUM PHOTO</div>
-    <div style="font-size:16px;color:#6e6e73;margin-bottom:14px;">Dépose un document (BL, préparation de livraison…) ou colle tes numéros</div>
-    <button type="button" onclick="document.getElementById('import-refs-file').click()" id="import-refs-drop"
-      style="width:100%;min-height:156px;padding:18px;margin-bottom:13px;border:2px dashed #d2d2d7;border-radius:16px;background:#f5f5f7;color:#1d1d1f;font-size:18px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;">
-      📄 Choisir un fichier — PDF, Excel, Word, CSV…<br><span style="font-weight:400;font-size:15px;color:#6e6e73">les références (6 chiffres, DU, FAB) sont détectées automatiquement</span>
-    </button>
-    <input type="file" id="import-refs-file" accept=".pdf,.xlsx,.xls,.csv,.txt,.docx" style="display:none" onchange="if(this.files[0])_importRefsFromFile(this.files[0]);this.value='';">
-    <textarea id="import-refs-input" style="width:100%;min-height:62px;padding:16px;border:1.5px solid #d2d2d7;border-radius:14px;font-size:18px;font-family:'DM Sans',sans-serif;resize:vertical;box-sizing:border-box;outline:none;" placeholder="917643&#10;985042"></textarea>
-    <div id="import-refs-result" style="font-size:16px;margin-top:10px;min-height:26px;"></div>
-    <div style="display:flex;gap:10px;margin-top:16px;">
-      <button onclick="_doImportRefs()" style="flex:2;padding:16px;background:#1d1d1f;color:#fff;border:none;border-radius:999px;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:.2px;cursor:pointer;" id="import-refs-btn">+ Ajouter à la liste</button>
-      <button onclick="document.getElementById('import-refs-bg').remove();" style="padding:16px 24px;background:#e8e8ed;border:none;border-radius:999px;font-size:16px;font-weight:600;color:#1d1d1f;cursor:pointer;font-family:'DM Sans',sans-serif;">Fermer</button>
-    </div>
-  </div>`;
-  d.addEventListener('click',e=>{if(e.target===d)d.remove();});
-  document.body.appendChild(d);
-  document.getElementById('import-refs-input').focus();
-}
-
 // ─── Import de références depuis un DOCUMENT (BL, préparation de livraison…) ───
 // Tout se passe dans le navigateur : extraction du texte (pdf.js / SheetJS /
 // JSZip pour docx, lecture brute sinon), détection des réfs (6 chiffres, codes
@@ -4307,7 +4260,7 @@ function openProdix(){
     empty.id='prodix-empty';
     empty.style.cssText='flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;padding:10px;';
     empty.innerHTML=`
-      <img src="/img/prodix.png?v=2" alt="PRODIX" style="width:150px;height:150px;object-fit:contain;">
+      <img src="/img/prodix.png?v=3" alt="PRODIX" style="width:150px;height:150px;object-fit:contain;">
       <div style="font-size:19px;font-weight:700;color:#1a1a1a;">Bonjour ! Comment puis-je vous aider ?</div>`;
     const sug=document.createElement('div');
     sug.id='prodix-sug';
@@ -4617,113 +4570,6 @@ async function _pxRemplir(refs){
   }catch(_){/* la liste restera vide, le toast a déjà informé */}
 }
 
-async function _importRefsFromFile(file){
-  const result=document.getElementById('import-refs-result');
-  const drop=document.getElementById('import-refs-drop');
-  if(result)result.innerHTML='<span style="color:#999">Lecture de '+esc(file.name)+'…</span>';
-  if(drop)drop.disabled=true;
-  try{
-    const text=await _extractTextFromFile(file);
-    // Réfs = 6 chiffres (bornés : pas au milieu d'un nombre plus long),
-    // + codes catalogue DU/FAB. Dédupliquées, ordre d'apparition conservé.
-    // Lookbehind via new RegExp + repli : un littéral casserait TOUT le script
-    // au chargement sur les Safari < 16.4.
-    let six;
-    try{six=text.match(new RegExp('(?<![\\d.,])\\d{6}(?![\\d.,])','g'))||[];}
-    catch(_){six=text.match(/\b\d{6}\b/g)||[];}
-    // Filet CSV : la regex refuse une réf collée à une virgule (anti-décimales),
-    // donc on repêche les tokens EXACTEMENT 6 chiffres après découpe.
-    const tokens=text.split(/[\s,;\t]+/).filter(t=>/^\d{6}$/.test(t));
-    const refs=[...new Set([
-      ...six,
-      ...tokens,
-      ...(text.match(/\b(?:DU|FAB)\d{3,5}\b/gi)||[]).map(r=>r.toUpperCase()),
-    ])];
-    if(!refs.length){
-      if(result)result.innerHTML='<span style="color:#e53e3e">Aucune référence détectée dans ce document.</span>';
-      return;
-    }
-    const capped=refs.slice(0,150);
-    document.getElementById('import-refs-input').value=capped.join('\n');
-    if(result)result.innerHTML='<span style="color:#999">'+capped.length+' référence(s) détectée(s)'+(refs.length>150?' (150 premières)':'')+' — recherche au catalogue…</span>';
-    await _doImportRefs();
-  }catch(e){
-    console.error('Import fichier:',e);
-    if(result)result.innerHTML='<span style="color:#e53e3e">Impossible de lire ce fichier ('+esc(e.message||'erreur')+').</span>';
-  }finally{
-    if(drop)drop.disabled=false;
-  }
-}
-
-async function _doImportRefs(){
-  const input=document.getElementById('import-refs-input').value.trim();
-  if(!input){toast('Colle des références !');return;}
-  // Parse refs: split by comma, newline, space, semicolon
-  const rawRefs=input.split(/[\s,;\n\r]+/).map(s=>s.trim().toUpperCase()).filter(s=>s.length>0);
-  const uniqueRefs=[...new Set(rawRefs)];
-  if(!uniqueRefs.length){toast('Aucune référence détectée');return;}
-
-  const btn=document.getElementById('import-refs-btn');
-  const result=document.getElementById('import-refs-result');
-  btn.disabled=true;btn.textContent='RECHERCHE...';
-  result.innerHTML='<span style="color:#999">Recherche de '+uniqueRefs.length+' référence(s)…</span>';
-
-  try{
-    // Search by ref containing each value (Photo_XXXXX format in DB)
-    const found=[];
-    const notFound=[];
-    // Batch: fetch all products matching any of the refs
-    const p=new URLSearchParams({select:'*'});
-    p.append('or','('+uniqueRefs.map(r=>'ref.ilike.%'+r+'%').join(',')+')');
-    const {data}=await sbQ('products?'+p,{headers:{'Range':'0-999'}});
-
-    // Match each input ref to a product
-    for(const ref of uniqueRefs){
-      const match=data.find(p=>p.ref&&p.ref.toUpperCase().includes(ref));
-      if(match){
-        found.push(match);
-      } else {
-        notFound.push(ref);
-      }
-    }
-
-    // Add found products to cart (skip duplicates)
-    let added=0;
-    for(const p of found){
-      if(!cart.find(c=>c.id===p.id)){
-        const ui=rowToUi(p);
-        cart.push(ui);
-        added++;
-      }
-    }
-    localStorage.setItem('prodi_cart',JSON.stringify(cart));
-    updateCartBadge();
-    renderDrawer();
-    // Refresh grid + group "added" states so + Ajouter → ✓ Ajouté sur les cartes visibles
-    const _g=document.getElementById('pgrid');
-    if(_g&&_g._lastList)render(_g._lastList);
-
-    // Show result
-    let msg=`<span style="color:#1a9e5c;font-weight:600">✓ ${found.length} trouvé(s), ${added} ajouté(s)</span>`;
-    if(notFound.length)msg+=`<br><span style="color:#e53e3e">✗ ${notFound.length} introuvable(s) : ${esc(notFound.join(', '))}</span>`;
-    result.innerHTML=msg;
-    btn.disabled=false;btn.textContent='AJOUTER À LA LISTE';
-    // Flux intuitif (16/07) : des produits trouvés → la popup se ferme et LA
-    // LISTE s'ouvre direct (le récap passe en toast, introuvables comprises).
-    if(found.length){
-      setTimeout(()=>{
-        document.getElementById('import-refs-bg')?.remove();
-        openCartDrawer();
-        toast(found.length+' produit(s) dans la liste'+(notFound.length?' · '+notFound.length+' introuvable(s) : '+notFound.slice(0,5).join(', ')+(notFound.length>5?'…':''):''));
-      },600);
-    }
-  }catch(e){
-    console.error('Import refs error:',e);
-    result.innerHTML='<span style="color:#e53e3e">Erreur lors de la recherche</span>';
-    btn.disabled=false;btn.textContent='AJOUTER À LA LISTE';
-  }
-}
-
 function _proformaNumero(){
   const d=new Date();
   const yy=String(d.getFullYear()).slice(2);
@@ -4732,596 +4578,6 @@ function _proformaNumero(){
   return `DE${yy}${mm}${seq}`;
 }
 
-function _proformaDesignation(it){
-  const lines=[];
-  if(it.usine)lines.push(`USINE ${it.usine}${it.emplacement&&/FAB|DIRECT/i.test(it.emplacement)?' - FABRICATION':''}`);
-  lines.push('');
-  const titre=formatProductTitle(it.qualite,it.qualite);
-  const couleur=it.couleur?` ${it.couleur.toUpperCase()}`:'';
-  lines.push(`${titre}${couleur}`);
-  if(it.details){
-    const d=String(it.details).replace(/\s*[·]\s*|\s+-\s+-\s+/g,' · ').trim();
-    if(d&&d.length>2)lines.push(d.toUpperCase());
-  }
-  if(it.gsm)lines.push(`GRAMMAGE : ${it.gsm} g/m²`);
-  if(it.largeurCm)lines.push(`LAIZE${it.format&&/palette/i.test(it.format)?'':'S SOUHAITÉES SELON LAIZE MÈRE'} ${it.format&&/palette/i.test(it.format)?'':'DE '}${it.largeurCm} mm`);
-  return lines.filter((l,i,a)=>!(l===''&&(i===0||a[i-1]===''))).join('\n');
-}
-
-function askText({title,sub,placeholder,value,okLabel,cancelLabel,onConfirm}={}){
-  return new Promise(resolve=>{
-    const bg=document.createElement('div');
-    bg.className='askp-bg show';
-    bg.innerHTML=`
-      <div class="askp-box" role="dialog" aria-modal="true" onclick="event.stopPropagation()">
-        ${title?`<div class="askp-title">${esc(title)}</div>`:''}
-        ${sub?`<div class="askp-sub">${esc(sub)}</div>`:''}
-        <input type="text" class="askp-input" placeholder="${esc(placeholder||'')}" value="${esc(value||'')}">
-        <div class="askp-actions">
-          <button class="askp-btn askp-btn-cancel">${esc(cancelLabel||'Annuler')}</button>
-          <button class="askp-btn askp-btn-ok">${esc(okLabel||'OK')}</button>
-        </div>
-      </div>`;
-    document.body.appendChild(bg);
-    const input=bg.querySelector('input');
-    const close=(val)=>{bg.remove();document.removeEventListener('keydown',keyHandler);resolve(val);};
-    // onConfirm s'exécute SYNC dans le user gesture du clic OK / Enter — utile
-    // pour window.open qui sinon serait bloqué par Safari hors-gesture.
-    const confirmAndClose=(val)=>{
-      // val peut être '' (OK avec input vide) — on déclenche quand même onConfirm.
-      // Seul un cancel (null) ne le déclenche pas.
-      if(onConfirm){try{onConfirm(val);}catch(_){}}
-      close(val);
-    };
-    const keyHandler=(e)=>{
-      if(e.key==='Enter'){e.preventDefault();confirmAndClose((input.value||'').trim());}
-      else if(e.key==='Escape'){e.preventDefault();close(null);}
-    };
-    bg.addEventListener('click',e=>{if(e.target===bg)close(null);});
-    bg.querySelector('.askp-btn-cancel').addEventListener('click',()=>close(null));
-    bg.querySelector('.askp-btn-ok').addEventListener('click',()=>confirmAndClose((input.value||'').trim()));
-    document.addEventListener('keydown',keyHandler);
-    setTimeout(()=>input.focus(),50);
-  });
-}
-
-async function printSelection(opts){
-  const autoGenerate=!!(opts&&opts.autoGenerate);
-  const headless=autoGenerate;
-  // Onglet PDF réservé dans le user gesture du clic OK / Enter.
-  let pdfWin=null;
-  if(!cart.length){toast('Liste vide !');return;}
-  const clientName=await askText(autoGenerate?{
-    title:'Partager la liste',
-    sub:'Nom du client (utilisé dans le PDF).',
-    placeholder:'Ex : Société Dupont',
-    okLabel:'Créer',
-    onConfirm:()=>{
-      try{
-        pdfWin=window.open('about:blank','_blank');
-        if(pdfWin){
-          pdfWin.document.open();
-          pdfWin.document.write('<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Génération du PDF…</title><style>body{margin:0;font:16px/1.4 system-ui,-apple-system,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:#f5f5f3;color:#666;gap:14px}.s{width:36px;height:36px;border:3px solid #ddd;border-top-color:#FE0000;border-radius:50%;animation:r 1s linear infinite}@keyframes r{to{transform:rotate(360deg)}}</style></head><body><div class="s"></div><div>Génération du PDF…</div></body></html>');
-          pdfWin.document.close();
-        }
-      }catch(_){}
-    }
-  }:{
-    title:'Partager la liste',
-    sub:'Donne un nom à cette liste (le nom du client par exemple).',
-    placeholder:'Ex : Société Dupont',
-    okLabel:'Créer'
-  });
-  // null = cancel (Annuler / Escape / clic hors-modal). '' = Générer sans nom.
-  if(clientName===null){if(pdfWin){try{pdfWin.close();}catch(_){}}return;}
-  const items=cart.map(p=>{
-    const _f=all.find(x=>x.id===+p.id)||p;
-    const qualite=p.qualite||_f.qualite||'';
-    const couleur=p.couleur||_f.couleur||'';
-    const usine=String(p.usine||_f.usine||'').replace(/^REF\s*/i,'');
-    const gsm=p.grammage||_f.grammage||'';
-    const largeur=p.largeur||_f.largeur||0;
-    const longueur=p.longueur||_f.longueur||0;
-    const largeurCm=largeur?mmToCm(largeur):'';
-    const format=p.format||_f.format||'';
-    const isPalette=format&&/palette|feuille/i.test(format);
-    const dim=isPalette&&largeur&&longueur
-      ?`${mmToCm(largeur)} × ${mmToCm(longueur)} mm`
-      :largeur&&longueur
-        ?`${mmToCm(largeur)} mm · Ø ${mmToCm(longueur)} mm`
-        :largeur?`${mmToCm(largeur)} mm`:'—';
-    const details=p.details||_f.details||'';
-    const _detClean=details.replace(/[-–—\s]+/g,' ').trim();
-    const poidsKg=Number(p.poids_net||0);
-    // price en base = €/KG (vérifié 16/07 : médiane 0,59 €/kg) → €/T = ×1000.
-    const priceKg=Number(_f.price||0);
-    const priceT=priceKg*1000;
-    const montant=poidsKg*priceKg;
-    const titre=formatProductTitle(qualite,qualite);
-    const photoRef=String(p.ref||_f.ref||'').replace(/^Photo_/i,'').trim();
-    const it={qualite,couleur,usine,gsm,largeurCm,details,format,emplacement:p.emplacement||_f.emplacement||''};
-    const hs=getHsCode(qualite,gsm,format,couleur,details)||'';
-    return{ref:qualite||'—',photoRef,qualite,titre,details:_detClean,couleur,gsm,dim,poidsKg,usine,priceKg,priceT,montant,format,hs,designation:_proformaDesignation(it)};
-  });
-  const _isPaletteIt=it=>!!(it.format&&/palette|feuille/i.test(it.format));
-  // Tri : qualité (regroupement par type de papier) puis grammage croissant
-  const _sortByQualGsm=(a,b)=>{
-    const qa=String(a.qualite||'').toUpperCase(),qb=String(b.qualite||'').toUpperCase();
-    if(qa!==qb)return qa<qb?-1:1;
-    return (Number(a.gsm)||0)-(Number(b.gsm)||0);
-  };
-  const itemsBobine=items.filter(it=>!_isPaletteIt(it)).sort(_sortByQualGsm);
-  const itemsFormat=items.filter(_isPaletteIt).sort(_sortByQualGsm);
-  const totalPoids=items.reduce((s,i)=>s+i.poidsKg,0);
-  const totalMontant=items.reduce((s,i)=>s+i.montant,0);
-  // Grouped view (résumé) — by qualite code
-  const groupsMap=new Map();
-  items.forEach(it=>{
-    const k=it.qualite||'—';
-    const g=groupsMap.get(k)||{qualite:k,count:0,poidsKg:0,montant:0,hsSet:new Set()};
-    g.count+=1;g.poidsKg+=it.poidsKg;g.montant+=it.montant;
-    if(it.hs)g.hsSet.add(it.hs);
-    groupsMap.set(k,g);
-  });
-  const groups=[...groupsMap.values()].sort((a,b)=>b.poidsKg-a.poidsKg);
-  groups.forEach(g=>{
-    const codes6=[...new Set([...(g.hsSet||[])].map(c=>{
-      const m=String(c).match(/^([A-Z0-9]{4})([A-Z0-9]{2})/i);
-      return m?`${m[1]}.${m[2]}`:c;
-    }))];
-    g.hs=codes6.length?_hsRange(codes6.join(' / ')):'';
-  });
-  const eur=v=>(v||0).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2});
-  const num=v=>(v||0).toLocaleString('fr-FR',{maximumFractionDigits:0});
-  const dec=(v,d=2)=>(v||0).toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d});
-  const _detailRow=it=>`<tr><td class="ref">${esc(it.photoRef||'—')}</td><td class="ref">${esc(it.ref)}</td><td>${esc(it.titre||'')}</td><td>${esc(it.details||'—')}</td><td>${esc(it.couleur||'—')}</td><td class="num">${it.gsm?esc(it.gsm+' g/m²'):'—'}</td><td>${esc(it.dim||'—')}</td><td class="num">${esc(num(it.poidsKg)+' kg')}</td><td class="num">${esc(it.usine||'—')}</td><td class="num">${esc(num(it.priceT)+' €/T')}</td><td class="num">${esc(eur(it.montant)+' €')}</td></tr>`;
-  const _detailTable=(rows,dimLbl)=>`<table class="items view-detail">
-      <colgroup><col class="c-pref"><col class="c-q"><col class="c-tit"><col class="c-det"><col class="c-col"><col class="c-gsm"><col class="c-dim"><col class="c-pn"><col class="c-us"><col class="c-pt"><col class="c-mt"></colgroup>
-      <thead><tr><th>N°</th><th>Réf.</th><th>Qualité</th><th>Détails</th><th>Couleur</th><th style="text-align:right;">GSM</th><th>${dimLbl}</th><th style="text-align:right;">PN (kg)</th><th style="text-align:right;">Usine</th><th style="text-align:right;">P/T (€)</th><th style="text-align:right;">Montant HT (€)</th></tr></thead>
-      <tbody>${rows.map(_detailRow).join('')}</tbody>
-    </table>`;
-  const _detailHTML=(itemsBobine.length&&itemsFormat.length)
-    ?`<div class="section-title">Bobines</div>${_detailTable(itemsBobine,'Laize')}<div class="section-title">Formats</div>${_detailTable(itemsFormat,'Dimensions')}`
-    :itemsBobine.length
-      ?_detailTable(itemsBobine,'Laize')
-      :_detailTable(itemsFormat,'Dimensions');
-  const today=new Date();
-  const dateFR=`${String(today.getDate()).padStart(2,'0')}/${String(today.getMonth()+1).padStart(2,'0')}/${String(today.getFullYear()).slice(2)}`;
-  const numero=_proformaNumero();
-  const baseUrl=location.origin+location.pathname.replace(/[^/]*$/,'');
-  // ── Lien partagé (sélection avec photos) + mailto prefait ──
-  const _shareCode=_shortCode();
-  // Use stable `ref` (e.g. "Photo_919465") instead of synthetic `id`: the daily
-  // import does DELETE+INSERT on products, so `id` is regenerated and any link
-  // sharing numeric IDs breaks the next morning. `ref` is the natural key from
-  // the source Excel and survives across imports.
-  const _shareIds=cart.map(x=>x.ref).filter(Boolean).join(',');
-  const _shareUrl=window.location.origin+window.location.pathname+'?s='+_shareCode+(_priceMode?'&p=1':'');
-  sbQ('shared_carts',{method:'POST',body:{code:_shareCode,cart_ids:_shareIds},headers:{'Prefer':'return=minimal'}}).catch(()=>{});
-  window.prodiTrack?.('panier_partage',{code:_shareCode,nb:(_shareIds.match(/,/g)||[]).length+1});
-  const _greeting=clientName?`Bonjour M. ${clientName},`:'Bonjour,';
-  const _mailLines=[
-    _greeting,'',
-    'Veuillez trouver ci-dessous le lien vers les photos de notre liste :',
-    _shareUrl,'',
-    'La liste détaillée est également disponible en pièce jointe (PDF).','',
-    'Bien à vous,'
-  ].join('\n');
-  const _mailSubject=clientName?`Notre liste — ${clientName}`:'Notre liste';
-  const _mailtoUrl=`mailto:?subject=${encodeURIComponent(_mailSubject).replace(/'/g,'%27')}&body=${encodeURIComponent(_mailLines).replace(/'/g,'%27')}`;
-  let w, _shareIframe;
-  if(headless){
-    // Headless iframe — pas d'onglet visible. La proforma est rendue
-    // hors écran juste pour qu'html2pdf (share) ou window.print (print)
-    // ait un DOM à manipuler. Le download + mailto sont délégués au parent.
-    _shareIframe=document.createElement('iframe');
-    _shareIframe.setAttribute('aria-hidden','true');
-    _shareIframe.style.cssText='position:fixed;left:0;top:0;width:1200px;height:1600px;border:0;opacity:0;pointer-events:none;z-index:-1;';
-    document.body.appendChild(_shareIframe);
-    w=_shareIframe.contentWindow;
-    const _cleanup=()=>{window.removeEventListener('message',_onMsg);try{_shareIframe&&_shareIframe.parentNode&&_shareIframe.remove();}catch(_){}};
-    const _onMsg=(ev)=>{
-      const d=ev&&ev.data;
-      if(d==='proforma-share-done'){_cleanup();return;}
-      if(d&&d.type==='proforma-share-fallback'){
-        // Transfert du blob à pdfWin → pdfWin crée son propre object URL
-        // (Safari refuse souvent les blob URLs cross-window dans <embed>/<iframe>).
-        if(pdfWin&&!pdfWin.closed){
-          try{pdfWin.__pdfBlob=d.blob;}catch(_){}
-        }
-        let url;
-        try{url=(pdfWin&&pdfWin.URL?pdfWin.URL:URL).createObjectURL(d.blob);}
-        catch(_){url=URL.createObjectURL(d.blob);}
-        if(pdfWin&&!pdfWin.closed){
-          try{
-            const _esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
-            const _safeTitle=_esc(d.filename||'Liste détaillée');
-            const _pdfSrc=_esc(url);
-            const _mailHrefJS=JSON.stringify(d.mailHref||'');
-            pdfWin.document.open();
-            pdfWin.document.write(`<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>${_safeTitle}</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;background:#525659}
-body{display:flex;flex-direction:column;height:100vh}
-.toolbar{display:flex;gap:10px;padding:12px 18px;background:#fff;border-bottom:1px solid #e8e8e4;justify-content:flex-end;align-items:center;flex-shrink:0}
-.toolbar .title{margin-right:auto;font-weight:600;color:#222;font-size:14px;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60%}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border:1.5px solid #e0e0e0;background:#fff;color:#222;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;border-radius:8px;transition:all .15s;white-space:nowrap}
-.btn:hover{border-color:#222;background:#f5f5f3}
-.btn.primary{background:#FE0000;border-color:#FE0000;color:#fff}
-.btn.primary:hover{background:#d40000;border-color:#d40000}
-.btn svg{width:16px;height:16px;flex-shrink:0}
-.viewer{flex:1;width:100%;height:100%;background:#525659;display:block}
-@media print{.toolbar{display:none!important}.viewer{position:fixed;inset:0;width:100vw;height:100vh}}
-</style></head><body>
-<div class="toolbar">
-  <div class="title">${_safeTitle.replace(/\\.pdf$/,'')}</div>
-  <button class="btn" onclick="window.print()" title="Imprimer">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-    Imprimer
-  </button>
-  <button class="btn" onclick="window.location.href=document.getElementById('pdf-viewer').src" title="Ouvrir le PDF">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-    Voir PDF
-  </button>
-  <button class="btn primary" onclick="window.location.href=${_mailHrefJS}" title="Partager le lien des photos par mail">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-    Partager
-  </button>
-</div>
-<embed class="viewer" id="pdf-viewer" src="${_pdfSrc}" type="application/pdf">
-<script>
-  // Si le blob a été transmis directement, recrée l'URL dans pdfWin (plus fiable Safari).
-  try{
-    if(window.__pdfBlob){
-      var _localUrl=URL.createObjectURL(window.__pdfBlob);
-      var _v=document.getElementById('pdf-viewer');
-      if(_v)_v.src=_localUrl;
-    }
-  }catch(_){}
-</script>
-</body></html>`);
-            pdfWin.document.close();
-          }catch(_){
-            const dl=document.createElement('a');
-            dl.href=url;dl.download=d.filename;dl.style.display='none';
-            document.body.appendChild(dl);dl.click();dl.remove();
-          }
-        }else{
-          const dl=document.createElement('a');
-          dl.href=url;dl.download=d.filename;dl.style.display='none';
-          document.body.appendChild(dl);dl.click();dl.remove();
-        }
-        setTimeout(()=>URL.revokeObjectURL(url),300000);
-      }
-      if(d&&d.type==='proforma-share-error'){
-        toast('❌ '+(d.message||'erreur PDF'));
-        if(pdfWin&&!pdfWin.closed){try{pdfWin.close();}catch(_){}}
-      }
-    };
-    window.addEventListener('message',_onMsg);
-    setTimeout(_cleanup,120000);
-  }else{
-    w=window.open('','_blank');
-  }
-  const _safeClient=clientName.replace(/[\/\\:*?"<>|]/g,'_');
-  const _docTitle=_safeClient?`Liste détaillée — ${_safeClient} — ${numero}`:`Liste détaillée — ${numero}`;
-  w.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><base href="${baseUrl}"><title>${_docTitle}</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=Pinyon+Script&family=Playfair+Display:ital,wght@1,400;1,700&display=swap" rel="stylesheet">
-<style>
-*{margin:0;padding:0;box-sizing:border-box;}
-:root{--ink:#1a1a1a;--gray:#6b6b6b;--line:#1a1a1a;--soft:#e5e5e0;--red:#d22;--bg:#fdfcfa;}
-html,body{background:#eeeae3;}
-body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:9.5px;color:var(--ink);line-height:1.35;padding:24px;min-width:fit-content;}
-.page{background:var(--bg);width:210mm;min-height:297mm;padding:14mm 14mm 12mm;box-shadow:0 4px 24px rgba(0,0,0,.08);position:relative;margin:0 auto;}
-.page-num{position:absolute;top:10mm;right:14mm;font-weight:600;font-size:11px;}
-.head{display:grid;grid-template-columns:1.05fr .95fr;gap:18px;margin-bottom:14px;}
-.brand{display:flex;flex-direction:column;align-items:flex-start;gap:8px;}
-.brand-logo{width:200px;height:auto;max-height:42px;object-fit:contain;flex-shrink:0;display:block;}
-.brand-text{width:100%;}
-.brand-text .brand-line{font-size:9px;line-height:1.5;color:var(--ink);}
-.brand-text b{font-weight:700;}
-.brand-text .red{color:var(--red);font-weight:700;}
-.client{padding-top:6px;display:flex;flex-direction:column;align-items:flex-start;gap:8px;}
-.client-name{font-family:'DM Sans',sans-serif;font-weight:700;font-size:22px;letter-spacing:.5px;text-transform:uppercase;line-height:1.2;}
-.client-date{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray);margin-top:6px;font-variant-numeric:tabular-nums;}
-.client .proforma-title{font-size:30px;line-height:1;}
-.client .commercial{font-size:10.5px;}
-.client-block{font-size:11px;line-height:1.7;}
-.client-block .country{font-weight:700;font-size:13px;letter-spacing:.5px;}
-.client-fields{margin-top:10px;font-size:10.5px;line-height:1.7;}
-.client-fields .lbl{display:inline-block;min-width:115px;color:#222;}
-.editable{border-bottom:1px dashed #bbb;padding:0 4px;display:inline-block;min-width:80px;outline:none;}
-.editable:focus{background:#fffbe6;border-bottom-style:solid;}
-.title-row{margin:18px 0 10px;display:flex;justify-content:space-between;align-items:flex-end;}
-.proforma-title{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-weight:700;font-size:38px;letter-spacing:.3px;color:var(--ink);line-height:1;}
-.commercial{font-size:10.5px;}
-.commercial .lbl{color:var(--gray);}
-.commercial b{font-weight:700;}
-.info-row{display:grid;grid-template-columns:1.15fr 1fr;gap:12px;margin-bottom:10px;}
-.info-table{width:100%;border-collapse:collapse;border:1.5px solid var(--line);font-size:10px;}
-.info-table th,.info-table td{border:1px solid var(--line);padding:5px 8px;text-align:center;}
-.info-table th{font-weight:700;text-transform:uppercase;letter-spacing:.5px;font-size:9px;background:#f7f4ee;}
-.info-table td{font-weight:700;font-size:11px;height:24px;}
-.cond-box{border:1.5px solid var(--line);padding:0;display:flex;flex-direction:column;}
-.cond-head{background:#f7f4ee;padding:5px 10px;font-weight:700;border-bottom:1px solid var(--line);font-size:10px;}
-.cond-body{padding:5px 10px;font-size:10px;line-height:1.6;flex:1;}
-.cond-body .row{display:flex;gap:6px;}
-.cond-body .lbl{color:var(--ink);font-weight:500;flex:0 0 auto;}
-.cond-body .red{color:var(--red);font-weight:700;}
-.items{width:100%;border-collapse:collapse;border:1.5px solid var(--line);font-size:10px;margin-bottom:0;}
-.items th{background:var(--ink);color:#fff;padding:7px 8px;text-align:left;font-weight:700;font-size:9.5px;text-transform:uppercase;letter-spacing:.4px;border:1px solid var(--ink);}
-.items td{padding:7px 8px;border:1px solid #c8c4bd;vertical-align:top;word-break:normal;overflow-wrap:break-word;hyphens:auto;}
-.items td.ref{font-weight:700;font-size:10.5px;letter-spacing:.3px;}
-.items td.designation{white-space:pre-line;line-height:1.5;}
-.items td.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;}
-.items col.c-ref{width:13%;}
-.items col.c-des{width:auto;}
-.items col.c-pn{width:11%;}
-.items col.c-pt{width:11%;}
-.items col.c-mt{width:14%;}
-.items col.c-pref{width:7%;}
-.items col.c-q{width:5%;}
-.items col.c-tit{width:14%;}
-.items col.c-det{width:11%;}
-.items col.c-col{width:7%;}
-.items col.c-gsm{width:6%;}
-.items col.c-dim{width:9%;}
-.items col.c-us{width:5%;}
-.items.view-detail{font-size:8.5px;}
-.items.view-detail th{font-size:8.5px;padding:6px 5px;letter-spacing:.2px;}
-.items.view-detail td{padding:5px 5px;}
-.section-title{font-family:'DM Sans',sans-serif;font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.6px;margin:14px 0 6px;padding:6px 10px;background:var(--ink);color:#fff;border:1.5px solid var(--ink);}
-.section-title:first-child{margin-top:0;}
-.mode-detail .section-title + .items{margin-top:0;}
-.totals-block{padding:10px 14px;border:1.5px solid var(--line);border-top:none;background:#fafaf6;font-size:10.5px;line-height:1.8;font-weight:600;}
-.totals-block .row{display:flex;justify-content:space-between;}
-.totals-block .row b{color:var(--ink);}
-.totals-grid{display:grid;grid-template-columns:1fr 1fr;border:1.5px solid var(--line);border-top:none;}
-.totals-grid > div{padding:9px 12px;border-right:1px solid var(--line);text-align:center;}
-.totals-grid > div:last-child{border-right:none;background:#fbf6e8;}
-.totals-grid .lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px;}
-.totals-grid .val{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;}
-.totals-grid .net .lbl{text-decoration:underline;}
-.totals-grid .net .val{font-size:18px;color:var(--ink);}
-.toolbar{position:fixed;top:14px;right:14px;display:flex;gap:12px;z-index:100;align-items:center;background:rgba(255,255,255,.95);padding:10px;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.12);}
-.toolbar button{font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;padding:14px 26px;border:none;border-radius:6px;cursor:pointer;letter-spacing:.4px;}
-.toolbar .modes{display:flex;gap:0;background:#f3f1ec;border-radius:4px;padding:3px;margin-right:4px;}
-.toolbar .modes button{background:transparent;color:var(--ink);padding:6px 12px;font-size:11px;border-radius:3px;letter-spacing:.3px;}
-.toolbar .modes button.active{background:var(--ink);color:#fff;}
-.toolbar .btn-print{background:var(--red);color:#fff;}
-.toolbar .btn-save{background:var(--ink);color:#fff;padding:14px;display:inline-flex;align-items:center;justify-content:center;}
-.toolbar .btn-save svg{display:block;}
-.toolbar .btn-link{background:var(--ink);color:#fff;padding:14px;display:inline-flex;align-items:center;justify-content:center;transition:background .2s;}
-.toolbar .btn-link svg{display:block;}
-.toolbar .btn-link.copied{background:#0a7d3d;}
-.toolbar .btn-mail{background:#0a7d3d;color:#fff;}
-.toolbar .btn-close{background:#fff;color:var(--ink);border:1.5px solid var(--ink);}
-/* page-break-* hors @media print pour que html2pdf (mode css) les voit */
-.items tr,.items thead{page-break-inside:avoid;}
-.totals-block,.totals-grid{page-break-inside:avoid;}
-.items tbody tr:last-child{page-break-after:avoid;}
-@media print{
-  html,body{background:#fff;}
-  body{padding:0;display:block;}
-  .page{box-shadow:none;width:auto;min-height:auto;padding:10mm 12mm;}
-  .toolbar{display:none;}
-  .editable{border-bottom-color:transparent;}
-  @page{size:A4 portrait;margin:0;}
-}
-</style></head><body>
-<div class="toolbar">
-  <button class="btn-save" onclick="savePdf()" title="Enregistrer le PDF" aria-label="Enregistrer le PDF"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12"/><path d="M6 11l6 6 6-6"/><path d="M5 20h14"/></svg></button>
-  <button class="btn-link" onclick="copyShareLink(event)" title="Copier le lien" aria-label="Copier le lien"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
-  <button class="btn-print" onclick="window.print()">Imprimer</button>
-  <button class="btn-mail" onclick="sendByEmail(event)">Partager</button>
-</div>
-<div class="page">
-  <div class="page-num">1</div>
-  <div class="head">
-    <div class="brand">
-      <img class="brand-logo" src="/img/logo.png" alt="Prodiconseil" width="196" height="32" onerror="this.style.display='none'">
-      <div class="brand-text">
-        <div class="brand-line">9 Promenée Jeanne Hachette 94200 Ivry sur Seine - FRANCE</div>
-        <div class="brand-line"><b>Contact e-mail :</b> clients@prodi.com</div>
-        <div class="brand-line">Tel : 331 4672 0369 - Fax : 331 4959 8731</div>
-        <div class="brand-line">SARL au Capital de 516 000 EUR - Siret : 382445922</div>
-        <div class="brand-line">NAF 4676Z - TVA FR50 382 445922 RCS CRETEIL</div>
-        <div class="brand-line red" style="margin-top:5px;">Marchandise d'origine Union Européenne.</div>
-        <div class="brand-line red">En cas de vente à l'exportation, exonération de TVA</div>
-        <div class="brand-line red">art 262 TER-I CGI-Conditions Générales applicables.</div>
-        <div class="brand-line red">Valable 10 jours sauf vente entre temps</div>
-        <div class="brand-line red">La confirmation de commande suivra</div>
-      </div>
-    </div>
-    <div class="client">
-      <div class="proforma-title">Liste détaillée</div>
-      <div class="client-name" contenteditable="true">${esc(String(clientName).toUpperCase())}</div>
-      <div class="client-date">${dateFR}</div>
-    </div>
-  </div>
-
-  <div id="items-host">
-    <div class="mode-detail">${_detailHTML}</div>
-    <div class="mode-resume" style="display:none;">
-      <table class="items view-resume">
-        <colgroup><col style="width:14%"><col><col style="width:14%"><col style="width:10%"><col style="width:12%"><col style="width:16%"></colgroup>
-        <thead><tr><th>Code</th><th>Désignation</th><th>Code douanier</th><th style="text-align:right;">Réfs</th><th style="text-align:right;">PN (kg)</th><th style="text-align:right;">Montant HT (€)</th></tr></thead>
-        <tbody>
-          ${groups.map(g=>`<tr><td class="ref">${esc(g.qualite)}</td><td>${esc(formatProductTitle(g.qualite,g.qualite))}</td><td>${esc(g.hs||'—')}</td><td class="num">${esc(num(g.count))}</td><td class="num">${esc(num(g.poidsKg))}</td><td class="num">${esc(eur(g.montant))}</td></tr>`).join('')}
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="totals-block">
-    <div class="row"><b>MONTANT FOB :</b><span contenteditable="true">${eur(totalMontant)} €</span></div>
-    <div class="row"><b>MONTANT DU FRET :</b><span contenteditable="true">${eur(2800)} €</span></div>
-  </div>
-
-  <div class="totals-grid">
-    <div><div class="lbl">Poids Total</div><div class="val">${dec(totalPoids/1000,3)} T</div></div>
-    <div class="net"><div class="lbl">Total HT</div><div class="val">${eur(totalMontant)} €</div></div>
-  </div>
-
-  </div>
-<script>
-  function _ensureHtml2Pdf(){
-    if(window.html2pdf)return Promise.resolve();
-    return new Promise((resolve,reject)=>{
-      const s=document.createElement('script');
-      s.src='https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js';
-      s.integrity='sha384-Yv5O+t3uE3hunW8uyrbpPW3iw6/5/Y7HitWJBLgqfMoA36NogMmy+8wWZMpn3HWc';
-      s.crossOrigin='anonymous';
-      s.onload=()=>resolve();
-      s.onerror=()=>reject(new Error('Loader failed'));
-      document.head.appendChild(s);
-    });
-  }
-  function _pdfWorker(){
-    const el=document.querySelector('.page');
-    // Largeur en px du .page (210mm). On capture exactement cette largeur pour éviter qu'html2canvas
-    // capte la position relative du .page dans le body (qui peut être décalée si le popup est étroit).
-    const _pageW=el.getBoundingClientRect().width;
-    return window.html2pdf().set({
-      margin:0,
-      filename:document.title.replace(/[\\/:*?"<>|]/g,'_')+'.pdf',
-      image:{type:'jpeg',quality:0.98},
-      html2canvas:{scale:2,useCORS:true,letterRendering:true,backgroundColor:'#ffffff',width:_pageW,windowWidth:_pageW+48,windowHeight:1273,scrollX:0,scrollY:0,x:0,y:0},
-      jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
-      pagebreak:{mode:['avoid-all','css','legacy'],avoid:['tr','.totals-block','.totals-grid']}
-    }).from(el);
-  }
-  function _withBtnState(btnSel,fn){
-    const btn=document.querySelector(btnSel);
-    const orig=btn?btn.innerHTML:'';
-    if(btn){btn.innerHTML='Génération…';btn.disabled=true;}
-    const restore=()=>{if(btn){btn.innerHTML=orig;btn.disabled=false;}};
-    return fn().finally(restore);
-  }
-  function savePdf(){
-    _withBtnState('.btn-save',()=>_ensureHtml2Pdf().then(()=>_pdfWorker().save()))
-      .catch(()=>alert('Erreur de génération du PDF'));
-  }
-  async function copyShareLink(ev){
-    if(ev)ev.preventDefault();
-    const shareUrl=${JSON.stringify(_shareUrl)};
-    const shareText=shareUrl;
-    const btn=document.querySelector('.btn-link');
-    // Bail out if a previous click is still showing the copied feedback —
-    // otherwise the captured orig would be the checkmark, not the link icon.
-    if(btn&&btn.classList.contains('copied'))return;
-    const orig=btn?btn.innerHTML:'';
-    const showCopied=()=>{
-      if(!btn)return;
-      btn.disabled=true;
-      btn.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>';
-      btn.classList.add('copied');
-      setTimeout(()=>{btn.innerHTML=orig;btn.classList.remove('copied');btn.disabled=false;},1500);
-    };
-    try{
-      await navigator.clipboard.writeText(shareText);
-      showCopied();
-    }catch(_){
-      // Fallback execCommand for older browsers / non-secure contexts
-      const ta=document.createElement('textarea');
-      ta.value=shareText;ta.style.position='fixed';ta.style.opacity='0';
-      document.body.appendChild(ta);ta.select();
-      let ok=false;
-      try{ok=document.execCommand('copy');}catch(_){}
-      ta.remove();
-      if(ok)showCopied();
-      else prompt('Copiez ce message :',shareText); // user-selectable fallback
-    }
-  }
-  async function sendByEmail(ev){
-    if(ev)ev.preventDefault();
-    const mailHref=${JSON.stringify(_mailtoUrl)};
-    const subject=${JSON.stringify(_mailSubject)};
-    const body=${JSON.stringify(_mailLines)};
-    const filename=document.title.replace(/[\\/:*?"<>|]/g,'_')+'.pdf';
-    function openMail(){
-      const a=document.createElement('a');
-      a.href=mailHref;a.style.display='none';
-      document.body.appendChild(a);a.click();a.remove();
-    }
-    try{
-      await _withBtnState('.btn-mail',async()=>{
-        await _ensureHtml2Pdf();
-        const blob=await _pdfWorker().outputPdf('blob');
-        // Best UX: Web Share API → système share sheet → Mail attache le PDF auto
-        if(navigator.canShare){
-          const file=new File([blob],filename,{type:'application/pdf'});
-          if(navigator.canShare({files:[file]})){
-            try{
-              await navigator.share({title:subject,text:body,files:[file]});
-              return;
-            }catch(e){
-              if(e&&e.name==='AbortError')return; // user cancelled
-              // fall through to fallback
-            }
-          }
-        }
-        // En mode iframe (autoGenerate), poste le PDF blob + mailHref au
-        // parent qui les affichera dans l'onglet pré-réservé (toolbar +
-        // iframe PDF). Évite les restrictions Safari sur les iframes.
-        if(${autoGenerate}){
-          try{parent.postMessage({type:'proforma-share-fallback',blob,filename,mailHref},'*');return;}catch(_){}
-        }
-        // Mode popup (legacy : print/save manuel depuis la fenêtre proforma).
-        const url=URL.createObjectURL(blob);
-        const dl=document.createElement('a');
-        dl.href=url;dl.download=filename;dl.style.display='none';
-        document.body.appendChild(dl);dl.click();dl.remove();
-        setTimeout(()=>URL.revokeObjectURL(url),60000);
-        openMail();
-      });
-    }catch(e){
-      // PDF a planté → ouvre quand même le mail + signale au parent
-      try{parent.postMessage({type:'proforma-share-error',message:String(e&&e.message||e)},'*');}catch(_){}
-      openMail();
-    }
-  }
-  function setMode(m){
-    const map={detail:'mode-detail',resume:'mode-resume'};
-    document.querySelectorAll('#items-host > div').forEach(el=>el.style.display='none');
-    const el=document.querySelector('#items-host .'+map[m]);
-    if(el)el.style.display='block';
-    document.querySelectorAll('.toolbar .modes button').forEach(b=>b.classList.toggle('active',b.dataset.mode===m));
-    try{localStorage.setItem('proforma_mode',m);}catch(_){}
-  }
-  try{
-    const saved=localStorage.getItem('proforma_mode');
-    if(saved==='resume')setMode('resume');
-    else if(saved&&saved!=='detail')localStorage.removeItem('proforma_mode');
-  }catch(_){}
-  if(${autoGenerate}){
-    (async()=>{
-      try{
-        // Race: wait for fonts/images mais max 1.2s pour ne pas bloquer si fail
-        const _ready=Promise.all([
-          (document.fonts&&document.fonts.ready)?document.fonts.ready.catch(()=>{}):Promise.resolve(),
-          Promise.all([...document.images].map(i=>i.complete?null:new Promise(r=>{i.onload=i.onerror=r;})))
-        ]).catch(()=>{});
-        const _maxWait=new Promise(r=>setTimeout(r,1200));
-        await Promise.race([_ready,_maxWait]);
-        await sendByEmail();
-      }catch(_){}
-      setTimeout(()=>{try{parent.postMessage('proforma-share-done','*');}catch(_){}},1500);
-    })();
-  }
-</script>
-</body></html>`);
-  w.document.close();
-}
-// _showShareModal removed (dead code, no call sites). Used to interpolate
-// `${url}` raw into innerHTML — latent XSS if ever revived. If a share modal
-// is needed again, build it via DOM APIs (createElement + setAttribute) or
-// pass `url` through esc()/safeUrl().
-
-// ── LOAD SHARED QUOTE ──
-// Detected synchronously at script load so _doFilter can check it
 const _shareParam=new URLSearchParams(window.location.search).get('share');
 const _shareCode=new URLSearchParams(window.location.search).get('s');
 // ?ref=Photo_<référence> — flow QR étiquette : scan de l'app appareil photo
@@ -5340,7 +4596,7 @@ if(_sharedMode)_sharedViewUI(true);
   // TOPBAR = LE catalogue (défaut depuis le 18/07 soir — « on oublie tout
   // le reste »). Desktop/tablette uniquement : le mobile garde son parcours
   // dédié (tiroir de filtres). ?haut=1 accepté mais plus nécessaire.
-  if(!_sharedMode&&window.matchMedia('(min-width:769px)').matches){
+  if(!_sharedMode){ // desktop, tablette ET mobile (refonte responsive 18/07)
     document.body.classList.add('topbar-view');
     const _fp=document.getElementById('filters-panel');
     const _sel=document.getElementById('sort-sel');
@@ -5376,6 +4632,8 @@ if(_sharedMode)_sharedViewUI(true);
         if(kind==='poids'){const s=msdState['msd-poids'];s.has(val)?s.delete(val):s.add(val);updateMsdBtn('msd-poids');}
         else if(kind==='usine'){const s=msdState['msd-usine'];s.has(val)?s.delete(val):s.add(val);updateMsdBtn('msd-usine');}
         else if(kind==='mandrin'){const s=msdState['msd-mandrin'];s.has(val)?s.delete(val):s.add(val);updateMsdBtn('msd-mandrin');}
+        else if(kind==='laize'){const s=msdState['msd-laize'];s.has(val)?s.delete(val):s.add(val);updateMsdBtn('msd-laize');}
+        else if(kind==='diametre'){const s=msdState['msd-diametre'];s.has(val)?s.delete(val):s.add(val);updateMsdBtn('msd-diametre');}
         else if(kind==='photo'){_photoFilter=_photoFilter===val?'':val;syncFilterPills();}
         else if(kind==='resa'){_resaFilter=_resaFilter===val?'':val;document.querySelectorAll('.fpill-resa').forEach(b=>b.classList.toggle('active',_resaFilter===(b.dataset.resa||'with')));}
         filterProducts();window._paintAdv&&window._paintAdv();
@@ -5386,11 +4644,15 @@ if(_sharedMode)_sharedViewUI(true);
         const row=(kind,val,lbl,on)=>`<div class="msd-option${on?' selected':''}" data-k="${kind}" data-v="${esc(String(val))}">${chk}<span class="msd-label">${esc(lbl)}</span></div>`;
         const usines=[...document.querySelectorAll('#sb-msd-usine .msd-option')].map(o=>o.dataset.val).filter(Boolean);
         const mandrins=[...document.querySelectorAll('#sb-msd-mandrin .msd-option')].map(o=>o.dataset.val).filter(Boolean);
+        const laizes=[...document.querySelectorAll('#sb-msd-laize .msd-option')].map(o=>o.dataset.val).filter(Boolean);
+        const diams=[...document.querySelectorAll('#sb-msd-diametre .msd-option')].map(o=>o.dataset.val).filter(Boolean);
         const secs=[
           {id:'photo',t:'Photo',n:_photoFilter?1:0,rows:()=>row('photo','with','Avec photo',_photoFilter==='with')+row('photo','without','Sans photo',_photoFilter==='without')},
           {id:'resa',t:'Réservation',n:_resaFilter?1:0,rows:()=>row('resa','with','Réservés',_resaFilter==='with')+row('resa','without','Dispo',_resaFilter==='without')},
           {id:'poids',t:'Poids',n:msdState['msd-poids'].size,rows:()=>POIDS_OPTIONS.map(o=>row('poids',o,o,msdState['msd-poids'].has(o))).join('')},
           {id:'mandrin',t:'Mandrin',n:msdState['msd-mandrin'].size,rows:()=>mandrins.length?mandrins.map(m=>row('mandrin',m,m+' mm',msdState['msd-mandrin'].has(m))).join(''):'<div class="msd-option" style="opacity:.5;cursor:default;">Aucun mandrin dans la sélection en cours</div>'},
+          {id:'laize',t:'Laizes',n:msdState['msd-laize'].size,rows:()=>laizes.length?laizes.map(v=>row('laize',v,v,msdState['msd-laize'].has(v))).join(''):'<div class="msd-option" style="opacity:.5;cursor:default;">Choisis d\'abord un type bobine</div>'},
+          {id:'diametre',t:'Diamètre (Ø)',n:msdState['msd-diametre'].size,rows:()=>diams.length?diams.map(v=>row('diametre',v,v,msdState['msd-diametre'].has(v))).join(''):'<div class="msd-option" style="opacity:.5;cursor:default;">Choisis d\'abord un type bobine</div>'},
           {id:'usine',t:'Réf usine',n:msdState['msd-usine'].size,rows:()=>`<div class="msd-search-wrap"><input class="msd-search-inp" id="adv-usine-q" type="text" placeholder="Rechercher…" autocomplete="off" value="${esc(window._advUsineQ||'')}"></div>`+usines.map(u=>row('usine',u,'Usine '+u,msdState['msd-usine'].has(u))).join('')},
         ];
         _faPn.innerHTML=secs.map(s=>{
@@ -5428,10 +4690,10 @@ if(_sharedMode)_sharedViewUI(true);
             <div class="phero-voile"></div>
           </div>
           <div class="phero-inner">
-            <div class="phero-logo"><img src="/img/prodix.png?v=2" alt="PRODIX"></div>
+            <div class="phero-logo"><img src="/img/prodix.png?v=3" alt="PRODIX"></div>
             <div class="phero-panel" id="phero-panel" style="display:none">
               <div class="phero-panel-head">
-                <img src="/img/prodix.png?v=2" alt="">
+                <img src="/img/prodix.png?v=3" alt="">
               </div>
               <button id="px-retour" onclick="_pxRetour()" style="display:none">← Revenir</button>
               <div id="prodix-chat" class="phero-chat"></div>
@@ -5575,6 +4837,7 @@ if(_sharedMode)_sharedViewUI(true);
           const withImg=(prods||[]).filter(p=>p.image_url);
           if(withImg.length<6)return;
           // Le VRAI design des cartes catalogue (grille étiquette), en décor
+          const _thumb=u=>'https://images.weserv.nl/?url='+encodeURIComponent(String(u).replace(/^https?:\/\//,''))+'&w=420&q=72';
           const mk=p=>{
             const cell=(cap,val,span)=>`<div class="sc-cell"${span?` style="grid-column:span ${span};"`:''}><div class="sc-cap">${cap}</div><div class="sc-val">${val}</div></div>`;
             const isPal=_estFormat(p);
@@ -5589,7 +4852,7 @@ if(_sharedMode)_sharedViewUI(true);
             }
             cells+=cell('COULEUR',esc(p.couleur||'—'),2);
             cells+=cell('POIDS NET',p.poids_net?esc(Math.round(p.poids_net).toLocaleString('fr-FR'))+' <small>kgs</small>':'—',2);
-            return `<div class="pcard sc-card phero-card"><div class="pcard-img"><img src="${safeUrl(p.image_url)}" alt="" loading="lazy"></div><div class="sc-body"><div class="sc-grid"><div class="sc-cell sc-title" style="grid-column:span 4;">${esc(formatProductTitle(p.qualite,p.type))}</div>${cells}</div></div></div>`;
+            return `<div class="pcard sc-card phero-card"><div class="pcard-img"><img src="${_thumb(p.image_url)}" onerror="this.onerror=null;this.src='${safeUrl(p.image_url)}'" alt="" loading="lazy"></div><div class="sc-body"><div class="sc-grid"><div class="sc-cell sc-title" style="grid-column:span 4;">${esc(formatProductTitle(p.qualite,p.type))}</div>${cells}</div></div></div>`;
           };
           const half=Math.min(12,Math.ceil(withImg.length/2));
           const a=withImg.slice(0,half);
@@ -5651,7 +4914,11 @@ function _ctnSplash(){
       const it=w.querySelector('.ctn-item');
       const p=prods[(+w.dataset.card)%prods.length];
       if(!p||!it)return;
-      if(p.image_url)it.querySelector('.ctn-card-img').style.background="url('"+p.image_url+"') center/cover";
+      // Perf 18/07 : vignette 360px au lieu de la photo brute (jank intro)
+      if(p.image_url){
+        const _tu='https://images.weserv.nl/?url='+encodeURIComponent(String(p.image_url).replace(/^https?:\/\//,''))+'&w=360&q=70';
+        it.querySelector('.ctn-card-img').style.background="url('"+_tu+"') center/cover";
+      }
       const t=it.querySelector('.ctn-card-title');
       if(t)t.textContent=formatProductTitle(p.qualite,p.type||p.format||'');
       const v=(cls,txt)=>{const e=it.querySelector(cls);if(e)e.textContent=txt;};
@@ -5828,7 +5095,7 @@ function renderDrawer(){
     const _isSiderunD=_ref&&/^Photo_DU/i.test(String(_ref));
     const _isFabD=_ref&&/^Photo_FAB/i.test(String(_ref))&&_emp!=='OUR WAREHOUSE';
     const _fallback=_isSiderunD?'/img/siderun-sur-demande.png':_isFabD?'/img/fabrication-sur-demande.png':'/img/no-photo.png';
-    const imgHtml=imgSrc?`<img src="${safeUrl(imgSrc)}" loading="lazy" decoding="async" onerror="this.src='${esc(_fallback)}'">`:`<img src="${esc(_fallback)}" alt="" loading="lazy">`;
+    const imgHtml=imgSrc?`<img src="${imgThumb(imgSrc,160)}" loading="lazy" decoding="async" onerror="if(!this._o){this._o=1;this.src='${safeUrl(imgSrc)}';}else{this.src='${esc(_fallback)}';}">`:`<img src="${esc(_fallback)}" alt="" loading="lazy">`;
     return`<div class="ci" id="ci-${numId(p.id)}" onclick="_ciOpenDetail(${numId(p.id)})" style="cursor:pointer">
       <div class="ci-img">${imgHtml}</div>
       <div class="ci-body">
@@ -5913,7 +5180,7 @@ async function sendCartProforma(){
     }
     btn.disabled=false;btn.textContent='➤';
     closeCartProforma();doClearCart();closeCartDrawer();
-    try{ emailjs.send(EJS_SVC, EJS_TPL, { from_name:nom, message:`Tél: ${tel}\n${msg}` }); }catch(_){}
+    try{ _ejsReady().then(()=>emailjs.send(EJS_SVC, EJS_TPL, { from_name:nom, message:`Tél: ${tel}\n${msg}` })); }catch(_){}
     toast('✅ Demande envoyée pour '+savedCart.length+' produit(s) !',4000);
     ['pfc-nom','pfc-tel','pfc-msg'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   }catch(err){
