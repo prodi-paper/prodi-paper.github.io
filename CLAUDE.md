@@ -232,13 +232,14 @@ La page ouverte par un lien `?s=CODE` est une VUE CLIENT dédiée (`body.shared-
   « Voir la liste » → cascade d'entrée des cartes (`card-in`, délais 70 ms).
 - **Spinner de chargement** global (`_loadingProducts`) : plus de « Aucun
   résultat » pendant le fetch (catalogue aussi).
-- **THÈMES d'essai par URL** (cumulables avec ?s=) : `&apple=1` (fond #f5f5f7,
+- **Thème APPLE = DÉFAUT vue client** (validé 18/07) ; `&etiquette=1` = ancien
+  cadre noir. Autres essais par URL : `&apple=1` (fond #f5f5f7,
   cartes blanches sans bordure, filets par technique fond+gap 1px #c9c9ce,
   titres Bebas épaissis text-stroke, badges verre dépoli blur+saturate, footer
   clair, popup/onglets Apple) · `&amazon=1` (header navy, CTA jaune, hairlines)
   · `&zara=1` (éditorial blanc, infos en ligne, poids en pavé rouge) ·
   `&bebas=1` (titres Bebas seuls). Le lien NU garde le style étiquette noire.
-  ⚠️ Les liens générés par « Copier le lien » ne portent PAS ces flags.
+  Les liens « Copier le lien » (?s= nus) ouvrent donc le thème Apple.
 - Traqueurs ajoutés : whatsapp_click/tel_click/email_click (panneau info retiré
   mais code conservé `_buildSharedInfo`), shared_tab.
 - logo.png rendu TRANSPARENT (original : img/logo_fond_blanc.png), servi en ?v=2.
