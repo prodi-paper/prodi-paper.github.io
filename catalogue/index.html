@@ -83,7 +83,7 @@
 <link rel="preconnect" href="https://bvcgpdoukhcatjibmvnb.supabase.co">
 <link rel="dns-prefetch" href="https://stock.prodi.net">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/catalogue.css?v=472">
+<link rel="stylesheet" href="/catalogue.css?v=573">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4.4.1/dist/email.min.js" integrity="sha384-SALc35EccAf6RzGw4iNsyj7kTPr33K7RoGzYu+7heZhT8s0GZouafRiCg1qy44AS" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -103,16 +103,9 @@
       <img src="/img/logo.png?v=2" alt="Prodiconseil" class="logo-img logo-full">
       <img src="/img/panda.png?v=2" alt="Prodiconseil" class="logo-img logo-mob">
     </a>
-    <div class="header-search-group">
-    <div class="header-search" style="background:none;border:none;box-shadow:none;border-radius:0;display:flex;gap:8px;padding:0;max-width:264px;">
-      <!-- Barre texte remplacée par la plage Réf article (16/07). Le champ
-           search-input reste CACHÉ : le scanner QR et le mode partagé écrivent
-           dedans (12 points d'accroche JS). -->
-      <input type="text" id="search-input" style="display:none" autocomplete="off">
-      <label class="exact-toggle" style="display:none"><input type="checkbox" id="exact-toggle"><span>Exact</span></label>
-      <input type="number" id="f-refmin-top" placeholder="Réf article" min="0" style="width:170px;height:38px;border:1.5px solid var(--border);border-radius:8px;background:#fff;font:inherit;font-size:14px;padding:0 12px;outline:none;box-sizing:border-box;" oninput="syncMobFilter('f-refmin','f-refmin-top')">
-      <input type="number" id="f-refmax-top" placeholder="Max" min="0" style="width:110px;height:38px;border:1.5px solid var(--border);border-radius:8px;background:#fff;font:inherit;font-size:14px;padding:0 12px;outline:none;box-sizing:border-box;" oninput="syncMobFilter('f-refmax','f-refmax-top')">
-    </div>
+    <div class="rbar-count" id="rbar-count" role="status" aria-live="polite" style="margin-left:24px;">
+      <span id="rbar-refs">—</span>&nbsp;<span id="rbar-refs-lbl">articles</span> • <span style="white-space:nowrap"><span id="rbar-tons">—</span>&nbsp;t</span>
+      <span id="correction-note"></span>
     </div>
     <button class="mob-search-head" onclick="toggleMobSearch()" aria-label="Rechercher">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -120,9 +113,16 @@
     <button class="mob-filter-head" onclick="openFilterDrawer()" aria-label="Filtres">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><circle cx="8" cy="6" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="16" cy="12" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="8" cy="18" r="2" fill="currentColor" stroke="none"/></svg>
     </button>
-    <div class="rbar-count" id="rbar-count" role="status" aria-live="polite" style="margin-left:auto;margin-right:auto;">
-      <span id="rbar-refs">—</span>&nbsp;<span id="rbar-refs-lbl">articles</span> • <span style="white-space:nowrap"><span id="rbar-tons">—</span>&nbsp;t</span>
-      <span id="correction-note"></span>
+    <div class="header-search-group" style="position:absolute;left:50%;transform:translateX(-50%);margin:0;">
+    <div class="header-search" style="background:none;border:none;box-shadow:none;border-radius:0;display:flex;gap:8px;padding:0;max-width:264px;overflow:visible;">
+      <!-- Barre texte remplacée par la plage Réf article (16/07). Le champ
+           search-input reste CACHÉ : le scanner QR et le mode partagé écrivent
+           dedans (12 points d'accroche JS). -->
+      <input type="text" id="search-input" style="display:none" autocomplete="off">
+      <label class="exact-toggle" style="display:none"><input type="checkbox" id="exact-toggle"><span>Exact</span></label>
+      <input type="number" id="f-refmin-top" placeholder="Réf article" min="0" style="flex:0 0 auto;width:126px;height:38px;border:1.5px solid var(--border);border-radius:8px;background:#fff;font:inherit;font-size:14px;padding:0 12px;outline:none;box-sizing:border-box;" oninput="syncMobFilter('f-refmin','f-refmin-top')">
+      <input type="number" id="f-refmax-top" placeholder="Max" min="0" style="flex:0 0 auto;width:126px;height:38px;border:1.5px solid var(--border);border-radius:8px;background:#fff;font:inherit;font-size:14px;padding:0 12px;outline:none;box-sizing:border-box;" oninput="syncMobFilter('f-refmax','f-refmax-top')">
+    </div>
     </div>
     <div class="hright">
       <div class="cart-wrap">
@@ -132,15 +132,7 @@
           <span class="cart-badge" id="cart-badge" aria-live="polite" aria-label="Produits dans la liste">0</span>
         </button>
       </div>
-      <button class="btn-head btn-head-scan" onclick="openScanModal()" title="Scanner un QR code" aria-label="Scanner un QR code">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg>
-      </button>
-      <button class="btn-head btn-head-scan on" onclick="togglePriceMode(!_priceMode)" id="lang-fr" title="Afficher / masquer les prix" style="font-size:18px;font-weight:700;">€</button>
     </div>
-  </div>
-  <!-- mobile lang bar -->
-  <div class="mob-hbar">
-    <button onclick="togglePriceMode(!_priceMode)" id="lang-fr-m" class="lang-btn on" title="Afficher / masquer les prix">€</button>
   </div>
 </header>
 
@@ -251,7 +243,7 @@
     <div class="filters-panel" id="filters-panel">
       <div class="fp-head">
         <div class="fp-title">FILTRES</div>
-        <button class="fp-reset" onclick="resetFilters()" style="background:none;border:none;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;color:var(--ink);cursor:pointer;text-transform:uppercase;letter-spacing:.5px;">Réinitialiser</button>
+        <button class="fp-reset" onclick="resetFilters()" style="background:none;border:none;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;color:var(--ink);cursor:pointer;text-transform:uppercase;letter-spacing:.5px;"><svg class="fp-reset-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg><span class="fp-reset-t1">Réinitialiser</span><span class="fp-reset-t2">Recommencer</span></button>
       </div>
       <div class="fg" style="border-bottom:2px solid var(--border);margin-bottom:14px;padding-bottom:14px;">
         <div class="format-pills" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
@@ -298,7 +290,7 @@
       <div class="fg" id="sb-sec-format">
         <div class="msd" id="sb-msd-format">
           <button class="msd-btn" data-msd-id="msd-format" onclick="toggleMsd('sb-msd-format')">
-            <span class="msd-btn-label">Formats</span><span class="msd-arrow">▾</span>
+            <span class="msd-btn-label">Dimensions</span><span class="msd-arrow">▾</span>
           </button>
           <div class="msd-panel"></div>
         </div>
@@ -362,7 +354,7 @@
         <div class="format-pills" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
           <button class="fpill fpill-dark fpill-photo" data-photo="with" onclick="togglePhotoPill(this)" style="justify-content:center;gap:5px;width:100%;box-sizing:border-box;font-size:11px;padding:7px 6px;">
             <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1" y="3" width="12" height="9" rx="1.5"/><circle cx="7" cy="7.5" r="2.2"/><path d="M5 3l1-1.5h2L9 3"/></svg>
-            Avec photo
+            Photo
           </button>
           <button class="fpill fpill-dark fpill-photo" data-photo="without" onclick="togglePhotoPill(this)" style="justify-content:center;gap:5px;width:100%;box-sizing:border-box;font-size:11px;padding:7px 6px;">
             <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1" y="3" width="12" height="9" rx="1.5"/><line x1="1" y1="1" x2="13" y2="13" stroke-width="1.8"/></svg>
@@ -370,11 +362,11 @@
           </button>
           <button class="fpill fpill-dark fpill-resa" data-resa="with" onclick="toggleResaPill(this)" style="justify-content:center;gap:5px;width:100%;box-sizing:border-box;font-size:11px;padding:7px 6px;">
             <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2.5" y="6" width="9" height="6.5" rx="1.2"/><path d="M4.5 6V4.5a2.5 2.5 0 0 1 5 0V6"/></svg>
-            Réservés
+            Réservé
           </button>
           <button class="fpill fpill-dark fpill-resa" data-resa="without" onclick="toggleResaPill(this)" style="justify-content:center;gap:5px;width:100%;box-sizing:border-box;font-size:11px;padding:7px 6px;">
-            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2.5" y="6" width="9" height="6.5" rx="1.2"/><path d="M4.5 6V4.5a2.5 2.5 0 0 1 5 0V6"/><line x1="1" y1="1" x2="13" y2="13" stroke-width="1.8"/></svg>
-            Sans réservé
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2.5" y="6" width="9" height="6.5" rx="1.2"/><path d="M4.5 6V4.2a2.5 2.5 0 0 1 4.9-.7"/></svg>
+            Dispo
           </button>
         </div>
       </div>
@@ -490,7 +482,7 @@
       <div class="drawer-meta" id="drawer-meta">—</div>
     </div>
     <div class="drawer-head-actions">
-      <button class="dh-clear-btn" onclick="openImportRefs()" title="Album photo" aria-label="Album photo">Album photo</button>
+      <button class="dh-clear-btn dh-scan-btn" onclick="openScanModal()" title="Scanner un QR code" aria-label="Scanner un QR code"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg></button>
       <button class="dh-clear-btn" onclick="doClearCart()" title="Vider la liste">Vider la liste</button>
       <button class="dh-close-btn" onclick="closeCartDrawer()" aria-label="Fermer">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -706,7 +698,7 @@
       <div class="fd-section-body" style="margin-top:6px;">
         <div class="msd" id="msd-format-mob">
           <button class="msd-btn" data-msd-id="msd-format" onclick="toggleMsd('msd-format-mob')">
-            <span class="msd-btn-label">Formats</span>
+            <span class="msd-btn-label">Dimensions</span>
             <span class="msd-arrow">▾</span>
           </button>
           <div class="msd-panel"></div>
@@ -798,7 +790,7 @@
         <div class="format-pills" style="display:flex;gap:8px;">
           <button class="fpill fpill-photo" data-photo="with" onclick="togglePhotoPill(this)" style="flex:1;justify-content:center;gap:6px;">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1" y="3" width="12" height="9" rx="1.5"/><circle cx="7" cy="7.5" r="2.2"/><path d="M5 3l1-1.5h2L9 3"/></svg>
-            Avec photo
+            Photo
           </button>
           <button class="fpill fpill-photo" data-photo="without" onclick="togglePhotoPill(this)" style="flex:1;justify-content:center;gap:6px;">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1" y="3" width="12" height="9" rx="1.5"/><line x1="1" y1="1" x2="13" y2="13" stroke-width="1.8"/></svg>
@@ -854,6 +846,6 @@
 <div class="spin-bg" id="spinner"><div class="spin"></div></div>
 
 <script src="/analytics.js?v=1"></script>
-<script src="/catalogue.js?v=473"></script>
+<script src="/catalogue.js?v=549"></script>
 </body>
 </html>

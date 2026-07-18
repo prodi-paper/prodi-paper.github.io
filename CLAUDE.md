@@ -244,6 +244,52 @@ La page ouverte par un lien `?s=CODE` est une VUE CLIENT dédiée (`body.shared-
   mais code conservé `_buildSharedInfo`), shared_tab.
 - logo.png rendu TRANSPARENT (original : img/logo_fond_blanc.png), servi en ?v=2.
 
+## REFONTE TOPBAR + HERO PRODIX (18/07/2026 soir, poussée 18/07)
+
+**Tout est derrière le flag `?haut=1`** (body.topbar-view) — le catalogue nu
+garde la vue classique panneau gauche. Contenu du mode :
+- **Barre de filtres horizontale** centrée : Type de papier · Grammages ·
+  Couleurs · (menus bobine/format selon le STOCK réel du type choisi, format
+  NULL ignoré comme bruit) · Détails · Filtres avancés. Deux gabarits de
+  largeur (96/134 px), libellés FIXES (la sélection vit dans les tags),
+  liseré noir `.has-sel`. « Formats » renommé **Dimensions**.
+- **Filtres avancés** = accordéon (`_paintAdv`) : Photo, Réservation, Poids,
+  Mandrin, Réf usine (avec recherche). Bobine/Format pills retirées.
+- **Détails à 2 niveaux** : 3 familles fusionnées (Teintes & finitions,
+  Matières & fibres, Codes & qualités) + « Autres / Sans détails » fusionnés
+  en une case double.
+- **2e ligne** = tags supprimables en ordre d'ACTIVATION (`_chipSeen`),
+  + bleu (popup TONNAGE : 10 t / container 26,5 / Tout · ≈ dispo, sélection
+  serveur via `_lastQueryP`) ancré à gauche, tri ⇅ à droite (ancres absolues).
+- **Scroll infini** (`_loadMore`, sentinelle) — plus de pagination. Zone
+  filtres STICKY (⚠️ `overflow-x:clip` sur html/body — `hidden` TUE le sticky).
+- **Header capsule flottante** : Réf article/Max centrés absolus, Liste bleu
+  #0071e3 ; compteur articles masqué ; « Album photo » supprimé (remplacé par
+  le + fichier de PRODIX).
+- **Cartes catalogue = cartes étiquette** de la vue client (+ rond bleu au
+  survol dans la ligne DÉTAIL, groupés = tout le lot d'un coup), badges photo
+  retirés, × N et RÉSERVÉ translucides, badge **PROMO −30 %** (products.promo).
+- **Fiche = celle de la vue client** (sélecteurs étendus body.apple-view,
+  ligne bas ZONE · USINE · CODE DOUANIER, + rond, pas de bouton Ajouter).
+- **LANDING = HERO PRODIX** (Base44×Apple) : panda pastille translucide
+  (img/prodix.png flood-fill transparent, original prodix_fond_blanc.png),
+  pilule à placeholder machine-à-écrire (6 phrases complètes), 2 rails de
+  vraies cartes en fond, grille+footer masqués en vitrine, **conversation
+  DANS le hero** (panneau 1080px, ids prodix-chat/prodix-input réutilisés par
+  le moteur _pxSend, fab panda supprimé, toasts coupés, page verrouillée
+  `body.phero-lock` — seul le fil scrolle, bouton ← Revenir = _pxRetour),
+  + fichier (BL/Excel → réfs → liste, `_pxFichier`), résumé d'offre dans la
+  bulle, **historique 5 offres** localStorage `prodix_hist` (chips nommées
+  « Offre kraft brun · 12,4 t », reprise via `_pxReprendre`), choix
+  multi-cochables si `multi:true` + case ✏️ écriture libre inline.
+- **PROMO** : réfs < 900000 = promo permanente (règle dans
+  scripts/import_stock_ci.py : prix −30 %, jamais résa, colonne
+  products.promo) — voir mémoire « Import stock automatique ».
+- **PRODIX API** (repo prodi_arrivages) : critères tier A/B/C, avec_photo,
+  usines, promo, inclure_reserves, liste en cours (reprise), boucle
+  auto-apprenante (prodix_gaps/hints, distillation nocturne). Traqueurs front
+  prodix_* partout.
+
 ## Règles photos / images produit
 
 ### Priorité d'affichage (pour TOUS les produits)

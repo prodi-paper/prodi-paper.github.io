@@ -14,3 +14,4 @@ Screen*.png
 # Security: never commit prompt files containing leaked secrets / dev brief
 SECURITY_FIX_PROMPT.md
 ARCHITECTURE.pdf
+.vercel

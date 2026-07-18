@@ -586,8 +586,10 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:24px;}
   .live-pill-desktop{display:none;}
 }
 /* Safety net : empêche le cart-drawer fixed (translateX hors viewport) de causer
-   un scroll horizontal sur tablette aussi (déjà appliqué en mobile <768px). */
-html,body{overflow-x:hidden;}
+   un scroll horizontal sur tablette aussi (déjà appliqué en mobile <768px).
+   overflow-x:CLIP et pas hidden — hidden crée un scrollport qui TUE les
+   position:sticky descendants (barre de filtres collante, 18/07). */
+html,body{overflow-x:clip;}
 @media(max-width:768px){
   /* Header row 1: panda + filter-btn + cart (search moved below) */
   .header-inner{padding:0 10px;height:50px;gap:8px;position:relative;}
@@ -1298,7 +1300,7 @@ body.shared-view .body-wrap{grid-template-columns:1fr !important;}
 .si-wa:hover{background:#1fb457;}
 .sc-count{position:absolute;top:10px;left:10px;background:#111;color:#fff;font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:1px;padding:4px 11px;border-radius:7px;}
 /* Fiche vue client : quadrillage copié de l'étiquette + reste en bas */
-body.shared-view .dspecs{display:block;border:none;overflow:visible;}
+body.shared-view .dspecs,body.apple-view .dspecs{display:block;border:none;overflow:visible;}
 .det-etq{display:grid;grid-template-columns:repeat(4,1fr);border:2.5px solid #000;border-radius:10px;overflow:hidden;}
 .det-etq-cell{border:.5px solid #000;padding:9px 12px;min-width:0;}
 .det-etq-lbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#222;white-space:nowrap;}
@@ -1306,31 +1308,31 @@ body.shared-view .dspecs{display:block;border:none;overflow:visible;}
 .det-reste{margin-top:12px;display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:#666;}
 .det-reste-item b{font-weight:700;color:#333;text-transform:uppercase;font-size:11.5px;letter-spacing:.5px;margin-right:4px;}
 @media(max-width:700px){.det-etq{grid-template-columns:repeat(2,1fr);}}
-body.shared-view #det-summary{display:none !important;}
-body.shared-view #det-name{display:none;}
+body.shared-view #det-summary,body.apple-view #det-summary{display:none !important;}
+body.shared-view #det-name,body.apple-view #det-name{display:none;}
 .det-etq-title{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:.8px;line-height:1.05;padding:12px 14px 9px;white-space:normal;}
 /* Vue client : la fiche = LA CARTE EN GRAND (photo dessus, cadre étiquette dessous) */
-body.shared-view .dmodal{flex-direction:column;max-width:660px;height:auto;max-height:94vh;overflow-y:auto;}
-body.shared-view .dimg-col{width:100%;height:460px;flex-shrink:0;position:relative;}
-body.shared-view .dmain{height:460px;}
-body.shared-view .dmain img{width:100%;height:100%;object-fit:contain;position:relative;z-index:1;}
-body.shared-view .dmain{background:#111;overflow:hidden;}
-body.shared-view .det-blur{position:absolute;inset:0;background-size:cover;background-position:center;filter:blur(24px) brightness(.72);transform:scale(1.18);}
-body.shared-view .dbody{width:100%;height:auto;padding:0;overflow:visible;}
-body.shared-view .det-etq{border-radius:0;border:none;border-top:3px solid #000;}
-body.shared-view .det-etq-cell{border-width:1px;}
-body.shared-view .det-reste{padding:10px 16px 4px;margin-top:0;}
-body.shared-view .d-actions{padding:10px 16px 16px;}
-body.shared-view .dhead-actions{position:absolute;top:12px;right:12px;z-index:12;}
-body.shared-view .dprice-row{padding:0 16px;}
+body.shared-view .dmodal,body.apple-view .dmodal{flex-direction:column;max-width:660px;height:auto;max-height:94vh;overflow-y:auto;}
+body.shared-view .dimg-col,body.apple-view .dimg-col{width:100%;height:460px;flex-shrink:0;position:relative;}
+body.shared-view .dmain,body.apple-view .dmain{height:460px;}
+body.shared-view .dmain img,body.apple-view .dmain img{width:100%;height:100%;object-fit:contain;position:relative;z-index:1;}
+body.shared-view .dmain,body.apple-view .dmain{background:#111;overflow:hidden;}
+body.shared-view .det-blur,body.apple-view .det-blur{position:absolute;inset:0;background-size:cover;background-position:center;filter:blur(24px) brightness(.72);transform:scale(1.18);}
+body.shared-view .dbody,body.apple-view .dbody{width:100%;height:auto;padding:0;overflow:visible;}
+body.shared-view .det-etq,body.apple-view .det-etq{border-radius:0;border:none;border-top:3px solid #000;}
+body.shared-view .det-etq-cell,body.apple-view .det-etq-cell{border-width:1px;}
+body.shared-view .det-reste,body.apple-view .det-reste{padding:10px 16px 4px;margin-top:0;}
+body.shared-view .d-actions,body.apple-view .d-actions{padding:10px 16px 16px;}
+body.shared-view .dhead-actions,body.apple-view .dhead-actions{position:absolute;top:12px;right:12px;z-index:12;}
+body.shared-view .dprice-row,body.apple-view .dprice-row{padding:0 16px;}
 .det-etq-wrap .det-etq-val{white-space:normal;overflow:visible;text-overflow:clip;font-size:17px;line-height:1.3;font-weight:700;}
 .sc-wrap .sc-val{white-space:normal;overflow:hidden;text-overflow:clip;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:11.5px;line-height:1.25;}
-body.shared-view .dmodal{max-width:840px;}
-body.shared-view .dimg-col,body.shared-view .dmain{height:56vh;max-height:600px;}
-body.shared-view .det-etq-title{font-size:29px;padding:10px 14px 8px;}
-body.shared-view .det-etq-cell{padding:8px 12px;}
-body.shared-view .det-etq .det-etq-val{font-size:19px;}
-body.shared-view .det-etq .det-etq-wrap .det-etq-val{font-size:16px;}
+body.shared-view .dmodal,body.apple-view .dmodal{max-width:840px;}
+body.shared-view .dimg-col,body.shared-view .dmain,body.apple-view .dimg-col,body.apple-view .dmain{height:56vh;max-height:600px;}
+body.shared-view .det-etq-title,body.apple-view .det-etq-title{font-size:29px;padding:10px 14px 8px;}
+body.shared-view .det-etq-cell,body.apple-view .det-etq-cell{padding:8px 12px;}
+body.shared-view .det-etq .det-etq-val,body.apple-view .det-etq .det-etq-val{font-size:19px;}
+body.shared-view .det-etq .det-etq-wrap .det-etq-val,body.apple-view .det-etq .det-etq-wrap .det-etq-val{font-size:16px;}
 
 /* Vue client : fond BLANC épuré (fini le crème) */
 body.shared-view{background:#fff;}
@@ -1352,15 +1354,15 @@ body.shared-view .sc-wrap .sc-val{min-height:2.55em;font-size:11.5px;}
 body.shared-view .rbar-sel{background:#fff;border:1.5px solid #e4e4e4;border-radius:9px;font-size:13px;color:#555;}
 body.shared-view .pbig-ref{font-size:17px;padding:4px 10px;background:rgba(0,0,0,.82);}
 body.shared-view .pbig-usine{background:rgba(0,0,0,.55);}
-body.shared-view .dnav-inline{display:none !important;}
-body.shared-view .modal-bg.show .dmod-nav{display:flex !important;background:rgba(255,255,255,.92);color:#111;box-shadow:0 4px 14px rgba(0,0,0,.2);}
-body.shared-view .dmod-prev{left:calc(50% - 530px);}
-body.shared-view .dmod-next{right:calc(50% - 530px);}
-@media(max-width:900px){body.shared-view .dmod-prev{left:8px;}body.shared-view .dmod-next{right:8px;}}
-body.shared-view .dhead-actions{position:fixed;top:16px;right:16px;z-index:9999;}
-body.shared-view .dhead-actions .dclose{background:#fff;width:44px;height:44px;box-shadow:0 4px 14px rgba(0,0,0,.25);}
-body.shared-view .dmodal .d-actions{display:none;}
-body.shared-view .det-reste{padding:12px 16px 6px;}
+body.shared-view .dnav-inline,body.apple-view .dnav-inline{display:none !important;}
+body.shared-view .modal-bg.show .dmod-nav,body.apple-view .modal-bg.show .dmod-nav{display:flex !important;background:rgba(255,255,255,.92);color:#111;box-shadow:0 4px 14px rgba(0,0,0,.2);}
+body.shared-view .dmod-prev,body.apple-view .dmod-prev{left:calc(50% - 530px);}
+body.shared-view .dmod-next,body.apple-view .dmod-next{right:calc(50% - 530px);}
+@media(max-width:900px){body.shared-view .dmod-prev,body.apple-view .dmod-prev{left:8px;}body.shared-view .dmod-next,body.apple-view .dmod-next{right:8px;}}
+body.shared-view .dhead-actions,body.apple-view .dhead-actions{position:fixed;top:16px;right:16px;z-index:9999;}
+body.shared-view .dhead-actions .dclose,body.apple-view .dhead-actions .dclose{background:#fff;width:44px;height:44px;box-shadow:0 4px 14px rgba(0,0,0,.25);}
+body.shared-view .dmodal .d-actions,body.apple-view .dmodal .d-actions{display:none;}
+body.shared-view .det-reste,body.apple-view .det-reste{padding:12px 16px 6px;}
 body.shared-view .pgrid{grid-template-columns:repeat(4,1fr);}
 body.shared-view .sc-val{font-size:15.5px;}
 body.shared-view .sc-cap{font-size:9.5px;}
@@ -1528,8 +1530,8 @@ body.apple-view .sc-grid{background:#c9c9ce;gap:1px;border:1px solid #c9c9ce;}
 body.apple-view .sc-cell,body.apple-view .sc-title{border:none !important;background:#fff;}
 body.apple-view .det-etq{background:#c9c9ce;gap:1px;border:1px solid #c9c9ce;}
 body.apple-view .det-etq-cell{border:none !important;background:#fff;}
-body.shared-view .footer-grid{display:none !important;}
-body.shared-view .footer-bottom{border-top:none;margin-top:0;padding-top:4px;}
+body.shared-view .footer-grid,body.apple-view .footer-grid{display:none !important;}
+body.shared-view .footer-bottom,body.apple-view .footer-bottom{border-top:none;margin-top:0;padding-top:4px;}
 /* Apple : la FICHE reprend exactement la typo des cartes (gras/noir/contrastes) */
 body.apple-view .det-etq-title{font-weight:800;color:#000;letter-spacing:-.4px;}
 body.apple-view .det-etq-lbl{font-size:13px;font-weight:900;color:#000;letter-spacing:.4px;}
@@ -1572,8 +1574,8 @@ body.apple-view #det-usine-num{font-family:'DM Sans',sans-serif !important;font-
 .recap-q-name{display:flex;flex-direction:column;line-height:1.25;}
 .recap-q-name small{font-size:12px;font-weight:600;color:#8a8a8e;}
 /* Apple : badges en vrai « matériau » Apple (verre dépoli saturé, texte SF-like) */
-body.apple-view .pbig-ref,body.apple-view #det-ref-badge{background:rgba(255,255,255,.72) !important;-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);color:#1d1d1f !important;font-size:13px !important;font-weight:600 !important;letter-spacing:.2px !important;padding:6px 12px !important;box-shadow:0 1px 4px rgba(0,0,0,.14);border-radius:999px !important;}
-body.apple-view .pbig-usine,body.apple-view #det-usine-badge{background:rgba(28,28,30,.55) !important;-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);border-radius:999px !important;padding:6px 12px !important;font-size:12px !important;font-weight:600 !important;letter-spacing:.2px !important;}
+body.apple-view .pbig-ref,body.apple-view #det-ref-badge{background:rgba(255,255,255,.95) !important;-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);color:#1d1d1f !important;font-size:13px !important;font-weight:600 !important;letter-spacing:.2px !important;padding:6px 12px !important;box-shadow:0 1px 4px rgba(0,0,0,.14);border-radius:999px !important;}
+body.apple-view .pbig-usine,body.apple-view #det-usine-badge{background:rgba(28,28,30,.85) !important;-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border-radius:999px !important;padding:6px 12px !important;font-size:12px !important;font-weight:600 !important;letter-spacing:.2px !important;}
 body.apple-view #det-usine-badge span:first-child{font-size:10px !important;font-weight:600 !important;letter-spacing:.8px !important;color:rgba(255,255,255,.75) !important;}
 body.apple-view #det-usine-num{font-size:13px !important;font-weight:700 !important;}
 
@@ -1589,3 +1591,361 @@ body.apple-view #det-usine-num{font-size:13px !important;font-weight:700 !import
 .recap-eyebrow{font-size:14px;font-weight:600;color:#6e6e73;margin-bottom:10px;}
 .recap-stats{justify-content:flex-start;}
 .recap-stat{text-align:left;}
+body.shared-view .dimg-col,body.apple-view .dimg-col{border-right:none;border-bottom:none;}
+/* Apple : flèches de fiche = pastilles grises + chevrons (style apple.com) */
+body.apple-view .modal-bg.show .dmod-nav{background:#e8e8ed;box-shadow:none;font-size:0;color:transparent;}
+body.apple-view .modal-bg.show .dmod-nav:hover:not(:disabled){background:#dededf;}
+body.apple-view .dmod-nav::after{content:'';width:13px;height:13px;border-right:2.5px solid #6e6e73;border-top:2.5px solid #6e6e73;display:block;border-radius:1px;}
+body.apple-view .dmod-prev::after{transform:rotate(-135deg);margin-left:7px;}
+body.apple-view .dmod-next::after{transform:rotate(45deg);margin-right:7px;}
+body.apple-view .dmod-nav:hover:not(:disabled)::after{border-color:#48484a;}
+body.apple-view .dhead-actions .dclose{background:#e8e8ed;box-shadow:none;color:#6e6e73;font-size:15px;font-weight:600;}
+body.apple-view .dhead-actions .dclose:hover{background:#dededf;color:#48484a;}
+
+/* ══ THÈME APPLE ÉTENDU AU CATALOGUE (18/07) — mêmes codes que la vue client :
+   fond #f5f5f7, blocs blancs sans bordure dure, hairlines, pilules, rouge
+   réservé aux vrais accents. ══ */
+/* Fond & header */
+body.apple-view:not(.shared-view){background:#f5f5f7;}
+body.apple-view:not(.shared-view) header{background:#f5f5f7;border-bottom:none;}
+body.apple-view:not(.shared-view) #results-bar{background:#f5f5f7;}
+body.apple-view:not(.shared-view) .header-search{background:#fff;border:none;box-shadow:0 2px 10px rgba(0,0,0,.06);}
+/* Panneau filtres */
+body.apple-view .fp-head{border-bottom:1px solid #d2d2d7;}
+body.apple-view .fp-title{font-family:'DM Sans',sans-serif;font-weight:800;letter-spacing:0;font-size:15px;}
+body.apple-view .fg{border-bottom:none;}
+body.apple-view .msd-btn{border:none;background:#fff;box-shadow:0 1px 6px rgba(0,0,0,.06);border-radius:12px;}
+body.apple-view .msd-btn:hover,body.apple-view .msd-btn.open{box-shadow:0 2px 10px rgba(0,0,0,.12);border:none;}
+body.apple-view .msd-panel{border:none;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.16);}
+body.apple-view .msd-count{background:#1d1d1f;}
+body.apple-view .msd-option.selected .msd-count-inline{color:#1d1d1f;background:#e8e8ed;}
+body.apple-view .fpill{border:1.5px solid #d2d2d7;color:#1d1d1f;border-radius:999px;}
+body.apple-view .fpill:hover{border-color:#1d1d1f;}
+body.apple-view .fpill.active{background:#1d1d1f;border-color:#1d1d1f;color:#fff;}
+/* Cartes catalogue */
+body.apple-view .pcard{border:none;border-radius:18px;box-shadow:0 4px 22px rgba(0,0,0,.05);}
+body.apple-view .pcard:hover{border:none;box-shadow:0 10px 32px rgba(0,0,0,.10);transform:translateY(-2px);}
+body.apple-view .pcard-spec{background:#f5f5f7;border:none;border-radius:9px;}
+body.apple-view .pcard-subtitle{color:#6e6e73;}
+body.apple-view .btn-add-cart{border:1.5px solid #d2d2d7;border-radius:999px;}
+body.apple-view .btn-add-cart:hover{border-color:#1d1d1f;}
+body.apple-view .btn-add-cart.added{background:#1d1d1f;border-color:#1d1d1f;color:#fff;}
+/* Pager & états vides */
+body.apple-view .pager-top{background:#ebebee;border:none;border-radius:999px;}
+body.apple-view .pager-top .pnum.active{background:#1d1d1f;border:none;color:#fff;}
+body.apple-view .btn-empty-reset{border-radius:999px;}
+/* Fiche produit catalogue (pavés specs) */
+body.apple-view .dspec-item{background:#f5f5f7;border:none;border-radius:12px;}
+body.apple-view .dspec-lbl{color:#6e6e73;}
+body.apple-view .dspec-val{color:#1d1d1f;}
+body.apple-view .btn-cart-det{border-radius:999px;}
+/* Tiroir Ma Liste */
+body.apple-view .drawer-totals{background:#f5f5f7;border:none;border-radius:12px;}
+body.apple-view .da-action,body.apple-view .da-copy-link{border-radius:999px;}
+body.apple-view #f-refmax-top{border:none !important;box-shadow:0 2px 10px rgba(0,0,0,.06);border-radius:999px !important;}
+body.apple-view .rbar-sel{height:auto !important;line-height:1.3;padding:9px 28px 9px 14px !important;}
+
+/* ---- Cartes catalogue = cartes étiquette de la vue client (18/07) ---- */
+body.apple-view .sc-card .sc-body{display:flex;flex-direction:column;flex:1;}
+body.apple-view .sc-card .pcard-grp-add{background:#fff;border-top:none;margin-top:auto;}
+body.apple-view .sc-foot{padding:10px 12px 12px;}
+body.apple-view .sc-foot .btn-add-cart{width:100%;text-align:center;}
+body.apple-view .pcard-resa-overlay{top:10px;right:10px;left:auto;background:rgba(180,83,9,.82);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);border-radius:999px;padding:6px 12px;font-size:11px;font-weight:700;letter-spacing:.4px;}
+
+/* ---- ESSAI ?haut=1 : filtres en BARRE HORIZONTALE au-dessus de la grille (18/07) ---- */
+@media(min-width:769px){
+body.topbar-view .body-wrap{display:block;padding:0 24px 32px;}
+body.topbar-view .filters-panel{position:static !important;display:flex !important;flex-wrap:wrap;align-items:center;gap:8px;justify-content:center;height:auto !important;overflow:visible !important;border-right:none;background:transparent;padding:14px 0 18px;}
+body.topbar-view .fp-head{border-bottom:none;margin:0;padding:0;order:99;}
+body.topbar-view .fp-title{display:none;}
+body.topbar-view .filters-panel .fg{border:none !important;margin:0 !important;padding:0 !important;}
+body.topbar-view .filters-panel .msd{width:auto;}
+body.topbar-view .filters-panel .msd-btn{width:auto;padding:9px 12px 9px 14px;}
+body.topbar-view .format-pills{display:flex !important;margin:0;gap:8px;}
+body.topbar-view .format-pills .fpill{width:auto !important;}
+body.topbar-view .msd-panel{width:auto !important;min-width:230px;max-width:340px;}
+body.topbar-view .body-wrap>div:last-child{padding:12px 0 0;}
+}
+@media(min-width:769px){
+body.topbar-view .pgrid{grid-template-columns:repeat(4,1fr);}
+}
+
+/* ---- Tiroir MA LISTE façon Apple (18/07) ---- */
+body.apple-view .cart-drawer{background:#f5f5f7;}
+body.apple-view .drawer-head{border-bottom:1px solid #d2d2d7;}
+body.apple-view .drawer-title{font-size:24px;-webkit-text-stroke:.7px #000;letter-spacing:1.5px;}
+body.apple-view .drawer-meta{color:#6e6e73;}
+body.apple-view .dh-clear-btn{background:#e8e8ed;border:none;color:#1d1d1f;font-weight:600;height:34px;}
+body.apple-view .dh-clear-btn:hover{background:#dededf;color:#1d1d1f;}
+body.apple-view .dh-close-btn{background:#e8e8ed;border:none;color:#6e6e73;}
+body.apple-view .dh-close-btn:hover{background:#dededf;color:#48484a;}
+body.apple-view .ci{border:none;border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.05);margin-bottom:10px;}
+body.apple-view .ci-kgs{color:#000;font-weight:800;}
+body.apple-view .ci-qty-btn{border:none;background:#e8e8ed;}
+body.apple-view .ci-qty-btn:hover{background:#dededf;}
+body.apple-view .drawer-footer{border-top:1px solid #d2d2d7;background:#f5f5f7;}
+body.apple-view .da-action{background:#1d1d1f;}
+body.apple-view .da-action:hover{background:#000;}
+body.apple-view .da-copy-link{background:#e8e8ed;color:#1d1d1f;}
+body.apple-view .da-copy-link:hover{background:#dededf;}
+body.apple-view .drawer-totals{background:#fff;border:none;box-shadow:0 2px 10px rgba(0,0,0,.05);}
+body.apple-view .dt-val{color:#000;}
+body.apple-view .btn-drawer-browse{border-radius:999px;}
+
+/* Recommencer : bouton pilule avec fleche, a droite de Sans reserve (topbar) */
+.fp-reset-ico,.fp-reset-t2{display:none;}
+body.topbar-view .fp-reset{display:inline-flex;align-items:center;justify-content:center;background:#e8e8ed !important;border-radius:999px;width:38px;height:38px;padding:0 !important;color:#1d1d1f !important;}
+body.topbar-view .fp-reset:hover{background:#dededf !important;}
+body.topbar-view .fp-reset .fp-reset-ico{display:block;width:16px;height:16px;}
+body.topbar-view .fp-reset-t1,body.topbar-view .fp-reset-t2{display:none;}
+body.topbar-view .fpill-photo,body.topbar-view .fpill-resa{font-size:13px !important;padding:7px 14px !important;gap:6px !important;}
+
+/* + rond dans la ligne DETAIL des cartes catalogue (18/07) */
+body.apple-view .sc-det-row{display:flex;align-items:center;gap:8px;}
+body.apple-view .sc-add{flex-shrink:0;width:34px;height:34px;border-radius:999px;border:1.5px solid #d2d2d7;background:#fff;cursor:pointer;font-size:0 !important;display:flex;align-items:center;justify-content:center;padding:0;transition:border-color .15s,background .15s;}
+body.apple-view .sc-add svg{display:none;}
+body.apple-view .sc-add::before{content:'+';font-size:21px;font-weight:500;color:#1d1d1f;font-family:'DM Sans',sans-serif;line-height:1;}
+body.apple-view .sc-add:hover{border-color:#1d1d1f;}
+body.apple-view .sc-add.added{background:#1d1d1f;border-color:#1d1d1f;}
+body.apple-view .sc-add.added::before{content:'\2713';color:#fff;font-size:16px;font-weight:700;}
+
+/* topbar UNE ligne (v2, 18/07) : tri = pastille avec menu, + page et pager en bout de barre, tout compacte */
+body.topbar-view .filters-panel{gap:6px;}
+body.topbar-view .filters-panel .msd-btn{font-size:14px;padding:9px 10px 9px 12px;}
+body.topbar-view .fpill{padding:7px 10px !important;}
+body.topbar-view .fpill-photo,body.topbar-view .fpill-resa{padding:7px 10px !important;font-size:12.5px !important;}
+body.topbar-view .fp-reset,body.topbar-view .filters-panel #add-page-btn{width:36px;height:36px;}
+body.topbar-view .rbar-sort{display:none;}
+body.topbar-view #tb-sort{order:100;width:auto;}
+body.topbar-view .tb-sort-btn{width:56px !important;height:38px !important;padding:0 !important;justify-content:center;border-radius:999px;}
+body.topbar-view .filters-panel #add-page-btn{order:-1;border:none;background:#fff;box-shadow:0 1px 6px rgba(0,0,0,.06);border-radius:999px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;}
+body.topbar-view .filters-panel .pager-top{order:-1;margin:0;}
+
+/* Panneau Details a deux niveaux : familles puis options (18/07) */
+.msd-group-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:var(--ink);}
+.msd-group-row:hover{background:#f5f5f7;}
+.mgr-right{display:flex;align-items:center;gap:7px;}
+.mgr-arrow{color:#a1a1a6;font-size:17px;line-height:1;}
+.mgr-nsel{background:#1d1d1f;color:#fff;border-radius:999px;font-size:11px;font-weight:700;padding:2px 8px;line-height:1.4;}
+.msd-back-row{display:none;align-items:center;gap:7px;padding:10px 12px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;color:var(--ink);border-bottom:1px solid #eee;position:sticky;top:0;background:#fff;z-index:2;}
+.msd-back-row:hover{background:#f5f5f7;}
+.msd-back-ar{font-size:17px;line-height:1;}
+/* topbar : pilules Bobine/Format retirees, le + page prend leur place en tete (18/07) */
+body.topbar-view .filters-panel .fg:has([data-format]){display:none !important;}
+/* topbar : SANS PHOTO et RESERVE retires, restent PHOTO et DISPO (18/07) */
+body.topbar-view .fpill-photo[data-photo="without"],body.topbar-view .fpill-resa[data-resa="with"]{display:none !important;}
+/* Album photo : bouton header (ex-tiroir), cache en vue client */
+body.shared-view #album-photo-btn{display:none !important;}
+
+/* topbar 2e ligne : actions + tags des filtres actifs, visible seulement si filtre pose (18/07) */
+body.topbar-view #topbar-row2{display:none;align-items:center;justify-content:flex-start;flex-wrap:nowrap;gap:8px;padding:2px 24px 10px;}
+body.topbar-view #topbar-row2:has(.fchip){display:flex;}
+body.topbar-view #topbar-row2 .filter-chips{display:flex !important;flex:1;min-width:0;flex-wrap:wrap;justify-content:center;margin:0;padding:0;max-width:none;gap:6px;}
+body.topbar-view #topbar-row2 .fchip{background:#fff;border:none;box-shadow:0 1px 4px rgba(0,0,0,.08);color:#1d1d1f;font-size:12.5px;font-weight:600;padding:7px 10px 7px 14px;border-radius:999px;}
+body.topbar-view #topbar-row2 .fchip button{color:#6e6e73;font-size:15px;}
+body.topbar-view #topbar-row2 .fchip button:hover{color:#1d1d1f;}
+/* header : hover neutre (pas de rouge) sur Album photo / Liste en theme Apple */
+body.apple-view .btn-head:hover{border-color:#1d1d1f;color:var(--ink2);background:#f5f5f7;}
+/* Album photo et Liste : largeur fixe 125px */
+
+/* header : recherche centree en absolu = vraie symetrie logo/boutons */
+body.apple-view .header-inner{position:relative;}
+body.apple-view .hright{margin-left:auto;}
+
+/* Toasts facon Apple : pilule blanche depolie, texte sombre, sans lisere rouge */
+body.apple-view .toast{background:rgba(255,255,255,.92);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);color:#1d1d1f;border:none;border-left:none;border-radius:999px;font-size:14px;font-weight:600;padding:12px 22px;box-shadow:0 8px 30px rgba(0,0,0,.18);}
+body.topbar-view #topbar-row2 #tb-sort{margin-left:auto;}
+/* topbar : menu avec selection active = liseré noir, libellé fixe */
+body.topbar-view .msd-btn.has-sel{box-shadow:0 0 0 1.5px #1d1d1f,0 1px 6px rgba(0,0,0,.06);}
+/* topbar : bouton Recommencer retire (les tags ont chacun leur croix) */
+body.topbar-view .fp-head{display:none !important;}
+
+/* menus : option cochee en NOIR (plus de rouge) en theme Apple ; Tout effacer retire du topbar */
+body.apple-view .msd-option.selected{color:#1d1d1f;background:#f5f5f7;}
+body.apple-view .msd-option.selected .msd-check{background:#1d1d1f;border-color:#1d1d1f;box-shadow:0 0 0 3px rgba(0,0,0,.08);}
+body.topbar-view .chips-clear{display:none !important;}
+
+/* + page facon Apple : jamais de rouge — hover noir, etat "tout ajouté" = noir avec x (18/07) */
+body.apple-view .vt-toggle-btn.add-page-btn:hover{background:#1d1d1f;color:#fff;border-color:#1d1d1f;}
+body.apple-view .vt-toggle-btn.add-page-btn.all-in{background:#1d1d1f;border-color:#1d1d1f;color:#fff;}
+body.apple-view .vt-toggle-btn.add-page-btn.all-in svg{display:block;transform:rotate(45deg);}
+
+/* ---- Header CAPSULE FLOTTANTE facon apple.com (18/07) : barre blanche depolie
+   detachee du haut, Liste = bouton bleu rempli (Acheter), Album photo = contour (Decouvrir) ---- */
+@media(min-width:769px){
+body.apple-view:not(.shared-view) header{background:transparent;border-bottom:none;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;top:10px;padding:0 16px;}
+body.apple-view:not(.shared-view) .header-inner{background:rgba(255,255,255,.88);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);border-radius:20px;box-shadow:0 4px 24px rgba(0,0,0,.09);max-width:1360px;margin:0 auto;padding:0 20px;height:58px;}
+body.apple-view:not(.shared-view) #cart-btn{background:#0071e3;border:none;color:#fff;}
+body.apple-view:not(.shared-view) #cart-btn:hover{background:#0077ed;border:none;color:#fff;}
+body.apple-view:not(.shared-view) #cart-btn .btn-panier-txt{color:#fff;}
+body.apple-view:not(.shared-view) #cart-btn .cart-badge{background:#fff;color:#0071e3;}
+body.apple-view:not(.shared-view) #album-photo-btn{background:#fff;border:1.5px solid #d2d2d7;color:#1d1d1f;}
+body.apple-view:not(.shared-view) #album-photo-btn:hover{border-color:#86868b;background:#fff;color:#1d1d1f;}
+}
+/* + page (2e ligne) : rond BLEU Apple assorti au bouton Liste */
+body.topbar-view #topbar-row2 #add-page-btn{border:none;background:#0071e3;color:#fff;border-radius:999px;width:36px;height:36px;min-width:36px;display:flex;align-items:center;justify-content:center;margin:0;padding:0;box-shadow:0 2px 8px rgba(0,113,227,.3);}
+body.topbar-view #topbar-row2 #add-page-btn:hover{background:#0077ed;color:#fff;border:none;}
+body.topbar-view #topbar-row2 #add-page-btn.all-in{background:#1d1d1f;color:#fff;box-shadow:none;}
+
+/* topbar : plus de pagination (scroll infini) */
+body.topbar-view .pager,body.topbar-view .pager-top{display:none !important;}
+/* catalogue : badges ref / usine retires des photos de cartes (18/07) — la vue client les garde */
+body.apple-view:not(.shared-view) .pcard .pbig-ref,body.apple-view:not(.shared-view) .pcard .pbig-usine{display:none;}
+
+/* topbar : DEUX largeurs de bouton unifiees (18/07) — 96px standard, 134px pour les longs */
+body.topbar-view .filters-panel .msd-btn{width:96px;justify-content:center;padding:9px 8px;box-sizing:border-box;}
+body.topbar-view #sb-msd-type .msd-btn,body.topbar-view #sb-msd-grammage .msd-btn,body.topbar-view #sb-msd-diametre .msd-btn,body.topbar-view #sb-msd-format .msd-btn{width:134px;}
+body.topbar-view .format-pills .fpill-photo,body.topbar-view .format-pills .fpill-resa{width:96px !important;justify-content:center !important;box-sizing:border-box;}
+/* topbar : texte + fleche centres dans les pilules a largeur fixe */
+body.topbar-view .filters-panel .msd-btn-label{flex:0 1 auto;}
+/* catalogue : compteur articles/tonnage retire du header (la vue client garde le sien) */
+body.apple-view:not(.shared-view) #rbar-count{display:none !important;}
+
+/* Album photo / Liste : compacts facon Decouvrir / Acheter d'apple.com (18/07) */
+body.apple-view:not(.shared-view) #album-photo-btn{border:1px solid #86868b;background:#fff;color:#1d1d1f;height:36px;padding:0 16px;font-weight:400;}
+body.apple-view:not(.shared-view) #album-photo-btn:hover{border-color:#1d1d1f;background:#fff;}
+body.apple-view:not(.shared-view) #cart-btn{height:36px;padding:0 16px;width:auto;border-radius:999px;}
+body.apple-view:not(.shared-view) #cart-btn svg{display:none;}
+body.apple-view:not(.shared-view) #cart-btn .btn-panier-txt{font-size:14px !important;font-weight:400 !important;}
+body.apple-view:not(.shared-view) #album-photo-btn,body.apple-view:not(.shared-view) #cart-btn{border-radius:999px;}
+/* + des cartes : survol BLEU */
+body.apple-view .sc-add:hover{border-color:#0071e3;background:#0071e3;}
+body.apple-view .sc-add:hover::before{color:#fff;}
+/* badge x N : blanc translucide discret */
+body.apple-view .sc-count{background:rgba(255,255,255,.78);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);color:#1d1d1f;font-size:12px;font-weight:600;box-shadow:0 1px 4px rgba(0,0,0,.12);}
+/* badge RESERVE : pastille blanche translucide, texte ambre — plus discret */
+body.apple-view .pcard-resa-overlay{background:rgba(255,255,255,.78);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);color:#b45309;font-size:10.5px;font-weight:700;letter-spacing:.5px;box-shadow:0 1px 4px rgba(0,0,0,.12);padding:5px 10px;}
+/* topbar : filtre Poids retire (18/07) */
+body.topbar-view .filters-panel .fg:has(#sb-msd-poids){display:none !important;}
+/* Ref article / Max : champs gris Apple, lisibles dans la capsule blanche */
+body.apple-view:not(.shared-view) #f-refmin-top,body.apple-view:not(.shared-view) #f-refmax-top{background:#fff !important;border:1px solid #86868b !important;box-shadow:none !important;}
+body.apple-view:not(.shared-view) #f-refmin-top::placeholder,body.apple-view:not(.shared-view) #f-refmax-top::placeholder{color:#86868b;}
+/* toasts : rappel de marque — texte + contour ROUGE Prodi sur blanc depoli */
+body.apple-view .toast{color:#FE0000;border:1.5px solid rgba(254,0,0,.55);font-weight:700;}
+/* badges x N et RESERVE : +5 % */
+body.apple-view .sc-count{font-size:12.6px;padding:4px 11.5px;}
+body.apple-view .pcard-resa-overlay{font-size:11px;padding:5.5px 10.5px;}
+/* topbar : Details juste avant Ref usine (18/07) */
+body.topbar-view .filters-panel .fg:has(#sb-msd-details){order:5;}
+body.topbar-view .filters-panel .fg:has(#sb-msd-usine){display:none !important;}
+body.topbar-view .filters-panel .fg:has(.fpill-photo){display:none !important;}
+/* Filtres avances : en bout de barre */
+body.topbar-view #tb-adv{order:9;width:auto;}
+body.topbar-view #tb-adv .msd-btn{width:auto;padding:9px 14px;}
+
+/* topbar : la zone de filtres (barre + tags) COLLE sous le header au scroll (18/07) */
+@media(min-width:769px){
+body.topbar-view .body-wrap>.sidebar-col{position:sticky;top:72px;z-index:90;background:transparent;pointer-events:none;}
+body.topbar-view .body-wrap>.sidebar-col button,body.topbar-view .body-wrap>.sidebar-col .msd,body.topbar-view .body-wrap>.sidebar-col .fchip,body.topbar-view .body-wrap>.sidebar-col input{pointer-events:auto;}
+}
+
+/* Effet VOL (18/07) : pilules translucides depolies, les articles defilent derriere */
+body.topbar-view .filters-panel .msd-btn,body.topbar-view .fp-reset,body.topbar-view .tb-sort-btn,body.topbar-view #topbar-row2 .fchip{background:rgba(255,255,255,.75);-webkit-backdrop-filter:blur(16px) saturate(170%);backdrop-filter:blur(16px) saturate(170%);}
+body.topbar-view .filters-panel .msd-btn:hover{background:rgba(255,255,255,.95);}
+
+/* + et tri : ancres ABSOLUES sur la ligne de filtres — la ligne des tags ne
+   réserve plus leur hauteur, la grille commence juste sous les tags (18/07) */
+body.topbar-view #topbar-row2 #add-page-btn{position:absolute;left:24px;top:15px;margin:0;}
+body.topbar-view #topbar-row2 #tb-sort{position:absolute;right:24px;top:15px;margin:0;}
+body.topbar-view #topbar-row2{padding:0 24px 10px;}
+
+/* ═══════ HERO PRODIX — page d'arrivée Base44 × Apple (18/07) ═══════ */
+body.topbar-view #prodix-hero{position:relative;min-height:calc(100vh - 230px);display:flex;align-items:center;justify-content:center;overflow:hidden;background:#f5f5f7;border-radius:0 0 28px 28px;margin-bottom:28px;}
+body.topbar-view .phero-tapis{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;gap:26px;pointer-events:none;user-select:none;-webkit-mask-image:linear-gradient(to bottom,transparent 0%,#000 16%,#000 84%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0%,#000 16%,#000 84%,transparent 100%);}
+body.topbar-view .phero-rail{overflow:hidden;opacity:.55;}
+body.topbar-view .phero-piste{display:flex;gap:18px;width:max-content;will-change:transform;}
+body.topbar-view .phero-rail-h .phero-piste{animation:phero-defile 84s linear infinite;}
+body.topbar-view .phero-rail-b .phero-piste{animation:phero-defile 66s linear infinite reverse;}
+@keyframes phero-defile{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+body.topbar-view .phero-card{flex:0 0 auto;width:272px;cursor:default;}
+body.topbar-view .phero-card .pcard-img{height:132px;}
+body.topbar-view .phero-card .sc-title{font-size:19px !important;padding:7px 10px 3px !important;-webkit-text-stroke:.4px #000;}
+body.topbar-view .phero-card .sc-cap{font-size:9px;letter-spacing:.3px;}
+body.topbar-view .phero-card .sc-val{font-size:13.5px;letter-spacing:0;}
+body.topbar-view .phero-card .sc-val small{font-size:9px;}
+body.topbar-view .phero-card .sc-cell{padding:5px 6px !important;}
+body.topbar-view .phero-voile{position:absolute;inset:0;background:rgba(245,245,247,.6);}
+body.topbar-view .phero-inner{position:relative;z-index:2;width:100%;max-width:780px;padding:56px 24px 72px;text-align:center;}
+body.topbar-view .phero-title{font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:clamp(48px,6.5vw,88px);line-height:.94;letter-spacing:.012em;color:#1d1d1f;-webkit-text-stroke:.7px #000;margin:0 0 16px;}
+body.topbar-view .phero-sub{font-size:clamp(15px,1.5vw,18.5px);font-weight:500;color:#6e6e73;line-height:1.45;max-width:540px;margin:0 auto 34px;}
+body.topbar-view .phero-box{max-width:700px;margin:0 auto;background:#fff;border-radius:24px;border:1px solid rgba(0,0,0,.04);box-shadow:0 24px 60px rgba(0,0,0,.09),0 2px 8px rgba(0,0,0,.05);padding:18px 18px 13px;text-align:left;transition:border-color .18s,box-shadow .18s;}
+body.topbar-view .phero-box:focus-within{border-color:rgba(0,113,227,.5);box-shadow:0 24px 60px rgba(0,0,0,.09),0 0 0 4px rgba(0,113,227,.12);}
+body.topbar-view .phero-box textarea{width:100%;min-height:56px;resize:none;border:0;outline:0;background:transparent;font-family:'DM Sans',sans-serif;font-size:17px;font-weight:500;color:#1d1d1f;line-height:1.5;box-sizing:border-box;}
+body.topbar-view .phero-box textarea::placeholder{color:#a1a1a6;}
+body.topbar-view .phero-bar{display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding-top:11px;border-top:1px solid #f0f0f2;}
+body.topbar-view .phero-brand{display:inline-flex;align-items:center;gap:8px;}
+body.topbar-view .phero-brand img{width:28px;height:28px;border-radius:999px;display:block;box-shadow:0 1px 4px rgba(0,0,0,.08);}
+body.topbar-view .phero-brand b{font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:17px;letter-spacing:.06em;color:#1d1d1f;}
+body.topbar-view .phero-brand em{font-style:normal;font-size:12.5px;font-weight:500;color:#6e6e73;}
+body.topbar-view .phero-send{width:44px;height:44px;border-radius:999px;border:0;background:#0071e3;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,transform .12s;padding:0;}
+body.topbar-view .phero-send:hover{background:#0077ed;transform:scale(1.05);}
+body.topbar-view .phero-send:active{transform:scale(.94);}
+body.topbar-view .phero-pills{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:20px;}
+body.topbar-view .phero-pill{border:0;border-radius:999px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.06);padding:10px 17px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:#1d1d1f;cursor:pointer;transition:background .15s,transform .1s;}
+body.topbar-view .phero-pill:hover{background:#e8e8ed;}
+body.topbar-view .phero-pill:active{transform:scale(.97);}
+body.topbar-view .phero-fade{position:absolute;z-index:3;left:0;right:0;bottom:0;height:120px;background:linear-gradient(to bottom,rgba(245,245,247,0),#f5f5f7 88%);pointer-events:none;}
+@media (prefers-reduced-motion:reduce){body.topbar-view .phero-piste{animation:none !important;transform:translateX(-15%);}}
+/* landing hero seul : fab PRODIX retire (le hero EST l'entree PRODIX) */
+body.topbar-view .fab-prodix{display:none !important;}
+/* hero : logo PRODIX sur pastille translucide (remplace titre+sous-titre) */
+body.topbar-view .phero-logo{width:150px;height:150px;margin:-30px auto 28px;border-radius:50%;background:rgba(255,255,255,.65);-webkit-backdrop-filter:blur(20px) saturate(170%);backdrop-filter:blur(20px) saturate(170%);box-shadow:0 8px 30px rgba(0,0,0,.10);display:flex;align-items:center;justify-content:center;}
+body.topbar-view .phero-logo img{width:114px;height:114px;object-fit:contain;}
+/* boite hero sur UNE ligne : texte et envoyer alignes */
+body.topbar-view .phero-box-row{display:flex;align-items:center;gap:12px;padding:10px 10px 10px 24px;border-radius:999px;}
+body.topbar-view .phero-box-row textarea{flex:1;min-height:24px;height:24px;overflow:hidden;white-space:nowrap;margin:0;}
+body.topbar-view .phero-box-row .phero-send{flex-shrink:0;}
+/* chat PRODIX integre au hero */
+body.topbar-view .phero-chat{display:flex;flex-direction:column;gap:10px;max-width:700px;margin:0 auto 14px;text-align:left;max-height:48vh;overflow-y:auto;padding:18px;background:rgba(255,255,255,.85);-webkit-backdrop-filter:blur(24px) saturate(170%);backdrop-filter:blur(24px) saturate(170%);border-radius:24px;box-shadow:0 16px 50px rgba(0,0,0,.10);}
+
+/* ── VRAIE interface de conversation PRODIX dans le hero (18/07) ── */
+body.topbar-view .phero-panel{display:flex;flex-direction:column;max-width:1080px;height:calc(100vh - 215px);min-height:560px;margin:0 auto;background:#fff;border-radius:26px;box-shadow:0 24px 70px rgba(0,0,0,.14);overflow:visible;position:relative;text-align:left;}
+body.topbar-view .phero-panel-head{position:absolute;top:-36px;right:22px;left:auto;transform:none;width:78px;height:78px;padding:0;border:none;border-radius:50%;background:rgba(255,255,255,.32);-webkit-backdrop-filter:blur(14px) saturate(160%);backdrop-filter:blur(14px) saturate(160%);box-shadow:0 8px 26px rgba(0,0,0,.10);display:flex;align-items:center;justify-content:center;z-index:5;}
+body.topbar-view .phero-panel-head>img{width:58px;height:58px;object-fit:contain;margin-top:9px;}
+body.topbar-view .phph-t b{font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:18px;letter-spacing:.06em;color:#1d1d1f;display:block;line-height:1;}
+body.topbar-view .phph-t span{font-size:12px;color:#6e6e73;display:block;margin-top:2px;}
+body.topbar-view .phero-new{margin-left:auto;background:#f5f5f7;border:none;border-radius:999px;padding:8px 14px;font-family:'DM Sans',sans-serif;font-size:12.5px;font-weight:600;color:#1d1d1f;cursor:pointer;transition:background .15s;}
+body.topbar-view .phero-new:hover{background:#e8e8ed;}
+body.topbar-view .phero-panel .phero-chat{flex:1;max-height:none;max-width:none;background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none;border-radius:0;margin:0;padding:50px 18px 16px;}
+body.topbar-view .phero-panel .phero-box{margin:8px 14px 14px;flex-shrink:0;box-shadow:0 1px 6px rgba(0,0,0,.08);border:1px solid #ececf0;}
+body.topbar-view .phero-convo .phero-tapis{opacity:.45;}
+body.topbar-view .phero-convo .phero-inner{max-width:1010px;padding-top:20px;padding-bottom:28px;}
+/* attente PRODIX : points qui dansent + texte tournant */
+.px-dots{display:inline-flex;gap:3px;margin-right:8px;vertical-align:middle;}
+.px-dots i{width:6px;height:6px;border-radius:50%;background:#a1a1a6;animation:pxdot 1.2s ease-in-out infinite;}
+.px-dots i:nth-child(2){animation-delay:.15s;}
+.px-dots i:nth-child(3){animation-delay:.3s;}
+@keyframes pxdot{0%,60%,100%{opacity:.35;transform:translateY(0);}30%{opacity:1;transform:translateY(-3px);}}
+.px-wait{color:#6e6e73;}
+/* transition accueil -> conversation */
+body.topbar-view .phero-logo,body.topbar-view .phero-box{transition:opacity .2s ease,transform .2s ease;}
+body.topbar-view .phero-out{opacity:0;transform:scale(.96) translateY(8px);}
+@keyframes pheroPanelIn{from{opacity:0;transform:translateY(18px) scale(.985);}to{opacity:1;transform:none;}}
+body.topbar-view .phero-panel-in{animation:pheroPanelIn .42s cubic-bezier(.32,.72,.28,1);}
+/* panneau conversation : la barre de saisie prend toute la largeur, bas net */
+body.topbar-view .phero-panel .phero-box{max-width:none;margin:6px 16px 16px;background:#f5f5f7;border:none;box-shadow:none;}
+body.topbar-view .phero-panel .phero-box:focus-within{background:#fff;box-shadow:0 0 0 3px rgba(0,113,227,.22);}
+body.topbar-view .phero-send:disabled{opacity:.55;}
+/* bouton joindre un fichier dans la barre PRODIX */
+body.topbar-view .phero-attach{flex-shrink:0;width:38px;height:38px;border-radius:999px;border:none;background:#e8e8ed;color:#1d1d1f;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;padding:0;}
+body.topbar-view .phero-attach:hover{background:#dededf;}
+
+/* historique d'offres : chips Reprendre sous la pilule d'accueil */
+body.topbar-view .phero-hist{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:16px;}
+body.topbar-view .phist-lbl{font-size:12.5px;font-weight:600;color:#6e6e73;}
+body.topbar-view .phist-chip{border:none;border-radius:999px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:8px 14px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:#1d1d1f;cursor:pointer;transition:background .15s;}
+body.topbar-view .phist-chip:hover{background:#e8e8ed;}
+
+/* badge PROMO -30% : pastille depolie, texte rouge Prodi */
+body.apple-view .pcard-promo-overlay{position:absolute;top:10px;left:10px;z-index:2;background:rgba(255,255,255,.82);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);color:#FE0000;font-size:11px;font-weight:800;letter-spacing:.4px;padding:5.5px 10.5px;border-radius:999px;box-shadow:0 1px 4px rgba(0,0,0,.12);}
+/* topbar : menu Mandrins retire de la barre (vit dans Filtres avances) */
+body.topbar-view .filters-panel .fg:has(#sb-msd-mandrin){display:none !important;}
+/* conversation : plus de voile de fondu par-dessus le bas du panneau */
+body.topbar-view .phero-convo .phero-fade{display:none;}
+/* bouton Revenir : coin haut gauche du panneau conversation */
+body.topbar-view #px-retour{position:absolute;top:14px;left:14px;z-index:6;border:none;border-radius:999px;background:#f5f5f7;color:#1d1d1f;font-family:'DM Sans',sans-serif;font-size:12.5px;font-weight:600;padding:8px 14px;cursor:pointer;transition:background .15s;}
+body.topbar-view #px-retour:hover{background:#e8e8ed;}
+/* conversation : page verrouillee, seul le fil du chat scrolle */
+body.phero-lock{overflow:hidden;height:100vh;}
+/* panda du panneau de conversation : retire (l'accueil garde le sien) */
+body.topbar-view .phero-panel-head{display:none !important;}
