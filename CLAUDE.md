@@ -325,6 +325,41 @@ est du code dormant. Contenu du mode (body.topbar-view) :
   /tmp/cdp_net.mjs pour profiler le réseau).
 - Pastille panda retirée de l'accueil (le hero = saisie + rails).
 
+## FIXES MOBILE + PERF INTRO CONTAINER (19/07/2026 nuit, poussé 8cbbc2ca, v605)
+
+- **Menus filtres invisibles sur iPhone** : `position:sticky` crée TOUJOURS un
+  contexte d'empilement (contrairement à `relative`) → les `.msd-panel`
+  `position:fixed;z-index:2000` se peignaient DERRIÈRE le fond opaque du hero.
+  La barre `.filters-panel` héritait du sticky de la vieille règle sidebar
+  mobile (ligne ~815) car **tout le bloc de restyle topbar/apple est dans
+  `@media(min-width:769px)`** — toute règle critique (position, largeur des
+  panneaux…) doit être DUPLIQUÉE dans le bloc mobile `@media(max-width:768px)`
+  (~1894). Fix : `position:static !important` + panneaux `min-width:240px` en
+  mobile + re-clamp du bord droit de l'accordéon Filtres avancés à chaque
+  dépliage (_paintAdv — le clamp de toggleMsd ne tourne qu'à l'ouverture).
+- **Rails hero** : le `-webkit-mask-image` dégradé sur `.phero-tapis` forçait
+  la re-rasterisation de toute la zone animée à chaque frame iOS → remplacé
+  par bandeaux `::before/::after` en dégradé vers #f5f5f7 (identique à l'œil).
+  Mobile : 6 cartes/rail (au lieu de 12), vignettes 240px, cartes 196px.
+- **`@media(pointer:coarse)`** : backdrop-filter des badges de cartes coupé
+  (2-3 zones de flou live par carte = scroll qui rame sur iOS).
+- **Intro container fluide** (revue workflow 19 agents) :
+  - Le rendu des 40-60 cartes se faisait PENDANT la chorégraphie → différé via
+    `window._ctnRender` (armé dans loadSharedQuote si #ctn-splash présent,
+    déclenché dans out()/clic/filet 8s de _ctnSplash, derrière le fondu).
+    Les départs `animation-delay` se déclenchent sur le main thread : saturé
+    = départs en retard = saccades perçues.
+  - `.ctn-scene` : `zoom` au lieu de `transform:scale` (raster à la taille
+    cible ; scale rasterisait 1360×960 plein puis réduisait — ~9× trop de
+    pixels sur iPhone DPR3). ⚠️ translateX est en coordonnées zoomées :
+    -50px/zoom (−45/−63/−88/−125 selon palier).
+  - Roues : aplat + moyeu `::before` (le radial-gradient à arrêt net était
+    re-rasterisé) ; roues chariot : 1 animation −3240° au lieu de 9 itérations
+    (même vitesse visuelle — « 1 itération de 4,95s à −360° » proposé par un
+    agent aurait ralenti 9×, méfiance sur les fixes d'agents non relus).
+- Libellés « Autres laizes »/« Autres Ø » dans l'accordéon (le sentinel
+  `__diam_autres__` s'affichait brut).
+
 ## Règles photos / images produit
 
 ### Priorité d'affichage (pour TOUS les produits)
