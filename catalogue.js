@@ -4651,8 +4651,8 @@ if(_sharedMode)_sharedViewUI(true);
           {id:'resa',t:'Réservation',n:_resaFilter?1:0,rows:()=>row('resa','with','Réservés',_resaFilter==='with')+row('resa','without','Dispo',_resaFilter==='without')},
           {id:'poids',t:'Poids',n:msdState['msd-poids'].size,rows:()=>POIDS_OPTIONS.map(o=>row('poids',o,o,msdState['msd-poids'].has(o))).join('')},
           {id:'mandrin',t:'Mandrin',n:msdState['msd-mandrin'].size,rows:()=>mandrins.length?mandrins.map(m=>row('mandrin',m,m+' mm',msdState['msd-mandrin'].has(m))).join(''):'<div class="msd-option" style="opacity:.5;cursor:default;">Aucun mandrin dans la sélection en cours</div>'},
-          {id:'laize',t:'Laizes',n:msdState['msd-laize'].size,rows:()=>laizes.length?laizes.map(v=>row('laize',v,v,msdState['msd-laize'].has(v))).join(''):'<div class="msd-option" style="opacity:.5;cursor:default;">Choisis d\'abord un type bobine</div>'},
-          {id:'diametre',t:'Diamètre (Ø)',n:msdState['msd-diametre'].size,rows:()=>diams.length?diams.map(v=>row('diametre',v,v,msdState['msd-diametre'].has(v))).join(''):'<div class="msd-option" style="opacity:.5;cursor:default;">Choisis d\'abord un type bobine</div>'},
+          {id:'laize',t:'Laizes',n:msdState['msd-laize'].size,rows:()=>laizes.length?laizes.map(v=>row('laize',v,v===LAIZE_AUTRES?'Autres laizes':v,msdState['msd-laize'].has(v))).join(''):'<div class="msd-option" style="opacity:.5;cursor:default;">Choisis d\'abord un type bobine</div>'},
+          {id:'diametre',t:'Diamètre (Ø)',n:msdState['msd-diametre'].size,rows:()=>diams.length?diams.map(v=>row('diametre',v,v===DIAM_AUTRES?'Autres Ø':v,msdState['msd-diametre'].has(v))).join(''):'<div class="msd-option" style="opacity:.5;cursor:default;">Choisis d\'abord un type bobine</div>'},
           {id:'usine',t:'Réf usine',n:msdState['msd-usine'].size,rows:()=>`<div class="msd-search-wrap"><input class="msd-search-inp" id="adv-usine-q" type="text" placeholder="Rechercher…" autocomplete="off" value="${esc(window._advUsineQ||'')}"></div>`+usines.map(u=>row('usine',u,'Usine '+u,msdState['msd-usine'].has(u))).join('')},
         ];
         _faPn.innerHTML=secs.map(s=>{
@@ -4661,6 +4661,12 @@ if(_sharedMode)_sharedViewUI(true);
         }).join('');
         const _q=(window._advUsineQ||'').trim().toLowerCase();
         if(_q)_faPn.querySelectorAll('.msd-option[data-k="usine"]').forEach(o=>{o.style.display=o.textContent.toLowerCase().includes(_q)?'':'none';});
+        // l'accordeon s'elargit apres ouverture d'une section : re-clamper
+        // le bord droit (le clamp de toggleMsd ne tourne qu'a l'ouverture)
+        if(_faPn.classList.contains('show')){
+          const pw=_faPn.offsetWidth,pl=_faPn.getBoundingClientRect().left;
+          if(pl+pw>window.innerWidth-8)_faPn.style.left=Math.max(8,window.innerWidth-pw-8)+'px';
+        }
       };
       _faPn.addEventListener('input',e=>{
         if(e.target.id!=='adv-usine-q')return;
@@ -4837,7 +4843,8 @@ if(_sharedMode)_sharedViewUI(true);
           const withImg=(prods||[]).filter(p=>p.image_url);
           if(withImg.length<6)return;
           // Le VRAI design des cartes catalogue (grille étiquette), en décor
-          const _thumb=u=>'https://images.weserv.nl/?url='+encodeURIComponent(String(u).replace(/^https?:\/\//,''))+'&w=420&q=72';
+          const _mob=window.matchMedia('(max-width:820px)').matches;
+          const _thumb=u=>'https://images.weserv.nl/?url='+encodeURIComponent(String(u).replace(/^https?:\/\//,''))+'&w='+(_mob?240:420)+'&q=72';
           const mk=p=>{
             const cell=(cap,val,span)=>`<div class="sc-cell"${span?` style="grid-column:span ${span};"`:''}><div class="sc-cap">${cap}</div><div class="sc-val">${val}</div></div>`;
             const isPal=_estFormat(p);
@@ -4852,11 +4859,12 @@ if(_sharedMode)_sharedViewUI(true);
             }
             cells+=cell('COULEUR',esc(p.couleur||'—'),2);
             cells+=cell('POIDS NET',p.poids_net?esc(Math.round(p.poids_net).toLocaleString('fr-FR'))+' <small>kgs</small>':'—',2);
-            return `<div class="pcard sc-card phero-card"><div class="pcard-img"><img src="${_thumb(p.image_url)}" onerror="this.onerror=null;this.src='${safeUrl(p.image_url)}'" alt="" loading="lazy"></div><div class="sc-body"><div class="sc-grid"><div class="sc-cell sc-title" style="grid-column:span 4;">${esc(formatProductTitle(p.qualite,p.type))}</div>${cells}</div></div></div>`;
+            return `<div class="pcard sc-card phero-card"><div class="pcard-img"><img src="${_thumb(p.image_url)}" decoding="async" onerror="this.onerror=null;this.src='${safeUrl(p.image_url)}'" alt="" loading="lazy"></div><div class="sc-body"><div class="sc-grid"><div class="sc-cell sc-title" style="grid-column:span 4;">${esc(formatProductTitle(p.qualite,p.type))}</div>${cells}</div></div></div>`;
           };
-          const half=Math.min(12,Math.ceil(withImg.length/2));
+          const CAP=_mob?6:12; // couche animee 2x plus etroite sur mobile = GPU iOS soulage
+          const half=Math.min(CAP,Math.ceil(withImg.length/2));
           const a=withImg.slice(0,half);
-          const bList=withImg.slice(half,half+12);
+          const bList=withImg.slice(half,half+CAP);
           const b=bList.length>=4?bList:a;
           const p1=document.getElementById('phero-p1'),p2=document.getElementById('phero-p2');
           if(p1)p1.innerHTML=a.map(mk).join('')+a.map(mk).join('');
@@ -4936,11 +4944,12 @@ function _ctnSplash(){
     });
   };
   window._ctnReveal=reveal;
-  const out=()=>{if(minOk&&dataOk&&d.parentNode){d.classList.add('out');setTimeout(()=>d.remove(),450);setTimeout(()=>_sharedRecap(),320);}};
+  const _rend=()=>{if(window._ctnRender){const f=window._ctnRender;window._ctnRender=null;f();}};
+  const out=()=>{if(minOk&&dataOk&&d.parentNode){d.classList.add('out');_rend();setTimeout(()=>d.remove(),450);setTimeout(()=>_sharedRecap(),320);}};
   setTimeout(()=>{minOk=true;out();},6000);
   window._ctnDone=()=>{dataOk=true;out();};
-  d.onclick=()=>{d.remove();_sharedRecap();};
-  setTimeout(()=>{d.parentNode&&d.remove();},8000);
+  d.onclick=()=>{d.remove();_rend();_sharedRecap();};
+  setTimeout(()=>{if(d.parentNode){d.remove();_rend();}},8000);
 }
 if(_sharedMode)_ctnSplash();
 let _sharedAll=[];
@@ -4997,7 +5006,11 @@ async function loadSharedQuote(idsOverride){
   localStorage.setItem('prodi_cart',JSON.stringify(cart));
   updateCartBadge();
   renderDrawer();
-  render(all);
+  // Perf intro (19/07) : le rendu des 40-60 cartes + décodage photos saturait
+  // le main thread PENDANT la chorégraphie (départs d'animations en retard =
+  // saccades). On le diffère à la fin du splash.
+  if(document.getElementById('ctn-splash')){window._ctnRender=()=>render(all);}
+  else render(all);
   _updatePager();
   // _buildSharedTabs(); // onglets Bobines/Formats retirés (18/07) — code conservé
   // Header vue client : le bouton Liste devient l'export Excel direct
