@@ -360,6 +360,44 @@ est du code dormant. Contenu du mode (body.topbar-view) :
 - Libellés « Autres laizes »/« Autres Ø » dans l'accordéon (le sentinel
   `__diam_autres__` s'affichait brut).
 
+## PERF FILTRAGE + OUTILLAGE (20/07/2026, poussé)
+
+- **Recalcul des filtres 3,3–3,7× plus rapide** (mesuré : desktop 21→6,5ms,
+  téléphone 3× 54→15ms). Deux changements COMPLÉMENTAIRES :
+  1. **Comptage des facettes en O(lignes)** (`_countFacet`, remplace la boucle
+     `values.forEach(v=>for r of baseRows:_optMatchesValue)` en O(lignes×options)).
+     1→1 (mandrin/usine/format/grammage/laize/Ø/poids) = `counts[deriv(r)]++` ;
+     couleur 1→N via `_COLOR_REV` (inverse de `_COLOR_DB`, disjoint) ; `type`
+     garde la logique AUTRES + COULEUR_SPLIT. **Comptage : 73ms → 1,4ms.**
+  2. **Snapshot des lectures DOM du prédicat** (`_fafState`/`_fafBump` dans
+     `_matchesActiveFilters`) : les ~14 getElementById + 1 querySelectorAll par
+     ligne étaient refaits ×7200×10 passes = 72 000 lectures DOM. Capturés 1×/passe
+     (epoch bumpé dans `_refreshAllFacets` + `updateFilterVisibility`).
+  ⚠️ LEÇON : les DEUX sont nécessaires. Le snapshot seul semblait « inutile »
+  (0 gain mesuré) car le comptage O(n×options) le masquait ; une fois le comptage
+  en O(n), retirer le snapshot faisait 222ms (10× pire). **Mesurer, pas théoriser.**
+- **Justesse vérifiée** : `scripts/dump_facets.mjs` dumpe les 705 compteurs, diff
+  avant/après = identique. Tout changement du comptage DOIT repasser ce diff.
+- **Anti-CLS** : `catalogue/index.html` applique `apple-view`/`topbar-view` sur
+  `<body>` via script inline AVANT le 1er paint (sinon le header se peint en
+  layout ancien puis saute quand catalogue.js ajoute les classes). NB le CLS
+  restait dur à mesurer en headless (flaky selon le cache polices) — vérifier en
+  vrai via le HUD.
+- **Autres fixes perf** (workflow) : scroll infini en append (non-groupé, repli
+  render(all) si formats mêlés), `select=*`→colonnes explicites (`SEL_UI`), skip
+  requêtes redondantes count=exact+RPC en mode groupé, `_renderCatalogueCard`
+  extrait hors boucle, `width/height` sur images cartes partagées + rails hero,
+  `transition:all`→propriétés explicites, blur des badges coupé en desktop.
+- **OUTILLAGE PERF réutilisable** (activation `?perf=1`, inerte sinon) :
+  - `perf-hud.js` — overlay live (FPS, long tasks, TBT, INP, LCP, CLS, DOM) +
+    boutons « test filtres » (chronomètre `_refreshAllFacets`) / « test scroll ».
+    Marche sur ordi ET téléphone. Inclus dans catalogue/index.html (defer).
+  - `scripts/perf_trace.mjs [url] [1|2|3]` — avant/après headless (1=desktop,
+    2=tél récent, 3=tél entrée de gamme), via CDP maison (Chrome + WebSocket).
+  - `scripts/dump_facets.mjs` — dump compteurs pour la non-régression.
+  - Pattern CDP maison réutilisé de /tmp/cdp_*.mjs (spawn Chrome headless +
+    remote-debugging-port + WebSocket, aucune dépendance npm).
+
 ## Règles photos / images produit
 
 ### Priorité d'affichage (pour TOUS les produits)

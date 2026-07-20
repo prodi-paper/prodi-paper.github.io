@@ -89,6 +89,14 @@
 <!-- EmailJS : chargé À LA DEMANDE par _ejsReady() (perf 18/07) -->
 </head>
 <body>
+<script>
+/* Anti-CLS : applique apple-view/topbar-view AVANT le 1er paint. Sinon le header
+   se peint en layout ancien puis saute quand catalogue.js ajoute les classes
+   (CLS ~0,58 mesuré). Mêmes conditions que catalogue.js (thèmes + vue partagée). */
+(function(){try{var p=new URLSearchParams(location.search),c=document.body.classList;
+if(p.get('amazon')!=='1'&&p.get('zara')!=='1'&&p.get('etiquette')!=='1')c.add('apple-view');
+if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
+</script>
 
 <div class="load-bar-wrap" id="load-bar-wrap" style="display:none"><div class="load-bar" id="load-bar"></div></div>
 <header>
@@ -830,5 +838,7 @@
 
 <script src="/analytics.js?v=1"></script>
 <script src="/catalogue.js?v=605"></script>
+<!-- Traqueur de perf, inerte sans ?perf=1 (voir perf-hud.js) -->
+<script src="/perf-hud.js?v=1" defer></script>
 </body>
 </html>
