@@ -398,6 +398,61 @@ est du code dormant. Contenu du mode (body.topbar-view) :
   - Pattern CDP maison réutilisé de /tmp/cdp_*.mjs (spawn Chrome headless +
     remote-debugging-port + WebSocket, aucune dépendance npm).
 
+## SESSION 20-21/07/2026 (v637, poussé) — intro client, prix, partage, popup Quantité
+
+- **INTRO LISTE CLIENT (?s=) refaite** : choré ~6,6s → ~3,9s (gate min 3200ms,
+  filet 4500ms ; low-perf `hardwareConcurrency<=4` ou reduced-motion → `.ctn-lite`
+  900ms, chariot+cartes volantes masqués). Cartes intro = UNIQUEMENT des articles
+  dont la photo CHARGE (préchargement + tri des 404, fallback kraft SOUS l'image,
+  pose synchrone si cache). render() AVANT le fondu (2 rAF), cascade `card-in`
+  armée dans la même frame que le rendu (sinon grille visible puis re-cachée).
+  Relais slide→drop EXACT à 99,9% (fondu binaire anti-clignotement machines
+  lentes) + drop 40ms avant (même position à 2px près = invisible). Popup récap
+  `_sharedRecap` SUPPRIMÉ du flux (fonction conservée, plus appelée). Cartes vue
+  client sans pastilles réf/usine (pbig-ref/pbig-usine retirés de renderSharedCards).
+  Container = repeating-linear-gradient d'ORIGINE (la version « optimisée »
+  double-position cassait Safari = container transparent).
+- **PRIX (audit 20/07)** : formules ×1000 justes partout (cartes/fiche/liste/
+  Excel P/T/totaux). EXCLUSIONS périmètre sbQ : série `Photo_BU*` (pièces
+  atelier/SAV clients, prix unitaires, noms de clients) + réfs 931597 (grilles)
+  et 898404/05/06 (élastique masque) aux prix Sage faux — à réintégrer quand
+  corrigés dans Sage. Prix max restant : calque SLUX 2 800 €/T. Cache facettes
+  `prodi_facets:v2:`.
+- **RAILS HERO** : cartes répétées jusqu'à couvrir l'écran (une copie ≥ viewport
+  sinon trou balayant), 2 `.phero-set` (gap+padding intégrés → -50% tombe pile),
+  animation RELANCÉE après remplissage (Safari fige les % au lancement sur piste
+  vide = rail immobile). Pilule PRODIX hero : +10% (770px, texte 19), nuage
+  radial `::before` inset -140/-220 (PAS de z-index sur la box sinon le pseudo
+  -1 passe AU-DESSUS de son fond), contour noir 2px #111, fond #fff.
+- **HEADER liste** : vide = aucun bouton ; sélection → icône PARTAGER + badge,
+  clic = OUVRE le lien client direct (openClientLink, plus de tiroir) + POUBELLE
+  à côté (2 temps « Sûr ? » 2,6s). Tiroir : bouton noir = « Partager » (ouvre le
+  lien client), Excel reste via PRODIX/vue client. Vue partagée : cart-btn
+  réutilisé « Télécharger liste » — updateCartBadge NE le touche PAS (_sharedMode).
+- **POPUP QUANTITÉ unifié** (`_qtyModal` — + bleu sélection ET + des lots ×N via
+  `_grpRound`) : tonnage dispo centré 44px arrondi à la tonne, curseur article
+  par article au poids EXACT (sélection ≤2000 arts via SEL_UI, sinon repli
+  _tonnagePick 0,5t) PRÉRÉGLÉ AU MAX, valeur centrée arrondie, ▲ Container sur
+  la piste avec AIMANT positionnel (clic piste = position en ARTICLES pas en
+  tonnage → ±5% de piste autour du ▲ ou ±1t → cale sur 26,5t exact), Valider sec,
+  segment FAB/STOCK SOUS Valider. **FAB/STOCK = deux POOLS séparés** (dispo
+  propre) : STOCK = promo OU réf < 981600 (≈ >1 an, avant juil. 2025), FAB =
+  le reste ; lots gardés ENSEMBLE (groupProducts par pool, FAB récents d'abord,
+  STOCK anciens d'abord) ; Valider ajoute EXACTEMENT les k articles prévisualisés.
+  Répartition stock total : FAB ~93% arts/96% t.
+- **MENUS FILTRES** : tri par volume À L'OUVERTURE (recomptage 1,4ms) + FIGÉ
+  pendant l'ouverture (_facetPending, flush à la fermeture aux 4 points de
+  close) ; premier remplissage (aucun compteur, ex. nav privée) appliqué même
+  ouvert ; ordre de CONSTRUCTION du menu Type = `_TYPE_ORDRE_USUEL` (volumes
+  réels) → trié dès la 1re frame sans données.
+- **date_arrivee** : colonne products (DATECREA du DOV, dd 21/07) — mapping dans
+  les 2 scripts d'import + ALL_KEYS. Frise réf↔date : 950000≈07/2023,
+  965424≈07/2024, 981600≈07/2025, 987629≈01/2026. Effective au 1er import
+  après push. (Frontière STOCK à basculer sur la date réelle un jour.)
+- **Outils** : scripts/anim_trace.mjs (FPS/timing/screenshots de l'intro,
+  lien test ?s=perftst02). Leçon : clic sur la PISTE d'un input range = saut à
+  la position proportionnelle (pas à la valeur du repère visuel).
+
 ## Règles photos / images produit
 
 ### Priorité d'affichage (pour TOUS les produits)

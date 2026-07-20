@@ -27,7 +27,7 @@ MGMT_TOKEN = os.environ["SUPABASE_MGMT_TOKEN"]
 # service_role bypasses RLS — required for DELETE/INSERT since RLS hardening (2026-05-01)
 SERVICE_ROLE = os.environ["SUPABASE_SERVICE_ROLE"]
 
-ALL_KEYS = ['quality','color','details','gsm','width','longueur','noyau','weight','price','ref','usine','emplacement','zone','format','image_url','source','reserve_client','reserve_piece','promo']
+ALL_KEYS = ['quality','color','details','gsm','width','longueur','noyau','weight','price','ref','usine','emplacement','zone','format','image_url','source','reserve_client','reserve_piece','promo','date_arrivee']
 
 DRY_RUN = '--dry' in sys.argv
 
@@ -213,6 +213,13 @@ def parse_dov(files):
         # Règle PROMO (18/07/2026, Ethan) : toute réf numérique < 900000 est du
         # vieux stock re-listé — JAMAIS une vraie réservation (les CODE_CLI
         # qu'on y trouve sont des scories) → promo, prix -30 %, résa levée.
+        # Date d'arrivée Sage (DATECREA) → products.date_arrivee (21/07/2026).
+        _dc = g(row, 'DATECREA')
+        try:
+            date_arrivee = _dc.date().isoformat() if hasattr(_dc, 'date') else (str(_dc)[:10] if _dc and str(_dc)[:4].isdigit() else None)
+        except Exception:
+            date_arrivee = None
+
         promo = ref.isdigit() and int(ref) < 900000
         prix = num(g(row, 'PUNET'))
         if promo and prix:
@@ -240,6 +247,7 @@ def parse_dov(files):
             'reserve_client': None if promo else (clean(g(row, 'CODE_CLI')) or None),
             'reserve_piece': None if promo else (clean(g(row, 'CODE_PIECE')) or None),
             'promo': promo,
+            'date_arrivee': date_arrivee,
         })
     wb.close()
 

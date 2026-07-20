@@ -34,7 +34,15 @@ async function sbQ(path,opts={}){
     // hors dépôt. Verrou ici = toutes les requêtes products sont couvertes.
     +'&emplacement=eq.OUR%20WAREHOUSE'
     +'&or=(ref.not.ilike.Photo_DU%25,ref.is.null)'
-    +'&or=(ref.not.ilike.Photo_FAB%25,ref.is.null)';
+    +'&or=(ref.not.ilike.Photo_FAB%25,ref.is.null)'
+    // Photo_BU* = pièces machine de CLIENTS (lames, affûtage — noms de clients
+    // dans le détail, prix Sage à l'unité aberrant en €/T). Jamais au catalogue.
+    +'&or=(ref.not.ilike.Photo_BU%25,ref.is.null)'
+    // Réfs au prix Sage faux (unitaire ou aberrant dans un champ €/kg) —
+    // exclues en attendant correction dans Sage (audit prix 20/07) :
+    // 931597 grilles de protection (731 600 €/T), 898404/05/06 élastique et
+    // fil masque (13 783 €/T, « pas logique du tout » dixit Ethan).
+    +'&or=(ref.not.in.(Photo_931597,Photo_898404,Photo_898405,Photo_898406),ref.is.null)';
   const r=await fetch(SURL+'/rest/v1/'+path,{method:opts.method||'GET',headers:{...SB_H,...(opts.headers||{})},body:opts.body!=null?JSON.stringify(opts.body):undefined,signal:opts.signal});
   const txt=await r.text();const d=txt?JSON.parse(txt):null;
   const cr=r.headers.get('Content-Range');
@@ -293,7 +301,8 @@ async function _loadAllProducts(){
   _allProductsLoading=(async()=>{
     // CACHE JOURNALIER (perf 19/07) : le stock ne change qu'à l'import du
     // matin — 3,4 Mo de JSON économisés à chaque visite suivante.
-    const CK='prodi_facets:'+STOCK_DAY;
+    // v2 : purge les caches bâtis avant l'exclusion Photo_BU* (20/07)
+    const CK='prodi_facets:v2:'+STOCK_DAY;
     try{
       const hit=localStorage.getItem(CK);
       if(hit){const rows=JSON.parse(hit);if(Array.isArray(rows)&&rows.length>100){_allProductsCache=rows;return rows;}}
@@ -908,8 +917,10 @@ async function init(){
   // Hardcoded filter options — Couleur replaced by Offset Couleur + Dossier Couleur
   const couleurVals=['Blanc','Très blanc','Blanc nature','Brun','Crème','Ivoire','Gris','Noir','Transparent','Vert','Rouge','Bleu','Jaune','Orange','Argent','Rose','Or','Violet','Autres'];
   const _typeLabel=v=>v===COULEUR_SPLIT.offsetLabel?`RCOL — ${QUALITE_LABELS[v]} <span class="msd-hint">&lt;&nbsp;${COULEUR_SPLIT.threshold}&nbsp;g/m²</span>`:v===COULEUR_SPLIT.dossierLabel?`RCOL — ${QUALITE_LABELS[v]} <span class="msd-hint">≥&nbsp;${COULEUR_SPLIT.threshold}&nbsp;g/m²</span>`:`${v} — ${QUALITE_LABELS[v]||v}`;
-  buildMsdOptions('msd-type',QUALITE_CODES,'Tous',_typeLabel);
-  buildMsdOptions('sb-msd-type',QUALITE_CODES,'Type de papier',_typeLabel,'msd-type');
+  const _typeOrd=v=>{const i=_TYPE_ORDRE_USUEL.indexOf(v);return i===-1?999:i;};
+  const _typesTries=[...QUALITE_CODES].sort((a,b)=>(_typeOrd(a)-_typeOrd(b))||String(a).localeCompare(String(b)));
+  buildMsdOptions('msd-type',_typesTries,'Tous',_typeLabel);
+  buildMsdOptions('sb-msd-type',_typesTries,'Type de papier',_typeLabel,'msd-type');
   buildMsdOptions('msd-couleur',couleurVals,'Couleurs');
   buildMsdOptions('sb-msd-couleur',couleurVals,'Couleurs',undefined,'msd-couleur');
 
@@ -1104,6 +1115,10 @@ function _poidsTrancheOf(row){
 function _poidsPg(t){
   return `and(weight.gte.${t.min},weight.lt.${t.max})`;
 }
+// Ordre usuel du stock (volumes réels ~20/07) : le menu Type s'affiche trié
+// par volume DÈS la construction, avant même l'arrivée des données de comptage
+// (nav privée = pas de cache local → sinon alphabétique à la 1re ouverture).
+const _TYPE_ORDRE_USUEL=['ROFF','RLUX','SBOA','Offset Couleur','SLUX','SOFF','RKRABRUN','SCAR','RBOU','RKRA','RCAR','S2SC','RADH','SCOL','SCUT','Dossier Couleur','SADH','RBOA','RLINER','RFLEX'];
 const QUALITE_CODES=['R1SC','R2SC','RADH','RAFF','RBOA','RBON','RBOU','RCAR','ROFF','Offset Couleur','Dossier Couleur','RCUI','RDIV','RFLEX','RKDO','RKRA','RKRABRUN','RKRG','RKRR','RLINER','RLUX','RLWC','RNEW','RPAC','RPLA','RSIL','RTHERM','RTIS','S1SC','S2SC','SADH','SAFF','SBOA','SBON','SBOU','SCAR','SCOL','SCUT','SDIV','SENV','SKDO','SKRA','SLUX','SLWC','SNEW','SOFF','SPAC','SPLA','SSBS','SSPE','SINK','UMAC','AUTRES'];
 // Real DB quality codes: strip the 'AUTRES' sentinel and expand the
 // Offset/Dossier Couleur pseudo-codes back to the actual 'RCOL' DB value.
@@ -1323,7 +1338,18 @@ function toggleMsd(id) {
   // Close all
   document.querySelectorAll('.msd-panel.show').forEach(p => p.classList.remove('show'));
   document.querySelectorAll('.msd-btn.open').forEach(b => b.classList.remove('open'));
+  _flushFacetsApresFermeture();
   if (!isOpen) {
+    // Tri À L'OUVERTURE (21/07) : le menu s'affiche déjà compté/trié par volume
+    // (recomptage O(n) ≈ 1,4 ms), puis reste FIGÉ tant qu'il est ouvert.
+    {
+      const facetId=id.replace(/^sb-/,'').replace(/-mob$/,'');
+      if(/^msd-/.test(facetId)&&_allProductsCache){
+        delete _facetPending[facetId];delete _facetSig[facetId];
+        if(facetId==='msd-details'){window._detailsPending=false;_detailsLastSig=null;_rebuildDetailsMsd();}
+        else _updateMsdFacetCounts(facetId);
+      }
+    }
     panel.classList.add('show'); btn.classList.add('open');
     // Ne jamais déborder du bord droit (ex. tri ⇅ en bout de barre) : on
     // recale le panneau vers la gauche si besoin, une fois sa largeur connue.
@@ -1440,6 +1466,7 @@ document.addEventListener('click', e => {
   if (!e.target.closest('.msd') && !e.target.closest('.fb-msd')) {
     document.querySelectorAll('.msd-panel.show').forEach(p => p.classList.remove('show'));
     document.querySelectorAll('.msd-btn.open,.fb-msd-btn.open').forEach(b => b.classList.remove('open'));
+    _flushFacetsApresFermeture();
   }
 });
 
@@ -1800,10 +1827,24 @@ function _allMsdContainers(msdId){
   return ids.map(id=>document.getElementById(id)).filter(Boolean);
 }
 const _facetSig={};
+// Un menu OUVERT ne doit jamais se réordonner sous le curseur (vécu 21/07 :
+// le cache stock arrive pendant que le menu est ouvert → recomptage + tri par
+// volume + zéros masqués = « la liste change toute seule »). On diffère la mise
+// à jour du menu ouvert et on la rejoue à sa fermeture.
+const _facetPending={};
+function _flushFacetsApresFermeture(){
+  Object.keys(_facetPending).forEach(k=>{delete _facetPending[k];_updateMsdFacetCounts(k);});
+  if(window._detailsPending){window._detailsPending=false;_rebuildDetailsMsd();}
+}
 function _updateMsdFacetCounts(msdId){
   if(!_allProductsCache) return;
   const conts=_allMsdContainers(msdId);
   if(!conts.length) return;
+  // Menu ouvert : différé — SAUF s'il n'a encore aucun compteur (premier
+  // remplissage, ex. nav privée) : là on applique tout de suite, c'est ce que
+  // l'utilisateur attend (trié direct à la première ouverture).
+  const _dejaCompte=conts.some(c=>c.querySelector('.msd-count-inline'));
+  if(_dejaCompte&&conts.some(c=>c.querySelector('.msd-panel.show'))){_facetPending[msdId]=1;return;}
   const allOpts=conts.flatMap(c=>[...c.querySelectorAll('.msd-option')]);
   if(!allOpts.length) return;
   const values=[...new Set(allOpts.map(o=>o.dataset.val).filter(Boolean))];
@@ -1932,6 +1973,9 @@ function _rebuildDetailsMsd(){
     });
     return;
   }
+  // Menu Détails OUVERT : on ne reconstruit pas sous le curseur — différé à la
+  // fermeture (sauf s'il affiche encore « Chargement… », là on le remplit).
+  if(containers.some(c=>{const p=c.querySelector('.msd-panel.show');return p&&!p.querySelector('.msd-search-inp[disabled]');})){window._detailsPending=true;return;}
   // Skip rebuild when only the details selection itself changed (preserves
   // panel scroll, search-bar text and avoids visual flicker while the user
   // is ticking boxes inside the dropdown).
@@ -2292,28 +2336,152 @@ async function _loadMore(){
   }catch(_){}finally{_loadingMore=false;}
 }
 // TONNAGE (18/07) : le + bleu demande combien de tonnes au lieu d'ajouter la page.
-function _openTonnage(){
-  const ex=document.getElementById('tonnage-bg');if(ex){ex.remove();return;}
+// Popup QUANTITÉ unifié (21/07) : le MÊME pour le + bleu de la sélection et le
+// + des lots ×N. Titre « Quantité ? », tonnage dispo EN GROS à droite,
+// 10 t / container 26,5 t / Tout / tonnage libre. onPick(tonnes) — 0 = tout.
+// Popup QUANTITÉ unifié (21/07) — un seul design pour le + bleu (sélection) et
+// le + des lots ×N : tonnage dispo centré en gros, curseur article par article
+// PRÉRÉGLÉ AU MAX, marqueur Container cliquable, Valider, segment FAB/STOCK.
+// FAB et STOCK sont DEUX POOLS distincts (dispo propre) : FAB = non-promo
+// (arrivages récents d'abord), STOCK = promo/vieux stock (anciens d'abord).
+function _qtyModal(dispoT,onPick,cfg){
+  const ex=document.getElementById('tonnage-bg');if(ex)ex.remove();
   const d=document.createElement('div');
   d.id='tonnage-bg';
   d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;display:flex;align-items:center;justify-content:center;padding:16px;';
-  const _dispoT=(document.getElementById('rbar-tons')?.textContent||'').trim();
-  const opts=[[10,'10 tonnes'],[26.5,'Un container · 26,5 t'],[0,'Tout'+(_dispoT&&_dispoT!=='—'?' · ≈ '+_dispoT+' t':'')]];
+  window._qtyPick=(t,k,mode)=>{d.remove();onPick(t,k,mode);};
+  let cum=cfg&&cfg.cum;
+  let maxT=cum?cum[cum.length-1]/1000:(parseFloat(String(dispoT).replace(',','.'))||0);
+  const fmt=v=>Math.round(v).toLocaleString('fr-FR'); // arrondi à la tonne
+  const segHtml=cfg&&cfg.seg?`
+    <div id="qty-seg" style="display:flex;background:#f5f5f7;border-radius:999px;padding:3px;margin-top:12px;">
+      <button data-m="FAB" style="flex:1;padding:9px;border:none;border-radius:999px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.12);font-size:13.5px;font-weight:700;color:#1d1d1f;cursor:pointer;font-family:'DM Sans',sans-serif;">FAB</button>
+      <button data-m="STOCK" style="flex:1;padding:9px;border:none;border-radius:999px;background:transparent;font-size:13.5px;font-weight:600;color:#6e6e73;cursor:pointer;font-family:'DM Sans',sans-serif;">STOCK</button>
+    </div>`:'';
+  const sliderHtml=maxT>0?`
+    <div style="text-align:center;margin:2px 0 6px;">
+      <span id="qty-val" style="font-family:'Bebas Neue',sans-serif;font-size:27px;color:#0071e3;">${fmt(maxT)} t</span>
+    </div>
+    <input id="qty-range" type="range" min="1" max="${cum?cum.length:Math.max(1,Math.round(maxT*2))}" step="1" value="${cum?cum.length:Math.max(1,Math.round(maxT*2))}" style="width:100%;accent-color:#0071e3;height:32px;cursor:pointer;">
+    <div id="qty-contwrap" style="position:relative;height:20px;margin-top:-4px;display:${maxT>26.5?'':'none'};"><button id="qty-cont" title="Caler sur un container (26,5 t)" style="position:absolute;left:${Math.min(96,Math.max(4,26.5/(maxT||1)*100)).toFixed(2)}%;transform:translateX(-50%);background:none;border:none;cursor:pointer;font-size:11.5px;font-weight:700;color:#0071e3;font-family:'DM Sans',sans-serif;padding:0;white-space:nowrap;line-height:1.2;">▲<br>Container</button></div>
+    <button id="qty-go" style="width:100%;margin:10px 0 0;padding:14px;border:none;border-radius:999px;background:#0071e3;color:#fff;font-size:16px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;">Valider</button>`:'';
   d.innerHTML=`<div style="background:#fff;border-radius:22px;padding:32px;max-width:430px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2);position:relative;">
     <button onclick="document.getElementById('tonnage-bg').remove()" aria-label="Fermer" style="position:absolute;top:16px;right:16px;width:34px;height:34px;border-radius:999px;background:#e8e8ed;border:none;color:#6e6e73;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;" onmouseover="this.style.background='#dededf'" onmouseout="this.style.background='#e8e8ed'">✕</button>
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:27px;letter-spacing:1.5px;-webkit-text-stroke:.7px #000;margin-bottom:4px;">COMBIEN DE TONNES ?</div>
-    <div style="font-size:15px;color:#1d1d1f;margin-bottom:16px;font-weight:600;">≈ ${_dispoT&&_dispoT!=='—'?_dispoT:'?'} <small style="font-weight:700;color:#6e6e73;">t</small> <span style="color:#6e6e73;font-weight:500;">disponibles sur ta sélection</span></div>
-    <div style="display:flex;flex-direction:column;gap:8px;">
-      ${opts.map(([t,l])=>`<button onclick="_tonnagePick(${t})" style="padding:13px 16px;border:none;border-radius:14px;background:#f5f5f7;font-size:15px;font-weight:600;color:#1d1d1f;cursor:pointer;font-family:'DM Sans',sans-serif;text-align:left;" onmouseover="this.style.background='#e8e8ed'" onmouseout="this.style.background='#f5f5f7'">${l}</button>`).join('')}
-    </div>
-    <div style="display:flex;gap:8px;margin-top:12px;">
-      <input id="tonnage-libre" type="number" min="1" placeholder="Tonnage libre…" style="flex:1;min-width:0;padding:12px 16px;border:1.5px solid #d2d2d7;border-radius:999px;font-size:15px;font-family:'DM Sans',sans-serif;outline:none;" onkeydown="if(event.key==='Enter'){const v=+this.value;if(v>0)_tonnagePick(v);}">
-      <button onclick="const v=+document.getElementById('tonnage-libre').value;if(v>0)_tonnagePick(v);" style="width:56px;flex-shrink:0;background:#0071e3;color:#fff;border:none;border-radius:999px;font-size:15px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;">OK</button>
-    </div>
+    <div id="qty-dispo" style="text-align:center;margin-bottom:12px;font-family:'Bebas Neue',sans-serif;font-size:44px;letter-spacing:.5px;color:#000;white-space:nowrap;line-height:1;">${(()=>{const v=parseFloat(String(dispoT).replace(',','.'));return isNaN(v)?'?':Math.round(v).toLocaleString('fr-FR');})()} <span style="font-size:22px;color:#6e6e73;">T</span></div>
+    ${sliderHtml}${segHtml}
   </div>`;
   d.addEventListener('click',e=>{if(e.target===d)d.remove();});
   document.body.appendChild(d);
-  document.getElementById('tonnage-libre')?.focus();
+  const rng=d.querySelector('#qty-range');
+  if(rng){
+    const tOf=v=>cum?cum[v-1]/1000:v/2;
+    const kCont=()=>{if(!cum)return Math.round(26.5*2);let v=1,bd=Infinity;cum.forEach((c,i)=>{const dd=Math.abs(c-26500);if(dd<bd){bd=dd;v=i+1;}});return v;};
+    // AIMANT container : un clic sur la PISTE saute à la position en ARTICLES
+    // (pas en tonnage) → près du marqueur ça donnait 29-34 t au lieu de 26,5
+    // (vécu Safari 21/07). Tout atterrissage à ±2 t du container s'y cale.
+    const paint=()=>{
+      if(maxT>26.5){
+        const N=+rng.max,v=+rng.value;
+        const kVisu=Math.round(26.5/maxT*N); // position VISUELLE du ▲ sur la piste (clic piste atterrit là)
+        if(Math.abs(tOf(v)-26.5)<=1||Math.abs(v-kVisu)<=Math.max(2,Math.round(N*0.05))){
+          const kc=kCont();if(v!==kc)rng.value=kc;
+        }
+      }
+      const t=tOf(+rng.value);d.querySelector('#qty-val').textContent=fmt(t)+' t';};
+    const updCont=()=>{const w=d.querySelector('#qty-contwrap');if(!w)return;
+      if(maxT>26.5){w.style.display='';w.querySelector('#qty-cont').style.left=Math.min(96,Math.max(4,26.5/maxT*100)).toFixed(2)+'%';}
+      else w.style.display='none';};
+    rng.oninput=paint;paint();
+    const seg=d.querySelector('#qty-seg');
+    if(seg&&cfg&&cfg.seg){
+      seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+        const res=cfg.seg(b.dataset.m);
+        if(!res||!res.cum||!res.cum.length){toast('Rien côté '+b.dataset.m+' dans cette sélection');return;}
+        cum=res.cum;maxT=cum[cum.length-1]/1000;
+        rng.max=cum.length;rng.value=cum.length;
+        d.querySelector('#qty-dispo').innerHTML=fmt(maxT)+' <span style="font-size:22px;color:#6e6e73;">T</span>';
+        updCont();paint();
+        d._segMode=b.dataset.m;
+        seg.querySelectorAll('button').forEach(x=>{const on=x===b;x.style.background=on?'#fff':'transparent';x.style.boxShadow=on?'0 1px 4px rgba(0,0,0,.12)':'none';x.style.fontWeight=on?'700':'600';x.style.color=on?'#1d1d1f':'#6e6e73';});
+      });
+    }
+    const cBtn=d.querySelector('#qty-cont');
+    if(cBtn){cBtn.style.padding='6px 14px';cBtn.style.margin='-6px -14px';
+      cBtn.onclick=()=>{rng.value=kCont();rng.dispatchEvent(new Event('input'));};}
+    d.querySelector('#qty-go').onclick=()=>window._qtyPick(tOf(+rng.value),+rng.value,d._segMode||'FAB');
+  }
+}
+async function _openTonnage(){
+  const ex=document.getElementById('tonnage-bg');if(ex){ex.remove();return;}
+  // FAB = non-promo (récents d'abord) / STOCK = promo, vieux stock (anciens
+  // d'abord) : deux pools SÉPARÉS, chacun sa dispo. Lots gardés ENSEMBLE
+  // (équivalents adjacents). ≤ 2000 articles ; au-delà, repli _tonnagePick.
+  let pools=null;
+  if(_lastQueryP){
+    try{
+      const wp=new URLSearchParams(_lastQueryP);wp.set('select',SEL_UI);
+      const rows=[];let off=0,fini=false;
+      while(!fini&&off<2000){
+        const r=await sbQ('products?'+wp,{headers:{'Range':off+'-'+(off+999)}});
+        if(r.data&&r.data.length){rows.push(...r.data);off+=r.data.length;if(r.data.length<1000)fini=true;}
+        else fini=true;
+      }
+      if(fini&&rows.length){
+        const units=rows.map(rowToUi);
+        const refN=g=>Math.max(...g.units.map(u=>parseInt(String(u.ref||'').replace(/\D/g,''),10)||0));
+        const flat=(list,recentFirst)=>{
+          const grps=groupProducts(list).sort((a,b)=>recentFirst?refN(b)-refN(a):refN(a)-refN(b));
+          return grps.flatMap(g=>g.units);
+        };
+        const cumOf=l=>{let t=0;return l.map(u=>(t+=(+u.poids_net||0)));};
+        // STOCK = promo OU réf < 981600 (≈ arrivé il y a plus d'UN AN, avant
+        // juillet 2025 — frontière Ethan 21/07). Le reste = FAB.
+        const refU=u=>parseInt(String(u.ref||'').replace(/\D/g,''),10)||0;
+        const isStock=u=>u.promo||(refU(u)>0&&refU(u)<981600);
+        const fabL=flat(units.filter(u=>!isStock(u)),true); // récents d'abord
+        const stockL=flat(units.filter(isStock),false);     // anciens d'abord
+        pools={FAB:{list:fabL,cum:cumOf(fabL)},STOCK:{list:stockL,cum:cumOf(stockL)}};
+      }
+    }catch(_){}
+  }
+  if(!pools||(!pools.FAB.cum.length&&!pools.STOCK.cum.length)){
+    const _dispoT=(document.getElementById('rbar-tons')?.textContent||'').trim();
+    _qtyModal(_dispoT,t=>_tonnagePick(t));return;
+  }
+  const def=pools.FAB.cum.length?'FAB':'STOCK';
+  const defCum=pools[def].cum;
+  const dispo=(defCum[defCum.length-1]/1000).toFixed(1).replace('.',',');
+  _qtyModal(dispo,(t,k,mode)=>{
+    const pool=pools[mode&&pools[mode]?mode:def];
+    if(k==null||!pool||!pool.list.length){_tonnagePick(t);return;}
+    let added=0,sum=0;
+    pool.list.slice(0,k).forEach(u=>{
+      if(cart.find(x=>x.id===+u.id))return;
+      cart.push({id:u.id,name:u.name,ref:u.ref,type:u.type,qualite:u.qualite||null,details:u.details||null,grammage:u.grammage,largeur:u.largeur,format:u.format,poids_net:u.poids_net,price:u.price||null,img:u.image_url||null,couleur:u.couleur||null,usine:u.usine||null,zone:u.zone||null,emplacement:u.emplacement||null,allee:u.allee||null});
+      sum+=(+u.poids_net||0);added++;
+    });
+    localStorage.setItem('prodi_cart',JSON.stringify(cart));
+    updateCartBadge();renderDrawer();
+    if(typeof _updateAddPageBtn==='function')_updateAddPageBtn();
+    const pg=document.getElementById('pgrid');render((pg&&pg._lastList)||all);
+    toast(added?('✓ '+added+' articles · '+(sum/1000).toFixed(1)+' t ajoutés'):'Déjà tout en liste');
+  },{cum:defCum,seg:m=>{const p2=pools[m];return p2&&p2.cum.length?{cum:p2.cum}:null;}});
+}
+// + d'un LOT (×N) : même popup, borné au lot — le curseur avance par unités
+// réelles du lot, Valider ajoute exactement les k unités choisies.
+function _grpRound(gid){
+  const grp=_groupsList.find(x=>x.gid===gid);
+  if(!grp){toast('Groupe introuvable');return;}
+  const someIn=grp.units.some(u=>cart.find(x=>x.id===+u.id));
+  if(someIn){_grpAddAll(gid);return;} // état ✓ → comportement retrait existant
+  const cum=[];let s=0;grp.units.forEach(u=>{s+=(+u.poids_net||0);cum.push(s);});
+  const dispo=(s/1000).toFixed(1).replace('.',',');
+  _qtyModal(dispo,(t,k)=>{
+    _groupQty[gid]=Math.max(1,Math.min(grp.units.length,k||grp.units.length));
+    addGroupToCart(gid);
+    const pg=document.getElementById('pgrid');
+    render((pg&&pg._lastList)||all);
+  },{cum});
 }
 async function _tonnagePick(tonnes){
   document.getElementById('tonnage-bg')?.remove();
@@ -3284,7 +3452,7 @@ function _renderCatalogueCard(p){
       // Le + s'incruste à droite de la ligne DÉTAIL (18/07). Groupé : plus de
       // sélecteur −/+, le + prend TOUT le lot d'un coup (re-clic = tout retirer).
       const _addBtn=_isGroup
-        ?`<button class="sc-add${_isInCart?' added':''}" title="${_isInCart?'Retirer le lot':'Ajouter le lot ('+p._grpCount+')'}" onclick="event.stopPropagation();_grpAddAll(${attrJs(p._grpKey)})">+</button>`
+        ?`<button class="sc-add${_isInCart?' added':''}" title="${_isInCart?'Retirer le lot':'Ajouter le lot ('+p._grpCount+')'}" onclick="event.stopPropagation();_grpRound(${attrJs(p._grpKey)})">+</button>`
         :`<button class="sc-add${_isInCart?' added':''}" ${_btnAttrs}>+</button>`;
       cells+=`<div class="sc-cell sc-wrap sc-det-row" style="grid-column:span 4;"><div style="flex:1;min-width:0;"><div class="sc-cap">DÉTAIL</div><div class="sc-val">${_detClean?esc(_detClean):'—'}</div></div>${_addBtn}</div>`;
       const prixCell=_priceMode&&p.price?cell('PRIX',esc(Math.round(p.price*1000).toLocaleString('fr-FR'))+' <small>€/T</small>',4):'';
@@ -3518,8 +3686,6 @@ function renderSharedCards(list){
     const prix=_priceMode&&p.price?cell('PRIX',esc(Math.round(p.price*1000).toLocaleString('fr-FR'))+' <small>€/T</small>',4):'';
     return`<div class="pcard sc-card" onclick="openDetail(${numId(p.id)})">
       <div class="pcard-img">${img}
-        ${p.ref?`<span class="pbig-ref">${esc(p.ref.replace(/^Photo_/i,'').toUpperCase())}</span>`:''}
-        ${p.usine?`<span class="pbig-usine">USINE ${esc(String(p.usine).replace(/^REF\s*/i,''))}</span>`:''}
         ${p._grpCount>1?`<span class="sc-count">× ${numId(p._grpCount)}</span>`:''}
       </div>
       <div class="sc-body">
@@ -3883,11 +4049,50 @@ function toggleMobFilters(){
 // localStorage restent (état interne de la session en cours).
 let cart=[];
 try{localStorage.removeItem('prodi_cart');}catch(_){/* stockage indisponible */}
+// Au boot : liste vide → masque le bouton header (voir updateCartBadge).
+document.addEventListener('DOMContentLoaded',()=>updateCartBadge());
 
 function updateCartBadge(){
   const badge=document.getElementById('cart-badge');
   if(cart.length>0){badge.textContent=cart.length;badge.classList.add('show');}
   else{badge.classList.remove('show');}
+  // Header (21/07) : liste vide = PAS de bouton ; sélection en cours = icône
+  // PARTAGER + badge, et le clic OUVRE DIRECTEMENT le lien client (plus de
+  // tiroir). En vue client (?s=) le bouton est réutilisé « Télécharger liste »
+  // par loadSharedQuote → on n'y touche pas.
+  const btn=document.getElementById('cart-btn');
+  if(btn&&!(typeof _sharedMode!=='undefined'&&_sharedMode)){
+    const txt=btn.querySelector('.btn-panier-txt');
+    let ico=btn.querySelector('.cart-share-ico');
+    if(cart.length>0){
+      if(!ico&&badge){badge.insertAdjacentHTML('beforebegin','<svg class="cart-share-ico" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M12 15V4"/><path d="M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>');ico=btn.querySelector('.cart-share-ico');}
+      if(txt)txt.style.display='none';
+      if(ico)ico.style.display='';
+      btn.style.removeProperty('display'); // relâche le none (mobile a un flex !important)
+      btn.title='Ouvrir le lien client de la sélection';
+      btn.onclick=()=>openClientLink(btn);
+    }else{
+      btn.style.setProperty('display','none','important'); // gagne sur le flex !important mobile
+      btn.onclick=()=>openCartDrawer();
+    }
+    const clr=document.getElementById('cart-clear-btn');
+    if(clr)clr.style.display=cart.length>0?'inline-flex':'none';
+  }
+}
+// Poubelle du header (21/07) : vider la liste en 2 temps (anti-fausse manip).
+function _clearList(btn){
+  if(btn.dataset.arm==='1'){
+    btn.dataset.arm='';btn.innerHTML=btn.dataset.ico;btn.style.color='#6e6e73';btn.style.borderColor='#d2d2d7';
+    cart=[];try{localStorage.removeItem('prodi_cart');}catch(_){}
+    updateCartBadge();renderDrawer();
+    if(typeof _updateAddPageBtn==='function')_updateAddPageBtn();
+    const pg=document.getElementById('pgrid');render((pg&&pg._lastList)||all);
+    toast('Liste vidée');
+    return;
+  }
+  btn.dataset.ico=btn.innerHTML;
+  btn.dataset.arm='1';btn.textContent='Sûr ?';btn.style.color='#e11d48';btn.style.borderColor='#e11d48';
+  setTimeout(()=>{if(btn.dataset.arm==='1'){btn.dataset.arm='';btn.innerHTML=btn.dataset.ico;btn.style.color='#6e6e73';btn.style.borderColor='#d2d2d7';}},2600);
 }
 
 function toggleSelectAll(btn){
@@ -4678,7 +4883,7 @@ if(_sharedMode)_sharedViewUI(true);
       _sd.innerHTML='<button class="msd-btn tb-sort-btn" data-msd-id="tb-sort" onclick="toggleMsd(\'tb-sort\')" title="Trier"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5h10"/><path d="M11 9h7"/><path d="M11 13h4"/><path d="M3 17l3 3 3-3"/><path d="M6 4v16"/></svg></button><div class="msd-panel"></div>';
       _fp.appendChild(_sd);
       const _pn=_sd.querySelector('.msd-panel');
-      window._tbSortPick=v=>{_sortTouched=true;_sel.value=v;filterProducts();document.querySelectorAll('.msd-panel.show').forEach(p=>p.classList.remove('show'));document.querySelectorAll('.msd-btn.open').forEach(b=>b.classList.remove('open'));};
+      window._tbSortPick=v=>{_sortTouched=true;_sel.value=v;filterProducts();document.querySelectorAll('.msd-panel.show').forEach(p=>p.classList.remove('show'));document.querySelectorAll('.msd-btn.open').forEach(b=>b.classList.remove('open'));_flushFacetsApresFermeture();};
       const _paint=()=>{_pn.innerHTML=[..._sel.options].filter(o=>!o.hidden&&!o.disabled).map(o=>`<div class="msd-option${o.value===_sel.value?' selected':''}" onclick="_tbSortPick('${o.value}')">${o.textContent}</div>`).join('');};
       _paint();
       _sel.addEventListener('change',_paint);
@@ -4797,7 +5002,7 @@ if(_sharedMode)_sharedViewUI(true);
           if(!el)return;
           let h=[];try{h=JSON.parse(localStorage.getItem('prodix_hist')||'[]');}catch(_){}
           if(!h.length){el.innerHTML='';return;}
-          el.innerHTML='<span class="phist-lbl">Historique :</span>'+h.slice(0,3).map((o,i)=>{
+          el.innerHTML='<span class="phist-lbl" title="Historique" aria-label="Historique"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 3"/></svg></span>'+h.slice(0,3).map((o,i)=>{
             const lbl=(o.nom||(o.resume||'offre').split('·')[0].trim()).slice(0,40);
             return `<button class="phist-chip" onclick="_pxReprendre(${i})">${esc(lbl)}</button>`;
           }).join('');
@@ -4938,9 +5143,23 @@ if(_sharedMode)_sharedViewUI(true);
           const a=withImg.slice(0,half);
           const bList=withImg.slice(half,half+CAP);
           const b=bList.length>=4?bList:a;
+          // Anti-écart : la boucle translateX(-50%) n'est continue que si UNE
+          // copie couvre au moins l'écran — sinon un trou balaie le rail à
+          // chaque tour (vu avec 4 cartes = 1142px sur un écran 1440px). On
+          // répète les cartes jusqu'à couvrir large, et chaque copie est
+          // emballée dans un .phero-set (gap+padding intégrés) pour que -50%
+          // tombe PILE sur le raccord (fini la tranche de carte de 9px).
+          const _cw=(_mob?196:272)+18;
+          const _need=Math.ceil((window.innerWidth+_cw)/_cw);
+          const rep=list=>{let r=[...list];while(r.length<_need)r=r.concat(list);return r;};
+          const setHtml=list=>'<div class="phero-set">'+rep(list).map(mk).join('')+'</div>';
           const p1=document.getElementById('phero-p1'),p2=document.getElementById('phero-p2');
-          if(p1)p1.innerHTML=a.map(mk).join('')+a.map(mk).join('');
-          if(p2)p2.innerHTML=b.map(mk).join('')+b.map(mk).join('');
+          if(p1){const s=setHtml(a);p1.innerHTML=s+s;}
+          if(p2){const s=setHtml(b);p2.innerHTML=s+s;}
+          // SAFARI : les translateX en % des keyframes sont résolus au LANCEMENT
+          // de l'animation — or elle démarre sur une piste vide (largeur 0) →
+          // rail immobile / à-coups. On relance l'animation une fois remplie.
+          [p1,p2].forEach(p=>{if(!p)return;p.style.animation='none';void p.offsetWidth;p.style.animation='';});
         };
       }
 
@@ -4987,17 +5206,34 @@ function _ctnSplash(){
       </div>
     </div>`;
   document.body.appendChild(d);
-  // Les vraies photos de la liste remplacent le kraft dès qu'elles arrivent
+  // Les vraies photos de la liste remplacent le kraft dès qu'elles arrivent.
+  // Kraft en fallback SOUS l'image (background multiple : image AU-DESSUS du
+  // gradient) : si la vignette weserv n'est pas décodée / 404, le kraft reste
+  // visible — jamais de carte blanche. La photo n'est posée qu'une fois chargée.
+  const _KRAFT='linear-gradient(160deg,#c9ab7f 0%,#b8946a 55%,#a98457 100%)';
   window._ctnFill=prods=>{
-    if(!prods.length)return;
+    if(!prods||!prods.length)return;
     d.querySelectorAll('[data-card]').forEach(w=>{
       const it=w.querySelector('.ctn-item');
       const p=prods[(+w.dataset.card)%prods.length];
       if(!p||!it)return;
-      // Perf 18/07 : vignette 360px au lieu de la photo brute (jank intro)
-      if(p.image_url){
-        const _tu='https://images.weserv.nl/?url='+encodeURIComponent(String(p.image_url).replace(/^https?:\/\//,''))+'&w=360&q=70';
-        it.querySelector('.ctn-card-img').style.background="url('"+_tu+"') center/cover";
+      const box=it.querySelector('.ctn-card-img');
+      if(box){
+        box.style.background=_KRAFT; // fallback toujours posé d'abord
+        // Perf 18/07 : vignette réduite (la carte intro fait ~200px) via imgThumb
+        const src=imgThumb(p.image_url,240);
+        if(src){
+          const pose=()=>{box.style.background="url('"+src+"') center/cover, "+_KRAFT;};
+          const im=new Image();
+          im.src=src;
+          // Anti-clignotement : les vignettes sont préchargées en amont
+          // (_introPhotos) → cache. Si l'image est déjà complète, on pose le
+          // fond SYNCHRONE (les 6 cartes dans la même frame) au lieu de 6
+          // onload décalés qui font "clignoter" les cartes en plein vol.
+          if(im.complete&&im.naturalWidth>0)pose();
+          else im.onload=pose;
+          // onerror : on ne touche pas → le kraft reste visible
+        }
       }
       const t=it.querySelector('.ctn-card-title');
       if(t)t.textContent=formatProductTitle(p.qualite,p.type||p.format||'');
@@ -5007,6 +5243,13 @@ function _ctnSplash(){
       v('.ctn-v3',p.poids_net?Math.round(p.poids_net)+' kg':'');
     });
   };
+  // Machine faible / reduced-motion : intro écourtée (la choré CSS est de toute
+  // façon peu visible et coûteuse sur GPU faible ; on privilégie « voir vite »).
+  const _lowPerf=(navigator.hardwareConcurrency||8)<=4
+    || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(_lowPerf)d.classList.add('ctn-lite');
+  const MIN_MS=_lowPerf?900:3200;   // était 6000 (choré finit ~3,3s côté CSS)
+  const MAX_MS=_lowPerf?2500:4500;  // filet rapproché (était 8000)
   let minOk=false,dataOk=false;
   // À la fin du splash, les cartes de la liste ENTRENT en cascade (fondu + remontée)
   const reveal=()=>{
@@ -5017,11 +5260,25 @@ function _ctnSplash(){
   };
   window._ctnReveal=reveal;
   const _rend=()=>{if(window._ctnRender){const f=window._ctnRender;window._ctnRender=null;f();}};
-  const out=()=>{if(minOk&&dataOk&&d.parentNode){d.classList.add('out');_rend();setTimeout(()=>d.remove(),450);setTimeout(()=>_sharedRecap(),320);}};
-  setTimeout(()=>{minOk=true;out();},6000);
+  // out() : on REND puis on arme la cascade DANS LA MÊME FRAME (les cartes
+  // naissent à opacité 0 sous le splash — jamais peintes visibles avant la
+  // cascade, sinon on voyait la grille puis les cartes ré-apparaissaient).
+  // 2 rAF laissent le paint finir avant le fondu → pas de saccade pendant.
+  const out=()=>{if(minOk&&dataOk&&d.parentNode){
+    _rend();
+    reveal();
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      if(!d.parentNode)return;
+      d.classList.add('out');
+      setTimeout(()=>d.remove(),450);
+    }));
+  }};
+  setTimeout(()=>{minOk=true;out();},MIN_MS);
   window._ctnDone=()=>{dataOk=true;out();};
-  d.onclick=()=>{d.remove();_rend();_sharedRecap();};
-  setTimeout(()=>{if(d.parentNode){d.remove();_rend();}},8000);
+  // Skip au clic : rendu + cascade armés avant le paint, puis retrait du splash.
+  d.onclick=()=>{_rend();reveal();requestAnimationFrame(()=>{if(d.parentNode)d.remove();});};
+  // Filet réseau : même ordre, tout dans la même tâche (un seul paint).
+  setTimeout(()=>{if(d.parentNode){_rend();reveal();d.remove();}},MAX_MS);
 }
 if(_sharedMode)_ctnSplash();
 let _sharedAll=[];
@@ -5050,7 +5307,24 @@ async function loadSharedQuote(idsOverride){
   }
   const products=r.data;
   _loadingProducts=false;
-  window._ctnFill?.(products.filter(p=>p.image_url).slice(0,5).map(rowToUi));
+  // Intro : ne featurer QUE des articles dont la photo CHARGE vraiment.
+  // image_url != null ne suffit pas (stock.prodi.net renvoie des 404 → carte
+  // blanche/kraft). On précharge les vignettes candidates et on ne garde que
+  // celles qui chargent ; bonus : préchargées = posées sans jank par _ctnFill.
+  (function _introPhotos(){
+    const cands=products.filter(p=>p.image_url).slice(0,12).map(rowToUi);
+    if(!cands.length){window._ctnFill?.([]);return;}
+    const ok=[]; let left=cands.length, flushed=false;
+    const flush=()=>{if(flushed)return;flushed=true;window._ctnFill?.(ok.length?ok:cands.slice(0,3));};
+    cands.forEach(p=>{
+      const im=new Image();
+      const settle=good=>{if(good)ok.push(p);if(ok.length>=6||--left<=0)flush();};
+      im.onload=()=>settle(true);
+      im.onerror=()=>settle(false);
+      im.src=imgThumb(p.image_url,240);
+    });
+    setTimeout(flush,1500); // filet : ne pas attendre les photos lentes
+  })();
 
   // Vue client : une ligne par unité (l'assemblé est débranché pour le moment —
   // pour le remettre : groupProducts(units) → protos enrichis _grp*).
@@ -5457,6 +5731,7 @@ function toggleFbMsd(wrapperId){
   // Close all
   document.querySelectorAll('.fb-msd-btn.open,.msd-btn.open').forEach(b=>b.classList.remove('open'));
   document.querySelectorAll('.msd-panel.show').forEach(p=>p.classList.remove('show'));
+  _flushFacetsApresFermeture();
   if(!isOpen){
     btn.classList.add('open');
     const rect=btn.getBoundingClientRect();
@@ -5764,6 +6039,25 @@ async function ouvrirLienClient(){
   }catch(e){toast('Erreur création du lien');return;}
   try{await navigator.clipboard.writeText(url);}catch(_){}
   window.open(url,'_blank');
+}
+// « Partager » du tiroir : crée le lien client (?s=) et l'OUVRE directement
+// dans un nouvel onglet (vue client, intro + thème Apple) — demande Ethan 20/07.
+async function openClientLink(btn){
+  if(!cart.length){toast('Liste vide — ajoutez des produits d\'abord');return;}
+  const code=_shortCode();
+  const refs=cart.map(x=>x.ref).filter(Boolean).join(',');
+  if(!refs){toast('Aucune référence valide dans la liste');return;}
+  const url=window.location.origin+window.location.pathname+'?s='+code+(typeof _priceMode!=='undefined'&&_priceMode?'&p=1':'');
+  try{
+    const res=await sbQ('shared_carts',{method:'POST',body:{code,cart_ids:refs},headers:{'Prefer':'return=minimal'}});
+    window.prodiTrack?.('panier_partage',{code,nb:(refs.match(/,/g)||[]).length+1,via:'partager_direct'});
+    if(res&&res.status&&res.status>=400){throw new Error('HTTP '+res.status);}
+  }catch(e){
+    console.error('share',e);
+    toast('Erreur création du lien partagé');
+    return;
+  }
+  window.open(url,'_blank','noopener');
 }
 async function copyCartLink(btn){
   if(!cart.length){toast('Liste vide — ajoutez des produits d\'abord');return;}
