@@ -149,7 +149,7 @@ const mmToCm=mm=>mm!=null?Math.round(+mm):null;
 //   - `codes` (RCOL+SCOL) is used by TYPE_MAP (smart search) and rowToUi
 //     (display label derivation from quality+gsm).
 //   - The SIDEBAR filter (msd-type "Offset Couleur" / "Dossier Couleur")
-//     matches only RCOL — see _optMatchesValue / _matchesActiveFilters /
+//     matches only RCOL — see _countFacet / _matchesActiveFilters /
 //     _fetchAndRender, which use the literal 'RCOL'.
 const COULEUR_SPLIT={
   codes:['RCOL','SCOL'],
@@ -277,6 +277,8 @@ function _stem(w){
 }
 
 // ============ FUZZY SEARCH (client-side fallback) ============
+// Colonnes réellement consommées par rowToUi (évite select=* — payload gonflé).
+const SEL_UI='ref,quality,color,details,gsm,width,longueur,noyau,weight,price,usine,emplacement,zone,format,image_url,reserve_client,promo,id';
 let _allProductsCache=null,_allProductsLoading=null;
 // Jour de stock effectif : l'import remplace la base à ~8h15 Paris — avant
 // 8h30 le stock est encore celui de la veille (clé de cache facettes).
@@ -790,6 +792,8 @@ const _COLOR_DB={
   'Violet':      ['VIOLET / PURPLE'],
   'Autres':      ['DIVERS / VARIOUS','CHAMOIS','BULLE/BUBBLE'],
 };
+// Reverse-map couleur DB → option (construite UNE fois) pour le comptage O(lignes).
+const _COLOR_REV=(()=>{const m={};for(const opt in _COLOR_DB)for(const dbc of _COLOR_DB[opt])m[dbc]=opt;return m;})();
 const _COLOR_NORM={
   'BLANC / WHITE':'Blanc','BRUN / BROWN':'Brun','IVOIRE / IVORY':'Ivoire',
   'BLANC NATURE / NATURAL WHITE':'Blanc nature',
@@ -1629,6 +1633,31 @@ function _detailAutresPg(){ // « Autres » = champ rempli mais AUCUN tag reconn
   nots.push('details.not.ilike.*cie*');
   return 'and(details.not.is.null,details.neq.,'+nots.join(',')+')';
 }
+// Perf : les filtres numériques/texte lus dans le DOM (+ le querySelectorAll des
+// pilules format) sont capturés UNE fois par passe de facettes, pas par ligne.
+// _refreshAllFacets appelle le prédicat ~10× sur ~7 200 lignes = 72 000 lectures
+// DOM sinon (mesuré : 210ms → l'essentiel du coût du filtrage). _fafBump()
+// invalide le snapshot au début de chaque passe. Complémentaire du comptage O(n).
+let _fafEpoch=0,_fafSnap=null,_fafSnapEpoch=-1;
+function _fafBump(){ _fafEpoch++; }
+function _fafState(){
+  if(_fafSnap&&_fafSnapEpoch===_fafEpoch)return _fafSnap;
+  const g=id=>document.getElementById(id);
+  _fafSnap={
+    gn:+g('f-gmin')?.value||0, gx:+g('f-gmax')?.value||0,
+    lminCm:+g('f-lmin')?.value||0, lmaxCm:+g('f-lmax')?.value||0,
+    longmin:+g('f-longmin')?.value||0, longmax:+g('f-longmax')?.value||0,
+    wmin:+g('f-wmin')?.value||0, wmax:+g('f-wmax')?.value||0,
+    refCode:(g('f-ref-code')?.value||'').trim().toUpperCase(),
+    refMin:+g('f-refmin')?.value||0, refMax:+g('f-refmax')?.value||0,
+    usineVal:(g('f-usine')?.value||'').trim(),
+    zoneNum:(g('f-zone-num')?.value||'').trim(),
+    zoneLet:(g('f-zone-let')?.value||'').trim().toUpperCase(),
+    formats:new Set([...document.querySelectorAll('.fpill.active:not(.fpill-orig):not(.fpill-stock):not(.fpill-depot):not(.fpill-photo):not(.fpill-resa)')].map(b=>b.dataset.format)),
+  };
+  _fafSnapEpoch=_fafEpoch;
+  return _fafSnap;
+}
 function _matchesActiveFilters(row, excludeKey){
   const types=getMsdValues('msd-type');
   if(excludeKey!=='msd-type' && types.size>0){
@@ -1695,87 +1724,76 @@ function _matchesActiveFilters(row, excludeKey){
     const pds=getMsdValues('msd-poids');
     if(pds.size>0 && !pds.has(_poidsTrancheOf(row)||'')) return false;
   }
-  const gn=+document.getElementById('f-gmin')?.value||0;
-  const gx=+document.getElementById('f-gmax')?.value||0;
-  if(gn && +row.gsm<gn) return false;
-  if(gx && +row.gsm>gx) return false;
-  const lminCm=+document.getElementById('f-lmin')?.value||0;
-  const lmaxCm=+document.getElementById('f-lmax')?.value||0;
-  if(lminCm && +row.width<lminCm) return false;
-  if(lmaxCm && +row.width>lmaxCm) return false;
-  const longmin=+document.getElementById('f-longmin')?.value||0;
-  const longmax=+document.getElementById('f-longmax')?.value||0;
-  if(longmin && +row.longueur<longmin) return false;
-  if(longmax && +row.longueur>longmax) return false;
-  const wmin=+document.getElementById('f-wmin')?.value||0;
-  const wmax=+document.getElementById('f-wmax')?.value||0;
-  if(wmin && +row.weight<wmin) return false;
-  if(wmax && +row.weight>wmax) return false;
+  const S=_fafState();
+  if(S.gn && +row.gsm<S.gn) return false;
+  if(S.gx && +row.gsm>S.gx) return false;
+  if(S.lminCm && +row.width<S.lminCm) return false;
+  if(S.lmaxCm && +row.width>S.lmaxCm) return false;
+  if(S.longmin && +row.longueur<S.longmin) return false;
+  if(S.longmax && +row.longueur>S.longmax) return false;
+  if(S.wmin && +row.weight<S.wmin) return false;
+  if(S.wmax && +row.weight>S.wmax) return false;
   if(_photoFilter==='with' && !row.image_url) return false;
   if(_photoFilter==='without' && row.image_url) return false;
   if(_resaFilter==='with' && !row.reserve_client) return false;
   if(_resaFilter==='without' && row.reserve_client) return false;
-  const refCode=(document.getElementById('f-ref-code')?.value||'').trim().toUpperCase();
-  if(refCode && !String(row.quality||'').toUpperCase().startsWith(refCode)) return false;
-  const refMin=+document.getElementById('f-refmin')?.value||0;
-  const refMax=+document.getElementById('f-refmax')?.value||0;
-  if(refMin||refMax){
+  if(S.refCode && !String(row.quality||'').toUpperCase().startsWith(S.refCode)) return false;
+  if(S.refMin||S.refMax){
     const refNum=parseInt(String(row.ref||'').replace(/\D/g,''),10);
     if(!refNum)return false;
-    if(refMin&&!refMax){ if(refNum!==refMin)return false; }
+    if(S.refMin&&!S.refMax){ if(refNum!==S.refMin)return false; }
     else {
-      if(refMin&&refNum<refMin)return false;
-      if(refMax&&refNum>refMax)return false;
+      if(S.refMin&&refNum<S.refMin)return false;
+      if(S.refMax&&refNum>S.refMax)return false;
     }
   }
-  const usineVal=(document.getElementById('f-usine')?.value||'').trim();
-  if(usineVal && String(row.usine||'')!==usineVal) return false;
-  const zoneNum=(document.getElementById('f-zone-num')?.value||'').trim();
-  const zoneLet=(document.getElementById('f-zone-let')?.value||'').trim().toUpperCase();
-  const zStr=String(row.zone||'').toUpperCase();
-  if(zoneNum && zoneLet){ if(!zStr.startsWith(zoneNum+zoneLet)) return false; }
-  else if(zoneNum){ if(!zStr.startsWith(zoneNum)) return false; }
-  else if(zoneLet){ if(!zStr.includes(zoneLet)) return false; }
-  const formats=new Set([...document.querySelectorAll('.fpill.active:not(.fpill-orig):not(.fpill-stock):not(.fpill-depot):not(.fpill-photo):not(.fpill-resa)')].map(b=>b.dataset.format));
-  if(formats.size && !formats.has(row.format)) return false;
+  if(S.usineVal && String(row.usine||'')!==S.usineVal) return false;
+  if(S.zoneNum || S.zoneLet){
+    const zStr=String(row.zone||'').toUpperCase();
+    if(S.zoneNum && S.zoneLet){ if(!zStr.startsWith(S.zoneNum+S.zoneLet)) return false; }
+    else if(S.zoneNum){ if(!zStr.startsWith(S.zoneNum)) return false; }
+    else if(S.zoneLet){ if(!zStr.includes(S.zoneLet)) return false; }
+  }
+  if(S.formats.size && !S.formats.has(row.format)) return false;
   return true;
 }
 // ── Faceting for hardcoded msd (Type / Couleurs / Mandrins) ──
 // The option list itself is fixed; we just refresh counts + hide the 0s.
-function _optMatchesValue(row, msdId, val){
+// Comptage des facettes en UNE passe (O(lignes) au lieu de O(lignes×options)).
+function _countFacet(baseRows,msdId){
+  const counts={};
   if(msdId==='msd-couleur'){
-    const dbColors=_COLOR_DB[val]||[val];
-    return dbColors.includes(row.color);
+    for(const r of baseRows){const v=_COLOR_REV[r.color]; if(v!==undefined)counts[v]=(counts[v]||0)+1;}
+    return counts;
   }
   if(msdId==='msd-mandrin'){
-    return String(row.noyau)===String(val);
-  }
-  if(msdId==='msd-format'){
-    return _formatFamilleOf(row)===val;
-  }
-  if(msdId==='msd-grammage'){
-    return _grammageFamilleOf(row)===val;
-  }
-  if(msdId==='msd-laize'){
-    return _laizeFamilleOf(row)===val;
+    for(const r of baseRows){const v=String(r.noyau); counts[v]=(counts[v]||0)+1;}
+    return counts;
   }
   if(msdId==='msd-usine'){
-    return String(row.usine||'').trim()===val;
-  }
-  if(msdId==='msd-diametre'){
-    return _diamFamilleOf(row)===val;
-  }
-  if(msdId==='msd-poids'){
-    return _poidsTrancheOf(row)===val;
+    for(const r of baseRows){const v=String(r.usine||'').trim(); counts[v]=(counts[v]||0)+1;}
+    return counts;
   }
   if(msdId==='msd-type'){
-    const q=row.quality||'';
-    if(val==='AUTRES') return !QUALITE_KNOWN_DB.includes(q);
-    if(val===COULEUR_SPLIT.offsetLabel) return q==='RCOL' && +row.gsm<COULEUR_SPLIT.threshold;
-    if(val===COULEUR_SPLIT.dossierLabel) return q==='RCOL' && +row.gsm>=COULEUR_SPLIT.threshold;
-    return q===val;
+    const off=COULEUR_SPLIT.offsetLabel,dos=COULEUR_SPLIT.dossierLabel,th=COULEUR_SPLIT.threshold;
+    for(const r of baseRows){
+      const q=r.quality||''; let v;
+      if(!QUALITE_KNOWN_DB.includes(q)) v='AUTRES';
+      else if(q==='RCOL') v=(+r.gsm<th)?off:dos;
+      else v=q;
+      counts[v]=(counts[v]||0)+1;
+    }
+    return counts;
   }
-  return false;
+  let deriv;
+  if(msdId==='msd-format')deriv=_formatFamilleOf;
+  else if(msdId==='msd-grammage')deriv=_grammageFamilleOf;
+  else if(msdId==='msd-laize')deriv=_laizeFamilleOf;
+  else if(msdId==='msd-diametre')deriv=_diamFamilleOf;
+  else if(msdId==='msd-poids')deriv=_poidsTrancheOf;
+  else return counts;
+  for(const r of baseRows){const v=deriv(r); if(v!=null)counts[v]=(counts[v]||0)+1;}
+  return counts;
 }
 function _allMsdContainers(msdId){
   const ids=[msdId,'sb-'+msdId,msdId+'-sidebar',msdId+'-mob','sb-'+msdId+'-mob'];
@@ -1795,12 +1813,7 @@ function _updateMsdFacetCounts(msdId){
   if(_facetSig[msdId]===sig) return;
   _facetSig[msdId]=sig;
   const baseRows=_allProductsCache.filter(r=>_matchesActiveFilters(r,msdId));
-  const counts={};
-  values.forEach(v=>{
-    let n=0;
-    for(const r of baseRows) if(_optMatchesValue(r,msdId,v)) n++;
-    counts[v]=n;
-  });
+  const counts=_countFacet(baseRows,msdId);
   const sel=msdState[msdId];
   conts.forEach(cont=>{
     const searchInp=cont.querySelector('.msd-search-inp');
@@ -1851,6 +1864,7 @@ function _buildUsineOptions(){
   _usineOptionsBuilt=true;
 }
 function _refreshAllFacets(){
+  _fafBump();
   _buildUsineOptions();
   _rebuildDetailsMsd();
   _updateMsdFacetCounts('msd-type');
@@ -2251,8 +2265,28 @@ async function _loadMore(){
     const r=await sbQ('products?'+_lastQueryP,{headers:{'Range':off+'-'+(off+PAGE-1)}});
     if(tok!==_reqToken)return;
     if(r.data&&r.data.length){
-      all=all.concat(r.data.map(rowToUi));
-      render(all);
+      const fresh=r.data.map(rowToUi);
+      const g=document.getElementById('pgrid');
+      // Perf 20/07 : au lieu de re-render TOUTES les cartes (le pire reflow +
+      // CLS), on APPEND seulement les nouvelles cartes en fin de grille — mais
+      // uniquement tant qu'aucun format n'est déjà affiché (les formats arrivent
+      // après les bobines dans le flux serveur trié par id, donc le préfixe
+      // « bobines d'abord » reste stable). Dès qu'un format est présent, repli
+      // sûr sur render(all) pour ne pas casser l'ordre bobine-avant-format.
+      if(g&&g._lastList&&!g._lastList.some(_estFormat)&&_viewMode==='grid'&&!_sharedMode){
+        all=all.concat(fresh);
+        g._lastList=all;
+        _rcCartIds=new Set(cart.map(x=>+x.id));
+        _rcGrpByGid=new Map(_groupsList.map(gr=>[gr.gid,gr]));
+        const html=fresh.filter(pp=>!_estFormat(pp)).map(_renderCatalogueCard).join('')
+                 + fresh.filter(_estFormat).map(_renderCatalogueCard).join('');
+        g.insertAdjacentHTML('beforeend',html);
+        _updatePager();
+        if(typeof _updateAddPageBtn==='function')_updateAddPageBtn();
+      }else{
+        all=all.concat(fresh);
+        render(all); // repli sûr : re-render complet quand des formats sont déjà mêlés
+      }
     }
     if(!r.data||r.data.length<PAGE)_totalCount=all.length;
   }catch(_){}finally{_loadingMore=false;}
@@ -2440,17 +2474,21 @@ async function _fetchAndRenderFeatured(token){
     const p=new URLSearchParams({select:'ref,quality,color,details,gsm,width,longueur,noyau,weight,price,usine,emplacement,zone,format,image_url,reserve_client,promo,id','image_url':'not.is.null',order:'ref.desc'});
     p.append('image_url','neq.');
     p.append('ref','match.^Photo_[0-9]{6}$');
-    // Fetch featured products AND real total count + weight in parallel
+    // Fetch featured products AND real total count + weight in parallel.
+    // Perf 20/07 : si le cache facettes (7 200 lignes) est DÉJÀ chargé (visite
+    // répétée, hit localStorage), le count total et le tonnage s'en dérivent —
+    // on économise le count=exact (plein-scan) + la RPC. Même périmètre sbQ.
+    const _cacheHit=_allProductsCache;
     const [imgRes, countRes, wRes]=await Promise.all([
       sbQ('products?'+p,{headers:{'Range':'0-199'}}),
-      sbQ('products?select=id',{headers:{'Prefer':'count=exact','Range':'0-0'}}),
-      sbQ('rpc/sum_weight_filtered',{method:'POST',body:{}})
+      _cacheHit?Promise.resolve(null):sbQ('products?select=id',{headers:{'Prefer':'count=exact','Range':'0-0'}}),
+      _cacheHit?Promise.resolve(null):sbQ('rpc/sum_weight_filtered',{method:'POST',body:{}})
     ]);
     const {data,error}=imgRes;
     if(_reqToken!==token)return;
     if(error||!data?.length){await _fetchAndRender(token);return;}
-    const _realCount=(countRes.count!=null&&!isNaN(countRes.count))?countRes.count:0;
-    const _realWeightKg=wRes.data||0;
+    const _realCount=_cacheHit?_cacheHit.length:((countRes&&countRes.count!=null&&!isNaN(countRes.count))?countRes.count:0);
+    const _realWeightKg=_cacheHit?_cacheHit.reduce((s,r)=>s+(+r.weight||0),0):(wRes?wRes.data||0:0);
     // Filter products with image_url, then verify images actually load
     const candidates=data.filter(r=>r.image_url&&r.image_url.trim().length>10);
     candidates.sort(()=>Math.random()-.5);
@@ -2574,7 +2612,7 @@ async function _fetchAndRender(token){
 
   // Build URL params (replaces SDK query builder)
   const p=new URLSearchParams();
-  p.set('select','*');
+  p.set('select',SEL_UI);
   parsed.text.forEach(term=>{
     const t=parsed.exact?_norm(term):_stem(_norm(term));
     const escaped=t.replace(/[%_(),]/g,'\\$&');
@@ -2728,27 +2766,36 @@ async function _fetchAndRender(token){
   const _to=setTimeout(()=>ctrl.abort(),15000);
   let data,error,_exactCount=null,_totalWeightKg=0;
   try{
-    const [mainRes,wRes]=await Promise.all([
-      sbQ('products?'+p,{headers:{'Prefer':'count=exact','Range':offset+'-'+(offset+PAGE-1)},signal:ctrl.signal}),
-      sbQ('rpc/sum_weight_filtered',{method:'POST',body:rpcParams})
-    ]);
-    ({data,error,count:_exactCount}=mainRes);
-    _totalWeightKg=wRes.data||0;
-    // Fuzzy fallback: server returned 0 results but user typed something → try client-side fuzzy.
-    // Fuzzy returns full product rows (same select=* shape as server), so rowToUi produces
-    // identical UI objects. We also recompute tonnage here since the server RPC ran against
-    // the 0-result query and would report 0T.
-    if(!error&&(!data||data.length===0)&&q.length>0&&currentPage===1&&!parsed.exact){
-      const fuzzy=await _fuzzyFallback(q,{
-        longmin,longmax,wmin,wmax,
-        quality_in:rpcParams.quality_in,color_in:rpcParams.color_in,
-        format_in:rpcParams.format_in,noyau_in:rpcParams.noyau_in,
-        refCode,usineVal,
-      });
-      if(fuzzy.length){
-        data=fuzzy;
-        _exactCount=fuzzy.length;
-        _totalWeightKg=fuzzy.reduce((s,r)=>s+(+r.weight||0),0);
+    // Perf 20/07 : en mode groupé (défaut) le bloc « MODE REGROUPÉ » plus bas
+    // refetche TOUS les rows et écrase `all`, `_totalCount`, `_totalWeightKg` —
+    // la requête paginée + count=exact + la RPC tonnage étaient donc calculées
+    // pour rien (2 allers-retours + un COUNT(*) plein-scan gaspillés par filtrage).
+    // On ne les lance QUE hors mode groupé.
+    if(_groupedMode){
+      data=[];
+    }else{
+      const [mainRes,wRes]=await Promise.all([
+        sbQ('products?'+p,{headers:{'Prefer':'count=exact','Range':offset+'-'+(offset+PAGE-1)},signal:ctrl.signal}),
+        sbQ('rpc/sum_weight_filtered',{method:'POST',body:rpcParams})
+      ]);
+      ({data,error,count:_exactCount}=mainRes);
+      _totalWeightKg=wRes.data||0;
+      // Fuzzy fallback: server returned 0 results but user typed something → try client-side fuzzy.
+      // Fuzzy returns full product rows (same select=* shape as server), so rowToUi produces
+      // identical UI objects. We also recompute tonnage here since the server RPC ran against
+      // the 0-result query and would report 0T.
+      if(!error&&(!data||data.length===0)&&q.length>0&&currentPage===1&&!parsed.exact){
+        const fuzzy=await _fuzzyFallback(q,{
+          longmin,longmax,wmin,wmax,
+          quality_in:rpcParams.quality_in,color_in:rpcParams.color_in,
+          format_in:rpcParams.format_in,noyau_in:rpcParams.noyau_in,
+          refCode,usineVal,
+        });
+        if(fuzzy.length){
+          data=fuzzy;
+          _exactCount=fuzzy.length;
+          _totalWeightKg=fuzzy.reduce((s,r)=>s+(+r.weight||0),0);
+        }
       }
     }
   }catch(e){
@@ -2769,7 +2816,10 @@ async function _fetchAndRender(token){
 
   // Recalculate weight using same filters as main query (paginated).
   // Perf 18/07 : seulement si des filtres sont actifs (RPC juste sinon).
-  if(_reqToken===token&&_anyFilterActive()){
+  // Perf 20/07 : sauté en mode groupé — le tonnage y est déjà recalculé depuis
+  // _allUi (voir bloc MODE REGROUPÉ), donc cette boucle séquentielle complète
+  // ne faisait que produire une valeur immédiatement écrasée.
+  if(_reqToken===token&&_anyFilterActive()&&!_groupedMode){
     try{
       const _wp=new URLSearchParams(p);
       _wp.set('select','weight');
@@ -2791,7 +2841,7 @@ async function _fetchAndRender(token){
   if(_groupedMode&&_reqToken===token){
     try{
       const _ap=new URLSearchParams(p);
-      _ap.set('select','*');
+      _ap.set('select',SEL_UI);
       _ap.delete('order');
       const _cacheKey=_ap.toString();
       let _allUi;
@@ -2858,7 +2908,16 @@ async function _fetchAndRender(token){
       _maxKnownPage=Math.max(1,Math.ceil(_totalCount/PAGE)||1);
       _totalWeightKg=_allUi.reduce((s,r)=>s+(+r.poids_net||0),0);
     }catch(_){
-      // En cas d'erreur, on retombe sur le mode paginé classique
+      // En cas d'erreur, on retombe sur le mode paginé classique. `data` étant
+      // vide en mode groupé (perf 20/07), on refetche la 1re page en secours
+      // pour ne pas afficher un catalogue vide (ce filet existait avant via la
+      // requête paginée systématique).
+      try{
+        const _fb=await sbQ('products?'+p,{headers:{'Prefer':'count=exact','Range':offset+'-'+(offset+PAGE-1)}});
+        all=(_fb.data||[]).map(rowToUi);
+        _totalCount=(_fb.count!=null&&!isNaN(_fb.count))?_fb.count:all.length+(currentPage-1)*PAGE;
+        _maxKnownPage=Math.max(1,Math.ceil(_totalCount/PAGE)||1);
+      }catch(__){}
     }
   } else {
     // Mode paginé classique (non groupé)
@@ -3122,11 +3181,10 @@ function getProductDetailText(p){
   return _productSummary(p);
 }
 
-function renderCards(list){
-  const g=document.getElementById('pgrid');
-  if(!g)return;
-  g.className='pgrid';
-  const _renderCard=p=>{
+// Set du panier + Map gid→group, reconstruits une fois par render (finding 8)
+// et lus par _renderCatalogueCard (extrait au niveau module, finding 7).
+let _rcCartIds=new Set(), _rcGrpByGid=new Map();
+function _renderCatalogueCard(p){
     const initials=(p.type||'?').substring(0,2).toUpperCase();
     const _altTxt=[p.name,p.grammage?p.grammage+'g/m²':'',p.couleur].filter(Boolean).join(' — ')||'Produit';
     const _isFab=p.ref&&/^Photo_FAB/i.test(String(p.ref))&&p.emplacement!=='OUR WAREHOUSE';
@@ -3178,10 +3236,10 @@ function renderCards(list){
     const subtitleHtml=_sub?`<div class="pcard-subtitle">${esc(_sub)}</div>`:'';
     // Bouton ajouter : groupé → sélecteur qté avec poids live; sinon → bouton classique
     const _q=_groupQty[p._grpKey]||1;
-    const _initialW=_isGroup?Math.round((p._grpUnitIds||[]).slice(0,_q).reduce((s,uid)=>{const u=(_groupsList.find(g=>g.gid===p._grpKey)?.units||[]).find(x=>x.id===uid);return s+(+(u?.poids_net||0));},0)).toLocaleString('fr-FR')+' kg':'';
+    const _initialW=_isGroup?Math.round((p._grpUnitIds||[]).slice(0,_q).reduce((s,uid)=>{const u=(_rcGrpByGid.get(p._grpKey)?.units||[]).find(x=>x.id===uid);return s+(+(u?.poids_net||0));},0)).toLocaleString('fr-FR')+' kg':'';
     const _totalW=_isGroup?Math.round(p._grpTotalWeight).toLocaleString('fr-FR')+' kg':'';
-    const _grpAllIn=_isGroup&&(p._grpUnitIds||[]).slice(0,_q).every(id=>cart.find(x=>x.id===+id))&&_q>0;
-    const _isInCart = _isGroup ? _grpAllIn : !!cart.find(x=>x.id===+p.id);
+    const _grpAllIn=_isGroup&&(p._grpUnitIds||[]).slice(0,_q).every(id=>_rcCartIds.has(+id))&&_q>0;
+    const _isInCart = _isGroup ? _grpAllIn : _rcCartIds.has(+p.id);
     // Mobile-friendly : en mode groupé in-cart le texte "Retirer N" pousse le bouton [+]
     // hors de la carte (2 cards par ligne sur mobile). Garde juste icône + count.
     const _btnText = _isInCart
@@ -3255,11 +3313,20 @@ function renderCards(list){
         ${addCtrl}
       </div>
     </div>`;
-  };
+}
+// Exposé pour l'append en scroll infini (finding 1/2).
+renderCards._card=_renderCatalogueCard;
+function renderCards(list){
+  const g=document.getElementById('pgrid');
+  if(!g)return;
+  g.className='pgrid';
+  // Structures O(1) reconstruites une fois par render (finding 8).
+  _rcCartIds=new Set(cart.map(x=>+x.id));
+  _rcGrpByGid=new Map(_groupsList.map(gr=>[gr.gid,gr]));
   // Bobines d'abord, Formats après — pas de séparateur en grille
   const _isPalCard=p=>_estFormat(p);
   const _sorted=[...list].sort((a,b)=>(_isPalCard(a)?1:0)-(_isPalCard(b)?1:0));
-  g.innerHTML=_sorted.map(_renderCard).join('');
+  g.innerHTML=_sorted.map(_renderCatalogueCard).join('');
   _updatePager();
   if(typeof _updateAddPageBtn==='function')_updateAddPageBtn();
 }
@@ -3386,6 +3453,11 @@ function render(list){
   if(!list||list.length===0){
     g.className='pgrid';
     if(_loadingProducts){
+      // Perf 20/07 : réserve la hauteur d'une rangée pendant le spinner pour que
+      // le passage spinner→cartes ne pousse pas le contenu sous la grille (CLS).
+      // La classe est effacée dès le 1er render de cartes (renderCards/renderList
+      // réassignent g.className='pgrid'), donc aucune réservation résiduelle.
+      g.classList.add('pgrid-loading');
       g.innerHTML=`<div class="empty" style="grid-column:1/-1">
         <div class="load-spin"></div>
         <div class="empty-lbl">Chargement du stock…</div>
@@ -3426,8 +3498,8 @@ function renderSharedCards(list){
     const _isSiderun=p.ref&&/^Photo_DU/i.test(String(p.ref));
     const fallback=_isSiderun?'/img/siderun-sur-demande.png':'/img/no-photo.png';
     const img=p.image_url
-      ?`<img src="${imgThumb(p.image_url,560)}" alt="${esc(title)}" loading="lazy" onerror="if(!this._o){this._o=1;this.src='${safeUrl(p.image_url)}';}else{this.src='${esc(fallback)}';}">`
-      :`<img src="${esc(fallback)}" alt="">`;
+      ?`<img src="${imgThumb(p.image_url,560)}" alt="${esc(title)}" width="300" height="279" loading="lazy" onerror="if(!this._o){this._o=1;this.src='${safeUrl(p.image_url)}';}else{this.src='${esc(fallback)}';}">`
+      :`<img src="${esc(fallback)}" alt="" width="300" height="279">`;
     const isPal=_estFormat(p);
     const _det=p.details?p.details.replace(/[-–—\s]+/g,' ').trim():'';
     let cells='';
@@ -4859,7 +4931,7 @@ if(_sharedMode)_sharedViewUI(true);
             }
             cells+=cell('COULEUR',esc(p.couleur||'—'),2);
             cells+=cell('POIDS NET',p.poids_net?esc(Math.round(p.poids_net).toLocaleString('fr-FR'))+' <small>kgs</small>':'—',2);
-            return `<div class="pcard sc-card phero-card"><div class="pcard-img"><img src="${_thumb(p.image_url)}" decoding="async" onerror="this.onerror=null;this.src='${safeUrl(p.image_url)}'" alt="" loading="lazy"></div><div class="sc-body"><div class="sc-grid"><div class="sc-cell sc-title" style="grid-column:span 4;">${esc(formatProductTitle(p.qualite,p.type))}</div>${cells}</div></div></div>`;
+            return `<div class="pcard sc-card phero-card"><div class="pcard-img"><img src="${_thumb(p.image_url)}" width="272" height="132" decoding="async" onerror="this.onerror=null;this.src='${safeUrl(p.image_url)}'" alt="" loading="lazy"></div><div class="sc-body"><div class="sc-grid"><div class="sc-cell sc-title" style="grid-column:span 4;">${esc(formatProductTitle(p.qualite,p.type))}</div>${cells}</div></div></div>`;
           };
           const CAP=_mob?6:12; // couche animee 2x plus etroite sur mobile = GPU iOS soulage
           const half=Math.min(CAP,Math.ceil(withImg.length/2));
@@ -5299,6 +5371,7 @@ async function openProductByRef(ref){
 }
 
 function updateFilterVisibility(){
+  _fafBump();
   const bobine=
     document.getElementById('fb-bobine')?.classList.contains('active')||
     !!document.querySelector('.fpill[data-format="Bobine"].active');
