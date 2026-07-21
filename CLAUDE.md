@@ -491,6 +491,13 @@ est du code dormant. Contenu du mode (body.topbar-view) :
 - **Leçon replace_all** : remplacer `_sharedRecap()` partout a aussi frappé la
   DÉFINITION `function _sharedRecap(){` → syntaxe cassée (vu au node --check).
 
+## Retouches 21/07 soir (v658, poussé)
+- Filtres avancés : Photo et Réservation déplacés SOUS Diamètre (ordre :
+  Poids, Mandrin, Laizes, Ø, Photo, Réservation, Réf usine).
+- Bloc questions PRODIX : rangée en GRID `repeat(auto-fit,minmax(240px,1fr))`
+  pleine largeur — n questions = n colonnes égales (curseur tonnage compris),
+  repli en pile sur étroit. (Avant : flex-wrap, le tonnage retombait dessous.)
+
 ## Règles photos / images produit
 
 ### Priorité d'affichage (pour TOUS les produits)
