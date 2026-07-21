@@ -4515,10 +4515,13 @@ async function _extractTextFromFile(file){
   }
   if(name.endsWith('.xlsx')||name.endsWith('.xls')){
     await _loadScript('xlsx');
-    const wb=window.XLSX.read(await file.arrayBuffer(),{type:'array'});
+    // cellStyles:true charge l'état masqué des lignes ; skipHidden ne lit que
+    // ce que l'utilisateur VOIT dans Excel (21/07 : un fichier ZINIAS traînait
+    // 307 lignes masquées d'un vieux tableau → 328 réfs fantômes importées).
+    const wb=window.XLSX.read(await file.arrayBuffer(),{type:'array',cellStyles:true});
     // FS '\n' = une CELLULE par ligne : un CSV virgule collait la réf au champ
     // suivant (« 993076,548 ») et la garde anti-décimales la rejetait.
-    return wb.SheetNames.map(n=>window.XLSX.utils.sheet_to_csv(wb.Sheets[n],{FS:'\n'})).join('\n');
+    return wb.SheetNames.map(n=>window.XLSX.utils.sheet_to_csv(wb.Sheets[n],{FS:'\n',skipHidden:true})).join('\n');
   }
   if(name.endsWith('.docx')){
     await _loadScript('jszip');
@@ -4997,8 +5000,16 @@ async function _pxFichier(file){
 // Remplit la liste depuis des réfs SANS ouvrir la modal d'import (fond de tâche).
 async function _pxRemplir(refs){
   try{
-    const r=await sbQ('products?ref=in.('+refs.map(x=>'Photo_'+x).map(encodeURIComponent).join(',')+')&select=*&limit=200');
-    (r.data||[]).forEach(p=>{
+    // Par PAQUETS de 150 et SANS plafond global (21/07 : un fichier client de
+    // 330 réfs se faisait tronquer à 200 par le limit=200 — vécu ZINIAS).
+    // Les codes non préfixables (DU*/FAB*) passent tels quels.
+    const _tous=[];
+    for(let i=0;i<refs.length&&_tous.length<2000;i+=150){
+      const chunk=refs.slice(i,i+150).map(x=>/^(DU|FAB)/i.test(String(x))?'Photo_'+String(x).toUpperCase():'Photo_'+x);
+      const r=await sbQ('products?ref=in.('+chunk.map(encodeURIComponent).join(',')+')&select=*&limit=150');
+      if(r.data)_tous.push(...r.data);
+    }
+    _tous.forEach(p=>{
       if(!cart.find(c=>c.id===p.id))cart.push(rowToUi(p));
     });
     localStorage.setItem('prodi_cart',JSON.stringify(cart));

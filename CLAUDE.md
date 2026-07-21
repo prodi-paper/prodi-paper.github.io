@@ -498,6 +498,15 @@ est du code dormant. Contenu du mode (body.topbar-view) :
   pleine largeur — n questions = n colonnes égales (curseur tonnage compris),
   repli en pile sur étroit. (Avant : flex-wrap, le tonnage retombait dessous.)
 
+## Fichier joint PRODIX (21/07 soir, v660, poussé)
+- `_pxRemplir` : requêtes par PAQUETS de 150 SANS plafond global (garde-fou
+  2000) — le `limit=200` tronquait un fichier client de 330 réfs (vécu ZINIAS).
+  Codes DU*/FAB* préfixés correctement.
+- `_extractTextFromFile` xlsx : `cellStyles:true` + `sheet_to_csv({skipHidden})`
+  → PRODIX ne lit QUE les lignes VISIBLES dans Excel (le fichier ZINIAS
+  traînait 307 lignes masquées d'un vieux tableau = 328 réfs fantômes ;
+  visible réel = 55 articles/21,5 t). Les fichiers filtrés = ce qu'on voit.
+
 ## Règles photos / images produit
 
 ### Priorité d'affichage (pour TOUS les produits)
