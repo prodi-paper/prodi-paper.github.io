@@ -453,6 +453,44 @@ est du code dormant. Contenu du mode (body.topbar-view) :
   lien test ?s=perftst02). Leçon : clic sur la PISTE d'un input range = saut à
   la position proportionnelle (pas à la valeur du repère visuel).
 
+## SESSION 21/07/2026 après-midi (v656, poussé) — bloc PRODIX, prix, UI
+
+- **PRODIX bloc de questions** (API prodi_arrivages déployée en parallèle, commits
+  061b7a5→81c34d9) : 1-3 questions de sujets différents EN UNE bulle (colonnes
+  côte à côte `flex-wrap`, titres courts ≤45c, codes Sage dans les choix,
+  UN SEUL « Valider (n/3) », réponses combinées « X · Y · Z »). Question POOL
+  = interrupteur [FAB|STOCK] préréglé FAB (2 choix, pas de mix) — GARANTIE au
+  1er bloc (prompt + injection serveur si le modèle l'omet, regex historique).
+  Question TONNAGE `cle:"tonnes"+max_t` = CURSEUR préréglé au max avec aimant
+  ▲ Container (comme le popup Quantité). Rétro-compat : la réponse « questions »
+  embarque la 1re question à l'ancien format. Placeholder machine-à-écrire
+  COUPÉ en conversation (« Répondez à PRODIX… »). Bulles offre/fichier : un
+  seul CTA « Partager » (icône header) → ouvre le lien client ; Excel retiré
+  (reste dans la vue client). Pool serveur : STOCK = promo OU réf<981600.
+- **PRIX (fixes de l'audit, avec import relancé)** : PUNET prioritaire avec
+  REPLI AR_PRIXVEN (rempli ~100 % ; couverture 85→99 %, +~1 190 prix, médiane
+  du repli 750 €/T = saine) ; garde-fou familles R*/S* à >3 €/kg → prix NULL
+  + log « prix aberrant ignoré » (prix unitaires Sage dans un champ €/kg) ;
+  PRODIX prix_max_t exclut les articles SANS prix (null passait tous les
+  plafonds). Sanity par famille validée (ROFF 615, kraft brun 660, SBOA 565,
+  journal 460 €/T…). ⚠️ à trancher un jour : PUNET (lot) vs AR_PRIXVEN
+  (article) divergent >20 % sur 56 % des lignes. RLUX 459/RADH 420 = bas mais
+  plausibles (déstockage).
+- **UI matin** : + bleu row2 TOUJOURS bleu (état all-in noir trash/croix
+  neutralisé — le clic ouvre le popup de toute façon) ; sc-add des cartes :
+  + → − (fond blanc contour/tiret BLEUS) quand l'article est en liste ;
+  header cart-wrap en flex (les 2 boutons s'empilaient), badge ancré sur
+  PARTAGER ; poubelle « Sûr ? » 2 temps à côté ; DÉTAIL des cartes nettoyé
+  (préfixe désignation BOB./PAL. retiré + séquences de mots dupliquées, même
+  non adjacentes — getProductDetailText, O(n²) sur ~15 mots) ; menu Type =
+  « CODE — Famille » (aller-retour : libellés nus essayés puis revert, garder
+  ce format) ; menus DIMENSIONS et COULEURS contextuels : sélection 100 % R*
+  → Dimensions dans Filtres avancés (_dimsInAdv) ; Couleurs dans la barre
+  SEULEMENT pour Offset/Dossier Couleur/SCOL (_coulInAdv) — sections
+  format/couleur ajoutées à _paintAdv + _advToggle.
+- **Leçon replace_all** : remplacer `_sharedRecap()` partout a aussi frappé la
+  DÉFINITION `function _sharedRecap(){` → syntaxe cassée (vu au node --check).
+
 ## Règles photos / images produit
 
 ### Priorité d'affichage (pour TOUS les produits)

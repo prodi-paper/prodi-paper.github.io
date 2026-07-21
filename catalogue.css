@@ -56,7 +56,8 @@ header{background:rgba(255,255,255,.92);position:sticky;top:0;z-index:100;border
 .btn-head:hover{border-color:var(--red);color:var(--red);}
 .btn-head.primary{background:var(--red);color:#fff;border-color:var(--red);}
 .btn-head.primary:hover{background:var(--red2);}
-.cart-wrap{position:relative;}
+.cart-wrap{position:relative;display:flex;align-items:center;gap:8px;}
+.cart-wrap #cart-btn{position:relative;} /* ancre le badge sur PARTAGER, pas sur le groupe (poubelle à côté, 21/07) */
 .cart-badge{position:absolute;top:-4px;right:-10px;min-width:29px;height:29px;padding:0 5px;background:var(--red);color:#fff;border-radius:50%;font-size:14px;font-weight:700;display:none;align-items:center;justify-content:center;border:2px solid var(--white);}
 .cart-badge.show{display:flex;}
 
@@ -1675,8 +1676,9 @@ body.apple-view .sc-add{flex-shrink:0;width:34px;height:34px;border-radius:999px
 body.apple-view .sc-add svg{display:none;}
 body.apple-view .sc-add::before{content:'+';font-size:21px;font-weight:500;color:#1d1d1f;font-family:'DM Sans',sans-serif;line-height:1;}
 body.apple-view .sc-add:hover{border-color:#1d1d1f;}
-body.apple-view .sc-add.added{background:#1d1d1f;border-color:#1d1d1f;}
-body.apple-view .sc-add.added::before{content:'\2713';color:#fff;font-size:16px;font-weight:700;}
+body.apple-view .sc-add.added{background:#fff;border-color:#0071e3;}
+/* 21/07 (Ethan) : + devient − quand l'article est dans la liste (re-clic = retire). */
+body.apple-view .sc-add.added::before{content:'\2212';color:#0071e3;font-size:21px;font-weight:600;}
 
 /* topbar UNE ligne (v2, 18/07) : tri = pastille avec menu, + page et pager en bout de barre, tout compacte */
 body.topbar-view .filters-panel{gap:6px;}
@@ -1754,7 +1756,12 @@ body.apple-view:not(.shared-view) #album-photo-btn:hover{border-color:#86868b;ba
 /* + page (2e ligne) : rond BLEU Apple assorti au bouton Liste */
 body.topbar-view #topbar-row2 #add-page-btn{border:none;background:#0071e3;color:#fff;border-radius:999px;width:36px;height:36px;min-width:36px;display:flex;align-items:center;justify-content:center;margin:0;padding:0;box-shadow:0 2px 8px rgba(0,113,227,.3);}
 body.topbar-view #topbar-row2 #add-page-btn:hover{background:#0077ed;color:#fff;border:none;}
-body.topbar-view #topbar-row2 #add-page-btn.all-in{background:#1d1d1f;color:#fff;box-shadow:none;}
+/* 21/07 (Ethan) : le + bleu reste TOUJOURS le + bleu — plus d'état sombre
+   trash/croix quand tout est en liste (le clic ouvre le popup Quantité de
+   toute façon ; retirer = poubelle du header). */
+body.topbar-view #topbar-row2 #add-page-btn.all-in{background:#0071e3;color:#fff;box-shadow:0 2px 8px rgba(0,113,227,.3);}
+body.topbar-view #topbar-row2 #add-page-btn.all-in::before{display:none;content:none;}
+body.topbar-view #topbar-row2 #add-page-btn.all-in svg{display:block;transform:none;}
 
 /* topbar : plus de pagination (scroll infini) */
 body.topbar-view .pager,body.topbar-view .pager-top{display:none !important;}
