@@ -221,7 +221,15 @@ def parse_dov(files):
             date_arrivee = None
 
         promo = ref.isdigit() and int(ref) < 900000
-        prix = num(g(row, 'PUNET'))
+        # Prix (21/07, audit pricing) : PUNET (prix du lot) prioritaire,
+        # repli AR_PRIXVEN (tarif article, rempli à ~100 %) — récupère ~1 190
+        # prix manquants. Garde-fou : famille papier (R*/S*) à plus de
+        # 3 €/kg = prix unitaire saisi dans un champ €/kg → prix retiré
+        # (évite les 731 600 €/T affichés).
+        prix = num(g(row, 'PUNET')) or num(g(row, 'AR_PRIXVEN'))
+        if prix and prix > 3 and fam_code[:1] in ('R', 'S'):
+            log(f"prix aberrant ignoré: {ref} {fam_code} {prix} €/kg")
+            prix = None
         if promo and prix:
             prix = round(prix * 0.7, 4)
         by_ref[ref] = (qty, {

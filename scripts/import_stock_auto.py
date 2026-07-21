@@ -210,7 +210,9 @@ def parse_dov(files):
             'longueur': int(longueur) if longueur else None,
             'noyau': int(num(g(row, 'MANDRIN')) or 0) or None,
             'weight': num(g(row, 'PNET')),
-            'price': num(g(row, 'PUNET')),
+            # PUNET prioritaire, repli AR_PRIXVEN ; >3 €/kg sur R*/S* = prix
+            # unitaire mal saisi → None (synchro import_stock_ci, 21/07).
+            'price': (lambda _p: None if (_p and _p > 3 and str(fam_code)[:1] in ('R', 'S')) else _p)(num(g(row, 'PUNET')) or num(g(row, 'AR_PRIXVEN'))),
             'usine': extract_usine(clean(g(row, 'EMPLACEMENT'))),
             'emplacement': emplacement,
             'zone': zone,
