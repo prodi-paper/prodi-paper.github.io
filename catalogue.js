@@ -916,6 +916,7 @@ async function init(){
   updateFilterVisibility();
   // Hardcoded filter options — Couleur replaced by Offset Couleur + Dossier Couleur
   const couleurVals=['Blanc','Très blanc','Blanc nature','Brun','Crème','Ivoire','Gris','Noir','Transparent','Vert','Rouge','Bleu','Jaune','Orange','Argent','Rose','Or','Violet','Autres'];
+  // Format « CODE — Famille » (validé Ethan 21/07, retour à l'original).
   const _typeLabel=v=>v===COULEUR_SPLIT.offsetLabel?`RCOL — ${QUALITE_LABELS[v]} <span class="msd-hint">&lt;&nbsp;${COULEUR_SPLIT.threshold}&nbsp;g/m²</span>`:v===COULEUR_SPLIT.dossierLabel?`RCOL — ${QUALITE_LABELS[v]} <span class="msd-hint">≥&nbsp;${COULEUR_SPLIT.threshold}&nbsp;g/m²</span>`:`${v} — ${QUALITE_LABELS[v]||v}`;
   const _typeOrd=v=>{const i=_TYPE_ORDRE_USUEL.indexOf(v);return i===-1?999:i;};
   const _typesTries=[...QUALITE_CODES].sort((a,b)=>(_typeOrd(a)-_typeOrd(b))||String(a).localeCompare(String(b)));
@@ -1505,6 +1506,7 @@ function buildMsdOptions(msdId, values, defaultLabel, labelFn, stateId){
     const opt = document.createElement('div');
     opt.className = 'msd-option';
     opt.setAttribute('data-val', val);
+    opt.setAttribute('data-search', val); // le code Sage reste cherchable (libellés sans code, 21/07)
     opt.innerHTML = `<div class="msd-check"><svg width="9" height="7" fill="none" stroke="#fff" stroke-width="2.5"><polyline points="1,4 3.5,6.5 8,1"/></svg></div>${text}`;
     opt.addEventListener('click', ()=>toggleMsdOption(opt, targetId));
     panel.appendChild(opt);
@@ -3341,10 +3343,32 @@ function _productSummary(p){
 function getProductDetailText(p){
   // Priority: Excel detail field → auto-generated summary
   // Strip isolated dashes used as empty-cell placeholders (" - ", " - - ", leading/trailing "-")
-  const raw=(p.details||'')
+  let raw=(p.details||'')
     .replace(/(?<=^|\s)-(?=\s|$)/g,'')
     .replace(/\s{2,}/g,' ')
     .trim();
+  // 21/07 (Ethan) : la désignation Sage (« BOB.COULEUR », « PAL.DIVERS »…) est
+  // redondante avec le titre de la carte → on la retire du DÉTAIL, partout où
+  // elle apparaît (l'import la concatène parfois plusieurs fois).
+  raw=raw.replace(/\b(?:BOB|PAL|FEU|RAM|MACH?)\.[A-ZÀ-Ü0-9]+\s*/gi,'').trim();
+  // …et l'import colle souvent désignation + détail qui répètent la même
+  // phrase (« AFFUTAGE JEU DE PATTES … CLI X AFFUTAGE JEU DE PATTES ») : on
+  // retire toute séquence de mots déjà vue, même NON adjacente (la plus longue
+  // d'abord ; mots isolés aussi s'ils font ≥2 caractères, insensible à la casse).
+  {
+    const w=raw.split(/\s+/);
+    for(let len=Math.floor(w.length/2);len>=1;len--){
+      for(let i=0;i+len<=w.length;i++){
+        const seq=w.slice(i,i+len).join(' ').toLowerCase();
+        if(len===1&&seq.length<2)continue;
+        for(let j=i+len;j+len<=w.length;j++){
+          if(w.slice(j,j+len).join(' ').toLowerCase()===seq){w.splice(j,len);j--;}
+        }
+      }
+    }
+    raw=w.join(' ');
+  }
+  raw=raw.replace(/\s{2,}/g,' ').trim();
   if(raw.length>2)return raw;
   return _productSummary(p);
 }
@@ -4645,8 +4669,9 @@ async function _pxSend(){
         b.onclick=fn;
         return b;
       };
-            btnVoir.appendChild(mkBtn('Ouvrir le lien',()=>{ouvrirLienClient();},false));
-      btnVoir.appendChild(mkBtn('Excel',(ev)=>{exportListExcelTest(ev.currentTarget).catch(()=>toast('Erreur export'));},false,'<svg width="19" height="19" viewBox="0 0 32 32" style="flex-shrink:0;vertical-align:-4px;margin-right:7px;"><rect x="9" y="2" width="21" height="14" rx="3.5" fill="#8bd47e"/><rect x="20" y="2" width="10" height="14" rx="3.5" fill="#b9e695"/><path d="M9 9h17.5A3.5 3.5 0 0 1 30 12.5V26.5a3.5 3.5 0 0 1-3.5 3.5H12.5A3.5 3.5 0 0 1 9 26.5Z" fill="#2f9e55"/><rect x="2" y="12" width="16" height="16" rx="3.5" fill="#185c37"/><path d="M6.4 16.5h2.7l1.8 3.2 1.8-3.2h2.7l-3.1 4.7 3.2 4.8h-2.8l-1.8-3.3-1.9 3.3H6.2l3.2-4.8z" fill="#fff"/></svg>'));
+            // 21/07 (Ethan) : un seul CTA « Partager » (icône du header) —
+      // ouvre le lien client direct ; l'Excel vit dans la vue client.
+      btnVoir.appendChild(mkBtn('Partager',()=>{ouvrirLienClient();},false,'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-right:7px;vertical-align:-3px;"><path d="M12 15V4"/><path d="M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>'));
       // Feedback 👍/👎 : nourrit la boucle apprenante (prodix_feedback)
       const _fb=document.createElement('span');
       _fb.style.cssText='display:inline-flex;gap:2px;margin-left:auto;align-self:center;';
@@ -4699,6 +4724,139 @@ async function _pxSend(){
       }catch(_){}
       toast('PRODIX : '+data.resume);
     }else{
+      // BLOC de questions (21/07) : 1-3 questions de sujets différents dans la
+      // même bulle — chacune ses choix, UN SEUL Valider = un seul tour de plus.
+      if(data.type==='questions'&&Array.isArray(data.questions)&&data.questions.length){
+        const qs=data.questions;
+        _pxHist.push({role:'assistant',content:qs.map(q=>q.texte).join(' ')});
+        const bloc=document.createElement('div');
+        bloc.className='px-choix';
+        bloc.style.cssText='display:flex;flex-direction:column;gap:10px;margin-top:4px;';
+        // PAYSAGE (21/07 Ethan) : une COLONNE par question, côte à côte —
+        // le bloc reste compact en hauteur. Colonnes fluides (repli en pile
+        // sur écran étroit via flex-wrap).
+        const rangee=document.createElement('div');
+        rangee.style.cssText='display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start;';
+        bloc.appendChild(rangee);
+        const reps=qs.map(()=>new Set());
+        const _val=document.createElement('button');
+        const _maj=()=>{
+          const n=reps.reduce((a,s2)=>a+(s2.size?1:0),0)+(_li.value.trim()?1:0);
+          _val.style.display=n?'block':'none';
+          _val.textContent='Valider ('+n+'/'+qs.length+') →';
+          if(n)requestAnimationFrame(()=>{_val.scrollIntoView({block:'nearest',behavior:'smooth'});});
+        };
+        qs.forEach((q,j)=>{
+          const col=document.createElement('div');
+          col.style.cssText='flex:1 1 210px;min-width:0;display:flex;flex-direction:column;gap:6px;';
+          if(qs.length>1){
+            const t=document.createElement('div');
+            t.textContent=q.texte;
+            t.style.cssText='font-size:13px;font-weight:700;color:#1d1d1f;margin:0 0 2px;line-height:1.3;';
+            col.appendChild(t);
+          }
+          // Question POOL : le SEGMENT FAB/STOCK du popup Quantité (préréglé
+          // FAB, deux options seulement — 21/07 Ethan).
+          const _chx=(q.choix||[]).join(' ');
+          if(q.cle==='pool'||(/\bFAB\b/.test(_chx)&&/\bSTOCK\b/.test(_chx))){
+            const seg=document.createElement('div');
+            seg.style.cssText='display:flex;background:#f5f5f7;border-radius:999px;padding:3px;';
+            const mkSeg=(m,on)=>{
+              const b=document.createElement('button');
+              b.textContent=m;
+              b.style.cssText='flex:1;padding:9px;border:none;border-radius:999px;font-size:13px;font-weight:'+(on?'700':'600')+';color:'+(on?'#1d1d1f':'#6e6e73')+';cursor:pointer;font-family:inherit;background:'+(on?'#fff':'transparent')+';box-shadow:'+(on?'0 1px 4px rgba(0,0,0,.12)':'none')+';';
+              b.onclick=()=>{
+                reps[j].clear();reps[j].add(m);
+                seg.querySelectorAll('button').forEach(x=>{const o=x===b;x.style.background=o?'#fff':'transparent';x.style.boxShadow=o?'0 1px 4px rgba(0,0,0,.12)':'none';x.style.fontWeight=o?'700':'600';x.style.color=o?'#1d1d1f':'#6e6e73';});
+                _maj();
+              };
+              return b;
+            };
+            seg.appendChild(mkSeg('FAB',true));
+            seg.appendChild(mkSeg('STOCK',false));
+            reps[j].add('FAB'); // préréglé FAB, comme le popup
+            col.appendChild(seg);
+            rangee.appendChild(col);
+            return;
+          }
+          // Question TONNAGE : CURSEUR comme le popup Quantité (préréglé au
+          // max, aimant Container) — plus de boutons 10 t/container/max (21/07).
+          const _maxT=+q.max_t||0;
+          if((q.cle==='tonnes'||_maxT>0)&&_maxT>0){
+            const fmtT=v=>Math.round(v).toLocaleString('fr-FR');
+            const lbl=document.createElement('div');
+            lbl.style.cssText='text-align:center;font-family:\'Bebas Neue\',sans-serif;font-size:23px;color:#0071e3;';
+            lbl.textContent=fmtT(_maxT)+' t';
+            const rng=document.createElement('input');
+            rng.type='range';rng.min='0.5';rng.max=String(_maxT);rng.step='0.5';rng.value=String(_maxT);
+            rng.style.cssText='width:100%;accent-color:#0071e3;height:28px;cursor:pointer;';
+            const setRep=v=>{reps[j].clear();reps[j].add((v===26.5?'26,5':fmtT(v))+' t');};
+            const paintT=()=>{let v=+rng.value;
+              if(_maxT>26.5&&Math.abs(v-26.5)<=Math.max(1,_maxT*0.04)){v=26.5;rng.value='26.5';}
+              lbl.textContent=(v===26.5?'26,5':fmtT(v))+' t';setRep(v);_maj();};
+            rng.oninput=paintT;
+            col.appendChild(lbl);col.appendChild(rng);
+            if(_maxT>26.5){
+              const mk=document.createElement('div');
+              mk.style.cssText='position:relative;height:18px;';
+              const cb=document.createElement('button');
+              cb.textContent='▲ Container';
+              cb.style.cssText='position:absolute;left:'+Math.min(96,Math.max(4,26.5/_maxT*100)).toFixed(1)+'%;transform:translateX(-50%);background:none;border:none;cursor:pointer;font-size:10.5px;font-weight:700;color:#0071e3;font-family:\'DM Sans\',sans-serif;padding:2px 10px;white-space:nowrap;';
+              cb.onclick=()=>{rng.value='26.5';paintT();};
+              mk.appendChild(cb);col.appendChild(mk);
+            }
+            setRep(_maxT); // préréglé au max = déjà répondu
+            rangee.appendChild(col);
+            return;
+          }
+          (q.choix||[]).forEach((c,i)=>{
+            const b=document.createElement('button');
+            b.style.cssText='display:flex;align-items:center;gap:8px;padding:8px 11px;border:none;border-radius:11px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.08);font-size:12.5px;color:#1d1d1f;cursor:pointer;font-family:inherit;text-align:left;line-height:1.25;';
+            const num=document.createElement('span');
+            num.textContent=String(i+1);
+            num.style.cssText='width:18px;height:18px;border-radius:999px;background:#f5f5f7;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#6e6e73;flex-shrink:0;';
+            b.appendChild(num);b.appendChild(document.createTextNode(c));
+            b.onclick=()=>{
+              const sel=reps[j];
+              const on=sel.has(c);
+              if(!q.multi){sel.clear();rangee.querySelectorAll('[data-q="'+j+'"]').forEach(x=>{x.style.background='#fff';const n2=x.querySelector('span');n2.style.background='#f5f5f7';n2.style.color='#6e6e73';n2.textContent=x.dataset.i;});}
+              if(on&&q.multi){sel.delete(c);b.style.background='#fff';num.style.background='#f5f5f7';num.style.color='#6e6e73';num.textContent=String(i+1);}
+              else if(!on){sel.add(c);b.style.background='#eaf3ff';num.style.background='#0071e3';num.style.color='#fff';num.textContent='✓';}
+              _maj();
+            };
+            b.dataset.q=String(j);b.dataset.i=String(i+1);
+            col.appendChild(b);
+          });
+          rangee.appendChild(col);
+        });
+        const _libre=document.createElement('div');
+        _libre.style.cssText='display:flex;align-items:center;gap:10px;padding:3px 13px;border:1.5px dashed #d2d2d7;border-radius:12px;background:#fff;';
+        _libre.innerHTML='<span style="width:20px;height:20px;border-radius:999px;background:#f5f5f7;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;">✏️</span>';
+        const _li=document.createElement('input');
+        _li.type='text';_li.placeholder="Autre — j'écris ma réponse…";
+        _li.style.cssText='flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:inherit;font-size:13.5px;color:#1d1d1f;padding:9px 0;';
+        _li.oninput=_maj;_li.onclick=(e)=>e.stopPropagation();
+        _li.onkeydown=(e)=>{if(e.key==='Enter'){e.preventDefault();_envoyer();}};
+        _libre.appendChild(_li);bloc.appendChild(_libre);
+        const _envoyer=()=>{
+          const parts=[];
+          qs.forEach((q,j)=>{if(reps[j].size)parts.push([...reps[j]].join(', '));});
+          if(_li.value.trim())parts.push(_li.value.trim());
+          if(!parts.length)return;
+          const rep=parts.join(' · ');
+          window.prodiTrack?.('prodix_choix_click',{c:rep.slice(0,80),n:parts.length,bloc:qs.length});
+          const i2=document.getElementById('prodix-input');
+          if(i2){i2.value=rep;_pxSend();}
+        };
+        window.__pxMajVal=_maj;window.__pxEnvoyer=_envoyer;
+        _val.style.cssText='display:none;align-self:flex-end;margin-top:8px;padding:9px 18px;border:none;border-radius:999px;background:#0071e3;color:#fff;font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit;';
+        _val.onclick=_envoyer;
+        bloc.appendChild(_val);
+        // Multi-questions : pas de texte d'intro (les titres de colonnes suffisent)
+        const _bq=_pxBulle('assistant',qs.length>1?'':qs[0].texte,bloc);
+        if(_bq&&qs.length>1){_bq.style.maxWidth='100%';}
+        return;
+      }
       const texte=data.texte||'Tu peux préciser ?';
       _pxHist.push({role:'assistant',content:texte});
       let extra=null;
@@ -4825,8 +4983,7 @@ async function _pxFichier(file){
     const extra=document.createElement('div');
     extra.style.cssText='display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;';
     const mkB=(label,fn,dark,ico)=>{const b=document.createElement('button');b.innerHTML=(ico||'')+label;b.style.cssText='display:inline-flex;align-items:center;padding:14px 24px;border-radius:999px;font-weight:700;font-size:16px;cursor:pointer;font-family:inherit;'+(dark?'background:#1d1d1f;color:#fff;border:none;':'background:#fff;color:#1d1d1f;border:none;box-shadow:0 1px 5px rgba(0,0,0,.14);');b.onclick=fn;return b;};
-    extra.appendChild(mkB('Ouvrir le lien',()=>{ouvrirLienClient();},false));
-    extra.appendChild(mkB('Excel',(ev)=>{exportListExcelTest(ev.currentTarget).catch(()=>toast('Erreur export'));},false,'<svg width="19" height="19" viewBox="0 0 32 32" style="flex-shrink:0;vertical-align:-4px;margin-right:7px;"><rect x="9" y="2" width="21" height="14" rx="3.5" fill="#8bd47e"/><rect x="20" y="2" width="10" height="14" rx="3.5" fill="#b9e695"/><path d="M9 9h17.5A3.5 3.5 0 0 1 30 12.5V26.5a3.5 3.5 0 0 1-3.5 3.5H12.5A3.5 3.5 0 0 1 9 26.5Z" fill="#2f9e55"/><rect x="2" y="12" width="16" height="16" rx="3.5" fill="#185c37"/><path d="M6.4 16.5h2.7l1.8 3.2 1.8-3.2h2.7l-3.1 4.7 3.2 4.8h-2.8l-1.8-3.3-1.9 3.3H6.2l3.2-4.8z" fill="#fff"/></svg>'));
+    extra.appendChild(mkB('Partager',()=>{ouvrirLienClient();},false,'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-right:7px;vertical-align:-3px;"><path d="M12 15V4"/><path d="M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>'));
     _pxBulle('assistant',`J'ai lu ${refs.length} référence${refs.length>1?'s':''} dans « ${file.name} » — ${ajoutes} article${ajoutes>1?'s':''} retrouvé${ajoutes>1?'s':''} au stock (${(poids/1000).toFixed(1)} t), ils sont dans ta liste.`,extra);
     window.prodiTrack?.('prodix_fichier',{nom:file.name,refs:refs.length,trouves:ajoutes});
   }catch(e){
@@ -4910,6 +5067,8 @@ if(_sharedMode)_sharedViewUI(true);
         else if(kind==='usine'){const s=msdState['msd-usine'];s.has(val)?s.delete(val):s.add(val);updateMsdBtn('msd-usine');}
         else if(kind==='mandrin'){const s=msdState['msd-mandrin'];s.has(val)?s.delete(val):s.add(val);updateMsdBtn('msd-mandrin');}
         else if(kind==='laize'){const s=msdState['msd-laize'];s.has(val)?s.delete(val):s.add(val);updateMsdBtn('msd-laize');}
+        else if(kind==='format'){const s=msdState['msd-format'];s.has(val)?s.delete(val):s.add(val);updateMsdBtn('msd-format');}
+        else if(kind==='couleur'){const s=msdState['msd-couleur'];s.has(val)?s.delete(val):s.add(val);updateMsdBtn('msd-couleur');}
         else if(kind==='diametre'){const s=msdState['msd-diametre'];s.has(val)?s.delete(val):s.add(val);updateMsdBtn('msd-diametre');}
         else if(kind==='photo'){_photoFilter=_photoFilter===val?'':val;syncFilterPills();}
         else if(kind==='resa'){_resaFilter=_resaFilter===val?'':val;document.querySelectorAll('.fpill-resa').forEach(b=>b.classList.toggle('active',_resaFilter===(b.dataset.resa||'with')));}
@@ -4922,11 +5081,15 @@ if(_sharedMode)_sharedViewUI(true);
         const usines=[...document.querySelectorAll('#sb-msd-usine .msd-option')].map(o=>o.dataset.val).filter(Boolean);
         const mandrins=[...document.querySelectorAll('#sb-msd-mandrin .msd-option')].map(o=>o.dataset.val).filter(Boolean);
         const laizes=[...document.querySelectorAll('#sb-msd-laize .msd-option')].map(o=>o.dataset.val).filter(Boolean);
+        const formats=[...document.querySelectorAll('#sb-msd-format .msd-option')].map(o=>o.dataset.val).filter(Boolean);
+        const couleurs=[...document.querySelectorAll('#sb-msd-couleur .msd-option')].filter(o=>o.style.display!=='none'||msdState['msd-couleur'].has(o.dataset.val)).map(o=>o.dataset.val).filter(Boolean);
         const diams=[...document.querySelectorAll('#sb-msd-diametre .msd-option')].map(o=>o.dataset.val).filter(Boolean);
         const secs=[
           {id:'photo',t:'Photo',n:_photoFilter?1:0,rows:()=>row('photo','with','Avec photo',_photoFilter==='with')+row('photo','without','Sans photo',_photoFilter==='without')},
           {id:'resa',t:'Réservation',n:_resaFilter?1:0,rows:()=>row('resa','with','Réservés',_resaFilter==='with')+row('resa','without','Dispo',_resaFilter==='without')},
           {id:'poids',t:'Poids',n:msdState['msd-poids'].size,rows:()=>POIDS_OPTIONS.map(o=>row('poids',o,o,msdState['msd-poids'].has(o))).join('')},
+          ...(window._coulInAdv?[{id:'couleur',t:'Couleurs',n:msdState['msd-couleur'].size,rows:()=>couleurs.length?couleurs.map(v=>row('couleur',v,v,msdState['msd-couleur'].has(v))).join(''):'<div class="msd-option" style="opacity:.5;cursor:default;">Aucune couleur dans la sélection en cours</div>'}]:[]),
+          ...(window._dimsInAdv?[{id:'format',t:'Dimensions',n:msdState['msd-format'].size,rows:()=>formats.length?formats.map(v=>row('format',v,v===FORMAT_AUTRES?'Autres dimensions':v,msdState['msd-format'].has(v))).join(''):'<div class="msd-option" style="opacity:.5;cursor:default;">Aucun format dans la sélection en cours</div>'}]:[]),
           {id:'mandrin',t:'Mandrin',n:msdState['msd-mandrin'].size,rows:()=>mandrins.length?mandrins.map(m=>row('mandrin',m,m+' mm',msdState['msd-mandrin'].has(m))).join(''):'<div class="msd-option" style="opacity:.5;cursor:default;">Aucun mandrin dans la sélection en cours</div>'},
           {id:'laize',t:'Laizes',n:msdState['msd-laize'].size,rows:()=>laizes.length?laizes.map(v=>row('laize',v,v===LAIZE_AUTRES?'Autres laizes':v,msdState['msd-laize'].has(v))).join(''):'<div class="msd-option" style="opacity:.5;cursor:default;">Choisis d\'abord un type bobine</div>'},
           {id:'diametre',t:'Diamètre (Ø)',n:msdState['msd-diametre'].size,rows:()=>diams.length?diams.map(v=>row('diametre',v,v===DIAM_AUTRES?'Autres Ø':v,msdState['msd-diametre'].has(v))).join(''):'<div class="msd-option" style="opacity:.5;cursor:default;">Choisis d\'abord un type bobine</div>'},
@@ -5056,6 +5219,12 @@ if(_sharedMode)_sharedViewUI(true);
         if(_hq0&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
           let si=0,ci=0,del=false;
           const tick=()=>{
+            // En CONVERSATION : plus de suggestions qui s'écrivent toutes
+            // seules (21/07 Ethan) — placeholder sobre et fixe.
+            if(document.getElementById('prodix-hero')?.classList.contains('phero-convo')){
+              _hq0.placeholder='Répondez à PRODIX…';
+              setTimeout(tick,1500);return;
+            }
             if(_hq0.value){setTimeout(tick,900);return;}
             const s=_sugs[si];
             if(!del){
@@ -5675,6 +5844,22 @@ function updateFilterVisibility(){
   // choisi Bobine, Format ou un Type de papier (17/07).
   const typeChoisi = !!(msdState['msd-type'] && msdState['msd-type'].size > 0);
   const unlocked = bobine || palette || typeChoisi;
+  // 21/07 (Ethan) : sélection 100 % bobine (types R*, pseudos RCOL inclus) →
+  // le menu Dimensions QUITTE la barre principale et vit dans Filtres avancés
+  // (utile pour les quelques palettes présentes dans une famille bobine).
+  const _selTypes=[...(msdState['msd-type']||new Set())];
+  const _isR=v=>v==='Offset Couleur'||v==='Dossier Couleur'||(typeof v==='string'&&v[0]==='R');
+  const _dimsBefore=!!window._dimsInAdv;
+  window._dimsInAdv=_selTypes.length>0&&_selTypes.every(_isR);
+  // 21/07 (Ethan) : le menu COULEURS ne reste dans la barre que pour les 3
+  // familles couleur (RCOL offset/dossier, SCOL) — sinon il vit dans Filtres
+  // avancés (colorer un offset blanc = cas rare, la barre respire).
+  const _isCoul=v=>v==='Offset Couleur'||v==='Dossier Couleur'||v==='SCOL';
+  const _coulBefore=!!window._coulInAdv;
+  window._coulInAdv=_selTypes.length>0&&!_selTypes.some(_isCoul);
+  const _coulWrap=document.getElementById('sb-msd-couleur')?.parentElement;
+  if(_coulWrap)_coulWrap.style.display=window._coulInAdv?'none':'';
+  if(_dimsBefore!==window._dimsInAdv||_coulBefore!==window._coulInAdv)window._paintAdv&&window._paintAdv();
   const showLongueur = unlocked && !onlyBobine;
   const showMandrin  = unlocked && !onlyPalette;
   const laizeLbl = onlyPalette ? 'Largeur' : 'Laize';
@@ -5690,14 +5875,14 @@ function updateFilterVisibility(){
   // Sidebar
   show('sb-sec-longueur', unlocked && !onlyPalette);
   show('sb-sec-mandrin',  showMandrin);
-  show('sb-sec-format',   unlocked && !onlyBobine);
+  show('sb-sec-format',   unlocked && !onlyBobine && !window._dimsInAdv);
   show('sb-sec-laize',    unlocked && !onlyPalette);
   const sbLbl=document.getElementById('sb-laize-lbl');
   if(sbLbl) sbLbl.firstChild.textContent=laizeLbl+' ';
   // Mobile drawer
   show('mob-sec-longueur', unlocked && !onlyPalette);
   show('mob-sec-mandrin',  showMandrin);
-  show('mob-sec-format',   unlocked && !onlyBobine);
+  show('mob-sec-format',   unlocked && !onlyBobine && !window._dimsInAdv);
   show('mob-sec-laize',    unlocked && !onlyPalette);
   const mobLbl=document.getElementById('mob-laize-title');
   if(mobLbl) mobLbl.textContent=laizeLbl+' (mm)';
