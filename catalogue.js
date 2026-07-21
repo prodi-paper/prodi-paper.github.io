@@ -4736,7 +4736,9 @@ async function _pxSend(){
         // le bloc reste compact en hauteur. Colonnes fluides (repli en pile
         // sur écran étroit via flex-wrap).
         const rangee=document.createElement('div');
-        rangee.style.cssText='display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start;';
+        // GRILLE à colonnes ÉGALES pleine largeur (21/07 Ethan « utiliser la
+        // largeur ») : n questions = n colonnes ; repli auto en pile si étroit.
+        rangee.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:12px 16px;align-items:start;width:100%;';
         bloc.appendChild(rangee);
         const reps=qs.map(()=>new Set());
         const _val=document.createElement('button');
@@ -4748,7 +4750,7 @@ async function _pxSend(){
         };
         qs.forEach((q,j)=>{
           const col=document.createElement('div');
-          col.style.cssText='flex:1 1 210px;min-width:0;display:flex;flex-direction:column;gap:6px;';
+          col.style.cssText='min-width:0;display:flex;flex-direction:column;gap:6px;';
           if(qs.length>1){
             const t=document.createElement('div');
             t.textContent=q.texte;
@@ -5085,14 +5087,14 @@ if(_sharedMode)_sharedViewUI(true);
         const couleurs=[...document.querySelectorAll('#sb-msd-couleur .msd-option')].filter(o=>o.style.display!=='none'||msdState['msd-couleur'].has(o.dataset.val)).map(o=>o.dataset.val).filter(Boolean);
         const diams=[...document.querySelectorAll('#sb-msd-diametre .msd-option')].map(o=>o.dataset.val).filter(Boolean);
         const secs=[
-          {id:'photo',t:'Photo',n:_photoFilter?1:0,rows:()=>row('photo','with','Avec photo',_photoFilter==='with')+row('photo','without','Sans photo',_photoFilter==='without')},
-          {id:'resa',t:'Réservation',n:_resaFilter?1:0,rows:()=>row('resa','with','Réservés',_resaFilter==='with')+row('resa','without','Dispo',_resaFilter==='without')},
           {id:'poids',t:'Poids',n:msdState['msd-poids'].size,rows:()=>POIDS_OPTIONS.map(o=>row('poids',o,o,msdState['msd-poids'].has(o))).join('')},
           ...(window._coulInAdv?[{id:'couleur',t:'Couleurs',n:msdState['msd-couleur'].size,rows:()=>couleurs.length?couleurs.map(v=>row('couleur',v,v,msdState['msd-couleur'].has(v))).join(''):'<div class="msd-option" style="opacity:.5;cursor:default;">Aucune couleur dans la sélection en cours</div>'}]:[]),
           ...(window._dimsInAdv?[{id:'format',t:'Dimensions',n:msdState['msd-format'].size,rows:()=>formats.length?formats.map(v=>row('format',v,v===FORMAT_AUTRES?'Autres dimensions':v,msdState['msd-format'].has(v))).join(''):'<div class="msd-option" style="opacity:.5;cursor:default;">Aucun format dans la sélection en cours</div>'}]:[]),
           {id:'mandrin',t:'Mandrin',n:msdState['msd-mandrin'].size,rows:()=>mandrins.length?mandrins.map(m=>row('mandrin',m,m+' mm',msdState['msd-mandrin'].has(m))).join(''):'<div class="msd-option" style="opacity:.5;cursor:default;">Aucun mandrin dans la sélection en cours</div>'},
           {id:'laize',t:'Laizes',n:msdState['msd-laize'].size,rows:()=>laizes.length?laizes.map(v=>row('laize',v,v===LAIZE_AUTRES?'Autres laizes':v,msdState['msd-laize'].has(v))).join(''):'<div class="msd-option" style="opacity:.5;cursor:default;">Choisis d\'abord un type bobine</div>'},
           {id:'diametre',t:'Diamètre (Ø)',n:msdState['msd-diametre'].size,rows:()=>diams.length?diams.map(v=>row('diametre',v,v===DIAM_AUTRES?'Autres Ø':v,msdState['msd-diametre'].has(v))).join(''):'<div class="msd-option" style="opacity:.5;cursor:default;">Choisis d\'abord un type bobine</div>'},
+          {id:'photo',t:'Photo',n:_photoFilter?1:0,rows:()=>row('photo','with','Avec photo',_photoFilter==='with')+row('photo','without','Sans photo',_photoFilter==='without')},
+          {id:'resa',t:'Réservation',n:_resaFilter?1:0,rows:()=>row('resa','with','Réservés',_resaFilter==='with')+row('resa','without','Dispo',_resaFilter==='without')},
           {id:'usine',t:'Réf usine',n:msdState['msd-usine'].size,rows:()=>`<div class="msd-search-wrap"><input class="msd-search-inp" id="adv-usine-q" type="text" placeholder="Rechercher…" autocomplete="off" value="${esc(window._advUsineQ||'')}"></div>`+usines.map(u=>row('usine',u,'Usine '+u,msdState['msd-usine'].has(u))).join('')},
         ];
         _faPn.innerHTML=secs.map(s=>{
