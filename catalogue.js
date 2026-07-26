@@ -2519,6 +2519,197 @@ async function _tonnagePick(tonnes){
   if(typeof _updateAddPageBtn==='function')_updateAddPageBtn();
   toast(added?('✓ '+added+' articles · '+(sum/1000).toFixed(1)+' t ajoutés — bouton Liste en haut'):'Rien à ajouter (déjà tout en liste ?)',5000);
 }
+// ── BOUTON OFFRE (22/07) : offres PRÊTES À ENVOYER par qualité de papier.
+// Le menu montre directement les sélections préfaites (≈ un container 26,5 t
+// par qualité, articles récents d'abord, lots gardés ensemble — calculées
+// depuis le cache facettes du jour). Cliquer une offre remplit Ma Liste et
+// OUVRE la vue client (?s=) : l'offre est prête à envoyer.
+const OFFRE_PRESETS=[
+  {label:'Offset',codes:['ROFF','SOFF']},
+  {label:'Papier luxe',codes:['RLUX','SLUX']},
+  {label:'Carton couché',codes:['RBOA','SBOA']},
+  {label:'Offset couleur',codes:['Offset Couleur','Dossier Couleur','SCOL']},
+  {label:'Kraft brun',codes:['RKRABRUN']},
+  {label:'Kraft',codes:['RKRA','SKRA']},
+  {label:'Autocopiant',codes:['RCAR','SCAR']},
+  {label:'Couché 1-2 faces',codes:['R1SC','R2SC','S1SC','S2SC']},
+  {label:'Bouffant',codes:['RBOU','SBOU']},
+  {label:'Adhésif',codes:['RADH','SADH']},
+];
+// Deux niveaux : familles → sous-liste d'offres HOMOGÈNES, une par
+// (code qualité × Bobine/Format) — on ne mélange JAMAIS ni les qualités
+// ni bobines et formats dans une même offre.
+let _offresCalc=null; // {FAB:[fam...],STOCK:[fam...]}, fam={label,offres:[{code,forme,units,gamme}]}
+let _offrePool='FAB';  // pool affiché (segment en haut du menu)
+async function _offresData(){
+  if(_offresCalc)return _offresCalc;
+  const rows=await _loadAllProducts();
+  let units=rows.map(rowToUi);
+  const refN=u=>parseInt(String(u.ref||'').replace(/\D/g,''),10)||0;
+  // Deux pools SÉPARÉS (même frontière que le popup Quantité) : STOCK = promo OU
+  // réf < 981600 (vieux stock, > 1 an) ; FAB = le reste (arrivages récents).
+  const isStock=u=>u.promo||(refN(u)>0&&refN(u)<981600);
+  // Exclure des offres les RÉSERVÉS récents (réf ≥ 950000) ; les réservés anciens
+  // (réf < 950000) restent proposables (demande Ethan 22/07).
+  const isReserved=u=>u.reserve_client!=null&&String(u.reserve_client).trim()!=='';
+  units=units.filter(u=>!(isReserved(u)&&refN(u)>=950000));
+  // Le but d'une offre = MONTRER LE STOCK d'une qualité (plus de plafond container,
+  // demande Ethan 22/07). On borne juste le lien ?s= : cart_ids ≤ 5000 chars ≈
+  // 380 réfs → au-delà, round-robin par lot pour garder la VARIÉTÉ (pas tronquer).
+  const MAX_REFS=350;
+  const refNg=g=>Math.max(...g.units.map(refN));
+  const capRefs=list=>{
+    if(list.length<=MAX_REFS)return list.slice();
+    const grps=groupProducts(list).sort((a,b)=>refNg(b)-refNg(a));
+    const sel=[];let round=0,added=true;
+    while(sel.length<MAX_REFS&&added){added=false;
+      for(const g of grps){const u=g.units[round];if(u){sel.push(u);added=true;if(sel.length>=MAX_REFS)break;}}
+      round++;}
+    return sel;
+  };
+  // 3 offres par (qualité × forme), découpées par BANDE de grammage :
+  //  • COURANT = les grammages les plus utilisés (60 % central du stock, bornes =
+  //    percentiles 20/80 pondérés par le poids) ;  • BAS = grammages légers ;
+  //  • HAUT = grammages lourds. Bandes vides ignorées (gamme étroite → moins d'offres).
+  const bandsOf=list=>{
+    const byG=new Map();
+    list.forEach(u=>{const g=+u.grammage||0;if(!g)return;
+      if(!byG.has(g))byG.set(g,{units:[],w:0});
+      const e=byG.get(g);e.units.push(u);e.w+=(+u.poids_net||0)||1;});
+    const gs=[...byG.keys()].sort((a,b)=>a-b);
+    if(gs.length<=1)return [{band:'Courant',units:gs.length?byG.get(gs[0]).units:list.slice()}];
+    const total=gs.reduce((s,g)=>s+byG.get(g).w,0);
+    const perc=p=>{let c=0;for(const g of gs){c+=byG.get(g).w;if(c/total>=p)return g;}return gs[gs.length-1];};
+    const lo=perc(0.2),hi=perc(0.8);
+    const pick=f=>gs.filter(f).flatMap(g=>byG.get(g).units);
+    const out=[
+      {band:'Courant',units:pick(g=>g>=lo&&g<=hi)},
+      {band:'Bas',units:pick(g=>g<lo)},
+      {band:'Haut',units:pick(g=>g>hi)},
+    ].filter(b=>b.units.length);
+    if(out.length===1)out[0].band='Courant'; // tout sur une bande → pas de label bas/haut
+    return out;
+  };
+  // Gamme TECHNIQUE affichée = calculée sur TOUT le stock de la bande (montrer ce
+  // qu'on a). Tout en mm (cohérent avec les filtres du catalogue).
+  const _rng=arr=>{const v=[...new Set(arr.filter(x=>x>0))].sort((a,b)=>a-b);
+    return v.length?(v.length===1?String(v[0]):v[0]+'–'+v[v.length-1]):'';};
+  const _gamme=(list,forme)=>{
+    const gr=_rng(list.map(u=>+u.grammage||0));
+    const grLbl=gr?gr+' g':'';
+    let dimLbl='';
+    if(forme==='Bobine'){
+      const lz=_rng(list.map(u=>+u.largeur||0)); // laize = largeur (Ø = longueur, ignoré)
+      dimLbl=lz?(lz.includes('–')?'laizes ':'laize ')+lz+' mm':'';
+    }else{ // feuilles : dimensions largeur×longueur (sens ignoré : min×max)
+      const fmts=[...new Set(list.map(u=>{
+        const w=+u.largeur||0,l=+u.longueur||0;if(!w||!l)return '';
+        return Math.min(w,l)+'×'+Math.max(w,l);}).filter(Boolean))];
+      dimLbl=!fmts.length?'':fmts.length<=2?fmts.join(' · ')+' mm':fmts.length+' formats';
+    }
+    return [grLbl,dimLbl].filter(Boolean).join(' · ');
+  };
+  const _bandRank={Courant:0,Bas:1,Haut:2};
+  const buildPool=poolUnits=>OFFRE_PRESETS.map(p=>{
+    const db=new Set(p.codes.flatMap(c=>_isCouleurPseudo(c)?['RCOL']:[c]));
+    const fam=poolUnits.filter(u=>db.has(u.qualite));
+    const bk=new Map();
+    fam.forEach(u=>{
+      const k=(u.qualite||'')+'|'+(_estFormat(u)?'Format':'Bobine');
+      if(!bk.has(k))bk.set(k,[]);
+      bk.get(k).push(u);
+    });
+    // Groupes qualité×forme : bobines d'abord, puis par volume dispo.
+    const groups=[...bk.entries()].sort((a,b)=>{
+      const fa=a[0].split('|')[1],fb=b[0].split('|')[1];
+      return fa===fb?b[1].length-a[1].length:(fa==='Bobine'?-1:1);});
+    const offres=[];
+    for(const [k,list] of groups){
+      const [code,forme]=k.split('|');
+      bandsOf(list).sort((a,b)=>_bandRank[a.band]-_bandRank[b.band]).forEach(b=>
+        offres.push({code,forme,band:b.band,units:capRefs(b.units),gamme:_gamme(b.units,forme)}));
+    }
+    return {label:p.label,offres};
+  }).filter(f=>f.offres.length);
+  _offresCalc={FAB:buildPool(units.filter(u=>!isStock(u))),STOCK:buildPool(units.filter(isStock))};
+  if(!_offresCalc.FAB.length&&_offresCalc.STOCK.length)_offrePool='STOCK';
+  return _offresCalc;
+}
+function _offreSegHtml(){
+  const c=_offresCalc||{FAB:[],STOCK:[]};
+  const mk=(p,lbl)=>{const on=_offrePool===p,dis=!(c[p]&&c[p].length);
+    return `<button class="offre-seg-btn${on?' on':''}"${dis?' disabled':''} onclick="event.stopPropagation();_offreSetPool('${p}')">${lbl}</button>`;};
+  return `<div class="offre-seg">${mk('FAB','FAB')}${mk('STOCK','STOCK')}</div>`;
+}
+function _renderOffreMenu(fams,view){
+  const m=document.getElementById('offre-menu');if(!m)return;
+  const seg=_offreSegHtml();
+  if(view==null){
+    m.innerHTML=seg+'<div class="offre-hdr">Offres prêtes à envoyer</div>'+
+      (fams.length?fams.map((f,i)=>
+      `<button class="offre-item" role="menuitem" onclick="event.stopPropagation();_offreOuvrir(${i})">
+        <span class="offre-lbl">${esc(f.label)}</span>
+        <small>${f.offres.length} offre${f.offres.length>1?'s':''}</small>
+        <span class="offre-chev">›</span>
+      </button>`).join('')
+      :'<div class="offre-load">Aucune offre dans ce pool.</div>');
+  }else{
+    const f=fams[view];if(!f){_renderOffreMenu(fams,null);return;}
+    let last='';
+    const rows=f.offres.map((o,j)=>{
+      const key=o.code+'|'+o.forme;
+      const head=key!==last?(last=key,`<div class="offre-grp">${esc(o.code)} · ${esc(o.forme)}</div>`):'';
+      return head+
+      `<button class="offre-item offre-offer" role="menuitem" onclick="_offreEnvoyer(${view},${j})">
+        <span class="offre-band band-${o.band.toLowerCase()}">${esc(o.band)}</span>
+        <span class="offre-gamme">${esc(o.gamme||'—')}</span>
+      </button>`;
+    }).join('');
+    m.innerHTML=seg
+      +`<button class="offre-back" onclick="event.stopPropagation();_offreOuvrir(null)">‹ ${esc(f.label)}</button>`
+      +rows
+      +'<div class="offre-hint">Cliquer = ouvrir la liste client</div>';
+  }
+}
+async function _buildOffreMenu(){
+  const m=document.getElementById('offre-menu');if(!m)return;
+  if(!_offresCalc)m.innerHTML='<div class="offre-load">Préparation des offres…</div>';
+  await _offresData();
+  _renderOffreMenu(_offresCalc[_offrePool]||[],null);
+}
+function _offreOuvrir(i){_renderOffreMenu((_offresCalc&&_offresCalc[_offrePool])||[],i);}
+function _offreSetPool(p){
+  if(!_offresCalc||!_offresCalc[p]||!_offresCalc[p].length)return;
+  _offrePool=p;
+  _renderOffreMenu(_offresCalc[p],null); // switch de pool = retour au niveau familles
+}
+function toggleOffreMenu(force){
+  const m=document.getElementById('offre-menu');
+  const b=document.getElementById('offre-btn');
+  if(!m)return;
+  const on=force!==undefined?force:!m.classList.contains('show');
+  m.classList.toggle('show',on);
+  if(b)b.classList.toggle('open',on);
+  if(on)_buildOffreMenu(); // rouvre toujours au niveau familles
+}
+document.addEventListener('click',e=>{
+  if(e.target.closest('#offre-wrap'))return;
+  const m=document.getElementById('offre-menu');
+  if(m&&m.classList.contains('show'))toggleOffreMenu(false);
+});
+async function _offreEnvoyer(i,j){
+  const f=(_offresCalc&&_offresCalc[_offrePool]||[])[i];const o=f&&f.offres[j];if(!o)return;
+  toggleOffreMenu(false);
+  cart.length=0; // l'offre REMPLACE la liste courante (liste non persistante par design)
+  o.units.forEach(u=>cart.push({id:u.id,name:u.name,ref:u.ref,type:u.type,qualite:u.qualite||null,details:u.details||null,grammage:u.grammage,largeur:u.largeur,format:u.format,poids_net:u.poids_net,price:u.price||null,img:u.image_url||null,couleur:u.couleur||null,usine:u.usine||null,zone:u.zone||null,emplacement:u.emplacement||null,allee:u.allee||null}));
+  try{localStorage.setItem('prodi_cart',JSON.stringify(cart));}catch(_){}
+  updateCartBadge();renderDrawer();
+  if(typeof _updateAddPageBtn==='function')_updateAddPageBtn();
+  const pg=document.getElementById('pgrid');if(pg&&pg._lastList)render(pg._lastList);
+  window.prodiTrack?.('offre_preset',{pool:_offrePool,label:f.label,code:o.code,forme:o.forme,band:o.band,nb:cart.length});
+  toast('✓ Offre '+o.code+' '+o.forme.toLowerCase()+' · '+o.band.toLowerCase()+' · '+cart.length+' articles');
+  openClientLink(); // crée le lien ?s= et OUVRE la vue client — prête à envoyer
+}
 let _filterTimer=null;
 let _sortTouched=false; // l'utilisateur a choisi un tri explicitement
 // Aucun filtre actif nulle part ? (mêmes sources que les tags)
@@ -2584,11 +2775,17 @@ function _filterSharedLocal(){
   let filtered=_sharedAll.filter(p=>{
     if(q){const s=[p.name,p.quality,p.couleur,p.details,p.ref].join(' ').toLowerCase();if(!s.includes(q))return false;}
     if(_rmin||_rmax){
-      const _rn=+String(p.ref||'').replace(/^Photo_/i,'');
-      if(!_rn)return false;
-      if(_rmin&&!_rmax&&_rn!==_rmin)return false; // Min seul = réf exacte
-      if(_rmin&&_rmax&&(_rn<_rmin||_rn>_rmax))return false;
-      if(!_rmin&&_rmax&&_rn>_rmax)return false;
+      // Assemblé : une réf tapée doit retrouver son lot même si elle n'est
+      // pas celle du proto — on teste TOUTES les unités du groupe.
+      const _refs=(p._grpRefs&&p._grpRefs.length)?p._grpRefs:[p.ref];
+      const _ok=_refs.some(rf=>{
+        const _rn=+String(rf||'').replace(/^Photo_/i,'');
+        if(!_rn)return false;
+        if(_rmin&&!_rmax)return _rn===_rmin; // Min seul = réf exacte
+        if(_rmin&&_rmax)return _rn>=_rmin&&_rn<=_rmax;
+        return _rn<=_rmax;
+      });
+      if(!_ok)return false;
     }
     if(gn&&(p.grammage||0)<gn)return false;
     if(gx&&(p.grammage||0)>gx)return false;
@@ -5508,10 +5705,22 @@ async function loadSharedQuote(idsOverride){
     setTimeout(flush,1500); // filet : ne pas attendre les photos lentes
   })();
 
-  // Vue client : une ligne par unité (l'assemblé est débranché pour le moment —
-  // pour le remettre : groupProducts(units) → protos enrichis _grp*).
+  // Vue client ASSEMBLÉE (rebranché 22/07, demande Ethan) : une carte par lot
+  // d'équivalents (badge × N, POIDS TOTAL) — la liste, l'Excel et les
+  // compteurs gardent chaque unité.
   const units=products.map(rowToUi);
-  all=units.slice();
+  all=groupProducts(units).map(g=>({
+    ...g._proto,
+    _grpCount:g.count,
+    _grpTotalWeight:g.totalWeight,
+    _grpMandrins:Array.from(g.mandrins),
+    _grpDepots:Array.from(g.depots),
+    _grpUsines:Array.from(g.usines),
+    _grpUnitIds:g.units.map(u=>u.id),
+    _grpRefs:g.units.map(u=>u.ref),
+    _grpKey:g.gid,
+    _grpProtoId:g.proto_id
+  }));
   _sharedAll=all.slice();
   _totalCount=all.length;
   _maxKnownPage=1; // vue client : tout sur UNE page (listes 40-60 T)

@@ -1753,6 +1753,37 @@ body.apple-view:not(.shared-view) #cart-btn .cart-badge{background:#0071e3;color
 body.apple-view:not(.shared-view) #album-photo-btn{background:#fff;border:1.5px solid #d2d2d7;color:#1d1d1f;}
 body.apple-view:not(.shared-view) #album-photo-btn:hover{border-color:#86868b;background:#fff;color:#1d1d1f;}
 }
+/* ── Bouton OFFRE (22/07) : sélections préfaites par qualité de papier ── */
+#offre-wrap{position:relative;display:flex;align-items:center;margin-right:8px;}
+#offre-btn .offre-arrow{font-size:12px;line-height:1;margin-left:2px;transition:transform .15s;}
+#offre-btn.open .offre-arrow{transform:rotate(180deg);}
+body.apple-view:not(.shared-view) #offre-btn,body.topbar-view #offre-btn{background:#fff;border:1.5px solid #0071e3;color:#0071e3;}
+body.apple-view:not(.shared-view) #offre-btn:hover,body.topbar-view #offre-btn:hover{background:rgba(0,113,227,.08);border-color:#0071e3;color:#0071e3;}
+body.shared-view #offre-wrap{display:none !important;}
+.offre-menu{position:absolute;top:calc(100% + 10px);right:0;background:#fff;border:1px solid #e8e8ed;border-radius:16px;box-shadow:0 16px 44px rgba(0,0,0,.16);padding:6px;min-width:270px;max-width:calc(100vw - 16px);display:none;z-index:3000;}
+.offre-menu.show{display:block;}
+.offre-hdr{padding:8px 14px 6px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:#a1a1a6;}
+.offre-load{padding:14px;font-family:'DM Sans',sans-serif;font-size:13px;color:#6e6e73;}
+.offre-item{display:flex;align-items:baseline;gap:12px;width:100%;padding:10px 14px;border:none;background:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14.5px;font-weight:700;color:#1d1d1f;cursor:pointer;text-align:left;}
+.offre-item .offre-lbl{flex:1;}
+.offre-item small{font-size:12px;font-weight:600;color:#0071e3;white-space:nowrap;}
+.offre-item:hover{background:#f5f5f7;}
+.offre-chev{font-size:15px;color:#c7c7cc;font-weight:600;}
+.offre-back{display:block;width:100%;padding:9px 12px 7px;border:none;background:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;color:#0071e3;cursor:pointer;text-align:left;border-radius:8px;}
+.offre-back:hover{background:#f5f5f7;}
+.offre-hint{padding:7px 14px 8px;font-family:'DM Sans',sans-serif;font-size:11px;color:#a1a1a6;border-top:1px solid #f0f0f2;margin-top:4px;}
+/* Segment FAB / STOCK en haut du menu (même style que le popup Quantité) */
+.offre-seg{display:flex;gap:2px;background:#f0f0f2;border-radius:999px;padding:3px;margin:2px 6px 6px;}
+.offre-seg-btn{flex:1;padding:7px 0;border:none;border-radius:999px;background:transparent;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;letter-spacing:.3px;color:#6e6e73;cursor:pointer;}
+.offre-seg-btn.on{background:#fff;color:#1d1d1f;box-shadow:0 1px 4px rgba(0,0,0,.12);}
+.offre-seg-btn:disabled{opacity:.4;cursor:default;}
+/* Offre (niveau 2) : sous-en-tête qualité×forme + lignes par bande de grammage */
+.offre-grp{padding:10px 14px 3px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:800;color:#1d1d1f;}
+.offre-grp:first-of-type{padding-top:2px;}
+.offre-offer{align-items:center;gap:9px;padding:7px 14px 7px 16px;}
+.offre-band{flex:none;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;padding:3px 9px;border-radius:999px;background:#f0f0f2;color:#6e6e73;}
+.offre-band.band-courant{background:#e8f1fd;color:#0071e3;}
+.offre-gamme{flex:1;font-family:'DM Sans',sans-serif;font-size:12.5px;font-weight:600;color:#1d1d1f;white-space:normal;text-align:left;}
 /* + page (2e ligne) : rond BLEU Apple assorti au bouton Liste */
 body.topbar-view #topbar-row2 #add-page-btn{border:none;background:#0071e3;color:#fff;border-radius:999px;width:36px;height:36px;min-width:36px;display:flex;align-items:center;justify-content:center;margin:0;padding:0;box-shadow:0 2px 8px rgba(0,113,227,.3);}
 body.topbar-view #topbar-row2 #add-page-btn:hover{background:#0077ed;color:#fff;border:none;}
@@ -1981,6 +2012,10 @@ body.topbar-view .phero-panel-head{display:none !important;}
   body.topbar-view #cart-btn svg{display:none;}
   body.topbar-view #cart-btn .btn-panier-txt{display:inline !important;font-size:14px !important;font-weight:700 !important;color:#fff !important;}
   body.topbar-view #cart-btn .cart-badge{background:#0071e3;color:#fff;}
+  body.topbar-view #offre-btn{display:flex !important;height:34px;width:auto !important;padding:0 14px !important;background:#fff !important;border:1.5px solid #0071e3 !important;border-radius:999px !important;color:#0071e3 !important;}
+  body.topbar-view #offre-btn .offre-txt{font-size:14px !important;font-weight:700 !important;}
+  body.topbar-view #offre-wrap{margin-right:6px;}
+  body.topbar-view .offre-menu{min-width:230px;}
   /* barre de filtres : rangée dérulante horizontale */
   body.topbar-view .body-wrap{display:block;padding:0 10px 24px;}
   body.topbar-view .body-wrap>.sidebar-col{position:static;background:transparent;}

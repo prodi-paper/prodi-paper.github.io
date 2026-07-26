@@ -507,6 +507,48 @@ est du code dormant. Contenu du mode (body.topbar-view) :
   traînait 307 lignes masquées d'un vieux tableau = 328 réfs fantômes ;
   visible réel = 55 articles/21,5 t). Les fichiers filtrés = ce qu'on voit.
 
+## Bouton OFFRE — offres préfaites par bande de grammage (v664, DÉPLOYÉ 26/07)
+Bouton **« Offre »** dans le header (à côté de « Liste », `#offre-wrap`/`#offre-btn`,
+masqué en `body.shared-view`) → **menu déroulant à 2 NIVEAUX** (`.offre-menu`) avec
+un **segment FAB / STOCK** en haut (`.offre-seg`/`.offre-seg-btn`, `_offreSetPool`) :
+- **Pools** (mêmes que le popup Quantité) : **STOCK** = `promo` OU réf < 981600
+  (vieux stock > 1 an) ; **FAB** = le reste (arrivages récents). Défaut FAB, bascule
+  auto STOCK si FAB vide, onglet grisé si pool vide. `_offresCalc={FAB:[…],STOCK:[…]}`.
+- **Niveau 1** = familles (`OFFRE_PRESETS`) : Offset, Papier luxe, Carton couché,
+  Offset couleur, Kraft brun, Kraft, Autocopiant, Couché 1-2 faces, Bouffant, Adhésif
+  (`_isCouleurPseudo`→'RCOL'). Affiché « Famille · N offres › ».
+- **Niveau 2** (`_offreOuvrir`) = par **qualité×forme** : un sous-en-tête
+  `.offre-grp` (« ROFF · Bobine », bobines d'abord) suivi de **jusqu'à 3 lignes
+  bande** (`.offre-offer`) chip `.offre-band` + gamme `.offre-gamme`.
+
+**Règles métier impératives** (demande Ethan) :
+1. L'offre s'ouvre **directement prête à envoyer au client** (`openClientLink`, PAS un filtre + popup).
+2. **On ne mélange JAMAIS les qualités** ni **Bobine/Format** (clé `(qualité|forme)` via `_estFormat`).
+3. **Le but = MONTRER LE STOCK** d'une qualité → **plus de plafond container** :
+   l'offre = TOUT le stock de la bande (borné juste à `MAX_REFS=350` pour tenir dans
+   `?s=`/`cart_ids` ≤ 5000 chars ; `capRefs` round-robin par lot = garde la variété).
+4. **3 bandes de grammage** par qualité×forme (`bandsOf`) : **COURANT** = les
+   grammages les plus utilisés = **60 % central du stock** (bornes = percentiles
+   20/80 **pondérés par le poids**) ; **BAS** = grammages légers ; **HAUT** = lourds.
+   Bandes vides ignorées (gamme étroite → moins d'offres) ; ordre Courant→Bas→Haut.
+5. **Réservés récents exclus** : `isReserved` (`reserve_client` renseigné) **ET réf ≥
+   950000** → retiré de `units` avant tout ; réservés < 950000 restent proposables.
+6. **Gamme TECHNIQUE affichée** (`_gamme`, calculée sur TOUT le stock de la bande,
+   tout en **mm**) : grammages `min–max g` + **laizes** (bobine, `largeur`, Ø ignoré)
+   OU **formats** (feuille, `min×max mm`, liste si ≤2 sinon « N formats »). Plus de poids.
+7. **Vue client assemblée** : `openClientLink` (`?s=`) → `loadSharedQuote` regroupe en
+   cartes `×N` via `groupProducts` (`{_grpCount,_grpTotalWeight,_grpRefs,…}`),
+   `_filterSharedLocal` teste toutes les `_grpRefs`.
+
+**Implémentation** (catalogue.js) : `_offresData()` = `_loadAllProducts()` (cache
+facettes du jour) → `rowToUi` → filtre réservés → `buildPool(FAB)`/`buildPool(STOCK)`
+→ par famille, `bandsOf(qualité×forme)` + `capRefs` + `_gamme`. `_offreEnvoyer(i,j)`
+**REMPLACE** le cart, traqueur `offre_preset` (pool/band), toast, `openClientLink()`.
+CSS `.offre-seg*`/`.offre-grp`/`.offre-offer`/`.offre-band(.band-courant)`/`.offre-gamme`
+après l'album-photo apple-view (dupliqué `@media(max-width:768px)`).
+**Réglages** : curseur 60 % = percentiles `0.2`/`0.8` dans `bandsOf` ; plafond
+`MAX_REFS=350` ; frontière réservés `950000`.
+
 ## Règles photos / images produit
 
 ### Priorité d'affichage (pour TOUS les produits)
