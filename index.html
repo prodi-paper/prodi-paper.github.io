@@ -73,8 +73,8 @@
 <link rel="dns-prefetch" href="https://bvcgpdoukhcatjibmvnb.supabase.co">
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js" integrity="sha384-Ukv1p/xTma6P4/2bY5KzWBw+ydSpXmhCMtyciIQVDJ1RmOxtCYNMF1uXT9T63H67" crossorigin="anonymous" defer></script>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@600;700&family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="vitrine.css?v=112">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@600;700&family=DM+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="vitrine.css?v=167">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -144,8 +144,8 @@
           <h1>VOTRE FOURNISSEUR<br>PAPIER &amp; CARTON<br><em>DEPUIS 1991</em></h1>
           <p class="hero-tagline">LOTS ET FABRICATION</p>
           <div class="hero-btns">
-            <a href="./catalogue/" onclick="openStock();return false;" class="btn-hero">VOIR LE STOCK</a>
-            <a href="#contact" onclick="showPage('contact');return false;" class="btn-hero-outline">NOUS CONTACTER</a>
+            <a href="./catalogue/" onclick="openStock();return false;" class="btn-hero">Voir le stock</a>
+            <a href="#contact" onclick="showPage('contact');return false;" class="btn-hero-outline">Nous contacter</a>
           </div>
         </div>
         <div class="hero-video-col">
@@ -162,12 +162,26 @@
         </div>
       </div>
     </div><!-- /hero-inner -->
+    <button type="button" class="hero-down" onclick="document.querySelector('.showcase-sec')?.scrollIntoView({behavior:'smooth'})" aria-label="Découvrir le stock">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
   </section>
 
   <!-- ── APERÇU DES STOCKS ── -->
-  <section class="showcase-sec">
+  <section class="showcase-sec" id="apercu">
     <div class="sec-inner">
 
+      <!-- 6 CATÉGORIES en mosaïque façon apple.com (tuiles claires/sombres,
+           titre centré + CTA + grande photo réelle du stock) -->
+      <div class="qtiles" id="qtiles"></div>
+
+      <!-- Autres qualités (>100 réfs au catalogue) : cartes défilantes façon apple.com -->
+      <div class="qcards-wrap" data-reveal data-d="1">
+        <div class="qcards" id="qcards"></div>
+        <div class="qcards-dots" id="qcards-dots"></div>
+      </div>
+
+      <!-- Stats à la place du bouton « Voir le stock » -->
       <div class="sc-stats-strip" data-reveal data-d="2">
         <div class="sc-stat-item">
           <div class="sc-stat-num" data-target="25">+0</div>
@@ -177,24 +191,6 @@
           <div class="sc-stat-num" data-target="10000">+0</div>
           <div class="sc-stat-label">Tonnes en stock</div>
         </div>
-        <div class="sc-stat-item">
-          <div class="sc-stat-num" data-target="50">+0</div>
-          <div class="sc-stat-label">Pays partenaires</div>
-        </div>
-      </div>
-
-      <!-- CAROUSEL (dynamic from Supabase) -->
-      <div class="sc-carousel-wrap">
-        <div class="sc-nav">
-          <div class="sc-dots" id="sc-dots"></div>
-        </div>
-        <div class="sc-viewport">
-          <div class="sc-track" id="sc-track"></div>
-        </div>
-      </div>
-
-      <div class="showcase-cta">
-        <a href="./catalogue/" onclick="openStock();return false;" class="btn-hero">Voir le stock →</a>
       </div>
     </div>
   </section>
@@ -212,7 +208,13 @@
       </div>
       <div class="geo-text-col" data-reveal data-d="2">
         <h2 class="sec-h">NOTRE PRÉSENCE À L'INTERNATIONAL</h2>
-        <p class="sec-sub">Présents sur 5 continents. Expédition depuis nos entrepôts en France et en Europe vers le monde entier.</p>
+        <div class="geo-statrow">
+          <div class="geo-stat">
+            <div class="sc-stat-num" data-target="50">+0</div>
+            <div class="sc-stat-label">Pays partenaires</div>
+          </div>
+          <p class="sec-sub">Présents sur 5 continents. Expédition depuis nos entrepôts en France et en Europe vers le monde entier.</p>
+        </div>
       </div>
     </div><!-- /sec-inner -->
     <div class="marquee-track">
@@ -365,37 +367,24 @@
         <h2 class="sec-h">UN DÉPÔT DE 14 000 M² AU NORD DE LA FRANCE</h2>
         <ul class="depot-features">
           <li class="depot-feat" data-reveal data-d="2">
-            <span class="depot-feat-ico" aria-hidden="true">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-6 9 6v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
-            </span>
             <div class="depot-feat-body">
               <h3>Capacité de stockage européenne</h3>
               <p>14 000 m² à Amiens + entrepôts partenaires en Allemagne, Belgique et Pays-Bas pour stocker bobines et palettes en flux tendu.</p>
             </div>
           </li>
           <li class="depot-feat" data-reveal data-d="3">
-            <span class="depot-feat-ico" aria-hidden="true">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 3h15v13H1z"/><path d="M16 8h4l3 3v5h-7z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-            </span>
             <div class="depot-feat-body">
               <h3>Rapidité logistique</h3>
               <p>Camion complet ou groupage chargé sous 24–48 h ouvrées. Accès direct A16/A29 vers Le Havre, Anvers et Rotterdam pour l'export conteneur.</p>
             </div>
           </li>
           <li class="depot-feat" data-reveal data-d="4">
-            <span class="depot-feat-ico" aria-hidden="true">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15 15 0 0 1 0 20"/><path d="M12 2a15 15 0 0 0 0 20"/></svg>
-            </span>
             <div class="depot-feat-body">
               <h3>Expédition mondiale</h3>
               <p>Multimodal route + maritime, documents export EUR1 / Certificat d'origine sur demande. Livré dans plus de 50 pays.</p>
             </div>
           </li>
         </ul>
-        <div class="depot-stats">
-          <div class="depot-stat" data-reveal data-d="6"><div class="depot-stat-n">24–48 H</div><div class="depot-stat-l">Délai de chargement</div></div>
-          <div class="depot-stat" data-reveal data-d="6"><div class="depot-stat-n">50+</div><div class="depot-stat-l">Pays livrés</div></div>
-        </div>
       </div>
       <div class="depot-video-col" data-reveal-right data-d="2">
         <div class="depot-video-wrap">
@@ -615,34 +604,32 @@
         <span>Chargement Europe 24–48h</span>
       </div>
     </div>
-    <div class="footer-bottom">
-      <a href="./" style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:#fff;text-decoration:none;">PRODICONSEIL</a>
-      <div class="f-sub">© 2026 Prodiconseil &middot; Stock papier &amp; carton B2B</div>
+    <div class="footer-bottom" style="flex-direction:column;justify-content:center;align-items:center;gap:10px;text-align:center;">
+      <a href="./"><img src="img/logo.png" alt="Prodiconseil" width="170" height="28" style="display:block;width:170px;height:auto;"></a>
+      <div class="f-sub" style="text-transform:uppercase;letter-spacing:.7px;">© 2026 Prodiconseil &middot; Stock papier &amp; carton</div>
     </div>
   </div>
 </footer>
 
 <!-- ══════════ STOCK ACCESS GATE ══════════ -->
-<div id="stock-gate" class="stock-gate" style="display:none" role="dialog" aria-modal="true" aria-labelledby="stock-gate-title">
+<div id="stock-gate" class="stock-gate" style="display:none" role="dialog" aria-modal="true" aria-label="Accès au stock">
   <div class="stock-gate-overlay" onclick="closeStockGate()"></div>
   <div class="stock-gate-card">
     <button class="stock-gate-close" onclick="closeStockGate()" aria-label="Fermer">&times;</button>
     <div class="stock-gate-ico">
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10.5" width="16" height="10.5" rx="2.6"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg>
     </div>
-    <h3 id="stock-gate-title">Accès au stock</h3>
-    <p>Notre catalogue est réservé à nos partenaires. Entrez le code d'accès communiqué par votre commercial.</p>
     <form onsubmit="submitStockGate(event)">
       <input type="text" id="stock-gate-code" placeholder="Code d'accès" autocomplete="off" spellcheck="false" autocapitalize="off">
       <div id="stock-gate-err" class="stock-gate-err"></div>
-      <button type="submit" class="stock-gate-btn">Accéder au catalogue →</button>
+      <button type="submit" class="stock-gate-btn">Accéder au catalogue</button>
     </form>
-    <p class="stock-gate-help">Pas encore le code ? <a href="#contact" onclick="closeStockGate();showPage('contact');return false;">Contactez-nous</a></p>
+    <p class="stock-gate-help">Pas encore de code ? <a href="#contact" onclick="window.prodiTrack?.('gate_contact');closeStockGate();showPage('contact');return false;">Contactez-nous</a></p>
   </div>
 </div>
 
 <script src="analytics.js?v=1"></script>
-<script src="vitrine.js?v=59"></script>
+<script src="vitrine.js?v=102"></script>
 <!-- WA STICKY -->
 <a href="https://wa.me/33609997407?text=Bonjour%2C%20je%20voudrais%20recevoir%20une%20offre%20pour%20du%20papier%20%2F%20carton." target="_blank" rel="noopener noreferrer" class="wa-sticky" title="WhatsApp" aria-label="Nous contacter sur WhatsApp">
   <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>

@@ -15,6 +15,7 @@ function openStock(){
     if(sessionStorage.getItem('stock_unlocked')==='1'){ window.location.href='./catalogue/'; return; }
   }catch(_){}
   const g=document.getElementById('stock-gate'); if(!g)return;
+  window.prodiTrack?.('gate_vue');
   g.style.display='flex';
   document.body.style.overflow='hidden';
   setTimeout(()=>document.getElementById('stock-gate-code')?.focus(),60);
@@ -31,9 +32,11 @@ function submitStockGate(e){
   const code=(document.getElementById('stock-gate-code')?.value||'').trim().toLowerCase();
   const err=document.getElementById('stock-gate-err');
   if(code===STOCK_CODE){
+    window.prodiTrack?.('gate_code_ok');
     try{ sessionStorage.setItem('stock_unlocked','1'); }catch(_){}
     window.location.href='./catalogue/';
   }else{
+    window.prodiTrack?.('gate_code_ko',{essai:code.slice(0,20)});
     if(err) err.textContent='Code invalide. Contactez-nous pour obtenir le code d\'accès.';
   }
 }
@@ -44,8 +47,26 @@ document.addEventListener('keydown',e=>{
   }
 });
 
+// ─── TRACKING CONTACTS : un listener délégué couvre TOUS les liens WhatsApp/
+// tél/mailto (sticky, section contact, footer, futurs). Capture = l'événement
+// part avant l'ouverture du lien.
+document.addEventListener('click',e=>{
+  const a=e.target.closest&&e.target.closest('a[href]');if(!a)return;
+  const h=a.getAttribute('href')||'';
+  let ev=null;
+  if(h.indexOf('wa.me')>-1)ev='whatsapp_click';
+  else if(h.indexOf('tel:')===0)ev='tel_click';
+  else if(h.indexOf('mailto:')===0)ev='email_click';
+  if(!ev)return;
+  const via=a.classList.contains('wa-sticky')?'sticky'
+    :a.closest('#contact-section')?'contact'
+    :a.closest('footer')?'footer':'page';
+  window.prodiTrack?.(ev,{via:via});
+},true);
+
 // ─── PAGE NAVIGATION ───
 function showPage(id) {
+  if (id === 'contact') window.prodiTrack?.('contact_vue');
   if (id === 'about' || id === 'contact') {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById('page-home').classList.add('active');
@@ -242,158 +263,156 @@ async function submitContact(e) {
 })();
 
 
-/* ── SHOWCASE CAROUSEL (dynamic from Supabase) ── */
-(async function(){
-  const SURL='https://bvcgpdoukhcatjibmvnb.supabase.co';
-  const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2Y2dwZG91a2hjYXRqaWJtdm5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNzg5MjgsImV4cCI6MjA4Nzg1NDkyOH0.Ip3ykSUS9sajTH04yXBerOG1haBKMD1kAvMQNjnGL1Q';
-  const track=document.getElementById('sc-track');
-  const dotsWrap=document.getElementById('sc-dots');
-  if(!track)return;
+/* ── 6 CATÉGORIES en mosaïque façon apple.com : photo studio PLEIN CADRE
+      (Unsplash — pas de photos du dépôt), titre + sous-titre + 2 petits CTA
+      capsule par-dessus, voile dégradé en haut pour la lisibilité. ── */
+(function(){
+  const wrap=document.getElementById('qtiles');
+  if(!wrap)return;
+  const U='https://images.unsplash.com/', P='?q=75&auto=format&fit=crop&w=1100';
+  // Alternance damier clair/sombre (2 colonnes)
+  // verso = texte rédigé par tuile, à partir des détails réellement en stock
+  // (top du champ details du catalogue par famille, bobines + formats confondus)
+  const TILES=[
+    {code:'ROFF',    title:'Offset',        sub:'Le blanc de référence, du livre à la notice.',            img:U+'flagged/photo-1562221054-cdc9dc299068'+P, pos:'center 60%', dark:false,
+     verso:'Nos offset vont du blanc courant aux blancs les plus lumineux, avec des blancheurs CIE de 120 à 170 : papier notice, bristol, satiné ou rugueux, en bobines comme en formats.'},
+    {code:'RBOA',    title:'Carton couché', sub:'Le carton du packaging et de la belle boîte.',            img:U+'photo-1595246135406-803418233494'+P, pos:'center 55%', dark:true,
+     verso:'Tous les dos du packaging : GC1 dos blanc, GC2 dos crème, GD2 dos gris, GT4 et CKB dos kraft, jusqu\'à la face aluminium pour l\'emballage alimentaire.'},
+    {code:'R2SC',    title:'Couché',        sub:'Le papier des magazines, catalogues et brochures.',       img:U+'photo-1515891396453-6d7e56096a39'+P, pos:'center 55%', dark:false,
+     verso:'Brillant, demi-mat ou mat, avec des séries recyclées : le couché deux faces des magazines, catalogues et brochures, en bobines comme en formats.'},
+    {code:'RKRABRUN',title:'Kraft',         sub:'Le naturel résistant du sac et de l\'emballage.',          img:U+'photo-1777566131325-78f6e12c50b7'+P, pos:'center 50%', dark:true,
+     verso:'Du 100 % recyclé à la pure pâte, en finition frictionnée MG ou machine MF, jusqu\'aux krafts spéciaux pour enveloppe : le brun de l\'emballage sous toutes ses formes.'},
+    {code:'RLUX',    title:'Papier créations', sub:'Papiers de caractère : teintes, textures, finitions.', img:U+'photo-1586207036106-90aae2456ccb'+P, pos:'center 50%', dark:true,
+     verso:'Calque, vergé blanc ou ivoire, martelé, Chromolux une face, papiers sécurité à fibres invisibles ou filigranés : les textures et finitions de la belle communication.'},
+    {code:'RCAR',    title:'Autocopiant',   sub:'Liasses sans carbone, prêtes à imprimer.',                img:U+'photo-1579808324991-cecc784498cc'+P, pos:'center 55%', dark:true,
+     verso:'Les trois feuillets CB, CFB et CF, livrés en rames prêts à assembler en liasses, avec des séries spéciales pour l\'impression digitale.'},
+  ];
+  wrap.innerHTML=TILES.map((t,i)=>`
+    <div class="qtile${t.dark?' dark':''}" id="qtile-${i}">
+      <div class="qtile-flip">
+        <div class="qtile-inner qtile-front">
+          <h3 class="qtile-title">${esc(t.title)}</h3>
+          <div class="qtile-btns">
+            <a href="./catalogue/" class="qtile-btn qtile-btn-red" onclick="window.prodiTrack?.('qualite_plus',{q:'${esc(t.code)}'});qtileFlip(${i},1);return false;">En savoir +</a>
+          </div>
+        </div>
+        <div class="qtile-inner qtile-backface">
+          <h3 class="qtile-title qtile-title-sm">${esc(t.title)}</h3>
+          <p class="qtile-sub qtile-verso">${esc(t.verso)}</p>
+          <div class="qtile-btns">
+            <a href="./catalogue/" class="qtile-btn qtile-btn-red" onclick="window.prodiTrack?.('qualite_stock',{q:'${esc(t.code)}'});openStock();return false;">Voir le stock →</a>
+            <button type="button" class="qtile-btn qtile-btn-out" onclick="qtileFlip(${i},0)">Retour</button>
+          </div>
+        </div>
+      </div>
+      <div class="qtile-imgzone"><img class="qtile-bg" src="${t.img}" alt="${esc(t.title)}" loading="lazy" style="object-position:${t.pos}"></div>
+    </div>`).join('');
 
-  // Fetch products with image_url — même filtre que catalogue.js:_fetchAndRenderFeatured
-  // (refs Photo_NNNNNN 6 chiffres uniquement, tri ref.desc = plus récents). Exclut
-  // Photo_FAB*, Photo_DU*, Photo_PM* etc. qui sortaient des machines dans le showcase.
-  try{
-    // RÈGLE (Ethan, 02/07/2026) : le showcase = un MIX DE QUALITÉS pris dans
-    // les 1 000 DERNIÈRES réfs qui ont une VRAIE photo. Les toutes dernières
-    // réfs (~350) n'ont pas encore leur photo dans l'album stock.prodi.net
-    // (URLs synthétisées par l'import → 404) : on descend la liste par lots —
-    // les 404 échouent vite — et on s'arrête dès qu'on a la diversité voulue.
-    const r=await fetch(SURL+'/rest/v1/products?select=*&image_url=not.is.null&image_url=neq.&ref=match.%5EPhoto_%5B0-9%5D%7B6%7D%24&source=neq.inventaire&emplacement=eq.OUR%20WAREHOUSE&order=ref.desc',{
-      headers:{'apikey':SKEY,'Authorization':'Bearer '+SKEY,'Range':'0-999'}
+  // Autres familles à +100 réfs au catalogue (bobines + formats confondus),
+  // triées par nombre de références — cartes défilantes façon apple.com
+  const CARDS=[
+    {code:'COL',  title:'Offset couleur',    img:U+'photo-1716471330459-063b3baf247e'+P},
+    {code:'BOU',  title:'Bouffant',          img:U+'photo-1457369804613-52c61a468e7d'+P},
+    {code:'ADH',  title:'Adhésif',           img:U+'photo-1569725730478-a2f4a1809bb4'+P},
+    {code:'CUT',  title:'Ramette',           img:U+'photo-1573978828027-e830975e272c'+P},
+    {code:'LINER',title:'Liner / Testliner', img:U+'photo-1640193698858-31565d448f90'+P},
+    {code:'FLEX', title:'Complexe / PE',     img:U+'photo-1677586883848-695b3ad692b4'+P},
+  ];
+  const cwrap=document.getElementById('qcards');
+  if(cwrap){
+    const html=CARDS.map(c=>`
+    <div class="qcard" onclick="window.prodiTrack?.('qualite_plus',{q:'${esc(c.code)}'});openStock();">
+      <img src="${c.img}" alt="${esc(c.title)}" loading="lazy">
+      <span class="qcard-title">${esc(c.title)}</span>
+      <button class="qcard-btn" type="button" onclick="event.stopPropagation();qcardForm('${esc(c.code)}','${esc(c.title)}')">En savoir +</button>
+    </div>`).join('');
+    // Boucle infinie : 3 copies des cartes, le scroll reste dans la copie
+    // centrale — jamais de bout de piste, donc jamais de vide
+    cwrap.innerHTML=html+html+html;
+    const setW=()=>{const c=cwrap.firstElementChild;return c?CARDS.length*(c.getBoundingClientRect().width+12):0;};
+    const recentre=()=>{
+      const w=setW(), x=cwrap.scrollLeft;
+      if(!w) return;
+      if(x<w*0.5) cwrap.scrollLeft=x+w;
+      else if(x>=w*1.5) cwrap.scrollLeft=x-w;
+    };
+    cwrap.scrollLeft=setW();
+    cwrap.addEventListener('scroll',recentre,{passive:true});
+    window.addEventListener('resize',recentre);
+
+    // Points de pagination façon apple.com : la pilule active se remplit
+    // pendant PERIOD ms puis le bandeau avance d'une carte (durée = celle
+    // de l'animation CSS qdotfill, à garder synchro)
+    const dots=document.getElementById('qcards-dots');
+    const PERIOD=4000, N=CARDS.length;
+    const step=()=>{const c=cwrap.firstElementChild;return c?c.getBoundingClientRect().width+12:512;};
+    const curIdx=()=>((Math.round(cwrap.scrollLeft/step())%N)+N)%N;
+    const still=matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let tmr=null, onScreen=false, lastIdx=-1;
+    function paintDots(){
+      if(!dots) return;
+      const i=curIdx();
+      dots.innerHTML=CARDS.map((c,j)=>
+        `<button class="qdot${j===i?' on':''}${still?' still':''}" aria-label="${esc(c.title)}" onclick="qcardsGoto(${j})"></button>`).join('');
+    }
+    function arm(){
+      if(still||!dots) return;
+      clearTimeout(tmr);
+      tmr=setTimeout(()=>{
+        if(onScreen&&document.visibilityState==='visible') cwrap.scrollBy({left:step(),behavior:'smooth'});
+        else arm();
+      },PERIOD);
+    }
+    window.qcardsGoto=j=>{
+      const d=((j-curIdx())%N+N)%N;
+      cwrap.scrollBy({left:(d>N/2?d-N:d)*step(),behavior:'smooth'});
+    };
+    cwrap.addEventListener('scroll',()=>{
+      const i=curIdx();
+      if(i!==lastIdx){lastIdx=i;paintDots();arm();}
+    },{passive:true});
+    cwrap.addEventListener('pointerdown',()=>clearTimeout(tmr));
+    cwrap.addEventListener('pointerup',arm);
+    document.addEventListener('visibilitychange',()=>{
+      if(document.visibilityState==='visible'){paintDots();arm();} else clearTimeout(tmr);
     });
-    const data=await r.json();
-    if(!data||!data.length)return;
-    const candidates=data.filter(p=>p.image_url&&p.image_url.trim().length>10);
-
-    const TARGET=16;
-    async function verifyBatch(list){
-      const okArr=new Array(list.length).fill(false);
-      await Promise.all(list.map((p,idx)=>new Promise(resolve=>{
-        const img=new Image();
-        img.onload=()=>{okArr[idx]=true;resolve();};
-        img.onerror=()=>resolve();
-        img.src=p.image_url;
-        setTimeout(resolve,3000);
-      })));
-      return list.filter((_,i)=>okArr[i]);
-    }
-    // Descente par lots de 64 sur les 1 000 dernières (ordre desc = fraîcheur),
-    // stop dès 16+ photos confirmées couvrant au moins 8 qualités.
-    let verified=[];
-    for(let i=0;i<candidates.length;i+=64){
-      verified=verified.concat(await verifyBatch(candidates.slice(i,i+64)));
-      const q=new Set(verified.map(p=>p.quality||'_'));
-      // Stop quand on a de quoi remplir AVEC de la variété : 16+ photos et
-      // 8 qualités différentes (ou une bonne marge de photos).
-      if(verified.length>=TARGET&&(q.size>=8||verified.length>=TARGET+8))break;
-    }
-    // Filet (ne devrait jamais servir) : compléter avec les réfs anciennes.
-    if(verified.length<TARGET){
-      try{
-        const r2=await fetch(SURL+'/rest/v1/products?select=*&image_url=not.is.null&image_url=neq.&ref=match.%5EPhoto_%5B0-9%5D%7B6%7D%24&source=neq.inventaire&emplacement=eq.OUR%20WAREHOUSE&order=ref.asc',{
-          headers:{'apikey':SKEY,'Authorization':'Bearer '+SKEY,'Range':'0-149'}
-        });
-        const older=(await r2.json())||[];
-        const have=new Set(verified.map(p=>p.ref));
-        const pool=Array.isArray(older)?older.filter(p=>p.image_url&&!have.has(p.ref)):[];
-        for(let i=0;i<pool.length&&verified.length<TARGET;i+=48){
-          verified=verified.concat(await verifyBatch(pool.slice(i,i+48)));
-        }
-      }catch(_){/* best-effort */}
-    }
-    if(!verified.length)return;
-
-    // MIX DE QUALITÉS : 1 produit par qualité d'abord (les plus récents de
-    // chaque), puis on complète (max 3/qualité) jusqu'à 16 cartes.
-    const cntQ={};
-    const picked=[];
-    for(const p of verified){
-      const q=p.quality||'_';
-      if(cntQ[q])continue;
-      cntQ[q]=1;picked.push(p);
-      if(picked.length>=TARGET)break;
-    }
-    if(picked.length<TARGET){
-      const used=new Set(picked);
-      for(const p of verified){
-        if(used.has(p))continue;
-        const q=p.quality||'_';
-        if((cntQ[q]||0)>=3)continue;
-        cntQ[q]=(cntQ[q]||0)+1;picked.push(p);used.add(p);
-        if(picked.length>=TARGET)break;
-      }
-    }
-
-    // Split into 2 slides de 8 → grille 4×2
-    const PER_SLIDE=8;
-    const slides=[];
-    for(let i=0;i<picked.length;i+=PER_SLIDE)slides.push(picked.slice(i,i+PER_SLIDE));
-    if(!slides.length)return;
-
-    // Quality labels
-    const QL={'R1SC':'Couché 1 face','R2SC':'Couché 2 faces','RADH':'Adhésif','RAFF':'Papier affiche','RBOA':'Carton couché','RBON':'Carton non couché','RBOU':'Bouffant','RCAR':'Autocopiant','RCOL':'Offset couleur','RCUI':'Papier cuisson','RDIV':'Divers / Alu','RFLEX':'Complexe','RKDO':'Papier cadeau','RKRA':'Kraft','RKRABRUN':'Kraft brun','RKRG':'Kraft gomme','RKRR':'Kraft armé','RLINER':'Liner / Testliner','RLUX':'Papier luxe','RLWC':'LWC','RNEW':'Papier journal','ROFF':'Offset','RPAC':'Emballage','RPLA':'Plastique','RSIL':'Silicone / Glassine','RTHERM':'Thermique','RTIS':'Ouate / Tissue','S1SC':'Couché 1 face','S2SC':'Couché 2 faces','SADH':'Adhésif','SAFF':'Papier affiche','SBOA':'Carton couché','SBON':'Carton non couché','SBOU':'Bouffant','SCAR':'Autocopiant','SCOL':'Offset couleur','SCUT':'Ramette','SDIV':'Divers','SENV':'Enveloppes','SKRA':'Kraft','SLUX':'Papier luxe','SNEW':'Papier journal','SOFF':'Offset','SPAC':'Emballage','SPLA':'Plastique','SSBS':'SBS / Carton blanc','SINK':'Encre','UMAC':'Machines','SLWC':'LWC'};
-
-    // Render cards (visuel identique aux cartes du catalogue: .pcard)
-    const mmCm=mm=>mm!=null?String(Math.round(+mm)):null; // 16/07 : tout en mm
-    function cardHtml(p){
-      const q=p.quality||'';
-      const c=q[0];
-      const prefix=c==='R'?'BOBINE':c==='S'?'FORMAT':c==='U'?'MACHINE':q;
-      const lab=QL[q]||q||'';
-      const title=q?`${prefix} — ${lab.toUpperCase()}`:'Produit';
-      const isPalette=p.format&&/palette|feuille/i.test(p.format);
-      const dimTag=!isPalette&&p.width?`${mmCm(p.width)} mm`:'';
-      const paletteDims=isPalette&&(p.width||p.longueur)?[p.width,p.longueur].filter(Boolean).map(mmCm).join('×'):null;
-      const _refClean=(p.ref||'').replace(/^Photo_/i,'').trim();
-      const _usineClean=p.usine?String(p.usine).replace(/^REF\s*/i,''):null;
-      const refOverlay=_refClean?`<div class="pcard-ref-overlay" title="${esc(_refClean)}"><span class="pcard-ref-txt">${esc(_refClean)}</span></div>`:'';
-      const usineOverlay=_usineClean?`<div class="pcard-gsm-overlay"><span class="pcard-gsm-lbl">USINE</span><span class="pcard-gsm-num">${esc(_usineClean)}</span></div>`:'';
-      const _det=(p.details||'').replace(/(?<=^|\s)-(?=\s|$)/g,'').replace(/\s{2,}/g,' ').trim();
-      const subtitleHtml=_det.length>2?`<div class="pcard-subtitle">${esc(_det)}</div>`:'';
-      const specRows=[
-        p.gsm?`${p.gsm} g/m²`:'—',
-        isPalette?(paletteDims?paletteDims+' mm':'—'):(dimTag||'—'),
-        p.color||'—'
-      ];
-      const specsHtml=`<div class="pcard-specs">${specRows.map(v=>`<div class="pcard-spec"><span class="pspec-val">${esc(v)}</span></div>`).join('')}</div>`;
-      const fb='img/no-photo.png';
-      const imgHtml=p.image_url
-        ?`<img src="${safeUrl(p.image_url)}" alt="${esc(title)}" loading="lazy" onerror="this.src='${fb}';this.className='pcard-nophoto'">`
-        :`<img src="${fb}" alt="Photo sur demande" class="pcard-nophoto">`;
-      return`<a class="pcard" href="./catalogue/" onclick="openStock();return false;"><div class="pcard-img">${imgHtml}${refOverlay}${usineOverlay}</div><div class="pcard-body"><div class="pcard-name">${esc(title)}</div>${subtitleHtml}${specsHtml}</div></a>`;
-    }
-
-    track.innerHTML=slides.map(slide=>`<div class="sc-slide">${slide.map(cardHtml).join('')}</div>`).join('');
-
-    // Dots
-    dotsWrap.innerHTML=slides.map((_,i)=>`<button class="sc-dot${i===0?' active':''}" data-sc="${i}" aria-label="Aller au slide ${i+1}"></button>`).join('');
-
-    // Carousel logic
-    const dots=dotsWrap.querySelectorAll('.sc-dot');
-    const total=slides.length;
-    let cur=0,timer;
-    function go(n){cur=(n+total)%total;track.style.transform='translateX(-'+(cur*100)+'%)';dots.forEach((d,i)=>d.classList.toggle('active',i===cur));}
-    function startAuto(){timer=setInterval(()=>go(cur+1),5000);}
-    function resetAuto(){clearInterval(timer);startAuto();}
-    dots.forEach(d=>d.addEventListener('click',()=>{go(+d.dataset.sc);resetAuto();}));
-    startAuto();
-  }catch(e){console.error('Showcase carousel error:',e);}
+    new IntersectionObserver(es=>{
+      onScreen=es[0].isIntersecting;
+      if(onScreen){paintDots();arm();} else clearTimeout(tmr);
+    },{threshold:.3}).observe(cwrap);
+    lastIdx=curIdx();paintDots();arm();
+  }
 })();
 
-// ─── REAL GLOBE (orthographic, silhouette only) ───
+// Retourne le bloc texte d'une tuile qualité (recto = accroche, verso = détails)
+function qtileFlip(i,on){
+  const t=document.getElementById('qtile-'+i);
+  if(t) t.classList.toggle('flipped',!!on);
+}
+
+// « En savoir + » des cartes du bandeau → formulaire de contact prérempli
+function qcardForm(code,titre){
+  window.prodiTrack?.('qualite_form',{q:code});
+  showPage('contact');
+  const m=document.getElementById('f-msg');
+  if(m&&!m.value.trim()) m.value='Bonjour, je souhaite en savoir plus sur vos produits '+titre+'.';
+}
+
+// ─── REAL GLOBE (orthographic, silhouette only) — EN ROTATION ───
 async function initGlobe(){
   const land=document.getElementById('globe-land');
-  if(!land) return;
+  if(!land||land._spinning) return;
   const NS='http://www.w3.org/2000/svg';
   // Globe plein (silhouette continents blancs sur disque bleu)
   const CX=160, CY=160, R=148;
-  // Centré sur Atlantique pour cadrer Amériques + Europe + Afrique
-  const lon0_deg=-30, lat0_deg=15;
-  const lon0=lon0_deg*Math.PI/180, lat0=lat0_deg*Math.PI/180;
+  const lat0_deg=15;                 // légère inclinaison, cadre l'hémisphère nord
+  const lat0=lat0_deg*Math.PI/180;
   const sinL=Math.sin(lat0), cosL=Math.cos(lat0);
+  const LON0_START=-30;              // départ centré Atlantique (Amériques/Europe/Afrique)
+  const SPEED=8;                     // deg/s ; lon0 DÉCROÎT = rotation vers l'est (naturelle)
 
-  function proj(lon,lat){
+  // Projection orthographique paramétrée par la longitude centrale (rotation).
+  function proj(lon,lat,lon0){
     const λ=lon*Math.PI/180 - lon0;
     const φ=lat*Math.PI/180;
     const cosP=Math.cos(φ), sinP=Math.sin(φ);
@@ -403,37 +422,68 @@ async function initGlobe(){
     const z=sinL*sinP + cosL*cosP*cosΛ;
     return [CX + R*x, CY - R*y, z];
   }
+  // Un anneau → path. Les points de la face cachée (z<0) sont PLAQUÉS sur le
+  // limbe (projetés sur le cercle) au lieu de couper le tracé : plus de cordes
+  // droites qui « cassent » le globe pendant la rotation. Anneau entièrement
+  // caché = sauté.
+  function ringToD(ring,lon0){
+    let d='', any=false;
+    for(const pt of ring){
+      let [x,y,z]=proj(pt[0],pt[1],lon0);
+      if(z<0){
+        const dx=x-CX, dy=y-CY, len=Math.hypot(dx,dy)||1;
+        x=CX+dx/len*R; y=CY+dy/len*R;   // clamp sur le cercle
+      } else any=true;
+      d+=(d?'L':'M')+x.toFixed(1)+','+y.toFixed(1);
+    }
+    if(!any) return '';                  // tout caché : rien à dessiner
+    return d+'Z';
+  }
 
-  // ── Land : silhouette continents en projection orthographique ──
+  // ── Land : on aplatit tous les continents en une liste d'anneaux (une fois),
+  //    puis on redessine UN seul path par frame en tournant lon0. ──
+  const rings=[];
   try{
     const world=await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(r=>r.json());
     const features=topojson.feature(world,world.objects.countries).features;
-    function ringToD(ring){
-      let d='', started=false, firstPt=null;
-      for(const pt of ring){
-        const [x,y,z]=proj(pt[0],pt[1]);
-        if(z>=-0.001){
-          if(!started){ d+=`M${x.toFixed(1)},${y.toFixed(1)}`; started=true; firstPt=[x,y]; }
-          else d+=`L${x.toFixed(1)},${y.toFixed(1)}`;
-        } else { started=false; }
-      }
-      if(firstPt) d+='Z';
-      return d;
-    }
     features.forEach(feat=>{
       const g=feat.geometry; if(!g)return;
       const name=(feat.properties&&(feat.properties.name||feat.properties.NAME))||'';
       if(/antarctica|antarctique/i.test(name))return;
       const polys=g.type==='Polygon'?[g.coordinates]:g.type==='MultiPolygon'?g.coordinates:[];
-      polys.forEach(poly=>{
-        const d=poly.map(ringToD).filter(Boolean).join(' ');
-        if(!d)return;
-        const p=document.createElementNS(NS,'path');
-        p.setAttribute('d',d);
-        land.appendChild(p);
-      });
+      polys.forEach(poly=>poly.forEach(ring=>rings.push(ring)));
     });
-  }catch(e){console.warn('globe land failed',e);}
+  }catch(e){console.warn('globe land failed',e);return;}
+  if(!rings.length)return;
+
+  const path=document.createElementNS(NS,'path');
+  land.appendChild(path);
+  land._spinning=true;
+
+  const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const draw=lon0deg=>{
+    const lon0=lon0deg*Math.PI/180, parts=[];
+    for(const ring of rings){ const d=ringToD(ring,lon0); if(d)parts.push(d); }
+    path.setAttribute('d',parts.join(''));
+  };
+
+  if(reduce){ draw(LON0_START); return; }   // pas d'animation si mouvement réduit
+  let running=true, last=-1;
+  function frame(now){
+    if(!running)return;
+    if(now-last>=33){ last=now; draw(LON0_START-(now/1000)*SPEED); } // ~30 fps
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  // Pause quand le globe sort de l'écran (économie CPU).
+  const svg=document.getElementById('globe-svg');
+  if(svg&&'IntersectionObserver' in window){
+    new IntersectionObserver(es=>{
+      const vis=es[0].isIntersecting;
+      if(vis&&!running){ running=true; requestAnimationFrame(frame); }
+      else if(!vis) running=false;
+    },{threshold:0}).observe(svg);
+  }
 }
 
 const _globeEl=document.getElementById('globe-svg');
@@ -498,4 +548,91 @@ function toggleSound(){
   }
 }
 
-// Appliquer la langue sauvegardée au chargement
+// ─── HERO : UN SEUL bonjour à la fois — 8 langues les plus parlées au monde,
+// apparition en gris discret à une position aléatoire (fondu 1s), jamais sur
+// le bloc texte ni la vidéo. Pas de fond rempli de mots.
+(function(){
+  var hero=document.querySelector('.hero');if(!hero)return;
+  // Ordre FIXE demandé : Hello → arabe → espagnol → chinois → russe, puis la suite.
+  var words=['Hello','مرحبا','Hola','你好','Привет','Bonjour','नमस्ते','Olá'];
+  var wrap=document.createElement('div');wrap.className='hero-hellos';wrap.setAttribute('aria-hidden','true');
+  var s=document.createElement('span');s.className='hero-hello';wrap.appendChild(s);
+  hero.insertBefore(wrap,hero.firstChild);
+  var zones=[];
+  function mesure(){
+    zones=[];var hr=hero.getBoundingClientRect();
+    ['.hero-text','.hero-video-wrap'].forEach(function(sel){
+      var el=hero.querySelector(sel);
+      if(el&&hr.width&&hr.height){var b=el.getBoundingClientRect();
+        zones.push({x1:(b.left-hr.left)/hr.width*100-5,x2:(b.right-hr.left)/hr.width*100+5,
+                    y1:(b.top-hr.top)/hr.height*100-7,y2:(b.bottom-hr.top)/hr.height*100+7});}
+    });
+  }
+  mesure();window.addEventListener('resize',mesure);
+  function libre(x,y){for(var z=0;z<zones.length;z++){var v=zones[z];
+    if(x>v.x1&&x<v.x2&&y>v.y1&&y<v.y2)return false;}return true;}
+  var last=-1;
+  function place(){
+    last=(last+1)%words.length;var w=last;
+    var x,y,tries=0;
+    do{x=8+Math.random()*84;y=16+Math.random()*74;tries++;}while(!libre(x,y)&&tries<40);
+    if(tries>=40)return;
+    s.textContent=words[w];
+    s.style.left=x+'%';s.style.top=y+'%';
+    s.style.fontSize=(26+Math.random()*10)+'px';
+    s.classList.add('on');
+  }
+  if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  var timer=null;
+  function cycle(){s.classList.remove('on');setTimeout(place,1000);}
+  function start(){if(!timer){place();timer=setInterval(cycle,3400);}}
+  function stop(){if(timer){clearInterval(timer);timer=null;s.classList.remove('on');}}
+  if('IntersectionObserver' in window){
+    new IntersectionObserver(function(es){es[0].isIntersecting?start():stop();},{threshold:.1}).observe(hero);
+  }else start();
+})();
+
+// ─── POP TRADUCTION : visiteur non francophone → petit pop dans SA langue,
+// bouton = ouvre le site traduit par Google (proxy translate.goog). Refus
+// mémorisé (localStorage), tracké trad_prompt / trad_click / trad_non.
+(function(){
+  var MSG={
+    en:['This site is in French — view it in English?','Translate','No thanks'],
+    es:['Este sitio está en francés — ¿verlo en español?','Traducir','No, gracias'],
+    ar:['هذا الموقع بالفرنسية — هل تريد ترجمته إلى العربية؟','ترجمة','لا شكراً'],
+    ru:['Сайт на французском — перевести на русский?','Перевести','Нет, спасибо'],
+    ro:['Site-ul este în franceză — îl vezi în română?','Tradu','Nu, mulțumesc'],
+    el:['Ο ιστότοπος είναι στα γαλλικά — μετάφραση στα ελληνικά;','Μετάφραση','Όχι, ευχαριστώ'],
+    tr:['Bu site Fransızca — Türkçe görüntülemek ister misiniz?','Çevir','Hayır'],
+    de:['Diese Seite ist auf Französisch — auf Deutsch ansehen?','Übersetzen','Nein, danke'],
+    it:['Questo sito è in francese — vederlo in italiano?','Traduci','No, grazie'],
+    pt:['Este site está em francês — vê-lo em português?','Traduzir','Não, obrigado'],
+    uk:['Сайт французькою — перекласти українською?','Перекласти','Ні, дякую'],
+    pl:['Ta strona jest po francusku — zobaczyć po polsku?','Przetłumacz','Nie, dziękuję'],
+    nl:['Deze site is in het Frans — in het Nederlands bekijken?','Vertalen','Nee, bedankt'],
+    zh:['本网站为法语 — 要翻译成中文吗？','翻译','不用了']
+  };
+  var l=(navigator.language||'').slice(0,2).toLowerCase();
+  if(!l||l==='fr')return;                       // francophone : rien
+  try{if(localStorage.getItem('prodi_trad_non')==='1')return;}catch(e){}
+  var m=MSG[l]||MSG.en;
+  var url='https://paper-prodi-com.translate.goog/?_x_tr_sl=fr&_x_tr_tl='+l+'&_x_tr_hl='+l;
+  setTimeout(function(){
+    var d=document.createElement('div');
+    d.className='trad-pop';
+    if(l==='ar')d.setAttribute('dir','rtl');
+    d.innerHTML='<span class="trad-txt">'+m[0]+'</span>'
+      +'<div class="trad-btns"><a class="trad-go" href="'+url+'" rel="noopener">'+m[1]+'</a>'
+      +'<button type="button" class="trad-no">'+m[2]+'</button></div>';
+    document.body.appendChild(d);
+    window.prodiTrack?.('trad_prompt',{l:l});
+    d.querySelector('.trad-go').addEventListener('click',function(){
+      window.prodiTrack?.('trad_click',{l:l});
+    });
+    d.querySelector('.trad-no').addEventListener('click',function(){
+      window.prodiTrack?.('trad_non',{l:l});
+      try{localStorage.setItem('prodi_trad_non','1');}catch(e){}
+      d.remove();
+    });
+  },1500);
+})();
