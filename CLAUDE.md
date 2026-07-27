@@ -592,6 +592,39 @@ Section « Nos qualités » de la page d'accueil (`vitrine.js` bloc TILES ~l.274
 - Outils de test CDP maison dans /tmp : cdp_tiles.mjs (capture tuiles),
   cdp_dots.mjs (auto-avance), cdp_flip.mjs (flips), cdp_form.mjs (carte→form).
 
+## VITRINE — refonte « mode Apple » (27/07/2026 après-midi, poussée)
+
+Session de retouches à la demande d'Ethan, direction = répliquer apple.com :
+- **Header** : `position:absolute` (posé sur le hero, ne suit PLUS le scroll).
+- **Tuiles qualités** : « Couché » → « Papier couché » ; verso = LISTE à filets
+  (`.qtile-list`, une caractéristique par ligne, voile renforcé `.qtile.flipped::after`)
+  au lieu du paragraphe ; bouton verso = **« Demander un devis → »** rouge →
+  formulaire contact prérempli (`qtileDevis`, traqueur `qualite_devis`) ; recto
+  « En savoir + » en pastille BLANCHE (`.qtile-btn-white`). Fond du bloc
+  `.showcase-sec` = BLANC. Bandeau qcards : bords CARRÉS (plus de radius) +
+  7e carte `MORE` (photo papier crème 1719529216596, SANS titre, bouton
+  « Voir tout le stock → » → openStock).
+- **Bloc international** (`#international`, .geo-sec) : globe SVG SUPPRIMÉ du DOM
+  (initGlobe dormant), remplacé façon bloc Apple TV = titre noir DM Sans 800
+  au-dessus (`.geo-h`) + **image presse internationale** `img/presse_internationale.jpg?v=4`
+  (générée IA : 10 unes de journaux avec panda, source Desktop, rognée 50px haut/
+  20px bas, 1536×954) en carte `.geo-card` bords CARRÉS à 85 % de largeur
+  (`min(85vw - 20px,1462px)`, centrée par MARGE — piège data-reveal). Sous-titre,
+  compteur +50 pays, bandeau drapeaux (marquee) : SUPPRIMÉS.
+- **Stats strips SUPPRIMÉS** (« +25 qualités », « +10 000 tonnes ») ; pastille
+  « DEPUIS 1991 » (À propos) supprimée ; footer réduit au logo + copyright
+  (colonnes Prodiconseil/Contact/Documents supprimées).
+- **Section dépôt → cartes « Get to know iPhone »** (`#depot`, .pcards) : titre
+  gauche « Prodiconseil, en un coup d'œil », carrousel horizontal pleine largeur
+  (padding gauche aligné sur la marge de contenu `max(var(--pad),calc(50vw - 620px + 48px))`),
+  cartes noires **372×680** (dimensions Apple), radius 28, eyebrow 17/titre 26
+  blancs, image en bas (62 %), bouton `+` blanc → contact (logistique, dépôt) ou
+  openStock (stock) ; 4e carte = **vidéo dépôt** plein cadre (id `depot-vid`
+  conservé pour l'IntersectionObserver). Anciennes versions (depot-features,
+  bento .dbento) : HTML retiré, CSS dormant.
+- Images Unsplash ajoutées : grue+conteneur 1700777685830 (logistique), bobine
+  géante 1727159166219 (stock), allée racks 1777026321659 (dépôt).
+
 ## Règles photos / images produit
 
 ### Priorité d'affichage (pour TOUS les produits)

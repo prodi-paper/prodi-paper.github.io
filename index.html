@@ -74,7 +74,7 @@
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js" integrity="sha384-Ukv1p/xTma6P4/2bY5KzWBw+ydSpXmhCMtyciIQVDJ1RmOxtCYNMF1uXT9T63H67" crossorigin="anonymous" defer></script>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@600;700&family=DM+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="vitrine.css?v=167">
+<link rel="stylesheet" href="vitrine.css?v=186">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -181,219 +181,64 @@
         <div class="qcards-dots" id="qcards-dots"></div>
       </div>
 
-      <!-- Stats à la place du bouton « Voir le stock » -->
-      <div class="sc-stats-strip" data-reveal data-d="2">
-        <div class="sc-stat-item">
-          <div class="sc-stat-num" data-target="25">+0</div>
-          <div class="sc-stat-label">Qualités de papier &amp; carton</div>
-        </div>
-        <div class="sc-stat-item">
-          <div class="sc-stat-num" data-target="10000">+0</div>
-          <div class="sc-stat-label">Tonnes en stock</div>
-        </div>
-      </div>
     </div>
   </section>
 
 
 
   <!-- GEO MAP -->
-  <section class="geo-sec">
-    <div class="sec-inner geo-row">
-      <div class="geo-globe-col" data-reveal data-d="1">
-        <svg id="globe-svg" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <circle cx="160" cy="160" r="148" fill="#1B3A5C"/>
-          <g id="globe-land" fill="#FFFFFF" stroke="none"></g>
-        </svg>
-      </div>
-      <div class="geo-text-col" data-reveal data-d="2">
-        <h2 class="sec-h">NOTRE PRÉSENCE À L'INTERNATIONAL</h2>
-        <div class="geo-statrow">
-          <div class="geo-stat">
-            <div class="sc-stat-num" data-target="50">+0</div>
-            <div class="sc-stat-label">Pays partenaires</div>
-          </div>
-          <p class="sec-sub">Présents sur 5 continents. Expédition depuis nos entrepôts en France et en Europe vers le monde entier.</p>
-        </div>
+  <section class="geo-sec" id="international">
+    <div class="sec-inner geo-apple">
+      <h2 class="geo-h" data-reveal>Notre présence à l'international</h2>
+      <div class="geo-card" data-reveal data-d="1">
+        <img class="geo-press" src="img/presse_internationale.jpg?v=4" alt="Prodiconseil dans la presse internationale" loading="lazy" width="1536" height="954">
       </div>
     </div><!-- /sec-inner -->
-    <div class="marquee-track">
-        <div class="marquee-inner">
-          <div class="mq-item"><span class="mq-flag">🇫🇷</span><span class="mq-name">France</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇩🇪</span><span class="mq-name">Allemagne</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇪🇸</span><span class="mq-name">Espagne</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇮🇹</span><span class="mq-name">Italie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇧🇪</span><span class="mq-name">Belgique</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇳🇱</span><span class="mq-name">Pays-Bas</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇵🇱</span><span class="mq-name">Pologne</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇵🇹</span><span class="mq-name">Portugal</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇬🇧</span><span class="mq-name">Royaume-Uni</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇸🇪</span><span class="mq-name">Suède</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇭</span><span class="mq-name">Suisse</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇦🇹</span><span class="mq-name">Autriche</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇬🇷</span><span class="mq-name">Grèce</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇷🇴</span><span class="mq-name">Roumanie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇹🇷</span><span class="mq-name">Turquie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇩🇰</span><span class="mq-name">Danemark</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇳🇴</span><span class="mq-name">Norvège</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇫🇮</span><span class="mq-name">Finlande</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇿</span><span class="mq-name">Tchéquie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇭🇺</span><span class="mq-name">Hongrie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇺🇦</span><span class="mq-name">Ukraine</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇲🇦</span><span class="mq-name">Maroc</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇩🇿</span><span class="mq-name">Algérie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇹🇳</span><span class="mq-name">Tunisie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇱🇾</span><span class="mq-name">Libye</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇲🇷</span><span class="mq-name">Mauritanie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇲🇱</span><span class="mq-name">Mali</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇳🇪</span><span class="mq-name">Niger</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇹🇩</span><span class="mq-name">Tchad</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇬🇭</span><span class="mq-name">Ghana</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇲</span><span class="mq-name">Cameroun</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇸🇳</span><span class="mq-name">Sénégal</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇮</span><span class="mq-name">Côte d'Ivoire</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇳🇬</span><span class="mq-name">Nigeria</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇪🇬</span><span class="mq-name">Égypte</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇰🇪</span><span class="mq-name">Kenya</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇿🇦</span><span class="mq-name">Afrique du Sud</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇦🇪</span><span class="mq-name">Émirats arabes</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇸🇦</span><span class="mq-name">Arabie Saoudite</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇮🇱</span><span class="mq-name">Israël</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇵🇰</span><span class="mq-name">Pakistan</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇮🇳</span><span class="mq-name">Inde</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇹🇭</span><span class="mq-name">Thaïlande</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇮🇩</span><span class="mq-name">Indonésie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇳</span><span class="mq-name">Chine</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇰🇷</span><span class="mq-name">Corée du Sud</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇯🇵</span><span class="mq-name">Japon</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇦🇺</span><span class="mq-name">Australie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇺🇸</span><span class="mq-name">États-Unis</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇦</span><span class="mq-name">Canada</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇲🇽</span><span class="mq-name">Mexique</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇴</span><span class="mq-name">Colombie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇧🇷</span><span class="mq-name">Brésil</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇵🇪</span><span class="mq-name">Pérou</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇦🇷</span><span class="mq-name">Argentine</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇱</span><span class="mq-name">Chili</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇻🇪</span><span class="mq-name">Venezuela</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇪🇨</span><span class="mq-name">Équateur</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇧🇴</span><span class="mq-name">Bolivie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇵🇾</span><span class="mq-name">Paraguay</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇺🇾</span><span class="mq-name">Uruguay</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇬🇾</span><span class="mq-name">Guyana</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇺</span><span class="mq-name">Cuba</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇩🇴</span><span class="mq-name">Rép. Dominicaine</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇵🇦</span><span class="mq-name">Panama</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇬🇹</span><span class="mq-name">Guatemala</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇭🇳</span><span class="mq-name">Honduras</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇷</span><span class="mq-name">Costa Rica</span></div><div class="mq-dot"></div>
-          <!-- Duplicate for loop -->
-          <div class="mq-item"><span class="mq-flag">🇫🇷</span><span class="mq-name">France</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇩🇪</span><span class="mq-name">Allemagne</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇪🇸</span><span class="mq-name">Espagne</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇮🇹</span><span class="mq-name">Italie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇧🇪</span><span class="mq-name">Belgique</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇳🇱</span><span class="mq-name">Pays-Bas</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇵🇱</span><span class="mq-name">Pologne</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇵🇹</span><span class="mq-name">Portugal</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇬🇧</span><span class="mq-name">Royaume-Uni</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇸🇪</span><span class="mq-name">Suède</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇭</span><span class="mq-name">Suisse</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇦🇹</span><span class="mq-name">Autriche</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇬🇷</span><span class="mq-name">Grèce</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇷🇴</span><span class="mq-name">Roumanie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇹🇷</span><span class="mq-name">Turquie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇩🇰</span><span class="mq-name">Danemark</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇳🇴</span><span class="mq-name">Norvège</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇫🇮</span><span class="mq-name">Finlande</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇿</span><span class="mq-name">Tchéquie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇭🇺</span><span class="mq-name">Hongrie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇺🇦</span><span class="mq-name">Ukraine</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇲🇦</span><span class="mq-name">Maroc</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇩🇿</span><span class="mq-name">Algérie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇹🇳</span><span class="mq-name">Tunisie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇱🇾</span><span class="mq-name">Libye</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇲🇷</span><span class="mq-name">Mauritanie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇲🇱</span><span class="mq-name">Mali</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇳🇪</span><span class="mq-name">Niger</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇹🇩</span><span class="mq-name">Tchad</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇬🇭</span><span class="mq-name">Ghana</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇲</span><span class="mq-name">Cameroun</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇸🇳</span><span class="mq-name">Sénégal</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇮</span><span class="mq-name">Côte d'Ivoire</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇳🇬</span><span class="mq-name">Nigeria</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇪🇬</span><span class="mq-name">Égypte</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇰🇪</span><span class="mq-name">Kenya</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇿🇦</span><span class="mq-name">Afrique du Sud</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇦🇪</span><span class="mq-name">Émirats arabes</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇸🇦</span><span class="mq-name">Arabie Saoudite</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇮🇱</span><span class="mq-name">Israël</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇵🇰</span><span class="mq-name">Pakistan</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇮🇳</span><span class="mq-name">Inde</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇹🇭</span><span class="mq-name">Thaïlande</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇮🇩</span><span class="mq-name">Indonésie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇳</span><span class="mq-name">Chine</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇰🇷</span><span class="mq-name">Corée du Sud</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇯🇵</span><span class="mq-name">Japon</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇦🇺</span><span class="mq-name">Australie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇺🇸</span><span class="mq-name">États-Unis</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇦</span><span class="mq-name">Canada</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇲🇽</span><span class="mq-name">Mexique</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇴</span><span class="mq-name">Colombie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇧🇷</span><span class="mq-name">Brésil</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇵🇪</span><span class="mq-name">Pérou</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇦🇷</span><span class="mq-name">Argentine</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇱</span><span class="mq-name">Chili</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇻🇪</span><span class="mq-name">Venezuela</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇪🇨</span><span class="mq-name">Équateur</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇧🇴</span><span class="mq-name">Bolivie</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇵🇾</span><span class="mq-name">Paraguay</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇺🇾</span><span class="mq-name">Uruguay</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇬🇾</span><span class="mq-name">Guyana</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇺</span><span class="mq-name">Cuba</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇩🇴</span><span class="mq-name">Rép. Dominicaine</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇵🇦</span><span class="mq-name">Panama</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇬🇹</span><span class="mq-name">Guatemala</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇭🇳</span><span class="mq-name">Honduras</span></div><div class="mq-dot"></div>
-          <div class="mq-item"><span class="mq-flag">🇨🇷</span><span class="mq-name">Costa Rica</span></div><div class="mq-dot"></div>
-        </div>
-      </div>
   </section>
 
   <!-- ── DÉPÔT AMIENS ── -->
-  <section class="depot-sec">
-    <div class="sec-inner depot-row">
-      <div class="depot-text-col" data-reveal-left data-d="1">
-        <h2 class="sec-h">UN DÉPÔT DE 14 000 M² AU NORD DE LA FRANCE</h2>
-        <ul class="depot-features">
-          <li class="depot-feat" data-reveal data-d="2">
-            <div class="depot-feat-body">
-              <h3>Capacité de stockage européenne</h3>
-              <p>14 000 m² à Amiens + entrepôts partenaires en Allemagne, Belgique et Pays-Bas pour stocker bobines et palettes en flux tendu.</p>
+  <section class="depot-sec" id="depot">
+    <div class="sec-inner">
+      <h2 class="depot-h" data-reveal>Prodiconseil, en un coup d'œil</h2>
+      <!-- cartes façon « Get to know iPhone » d'apple.com : carte noire haute,
+           eyebrow + titre blancs en haut, visuel dessous, bouton + -->
+      <div class="pcards-wrap" data-reveal data-d="1">
+        <div class="pcards">
+          <div class="pcard">
+            <div class="pcard-head">
+              <div class="pcard-eyebrow">Logistique</div>
+              <div class="pcard-title">Chargé sous 24–48 h ouvrées.</div>
             </div>
-          </li>
-          <li class="depot-feat" data-reveal data-d="3">
-            <div class="depot-feat-body">
-              <h3>Rapidité logistique</h3>
-              <p>Camion complet ou groupage chargé sous 24–48 h ouvrées. Accès direct A16/A29 vers Le Havre, Anvers et Rotterdam pour l'export conteneur.</p>
+            <img class="pcard-img" src="https://images.unsplash.com/photo-1700777685830-f501e67260e6?q=75&amp;auto=format&amp;fit=crop&amp;w=700" alt="Logistique conteneur" loading="lazy">
+            <button class="pcard-plus" type="button" aria-label="Nous contacter" onclick="window.prodiTrack?.('pcard',{q:'logistique'});showPage('contact')">+</button>
+          </div>
+          <div class="pcard">
+            <div class="pcard-head">
+              <div class="pcard-eyebrow">Stock</div>
+              <div class="pcard-title">+10 000 tonnes disponibles.</div>
             </div>
-          </li>
-          <li class="depot-feat" data-reveal data-d="4">
-            <div class="depot-feat-body">
-              <h3>Expédition mondiale</h3>
-              <p>Multimodal route + maritime, documents export EUR1 / Certificat d'origine sur demande. Livré dans plus de 50 pays.</p>
+            <img class="pcard-img" src="https://images.unsplash.com/photo-1727159166219-37f6cb5be063?q=75&amp;auto=format&amp;fit=crop&amp;w=700" alt="Bobine de papier" loading="lazy">
+            <button class="pcard-plus" type="button" aria-label="Voir le stock" onclick="window.prodiTrack?.('pcard',{q:'stock'});openStock()">+</button>
+          </div>
+          <div class="pcard">
+            <div class="pcard-head">
+              <div class="pcard-eyebrow">Dépôt</div>
+              <div class="pcard-title">14 000 m² au nord de la France.</div>
             </div>
-          </li>
-        </ul>
-      </div>
-      <div class="depot-video-col" data-reveal-right data-d="2">
-        <div class="depot-video-wrap">
-          <div class="depot-video-glow"></div>
-          <!-- Pas d'autoplay : chargée + lancée par IntersectionObserver quand la
-               section approche (vitrine.js) — elle est loin sous le fold. -->
-          <video id="depot-vid" muted loop playsinline preload="none" poster="assets/depot-amiens-poster.jpg">
-            <source src="assets/depot-amiens.mp4" type="video/mp4">
-          </video>
+            <img class="pcard-img" src="https://images.unsplash.com/photo-1777026321659-64941fb943dd?q=75&amp;auto=format&amp;fit=crop&amp;w=700" alt="Dépôt Amiens" loading="lazy">
+            <button class="pcard-plus" type="button" aria-label="Nous contacter" onclick="window.prodiTrack?.('pcard',{q:'depot'});showPage('contact')">+</button>
+          </div>
+          <div class="pcard pcard-video">
+            <div class="pcard-head">
+              <div class="pcard-eyebrow">Amiens</div>
+              <div class="pcard-title">Le dépôt en vidéo.</div>
+            </div>
+            <!-- Pas d'autoplay : chargée + lancée par IntersectionObserver quand la
+                 section approche (vitrine.js) — elle est loin sous le fold. -->
+            <video id="depot-vid" muted loop playsinline preload="none" poster="assets/depot-amiens-poster.jpg">
+              <source src="assets/depot-amiens.mp4" type="video/mp4">
+            </video>
+          </div>
         </div>
       </div>
     </div>
@@ -403,7 +248,6 @@
   <section class="habt-sec" id="about-section">
     <div class="sec-inner">
       <div class="habt-head" data-reveal data-d="1">
-        <span class="habt-eyebrow">DEPUIS 1991</span>
         <h2 class="sec-h">NÉGOCIANT INTERNATIONAL EN PAPIER &amp; CARTON</h2>
         <p class="habt-lead">Fondée en 1991, Prodiconseil est spécialisée dans l'export de papiers et cartons à destination des marchés internationaux — un savoir-faire transmis par plus de 30 ans de présence sur le secteur.</p>
       </div>
@@ -583,27 +427,6 @@
 <!-- ══════════ FOOTER ══════════ -->
 <footer>
   <div class="footer-inner" style="flex-direction:column;align-items:stretch;gap:0;">
-    <div class="footer-grid">
-      <div class="footer-col">
-        <a href="./" class="footer-col-title" style="text-decoration:none;color:inherit;">PRODICONSEIL</a>
-        <span>Négoce papier &amp; carton B2B</span>
-        <span>Stock Europe</span>
-        <span>Stocklots, Side runs</span>
-        <span>Fabrication</span>
-        <span>Bobines &amp; formats</span>
-      </div>
-      <div class="footer-col">
-        <div class="footer-col-title">Contact</div>
-        <a href="mailto:contact@prodi.com">contact@prodi.com</a>
-        <a href="https://wa.me/33609997407?text=Bonjour%2C%20je%20voudrais%20recevoir%20une%20offre%20pour%20du%20papier%20%2F%20carton." target="_blank" rel="noopener noreferrer">+33 6 09 99 74 07</a>
-      </div>
-      <div class="footer-col">
-        <div class="footer-col-title">Documents</div>
-        <span>EUR1, COO sur demande</span>
-        <span>Devis sous 24h ouvrées</span>
-        <span>Chargement Europe 24–48h</span>
-      </div>
-    </div>
     <div class="footer-bottom" style="flex-direction:column;justify-content:center;align-items:center;gap:10px;text-align:center;">
       <a href="./"><img src="img/logo.png" alt="Prodiconseil" width="170" height="28" style="display:block;width:170px;height:auto;"></a>
       <div class="f-sub" style="text-transform:uppercase;letter-spacing:.7px;">© 2026 Prodiconseil &middot; Stock papier &amp; carton</div>
@@ -629,7 +452,7 @@
 </div>
 
 <script src="analytics.js?v=1"></script>
-<script src="vitrine.js?v=102"></script>
+<script src="vitrine.js?v=111"></script>
 <!-- WA STICKY -->
 <a href="https://wa.me/33609997407?text=Bonjour%2C%20je%20voudrais%20recevoir%20une%20offre%20pour%20du%20papier%20%2F%20carton." target="_blank" rel="noopener noreferrer" class="wa-sticky" title="WhatsApp" aria-label="Nous contacter sur WhatsApp">
   <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
