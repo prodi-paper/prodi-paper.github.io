@@ -275,17 +275,17 @@ async function submitContact(e) {
   // (top du champ details du catalogue par famille, bobines + formats confondus)
   const TILES=[
     {code:'ROFF',    title:'Offset',        sub:'Le blanc de référence, du livre à la notice.',            img:U+'flagged/photo-1562221054-cdc9dc299068'+P, pos:'center 60%', dark:false,
-     verso:'Nos offset vont du blanc courant aux blancs les plus lumineux, avec des blancheurs CIE de 120 à 170 : papier notice, bristol, satiné ou rugueux, en bobines comme en formats.'},
+     verso:['Du blanc courant aux blancs les plus lumineux','Blancheurs CIE de 120 à 170','Notice, bristol, satiné ou rugueux','En bobines comme en formats']},
     {code:'RBOA',    title:'Carton couché', sub:'Le carton du packaging et de la belle boîte.',            img:U+'photo-1595246135406-803418233494'+P, pos:'center 55%', dark:true,
-     verso:'Tous les dos du packaging : GC1 dos blanc, GC2 dos crème, GD2 dos gris, GT4 et CKB dos kraft, jusqu\'à la face aluminium pour l\'emballage alimentaire.'},
-    {code:'R2SC',    title:'Couché',        sub:'Le papier des magazines, catalogues et brochures.',       img:U+'photo-1515891396453-6d7e56096a39'+P, pos:'center 55%', dark:false,
-     verso:'Brillant, demi-mat ou mat, avec des séries recyclées : le couché deux faces des magazines, catalogues et brochures, en bobines comme en formats.'},
+     verso:['GC1 dos blanc · GC2 dos crème','GD2 dos gris · GT4 & CKB dos kraft','Face aluminium pour l\'emballage alimentaire','Le carton du packaging et de la belle boîte']},
+    {code:'R2SC',    title:'Papier couché', sub:'Le papier des magazines, catalogues et brochures.',       img:U+'photo-1515891396453-6d7e56096a39'+P, pos:'center 55%', dark:false,
+     verso:['Brillant, demi-mat ou mat','Séries recyclées','Magazines, catalogues et brochures','En bobines comme en formats']},
     {code:'RKRABRUN',title:'Kraft',         sub:'Le naturel résistant du sac et de l\'emballage.',          img:U+'photo-1777566131325-78f6e12c50b7'+P, pos:'center 50%', dark:true,
-     verso:'Du 100 % recyclé à la pure pâte, en finition frictionnée MG ou machine MF, jusqu\'aux krafts spéciaux pour enveloppe : le brun de l\'emballage sous toutes ses formes.'},
+     verso:['Du 100 % recyclé à la pure pâte','Finition frictionnée MG ou machine MF','Krafts spéciaux pour enveloppe','Le brun de l\'emballage sous toutes ses formes']},
     {code:'RLUX',    title:'Papier créations', sub:'Papiers de caractère : teintes, textures, finitions.', img:U+'photo-1586207036106-90aae2456ccb'+P, pos:'center 50%', dark:true,
-     verso:'Calque, vergé blanc ou ivoire, martelé, Chromolux une face, papiers sécurité à fibres invisibles ou filigranés : les textures et finitions de la belle communication.'},
+     verso:['Calque','Vergé blanc ou ivoire','Martelé','Chromolux une face','Papiers sécurité : fibres invisibles ou filigranés']},
     {code:'RCAR',    title:'Autocopiant',   sub:'Liasses sans carbone, prêtes à imprimer.',                img:U+'photo-1579808324991-cecc784498cc'+P, pos:'center 55%', dark:true,
-     verso:'Les trois feuillets CB, CFB et CF, livrés en rames prêts à assembler en liasses, avec des séries spéciales pour l\'impression digitale.'},
+     verso:['Trois feuillets : CB, CFB et CF','Rames prêtes à assembler en liasses','Séries spéciales impression digitale']},
   ];
   wrap.innerHTML=TILES.map((t,i)=>`
     <div class="qtile${t.dark?' dark':''}" id="qtile-${i}">
@@ -293,14 +293,14 @@ async function submitContact(e) {
         <div class="qtile-inner qtile-front">
           <h3 class="qtile-title">${esc(t.title)}</h3>
           <div class="qtile-btns">
-            <a href="./catalogue/" class="qtile-btn qtile-btn-red" onclick="window.prodiTrack?.('qualite_plus',{q:'${esc(t.code)}'});qtileFlip(${i},1);return false;">En savoir +</a>
+            <a href="./catalogue/" class="qtile-btn qtile-btn-white" onclick="window.prodiTrack?.('qualite_plus',{q:'${esc(t.code)}'});qtileFlip(${i},1);return false;">En savoir +</a>
           </div>
         </div>
         <div class="qtile-inner qtile-backface">
           <h3 class="qtile-title qtile-title-sm">${esc(t.title)}</h3>
-          <p class="qtile-sub qtile-verso">${esc(t.verso)}</p>
+          <ul class="qtile-list">${t.verso.map(v=>`<li>${esc(v)}</li>`).join('')}</ul>
           <div class="qtile-btns">
-            <a href="./catalogue/" class="qtile-btn qtile-btn-red" onclick="window.prodiTrack?.('qualite_stock',{q:'${esc(t.code)}'});openStock();return false;">Voir le stock →</a>
+            <a href="#contact" class="qtile-btn qtile-btn-red" onclick="qtileDevis('${esc(t.code)}','${esc(t.title)}');return false;">Demander un devis →</a>
             <button type="button" class="qtile-btn qtile-btn-out" onclick="qtileFlip(${i},0)">Retour</button>
           </div>
         </div>
@@ -317,10 +317,15 @@ async function submitContact(e) {
     {code:'CUT',  title:'Ramette',           img:U+'photo-1573978828027-e830975e272c'+P},
     {code:'LINER',title:'Liner / Testliner', img:U+'photo-1640193698858-31565d448f90'+P},
     {code:'FLEX', title:'Complexe / PE',     img:U+'photo-1677586883848-695b3ad692b4'+P},
+    {code:'MORE', title:'Voir tout le stock', img:U+'photo-1719529216596-d7c76431ee0d'+P, more:true},
   ];
   const cwrap=document.getElementById('qcards');
   if(cwrap){
-    const html=CARDS.map(c=>`
+    const html=CARDS.map(c=>c.more?`
+    <div class="qcard" onclick="window.prodiTrack?.('qualite_plus',{q:'${esc(c.code)}'});openStock();">
+      <img src="${c.img}" alt="${esc(c.title)}" loading="lazy">
+      <button class="qcard-btn" type="button" onclick="event.stopPropagation();window.prodiTrack?.('qualite_stock',{q:'${esc(c.code)}'});openStock();">Voir tout le stock →</button>
+    </div>`:`
     <div class="qcard" onclick="window.prodiTrack?.('qualite_plus',{q:'${esc(c.code)}'});openStock();">
       <img src="${c.img}" alt="${esc(c.title)}" loading="lazy">
       <span class="qcard-title">${esc(c.title)}</span>
@@ -391,6 +396,12 @@ function qtileFlip(i,on){
 }
 
 // « En savoir + » des cartes du bandeau → formulaire de contact prérempli
+function qtileDevis(code,titre){
+  window.prodiTrack?.('qualite_devis',{q:code});
+  showPage('contact');
+  const m=document.getElementById('f-msg');
+  if(m&&!m.value.trim()) m.value='Bonjour, je souhaite un devis pour vos produits '+titre+'.';
+}
 function qcardForm(code,titre){
   window.prodiTrack?.('qualite_form',{q:code});
   showPage('contact');
