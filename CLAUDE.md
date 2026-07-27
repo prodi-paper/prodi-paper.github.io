@@ -69,6 +69,11 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON ROUTINES TO service_role;
 --off: #f5f5f3
 --border: #e8e8e4
 ```
+- **Catalogue 100 % rouge Prodi depuis le 27/07/2026** (commit 6dc5b8ca) : plus
+  aucun bleu Apple — `#0071e3`→`#FE0000`, hover `#0077ed`→`#cc0000`,
+  `rgba(0,113,227,x)`→`rgba(254,0,0,x)`, fonds pâles `#e8f1fd`/`#eaf3ff`→`#ffecec`
+  (Liste/Offre, + row2, sc-add, PRODIX, popup Quantité, menu Offre). Ne pas
+  réintroduire de bleu dans catalogue.css/js.
 - **Display** : Bebas Neue
 - **Body** : DM Sans
 - `PAGE = 40` produits par page (cf. `catalogue.js:20`)
@@ -548,6 +553,44 @@ CSS `.offre-seg*`/`.offre-grp`/`.offre-offer`/`.offre-band(.band-courant)`/`.off
 après l'album-photo apple-view (dupliqué `@media(max-width:768px)`).
 **Réglages** : curseur 60 % = percentiles `0.2`/`0.8` dans `bandsOf` ; plafond
 `MAX_REFS=350` ; frontière réservés `950000`.
+
+## VITRINE — tuiles qualités + bandeau (session 22→27/07/2026, poussé 27/07)
+
+Section « Nos qualités » de la page d'accueil (`vitrine.js` bloc TILES ~l.274,
+`vitrine.css` fin de fichier, versions cache-busting `vitrine.css?v=167` /
+`vitrine.js?v=102` dans index.html).
+
+- **6 tuiles plein cadre** (ordre : Offset, Carton couché, Couché, Kraft,
+  Papier créations, Autocopiant — Couché/Kraft échangés 22/07) : recto = TITRE
+  SEUL (sous-titres supprimés 27/07 ; les textes `sub` restent dans TILES,
+  plus rendus) + « En savoir + » qui **RETOURNE la tuile** (`qtileFlip`,
+  `.qtile-flip` perspective + `.qtile-front`/`.qtile-backface` rotateY ±180°,
+  pointer-events par face). Verso = **paragraphe rédigé par famille** (`verso`,
+  écrit à partir des vrais `details` du catalogue via ~/bin/prodi-sql, périmètre
+  catalogue exact) + « Voir le stock → » (`openStock`) + « Retour ». Traqueurs
+  `qualite_plus` (flip) / `qualite_stock` (verso→catalogue).
+- **Bandeau « autres qualités »** (`#qcards`, 6 cartes) : boucle INFINIE — 3
+  copies des cartes, scrollLeft initialisé à une largeur de jeu, listener
+  recentre dans la copie centrale (x<0.5w ou ≥1.5w) → jamais de vide. Points
+  de pagination façon apple.com (`#qcards-dots`) : pilule active 58px dont le
+  `::after` noir se remplit en 4 s (`@keyframes qdotfill`, durée = `PERIOD`
+  JS à garder SYNCHRO) puis auto-avance ; pause au pointerdown/onglet caché/
+  hors écran (IntersectionObserver .3) ; `prefers-reduced-motion` = point plein
+  statique. Clic carte = `openStock` ; bouton « En savoir + » de la carte =
+  **formulaire de contact prérempli** (`qcardForm` → `showPage('contact')` +
+  `#f-msg` « Bonjour, je souhaite en savoir plus sur vos produits X. » si vide,
+  traqueur `qualite_form`).
+- ⚠️ **PIÈGE CSS reveal** : `[data-reveal].visible{transform:none}` (spécificité
+  0-2-0) écrase TOUT transform posé par classe (0-1-0) sur le même élément une
+  fois révélé → le débord pleine largeur `.qcards-wrap` est centré par
+  `margin-left:calc(50% - min(100vw - 24px,1720px)/2)`, JAMAIS par
+  translateX(-50%). Symptôme si on régresse : moitié gauche du bandeau vide.
+- ⚠️ **PIÈGE Edit/old_string** : un old_string non indenté peut matcher en
+  SOUS-CHAÎNE d'une ligne indentée → `qtileFlip` s'était retrouvé DANS l'IIFE
+  (inatteignable des onclick inline). Les fonctions appelées par onclick doivent
+  rester au niveau global, après le `})();`.
+- Outils de test CDP maison dans /tmp : cdp_tiles.mjs (capture tuiles),
+  cdp_dots.mjs (auto-avance), cdp_flip.mjs (flips), cdp_form.mjs (carte→form).
 
 ## Règles photos / images produit
 
