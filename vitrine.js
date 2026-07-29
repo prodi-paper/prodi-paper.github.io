@@ -561,7 +561,7 @@ async function submitRappel(e){
   const rail=document.getElementById('temoin-rail');
   const dots=document.getElementById('temoin-dots');
   if(!rail) return;
-  const N=rail.children.length, GAP=20, PERIOD=5500;
+  const N=rail.children.length, GAP=20, PERIOD=2000;
   rail.innerHTML=rail.innerHTML+rail.innerHTML+rail.innerHTML;
   const step=()=>{const c=rail.firstElementChild;return c?c.getBoundingClientRect().width+GAP:400;};
   const setW=()=>N*step();
