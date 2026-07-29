@@ -66,6 +66,7 @@
   "knowsAbout": ["export papier Maghreb", "fourniture papier Afrique", "stocklots papier", "papier couché", "papier offset", "papier kraft", "carton SBS", "carton FBB", "carton ondulé", "bobines kraft", "testliner", "fluting", "papier hygiène", "papier emballage"]
 }
 </script>
+<link rel="preload" as="image" href="assets/prodi2026-poster.jpg">
 <link rel="preload" href="https://fonts.gstatic.com/s/bebasneue/v16/JTUSjIg69CK48gW7PXoo9Wlhyw.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="https://fonts.gstatic.com/s/spacegrotesk/v22/V8mDoQDjQSkFtoMM3T6r8E7mPb54C-s0.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -74,7 +75,7 @@
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js" integrity="sha384-Ukv1p/xTma6P4/2bY5KzWBw+ydSpXmhCMtyciIQVDJ1RmOxtCYNMF1uXT9T63H67" crossorigin="anonymous" defer></script>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@600;700&family=DM+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="vitrine.css?v=186">
+<link rel="stylesheet" href="vitrine.css?v=263">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -113,11 +114,11 @@
   <div class="hd-inner">
     <div class="hd-logo" onclick="showPage('home')"><img src="img/logo.png" alt="Prodiconseil" width="196" height="32"></div>
     <nav class="hd-nav">
-      <a href="#about-section" onclick="showPage('about');return false;" id="nav-about">À propos</a>
-      <a href="#contact" onclick="showPage('contact');return false;" id="nav-contact">Contact</a>
+      <a href="/produits/" onclick="showPage('home');setTimeout(()=>document.getElementById('apercu')?.scrollIntoView({behavior:'smooth'}),50);return false;" id="nav-produits">Produits</a>
+      <a href="/histoire/" onclick="showPage('about');return false;" id="nav-about">Histoire</a>
     </nav>
     <div class="hd-divider"></div>
-    <a href="./catalogue/" onclick="openStock();return false;" class="btn-cat">Voir le stock →</a>
+    <a href="/contact/" onclick="showPage('contact');return false;" id="nav-contact" class="btn-cat">Contact →</a>
     <button type="button" class="hd-burger" onclick="toggleMob()" id="burger" aria-label="Menu" aria-expanded="false" aria-controls="mob-menu">
       <span></span><span></span><span></span>
     </button>
@@ -126,10 +127,10 @@
 
 <!-- ══════════ MOBILE MENU ══════════ -->
 <div class="mob-menu" id="mob-menu">
-  <a href="#about-section" onclick="showPage('about');toggleMob();return false;">À propos</a>
-  <a href="#contact" onclick="showPage('contact');toggleMob();return false;">Contact</a>
+  <a href="/produits/" onclick="showPage('home');toggleMob();setTimeout(()=>document.getElementById('apercu')?.scrollIntoView({behavior:'smooth'}),80);return false;">Produits</a>
+  <a href="/histoire/" onclick="showPage('about');toggleMob();return false;">Histoire</a>
   <div class="mob-sep"></div>
-  <a href="./catalogue/" onclick="toggleMob();openStock();return false;" class="btn-cat">Voir le stock →</a>
+  <a href="/contact/" onclick="showPage('contact');toggleMob();return false;" class="btn-cat">Contact →</a>
 </div>
 
 <!-- ══════════ PAGE ACCUEIL ══════════ -->
@@ -186,146 +187,194 @@
 
 
 
-  <!-- GEO MAP -->
-  <section class="geo-sec" id="international">
-    <div class="sec-inner geo-apple">
-      <h2 class="geo-h" data-reveal>Notre présence à l'international</h2>
-      <div class="geo-card" data-reveal data-d="1">
-        <img class="geo-press" src="img/presse_internationale.jpg?v=4" alt="Prodiconseil dans la presse internationale" loading="lazy" width="1536" height="954">
-      </div>
-    </div><!-- /sec-inner -->
-  </section>
-
   <!-- ── DÉPÔT AMIENS ── -->
   <section class="depot-sec" id="depot">
     <div class="sec-inner">
-      <h2 class="depot-h" data-reveal>Prodiconseil, en un coup d'œil</h2>
+      <h2 class="depot-h" data-reveal>Prodiconseil, c'est ça.</h2>
       <!-- cartes façon « Get to know iPhone » d'apple.com : carte noire haute,
            eyebrow + titre blancs en haut, visuel dessous, bouton + -->
       <div class="pcards-wrap" data-reveal data-d="1">
         <div class="pcards">
-          <div class="pcard">
-            <div class="pcard-head">
-              <div class="pcard-eyebrow">Logistique</div>
-              <div class="pcard-title">Chargé sous 24–48 h ouvrées.</div>
-            </div>
-            <img class="pcard-img" src="https://images.unsplash.com/photo-1700777685830-f501e67260e6?q=75&amp;auto=format&amp;fit=crop&amp;w=700" alt="Logistique conteneur" loading="lazy">
-            <button class="pcard-plus" type="button" aria-label="Nous contacter" onclick="window.prodiTrack?.('pcard',{q:'logistique'});showPage('contact')">+</button>
-          </div>
-          <div class="pcard">
-            <div class="pcard-head">
-              <div class="pcard-eyebrow">Stock</div>
-              <div class="pcard-title">+10 000 tonnes disponibles.</div>
-            </div>
-            <img class="pcard-img" src="https://images.unsplash.com/photo-1727159166219-37f6cb5be063?q=75&amp;auto=format&amp;fit=crop&amp;w=700" alt="Bobine de papier" loading="lazy">
-            <button class="pcard-plus" type="button" aria-label="Voir le stock" onclick="window.prodiTrack?.('pcard',{q:'stock'});openStock()">+</button>
-          </div>
-          <div class="pcard">
-            <div class="pcard-head">
-              <div class="pcard-eyebrow">Dépôt</div>
-              <div class="pcard-title">14 000 m² au nord de la France.</div>
-            </div>
-            <img class="pcard-img" src="https://images.unsplash.com/photo-1777026321659-64941fb943dd?q=75&amp;auto=format&amp;fit=crop&amp;w=700" alt="Dépôt Amiens" loading="lazy">
-            <button class="pcard-plus" type="button" aria-label="Nous contacter" onclick="window.prodiTrack?.('pcard',{q:'depot'});showPage('contact')">+</button>
-          </div>
           <div class="pcard pcard-video">
             <div class="pcard-head">
-              <div class="pcard-eyebrow">Amiens</div>
-              <div class="pcard-title">Le dépôt en vidéo.</div>
+              <div class="pcard-eyebrow">Dépôt</div>
+              <div class="pcard-title">14 000 m² à Amiens</div>
             </div>
             <!-- Pas d'autoplay : chargée + lancée par IntersectionObserver quand la
                  section approche (vitrine.js) — elle est loin sous le fold. -->
             <video id="depot-vid" muted loop playsinline preload="none" poster="assets/depot-amiens-poster.jpg">
               <source src="assets/depot-amiens.mp4" type="video/mp4">
             </video>
+            <button class="qtile-btn qtile-btn-red pcard-cta" type="button" onclick="window.prodiTrack?.('pcard',{q:'depot_contact'});showPage('contact')">CONTACT →</button>
+          </div>
+          <div class="pcard pcard-flipcard" id="pcard-log">
+            <div class="pcard-flip">
+              <div class="pcard-face pcard-front">
+                <div class="pcard-head">
+                  <div class="pcard-eyebrow">Logistique</div>
+                  <div class="pcard-title">Chargé sous 24–48 h</div>
+                </div>
+                <img class="pcard-img" src="img/carte_logistique.webp" alt="Logistique conteneur" loading="lazy">
+                <button class="qtile-btn qtile-btn-white pcard-cta" type="button" onclick="pcardFlip('log',1)">En savoir +</button>
+              </div>
+              <div class="pcard-face pcard-back">
+                <div class="pcard-back-h">Chargé sous 24–48 h</div>
+                <p>Commande validée, camion chargé : vos marchandises quittent notre dépôt d'Amiens sous 24 à 48 heures ouvrées.</p>
+                <p>Conteneur complet, camion complet ou groupage — nous organisons le transport jusqu'à votre port ou votre porte, en France comme à l'export.</p>
+                <button class="qtile-btn qtile-btn-out pcard-back-btn" type="button" onclick="pcardFlip('log',0)">Retour</button>
+              </div>
+            </div>
+          </div>
+          <div class="pcard pcard-flipcard" id="pcard-stock">
+            <div class="pcard-flip">
+              <div class="pcard-face pcard-front">
+                <div class="pcard-head">
+                  <div class="pcard-eyebrow">Stock</div>
+                  <div class="pcard-title">+10 000 T disponible</div>
+                </div>
+                <img class="pcard-img" src="img/carte_stock.webp" alt="Stock papier au dépôt" loading="lazy">
+                <button class="qtile-btn qtile-btn-white pcard-cta" type="button" onclick="pcardFlip('stock',1)">En savoir +</button>
+              </div>
+              <div class="pcard-face pcard-back">
+                <div class="pcard-back-h">+10 000 T disponible</div>
+                <p>Plus de 10 000 tonnes en stock permanent : offset, couché, kraft, cartons, autocopiant… en bobines comme en formats.</p>
+                <p>Un stock réel, visible sur notre catalogue en ligne, prêt à partir — du besoin ponctuel aux volumes industriels.</p>
+                <button class="qtile-btn qtile-btn-out pcard-back-btn" type="button" onclick="pcardFlip('stock',0)">Retour</button>
+              </div>
+            </div>
+          </div>
+          <div class="pcard" onclick="equipeOpen()" style="cursor:pointer;">
+            <div class="pcard-head">
+              <div class="pcard-eyebrow">Leadership</div>
+              <div class="pcard-title">+ 30 ans d'expertise</div>
+            </div>
+            <img class="pcard-img" src="img/carte_leadership.webp" alt="Dov et Véronique Elbilia — direction Prodiconseil" loading="lazy">
+            <button class="qtile-btn qtile-btn-white pcard-cta" type="button" onclick="equipeOpen()">Voir l'équipe</button>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ── À PROPOS DE NOUS ── -->
-  <section class="habt-sec" id="about-section">
+  <!-- ── TÉMOIGNAGES CLIENTS ── -->
+  <section class="temoin-sec" id="temoignages">
     <div class="sec-inner">
-      <div class="habt-head" data-reveal data-d="1">
-        <h2 class="sec-h">NÉGOCIANT INTERNATIONAL EN PAPIER &amp; CARTON</h2>
-        <p class="habt-lead">Fondée en 1991, Prodiconseil est spécialisée dans l'export de papiers et cartons à destination des marchés internationaux — un savoir-faire transmis par plus de 30 ans de présence sur le secteur.</p>
-      </div>
-
-      <div class="habt-intro-grid">
-        <div class="habt-intro-img" data-reveal-left data-d="2">
-          <img src="img/cargo-port.jpg" alt="Porte-conteneurs au port — expédition export Prodiconseil" loading="lazy" width="300" height="400">
+      <h2 class="temoin-h" data-reveal>Ils nous font confiance</h2>
+      <div class="temoin-band">
+        <div class="temoin-rail" id="temoin-rail">
+          <figure class="temoin-card">
+          <blockquote class="temoin-quote">Des stocks réels et des réponses rapides. On commande le matin, c'est chargé dans la semaine.</blockquote>
+          <figcaption class="temoin-who">Imprimeur — Maroc 🇲🇦</figcaption>
+        </figure>
+          <figure class="temoin-card">
+          <blockquote class="temoin-quote">Un partenaire fiable depuis des années : la qualité annoncée est la qualité livrée.</blockquote>
+          <figcaption class="temoin-who">Transformateur — Algérie 🇩🇿</figcaption>
+        </figure>
+          <figure class="temoin-card">
+          <blockquote class="temoin-quote">Le catalogue en ligne a changé notre façon d'acheter : on voit tout, on choisit, c'est parti.</blockquote>
+          <figcaption class="temoin-who">Distributeur local — Sénégal 🇸🇳</figcaption>
+        </figure>
+          <figure class="temoin-card">
+          <blockquote class="temoin-quote">We've worked together for years — same rigour on quality and deadlines, every single order.</blockquote>
+          <figcaption class="temoin-who">Imprimeur — Pologne 🇵🇱</figcaption>
+        </figure>
+          <figure class="temoin-card">
+          <blockquote class="temoin-quote">Sur le déstockage, personne n'a leur rapport qualité-prix. On suit les arrivages chaque semaine.</blockquote>
+          <figcaption class="temoin-who">Distributeur local — Côte d'Ivoire 🇨🇮</figcaption>
+        </figure>
+          <figure class="temoin-card">
+          <blockquote class="temoin-quote">Full containers, clean documents, no customs headaches. Shipments arrive exactly as promised.</blockquote>
+          <figcaption class="temoin-who">Distributeur local — Argentine 🇦🇷</figcaption>
+        </figure>
+          <figure class="temoin-card">
+          <blockquote class="temoin-quote">Des grammages et des laizes qu'on ne trouve plus ailleurs — et disponibles tout de suite.</blockquote>
+          <figcaption class="temoin-who">Imprimeur — Cameroun 🇨🇲</figcaption>
+        </figure>
+          <figure class="temoin-card">
+          <blockquote class="temoin-quote">These people really know paper. We describe what we need, they find the right rolls.</blockquote>
+          <figcaption class="temoin-who">Éditeur — Canada 🇨🇦</figcaption>
+        </figure>
         </div>
-        <div class="habt-intro-text" data-reveal-right data-d="3">
-          <p class="habt-p">L'entreprise s'est développée autour d'une <strong>connaissance concrète du secteur papetier</strong> et d'un réseau de fournisseurs fiables, en Europe et dans le monde.</p>
-          <p class="habt-p">Depuis plus de 30 ans, clients et partenaires nous font confiance pour la <strong>qualité de nos produits</strong>, la <strong>disponibilité des stocks</strong> et la <strong>maîtrise des contraintes logistiques</strong>.</p>
-          <p class="habt-p">Nous fournissons des papiers et cartons destinés à l'impression, l'écriture, l'emballage, l'hygiène et aux applications techniques — en bobine ou en format, du besoin ponctuel aux volumes industriels.</p>
-        </div>
       </div>
-
     </div>
   </section>
+
+  <!-- ── BANDEAU RAPPEL (mini contact une ligne) ── -->
+  <section class="rappel-sec" id="rappel">
+    <div class="sec-inner">
+      <form class="rappel-band" id="rappel-form" data-reveal onsubmit="submitRappel(event)">
+        <div class="rappel-txt">Un besoin&nbsp;? <b>Laissez un numéro.</b></div>
+        <input type="text" id="r-nom" placeholder="Nom" aria-label="Nom" required>
+        <input type="tel" id="r-tel" placeholder="Téléphone" aria-label="Téléphone" required minlength="6">
+        <input type="text" id="r-hp" name="website" autocomplete="off" tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px;opacity:0;height:0;width:0;pointer-events:none;">
+        <button type="submit" class="rappel-btn" id="r-submit">On vous rappelle</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- GEO MAP -->
+  <section class="geo-sec" id="international">
+    <div class="sec-inner geo-apple">
+      <h2 class="geo-h" data-reveal>Notre présence à l'international</h2>
+      <div class="geo-card" id="geo-card" data-reveal data-d="1">
+        <div class="geo-flip">
+          <div class="geo-face geo-front">
+            <img class="geo-press" src="img/presse_internationale.webp" alt="Prodiconseil dans la presse internationale" loading="lazy" width="1836" height="857">
+            <button type="button" class="qtile-btn qtile-btn-white geo-plus" onclick="geoFlip(1)">Voir plus</button>
+          </div>
+          <div class="geo-face geo-backface">
+            <h3 class="geo-verso-h">+50 pays partenaires, sur 5 continents</h3>
+            <div class="geo-verso-txt">
+              <p>Depuis 1991, Prodiconseil fournit des imprimeurs, des transformateurs et des négociants partout dans le monde. Historiquement tournés vers le Maghreb, nous travaillons aujourd'hui avec toute l'Afrique, le Moyen-Orient, l'Europe de l'Est et l'Amérique du Sud.</p>
+              <p>Chaque expédition part de nos entrepôts en France et en Europe, en conteneurs complets ou en groupage, avec des solutions logistiques adaptées à chaque marché.</p>
+            </div>
+            <div class="qtile-btns">
+              <a href="#contact" class="qtile-btn qtile-btn-red" onclick="geoContact();return false;">Nous contacter →</a>
+              <button type="button" class="qtile-btn qtile-btn-out" onclick="geoFlip(0)">Retour</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /sec-inner -->
+  </section>
+
+
+  <!-- ── À PROPOS DE NOUS ── -->
 
 
   <!-- ── CONTACT ── -->
   <section id="contact-section">
     <div class="ct-header">
-      <h2>COMMENÇONS À TRAVAILLER ENSEMBLE !</h2>
+      <h2 data-reveal>Commençons à travailler ensemble.</h2>
     </div>
     <div class="ct-wrap">
-      <div>
+      <div data-reveal data-d="1">
         <div id="contact-form-wrap">
           <form id="contact-form" onsubmit="submitContact(event)">
             <div class="form-row">
               <div class="fg">
-                <label>Nom</label>
-                <input type="text" id="f-nom" placeholder="Jean Dupont" required>
+                <input type="text" id="f-nom" placeholder="Nom" aria-label="Nom" required>
                 <div class="fg-msg" id="fg-msg-nom"></div>
               </div>
               <div class="fg">
-                <label>Entreprise</label>
-                <input type="text" id="f-soc" placeholder="Entreprise SA" required>
-                <div class="fg-msg" id="fg-msg-soc"></div>
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="fg">
-                <label>Email</label>
-                <input type="email" id="f-email" placeholder="nom@entreprise.com" required>
-                <div class="fg-msg" id="fg-msg-email"></div>
-              </div>
-              <div class="fg">
-                <label>Téléphone</label>
-                <input type="tel" id="f-tel" placeholder="+33 6 00 00 00 00">
+                <input type="tel" id="f-tel" placeholder="Téléphone" aria-label="Téléphone" required>
                 <div class="fg-msg" id="fg-msg-tel"></div>
               </div>
             </div>
             <div class="fg">
-              <label>Message</label>
-              <textarea id="f-msg" placeholder="Votre message (15 caractères minimum)…" required minlength="15"></textarea>
+              <textarea id="f-msg" placeholder="Message" aria-label="Message" required minlength="15"></textarea>
               <div class="fg-msg" id="fg-msg-msg"></div>
             </div>
             <input type="text" id="f-hp" name="website" autocomplete="off" tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px;opacity:0;height:0;width:0;pointer-events:none;">
-            <button type="submit" class="btn-submit" id="f-submit">Envoyer le message</button>
+            <button type="submit" class="btn-submit" id="f-submit">On vous rappelle</button>
           </form>
           <div id="form-ok" class="form-ok">
-            <div class="form-ok-ico">✅</div>
-            <h3>Message envoyé !</h3>
-            <p>Nous vous répondrons dans les 24 heures.</p>
+            <div class="ok-box">
+              <svg class="ok-check" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="25"/><path d="M14 27l8 8 16-16"/></svg>
+              <div class="ok-t">Bien reçu.</div>
+              <div class="ok-s">On vous rappelle sous 24 h.</div>
+            </div>
           </div>
-        </div>
-      </div>
-      <div class="ct-aside">
-        <h3>COORDONNÉES</h3>
-        <div class="ci-btns">
-          <a href="https://wa.me/33609997407?text=Bonjour%2C%20je%20voudrais%20recevoir%20une%20offre%20pour%20du%20papier%20%2F%20carton." target="_blank" rel="noopener noreferrer" class="btn-wa2">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
-            <span>Écrire sur WhatsApp</span>
-          </a>
-          <a href="mailto:contact@prodi.com" class="btn-mail">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 7 10-7"/></svg>
-            <span>Envoyer un email</span>
-          </a>
         </div>
       </div>
     </div>
@@ -426,12 +475,30 @@
 
 <!-- ══════════ FOOTER ══════════ -->
 <footer>
-  <div class="footer-inner" style="flex-direction:column;align-items:stretch;gap:0;">
-    <div class="footer-bottom" style="flex-direction:column;justify-content:center;align-items:center;gap:10px;text-align:center;">
-      <a href="./"><img src="img/logo.png" alt="Prodiconseil" width="170" height="28" style="display:block;width:170px;height:auto;"></a>
-      <div class="f-sub" style="text-transform:uppercase;letter-spacing:.7px;">© 2026 Prodiconseil &middot; Stock papier &amp; carton</div>
+  <div class="ft2-grid">
+    <div class="ft2-brand">
+      <a href="./"><img src="img/logo.png" alt="Prodiconseil" width="170" height="28"></a>
+      <p class="ft2-tag">Négociant international en papier &amp; carton depuis 1991.</p>
+    </div>
+    <div class="ft2-col">
+      <div class="ft2-h">Navigation</div>
+      <a href="/produits/" onclick="showPage('home');setTimeout(()=>document.getElementById('apercu')?.scrollIntoView({behavior:'smooth'}),50);return false;">Produits</a>
+      <a href="/histoire/" onclick="showPage('about');return false;">Histoire</a>
+      <a href="/contact/" onclick="showPage('contact');return false;">Contact</a>
+    </div>
+    <div class="ft2-col">
+      <div class="ft2-h">Catalogue</div>
+      <a href="./catalogue/" onclick="openStock();return false;">Catalogue en ligne</a>
+      <a href="/contact/" onclick="showPage('contact');return false;">Demander une offre</a>
+    </div>
+    <div class="ft2-col">
+      <div class="ft2-h">Nous joindre</div>
+      <a href="https://wa.me/33609997407?text=Bonjour%2C%20je%20voudrais%20recevoir%20une%20offre%20pour%20du%20papier%20%2F%20carton." target="_blank" rel="noopener noreferrer">WhatsApp</a>
+      <a href="tel:+33609997407">+33 6 09 99 74 07</a>
+      <a href="mailto:contact@prodi.com">contact@prodi.com</a>
     </div>
   </div>
+  <div class="ft2-bottom">© 2026 Prodiconseil · Stock papier &amp; carton · Dépôt Amiens — 14 000 m²</div>
 </footer>
 
 <!-- ══════════ STOCK ACCESS GATE ══════════ -->
@@ -447,12 +514,73 @@
       <div id="stock-gate-err" class="stock-gate-err"></div>
       <button type="submit" class="stock-gate-btn">Accéder au catalogue</button>
     </form>
-    <p class="stock-gate-help">Pas encore de code ? <a href="#contact" onclick="window.prodiTrack?.('gate_contact');closeStockGate();showPage('contact');return false;">Contactez-nous</a></p>
+    <p class="stock-gate-help">Pas encore de code ?</p>
+    <button type="button" class="stock-gate-contact" onclick="window.prodiTrack?.('gate_contact');closeStockGate();showPage('contact')">Contactez-nous</button>
+  </div>
+</div>
+
+<!-- ── ORGANIGRAMME ÉQUIPE (popup « Voir l'équipe » de la carte Leadership) ── -->
+<div class="eq-modal" id="equipe-modal" onclick="if(event.target===this)equipeClose()">
+  <div class="eq-panel">
+    <button type="button" class="eq-close" onclick="equipeClose()" aria-label="Fermer">✕</button>
+    <h3 class="eq-title">L'équipe Prodiconseil</h3>
+    <div class="eq-direction">
+      <div class="eq-card eq-dir"><div class="eq-role">Gérant</div><div class="eq-name">Dov Elbilia</div></div>
+      <div class="eq-card eq-dir"><div class="eq-role">Directrice commerciale</div><div class="eq-name">Véronique Elbilia</div></div>
+    </div>
+    <div class="eq-groups">
+      <div class="eq-group">
+        <div class="eq-row">
+          <div class="eq-card"><div class="eq-role">Responsable comptabilité</div><div class="eq-name">David</div></div>
+          <div class="eq-card"><div class="eq-role">Responsable informatique</div><div class="eq-name">Lala</div></div>
+        </div>
+      </div>
+      <div class="eq-group">
+        <div class="eq-row">
+          <div class="eq-card"><div class="eq-role">Chef de l'innovation</div><div class="eq-name">Ethan Elbilia</div></div>
+          <div class="eq-card"><div class="eq-role">Responsable commercial</div><div class="eq-name">Julien</div></div>
+        </div>
+      </div>
+      <div class="eq-group">
+        <div class="eq-row">
+          <div class="eq-card"><div class="eq-role">Chef de dépôt</div><div class="eq-name">José</div></div>
+          <div class="eq-card"><div class="eq-role">Responsable logistique</div><div class="eq-name">Zouhir</div></div>
+        </div>
+      </div>
+      <div class="eq-group">
+        <div class="eq-row">
+          <div class="eq-card"><div class="eq-role">Responsable Maroc</div><div class="eq-name">Driss</div></div>
+          <div class="eq-card"><div class="eq-role">Responsable Algérie</div><div class="eq-name">Soumia</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="eq-foot">
+      <a href="#contact" class="qtile-btn qtile-btn-red" onclick="window.prodiTrack?.('equipe_contact',{q:'footer'});equipeClose();showPage('contact');return false;">Contactez-nous</a>
+    </div>
+  </div>
+</div>
+
+<!-- ── POPUP LEAD (après le hero, 1×/session) ── -->
+<div class="lead-modal" id="lead-modal" onclick="if(event.target===this)leadClose()">
+  <div class="lead-panel">
+    <button type="button" class="eq-close" onclick="leadClose()" aria-label="Fermer">✕</button>
+    <div class="lead-visu" aria-hidden="true">
+    </div>
+    <div class="lead-right">
+      <h3 class="lead-h">Vous êtes imprimeur, transformateur, distributeur&nbsp;?</h3>
+      <p class="lead-sub">Des solutions adaptées pour vous.</p>
+      <form class="lead-form" id="lead-form" onsubmit="submitLead(event)">
+        <input type="text" id="l-nom" placeholder="Nom" aria-label="Nom" required>
+        <input type="tel" id="l-tel" placeholder="Téléphone" aria-label="Téléphone" required minlength="6">
+        <input type="text" id="l-hp" name="website" autocomplete="off" tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px;opacity:0;height:0;width:0;pointer-events:none;">
+        <button type="submit" class="rappel-btn" id="l-submit">On vous rappelle</button>
+      </form>
+    </div>
   </div>
 </div>
 
 <script src="analytics.js?v=1"></script>
-<script src="vitrine.js?v=111"></script>
+<script src="vitrine.js?v=143"></script>
 <!-- WA STICKY -->
 <a href="https://wa.me/33609997407?text=Bonjour%2C%20je%20voudrais%20recevoir%20une%20offre%20pour%20du%20papier%20%2F%20carton." target="_blank" rel="noopener noreferrer" class="wa-sticky" title="WhatsApp" aria-label="Nous contacter sur WhatsApp">
   <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>

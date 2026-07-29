@@ -625,6 +625,58 @@ Session de retouches à la demande d'Ethan, direction = répliquer apple.com :
 - Images Unsplash ajoutées : grue+conteneur 1700777685830 (logistique), bobine
   géante 1727159166219 (stock), allée racks 1777026321659 (dépôt).
 
+## VITRINE — grosse session 29/07/2026 (poussée)
+
+- **Sous-pages SEO réelles** : `/produits/` (tuiles+bandeau, JS partagé), `/histoire/`
+  (copie habt-sec), `/contact/` (formulaire complet) — générées depuis index.html,
+  chargent les MÊMES vitrine.css/js (les IIFE guardent sur l'existence des éléments).
+  `<body class="souspage">` (nav mobile visible, pas de burger sur ces pages),
+  H1+baseline géo Maghreb/Afrique, OG/Twitter, BreadcrumbList+CollectionPage/AboutPage/
+  ContactPage, canonical, sitemap 4 URLs, 404.html brandée. showPage() redirige vers les
+  vraies URLs quand le moteur de pages est absent (sous-page) ou la section retirée.
+  Nav accueil : href réels + onclick SPA (Google suit le href, l'utilisateur a le smooth).
+- **Accueil réorganisé** : hero → qualités → « Prodiconseil, c'est ça. » (pcards) →
+  témoignages → bandeau rappel → international → contact. Les DEUX blocs « Notre
+  histoire » (Bebas + doublon nouvelle DA .habt2-*) RETIRÉS de l'accueil (le lien
+  Histoire → /histoire/). Menu : Produits · Histoire · [Contact →] rouge (plus de
+  « Voir le stock » au header ; le hero garde « Voir le stock »).
+- **Cartes pcards** : vidéo dépôt EN PREMIER (« Dépôt / 14 000 m² à Amiens », bouton
+  CONTACT →), Logistique/Stock avec En savoir + → FLIP (verso texte rédigé sur photo
+  voilée, clic partout recto/verso, taille de carte INCHANGÉE au flip), Leadership
+  (photo Dov+Véro, « + 30 ans d'expertise », Voir l'équipe → popup organigramme).
+  Images plein cadre (gradient .pcards .pcard::after), radius 48px, titres une ligne.
+- **Popup ÉQUIPE** (#equipe-modal) : direction (Dov gérant, Véronique directrice
+  commerciale) puis 2 rangées miroir (Julien resp. commercial, Lala resp. informatique,
+  Ethan chef innovation, David compta / José chef dépôt, Zouhir logistique, Driss Maroc,
+  Soumia Algérie), rôles en petites capitales AU-DESSUS des cartes, hairline + barre
+  verticale centrale, bouton unique « Contactez-nous ».
+- **Témoignages** (.temoin-*) : bandeau une ligne, MÊME mécanique que qcards (3 copies,
+  boucle infinie, avance page/5,5 s, SANS tirets), 8 avis fictifs à remplacer (FR :
+  Maroc/Algérie/Sénégal/CI/Cameroun ; EN : Pologne/Argentine/Canada), rôle — pays.
+  Cartes blanches, trait rouge signature ::before.
+- **Bloc international** : image presse .webp recto, flip d'ENTRÉE (gintro retiré à
+  l'apparition = on voit le verso une fois), « Voir plus » coin haut-gauche, clic
+  partout retourne (recto ET verso), verso texte en continents.
+- **Contact** : 100vh centré, Nom+Téléphone+Message seuls (labels DANS les champs),
+  bouton « On vous rappelle », machine à écrire dans Message (vraies demandes papier),
+  confirmation « Bien reçu. » = coche SVG animée (.ok-box, plus d'emoji).
+- **SÉLECTEUR D'INDICATIF** (ccInit, CC_PAYS ~54 pays) : bouton drapeau+code DANS la
+  même case que le tel (.tel-wrap focus-within), panneau recherche (normalisation
+  accents), dataset.cc préfixe les numéros nus au submit (f-tel/l-tel/r-tel).
+- **Bandeau rappel** (.rappel-band, au-dessus international) : Nom+Tél+« On vous
+  rappelle » une ligne → proforma_requests (message « Demande de rappel (bandeau) »).
+- **POPUP LEAD** (#lead-modal) : 5 s après avoir DÉPASSÉ le hero (accueil) ou 5 s sur
+  /produits/, 1×/session (sessionStorage lead_popup), ?popup=1 = forçage test. Panneau
+  SPLIT (photo dépôt sombre + contenu, overflow VISIBLE pour le panneau pays, zoom 1.1),
+  honeypot l-hp. Envoi → proforma_requests (« Demande de rappel (popup) »).
+- **PERF** (mesurée CDP 4 Mbit/s) : 3,35 Mo→1,74 Mo, load 8,4 s→4,4 s. Grosses images
+  → .webp (cwebp -q75 ; les .jpg source SUPPRIMÉS du repo), Unsplash q=65 (kraft w=900
+  q=60), preload poster hero. Le piège .qtile* : les boutons génériques .qtile-btn-out /
+  .qtile-btn (plus BAS dans le fichier) écrasent les customisations — préfixer
+  (.pcard-back .pcard-back-btn, .geo-front .geo-plus).
+- **Confirmé** : pas de puces « profil » dans les formulaires (retirées sur demande).
+  Pages d'essai essai_*.html = locales, jamais commitées.
+
 ## Règles photos / images produit
 
 ### Priorité d'affichage (pour TOUS les produits)

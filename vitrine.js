@@ -12,7 +12,7 @@ const STOCK_CODE = 'depot2026';
 function openStock(){
   window.prodiTrack?.('cta_catalogue');
   try{
-    if(sessionStorage.getItem('stock_unlocked')==='1'){ window.location.href='./catalogue/'; return; }
+    if(sessionStorage.getItem('stock_unlocked')==='1'){ window.location.href='/catalogue/'; return; }
   }catch(_){}
   const g=document.getElementById('stock-gate'); if(!g)return;
   window.prodiTrack?.('gate_vue');
@@ -34,7 +34,7 @@ function submitStockGate(e){
   if(code===STOCK_CODE){
     window.prodiTrack?.('gate_code_ok');
     try{ sessionStorage.setItem('stock_unlocked','1'); }catch(_){}
-    window.location.href='./catalogue/';
+    window.location.href='/catalogue/';
   }else{
     window.prodiTrack?.('gate_code_ko',{essai:code.slice(0,20)});
     if(err) err.textContent='Code invalide. Contactez-nous pour obtenir le code d\'accès.';
@@ -66,6 +66,12 @@ document.addEventListener('click',e=>{
 
 // ─── PAGE NAVIGATION ───
 function showPage(id) {
+  // Sous-pages SEO (/produits/, /histoire/, /contact/) : pas de moteur de
+  // pages → navigation réelle vers l'URL correspondante
+  if (!document.getElementById('page-home')) {
+    location.href = id==='contact' ? '/contact/' : id==='about' ? '/histoire/' : '/';
+    return;
+  }
   if (id === 'contact') window.prodiTrack?.('contact_vue');
   if (id === 'about' || id === 'contact') {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -73,8 +79,20 @@ function showPage(id) {
     document.querySelectorAll('.hd-nav a').forEach(a => a.classList.remove('active'));
     document.getElementById('nav-'+id)?.classList.add('active');
     const target = id === 'about' ? 'about-section' : 'contact-section';
+    // section absente de l'accueil (ex. Histoire retirée) → vraie page
+    if (!document.getElementById(target)) {
+      location.href = id === 'about' ? '/histoire/' : '/contact/';
+      return;
+    }
     setTimeout(() => {
-      document.getElementById(target)?.scrollIntoView({behavior:'smooth'});
+      const el = document.getElementById(target);
+      el?.scrollIntoView({behavior:'smooth'});
+      // Safari : les images lazy chargées PENDANT le défilement décalent la
+      // cible → re-calage discret une fois le scroll terminé
+      setTimeout(() => {
+        const r = el?.getBoundingClientRect();
+        if (r && Math.abs(r.top) > 40) el.scrollIntoView();
+      }, 1200);
     }, 50);
     return;
   }
@@ -116,12 +134,14 @@ async function submitContact(e) {
   btn.disabled = true;
   btn.textContent = '...';
   const nom = document.getElementById('f-nom').value.trim();
-  const soc = document.getElementById('f-soc').value.trim();
-  const email = document.getElementById('f-email').value.trim();
+  // Champs Entreprise/Email retirés du formulaire (29/07) — colonnes Supabase
+  // conservées, envoyées vides
+  const soc = document.getElementById('f-soc')?.value.trim() || '';
+  const email = document.getElementById('f-email')?.value.trim() || '';
   // Préfixe indicatif seulement si un numéro est saisi et qu'il n'en a pas
   // déjà (clients export : ne pas forcer +33 ; champ vide : ne rien stocker).
   const _telRaw = document.getElementById('f-tel').value.trim();
-  const _telCode=(document.getElementById('f-tel-code')?.value)||'+33';
+  const _telCode=(document.getElementById('f-tel')?.dataset.cc)||'+33';
   const tel = _telRaw ? (/^(\+|00)/.test(_telRaw) ? _telRaw : _telCode+' '+_telRaw) : '';
   const msg = document.getElementById('f-msg').value.trim();
   try {
@@ -141,7 +161,155 @@ async function submitContact(e) {
     document.getElementById('form-ok').style.display = 'block';
   } catch(err) {
     btn.disabled = false;
-    btn.textContent = 'Envoyer le message';
+    btn.textContent = 'On vous rappelle';
+    alert('Erreur — veuillez réessayer ou écrire à contact@prodi.com');
+  }
+}
+
+// Confirmation maison « Bien reçu. » (coche animée, partagée popup/bandeau)
+const OK_HTML='<div class="ok-box"><svg class="ok-check" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="25"/><path d="M14 27l8 8 16-16"/></svg><div class="ok-t">Bien re\u00e7u.</div><div class="ok-s">On vous rappelle tr\u00e8s vite.</div></div>';
+
+// ─── SÉLECTEUR D'INDICATIF PAYS (champs Téléphone) : bouton drapeau+code,
+// panneau avec RECHERCHE (taper « fran » → France). Le code choisi est posé
+// sur input.dataset.cc, consommé au submit pour préfixer les numéros nus. ───
+const CC_PAYS=[["France","fr","+33"],["Maroc","ma","+212"],["Algérie","dz","+213"],["Tunisie","tn","+216"],
+["Libye","ly","+218"],["Mauritanie","mr","+222"],["Sénégal","sn","+221"],["Côte d'Ivoire","ci","+225"],
+["Ghana","gh","+233"],["Nigeria","ng","+234"],["Cameroun","cm","+237"],["Égypte","eg","+20"],
+["Kenya","ke","+254"],["Afrique du Sud","za","+27"],["Mali","ml","+223"],["Niger","ne","+227"],
+["Tchad","td","+235"],["Togo","tg","+228"],["Bénin","bj","+229"],["Guinée","gn","+224"],
+["RD Congo","cd","+243"],["Congo","cg","+242"],["Gabon","ga","+241"],["Madagascar","mg","+261"],
+["Burkina Faso","bf","+226"],["Djibouti","dj","+253"],["Belgique","be","+32"],["Espagne","es","+34"],
+["Italie","it","+39"],["Allemagne","de","+49"],["Portugal","pt","+351"],["Royaume-Uni","gb","+44"],
+["Suisse","ch","+41"],["Pays-Bas","nl","+31"],["Pologne","pl","+48"],["Roumanie","ro","+40"],
+["Grèce","gr","+30"],["Turquie","tr","+90"],["Émirats arabes unis","ae","+971"],["Arabie saoudite","sa","+966"],
+["Qatar","qa","+974"],["Israël","il","+972"],["Liban","lb","+961"],["Jordanie","jo","+962"],
+["Canada","ca","+1"],["États-Unis","us","+1"],["Mexique","mx","+52"],["Brésil","br","+55"],
+["Colombie","co","+57"],["Argentine","ar","+54"],["Chili","cl","+56"],["Pérou","pe","+51"],
+["Chine","cn","+86"],["Inde","in","+91"]];
+function ccFlag(iso){return iso.toUpperCase().replace(/./g,c=>String.fromCodePoint(127397+c.charCodeAt(0)));}
+function ccInit(inputId){
+  const inp=document.getElementById(inputId);
+  if(!inp||inp.closest('.tel-wrap')) return;
+  inp.dataset.cc='+33';
+  const wrap=document.createElement('div');wrap.className='tel-wrap';
+  inp.parentNode.insertBefore(wrap,inp);
+  const btn=document.createElement('button');btn.type='button';btn.className='tel-cc';
+  btn.innerHTML='<span>'+ccFlag('fr')+'</span> +33';
+  wrap.appendChild(btn);wrap.appendChild(inp);
+  const pan=document.createElement('div');pan.className='tel-cc-pan';
+  pan.innerHTML='<input type="text" class="tel-cc-search" placeholder="Rechercher un pays…" aria-label="Rechercher un pays">'
+    +'<div class="tel-cc-list">'+CC_PAYS.map((c,i)=>
+      '<button type="button" data-i="'+i+'"><span>'+ccFlag(c[1])+'</span>'+c[0]+' <em>'+c[2]+'</em></button>').join('')+'</div>';
+  wrap.appendChild(pan);
+  const search=pan.querySelector('.tel-cc-search');
+  btn.addEventListener('click',()=>{
+    pan.classList.toggle('open');
+    if(pan.classList.contains('open')){search.value='';filtre('');setTimeout(()=>search.focus(),40);}
+  });
+  const norm=t=>t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  function filtre(q){
+    q=norm(q);
+    pan.querySelectorAll('.tel-cc-list button').forEach(b=>{
+      const c=CC_PAYS[+b.dataset.i];
+      b.style.display=(!q||norm(c[0]).includes(q)||c[2].includes(q))?'':'none';
+    });
+  }
+  search.addEventListener('input',()=>filtre(search.value));
+  pan.querySelectorAll('.tel-cc-list button').forEach(b=>b.addEventListener('click',()=>{
+    const c=CC_PAYS[+b.dataset.i];
+    inp.dataset.cc=c[2];
+    btn.innerHTML='<span>'+ccFlag(c[1])+'</span> '+c[2];
+    pan.classList.remove('open');
+    inp.focus();
+  }));
+  document.addEventListener('click',e=>{
+    if(!wrap.contains(e.target)) pan.classList.remove('open');
+  });
+}
+ccInit('f-tel');ccInit('l-tel');ccInit('r-tel');
+
+// ─── POPUP LEAD : une fois par session. Accueil = quand on a DÉPASSÉ la
+// section produits (#apercu sortie par le haut) ; page /produits/ = après 8 s ───
+(function(){
+  const modal=document.getElementById('lead-modal');
+  if(!modal) return;
+  // ?popup=1 : forcer l'affichage (test) malgré le verrou de session
+  const force=location.search.indexOf('popup=1')>-1;
+  try{ if(!force&&sessionStorage.getItem('lead_popup')==='1') return; }catch(_){}
+  let done=false;
+  const ouvrir=()=>{
+    if(done) return; done=true;
+    modal.classList.add('open'); document.body.style.overflow='hidden';
+    window.prodiTrack?.('lead_popup_vue');
+    try{sessionStorage.setItem('lead_popup','1');}catch(_){}
+  };
+  if(force){ setTimeout(ouvrir,800); return; }
+  const hero=document.querySelector('.hero');
+  if(document.getElementById('page-home')&&hero){
+    // accueil : 5 s après avoir DÉPASSÉ le hero
+    const obs=new IntersectionObserver(es=>{
+      if(!es[0].isIntersecting){
+        obs.disconnect(); setTimeout(ouvrir,5000);
+      }
+    },{threshold:0});
+    obs.observe(hero);
+  } else if(document.getElementById('apercu')){
+    // page /produits/ : après 5 s
+    setTimeout(ouvrir,5000);
+  }
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')leadClose();});
+})();
+function leadClose(){
+  document.getElementById('lead-modal')?.classList.remove('open');
+  document.body.style.overflow='';
+}
+async function submitLead(e){
+  e.preventDefault();
+  if(document.getElementById('l-hp')?.value) return;
+  const nom=document.getElementById('l-nom').value.trim();
+  const _lt=document.getElementById('l-tel');
+  let tel=_lt.value.trim();
+  if(!nom||tel.length<6) return;
+  if(!/^(\+|00)/.test(tel)) tel=(_lt.dataset.cc||'+33')+' '+tel;
+  const btn=document.getElementById('l-submit');
+  btn.disabled=true; btn.textContent='…';
+  try{
+    const r=await fetch(SURL+'/rest/v1/proforma_requests',{method:'POST',
+      headers:{'apikey':SKEY,'Authorization':'Bearer '+SKEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify({nom,societe:'',email:'',telephone:tel,
+        message:'Demande de rappel (popup)',
+        quantite_souhaitee:'Contact vitrine',statut:'vitrine_contact'})});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    window.prodiTrack?.('contact_envoye',{via:'popup'});
+    document.getElementById('lead-form').outerHTML=OK_HTML;
+    setTimeout(leadClose,2200);
+  }catch(err){
+    btn.disabled=false; btn.textContent='On vous rappelle';
+    alert('Erreur — veuillez réessayer ou écrire à contact@prodi.com');
+  }
+}
+
+// ─── BANDEAU RAPPEL (mini contact) : même table Supabase que le formulaire ───
+async function submitRappel(e){
+  e.preventDefault();
+  if(document.getElementById('r-hp')?.value) return;
+  const nom=document.getElementById('r-nom').value.trim();
+  const _rt=document.getElementById('r-tel');
+  let tel=_rt.value.trim();
+  if(!nom||tel.length<6) return;
+  if(!/^(\+|00)/.test(tel)) tel=(_rt.dataset.cc||'+33')+' '+tel;
+  const btn=document.getElementById('r-submit');
+  btn.disabled=true; btn.textContent='…';
+  try{
+    const r=await fetch(SURL+'/rest/v1/proforma_requests',{method:'POST',
+      headers:{'apikey':SKEY,'Authorization':'Bearer '+SKEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify({nom,societe:'',email:'',telephone:tel,
+        message:'Demande de rappel (bandeau)',quantite_souhaitee:'Contact vitrine',statut:'vitrine_contact'})});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    window.prodiTrack?.('contact_envoye',{via:'bandeau'});
+    document.getElementById('rappel-form').innerHTML=OK_HTML;
+  }catch(err){
+    btn.disabled=false; btn.textContent='On vous rappelle';
     alert('Erreur — veuillez réessayer ou écrire à contact@prodi.com');
   }
 }
@@ -215,9 +383,7 @@ async function submitContact(e) {
 (function(){
   const RULES = {
     'f-nom':   {required:true, min:2, errMsg:'Nom requis (min. 2 car.)'},
-    'f-soc':   {required:true, min:2, errMsg:'Entreprise requise'},
-    'f-email': {required:true, email:true, errMsg:'Email invalide'},
-    'f-tel':   {required:false, errMsg:''},
+    'f-tel':   {required:true, min:6, errMsg:'Téléphone requis'},
     'f-msg':   {required:true, min:15, errMsg:'Message trop court (min. 15 car.)'},
   };
   function validate(id){
@@ -269,19 +435,19 @@ async function submitContact(e) {
 (function(){
   const wrap=document.getElementById('qtiles');
   if(!wrap)return;
-  const U='https://images.unsplash.com/', P='?q=75&auto=format&fit=crop&w=1100';
+  const U='https://images.unsplash.com/', P='?q=65&auto=format&fit=crop&w=1100';
   // Alternance damier clair/sombre (2 colonnes)
   // verso = texte rédigé par tuile, à partir des détails réellement en stock
   // (top du champ details du catalogue par famille, bobines + formats confondus)
   const TILES=[
     {code:'ROFF',    title:'Offset',        sub:'Le blanc de référence, du livre à la notice.',            img:U+'flagged/photo-1562221054-cdc9dc299068'+P, pos:'center 60%', dark:false,
      verso:['Du blanc courant aux blancs les plus lumineux','Blancheurs CIE de 120 à 170','Notice, bristol, satiné ou rugueux','En bobines comme en formats']},
-    {code:'RBOA',    title:'Carton couché', sub:'Le carton du packaging et de la belle boîte.',            img:U+'photo-1595246135406-803418233494'+P, pos:'center 55%', dark:true,
-     verso:['GC1 dos blanc · GC2 dos crème','GD2 dos gris · GT4 & CKB dos kraft','Face aluminium pour l\'emballage alimentaire','Le carton du packaging et de la belle boîte']},
+    {code:'RKRABRUN',title:'Kraft',         sub:'Le naturel résistant du sac et de l\'emballage.',          img:U+'photo-1777566131325-78f6e12c50b7'+'?q=60&auto=format&fit=crop&w=900', pos:'center 50%', dark:true,
+     verso:['Du 100 % recyclé à la pure pâte','Finition frictionnée MG ou machine MF','Krafts spéciaux pour enveloppe','Le brun de l\'emballage sous toutes ses formes']},
     {code:'R2SC',    title:'Papier couché', sub:'Le papier des magazines, catalogues et brochures.',       img:U+'photo-1515891396453-6d7e56096a39'+P, pos:'center 55%', dark:false,
      verso:['Brillant, demi-mat ou mat','Séries recyclées','Magazines, catalogues et brochures','En bobines comme en formats']},
-    {code:'RKRABRUN',title:'Kraft',         sub:'Le naturel résistant du sac et de l\'emballage.',          img:U+'photo-1777566131325-78f6e12c50b7'+P, pos:'center 50%', dark:true,
-     verso:['Du 100 % recyclé à la pure pâte','Finition frictionnée MG ou machine MF','Krafts spéciaux pour enveloppe','Le brun de l\'emballage sous toutes ses formes']},
+    {code:'RBOA',    title:'Carton couché', sub:'Le carton du packaging et de la belle boîte.',            img:U+'photo-1595246135406-803418233494'+P, pos:'center 55%', dark:true,
+     verso:['GC1 dos blanc · GC2 dos crème','GD2 dos gris · GT4 & CKB dos kraft','Face aluminium pour l\'emballage alimentaire','Le carton du packaging et de la belle boîte']},
     {code:'RLUX',    title:'Papier créations', sub:'Papiers de caractère : teintes, textures, finitions.', img:U+'photo-1586207036106-90aae2456ccb'+P, pos:'center 50%', dark:true,
      verso:['Calque','Vergé blanc ou ivoire','Martelé','Chromolux une face','Papiers sécurité : fibres invisibles ou filigranés']},
     {code:'RCAR',    title:'Autocopiant',   sub:'Liasses sans carbone, prêtes à imprimer.',                img:U+'photo-1579808324991-cecc784498cc'+P, pos:'center 55%', dark:true,
@@ -349,7 +515,7 @@ async function submitContact(e) {
     // pendant PERIOD ms puis le bandeau avance d'une carte (durée = celle
     // de l'animation CSS qdotfill, à garder synchro)
     const dots=document.getElementById('qcards-dots');
-    const PERIOD=4000, N=CARDS.length;
+    const PERIOD=5500, N=CARDS.length;
     const step=()=>{const c=cwrap.firstElementChild;return c?c.getBoundingClientRect().width+12:512;};
     const curIdx=()=>((Math.round(cwrap.scrollLeft/step())%N)+N)%N;
     const still=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -389,6 +555,62 @@ async function submitContact(e) {
   }
 })();
 
+// ─── BANDEAU TÉMOIGNAGES : même mécanique que le bandeau qualités
+// (boucle infinie 3 copies, tirets à remplissage, avance page par page) ───
+(function(){
+  const rail=document.getElementById('temoin-rail');
+  const dots=document.getElementById('temoin-dots');
+  if(!rail) return;
+  const N=rail.children.length, GAP=20, PERIOD=5500;
+  rail.innerHTML=rail.innerHTML+rail.innerHTML+rail.innerHTML;
+  const step=()=>{const c=rail.firstElementChild;return c?c.getBoundingClientRect().width+GAP:400;};
+  const setW=()=>N*step();
+  const recentre=()=>{
+    const w=setW(), x=rail.scrollLeft;
+    if(!w) return;
+    if(x<w*0.5) rail.scrollLeft=x+w;
+    else if(x>=w*1.5) rail.scrollLeft=x-w;
+  };
+  rail.scrollLeft=setW();
+  rail.addEventListener('scroll',recentre,{passive:true});
+  window.addEventListener('resize',recentre);
+  const curIdx=()=>((Math.round(rail.scrollLeft/step())%N)+N)%N;
+  const still=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let tmr=null,onScreen=false,lastIdx=-1;
+  function paintDots(){
+    if(!dots) return;
+    const i=curIdx();
+    dots.innerHTML=Array.from({length:N},(_,j)=>
+      `<button class="qdot${j===i?' on':''}${still?' still':''}" aria-label="Témoignage ${j+1}" onclick="temoinGoto(${j})"></button>`).join('');
+  }
+  function arm(){
+    if(still) return;
+    clearTimeout(tmr);
+    tmr=setTimeout(()=>{
+      if(onScreen&&document.visibilityState==='visible') rail.scrollBy({left:step(),behavior:'smooth'});
+      else arm();
+    },PERIOD);
+  }
+  window.temoinGoto=j=>{
+    const d=((j-curIdx())%N+N)%N;
+    rail.scrollBy({left:(d>N/2?d-N:d)*step(),behavior:'smooth'});
+  };
+  rail.addEventListener('scroll',()=>{
+    const i=curIdx();
+    if(i!==lastIdx){lastIdx=i;paintDots();arm();}
+  },{passive:true});
+  rail.addEventListener('pointerdown',()=>clearTimeout(tmr));
+  rail.addEventListener('pointerup',arm);
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='visible'){paintDots();arm();} else clearTimeout(tmr);
+  });
+  new IntersectionObserver(es=>{
+    onScreen=es[0].isIntersecting;
+    if(onScreen){paintDots();arm();} else clearTimeout(tmr);
+  },{threshold:.3}).observe(rail);
+  lastIdx=curIdx();paintDots();arm();
+})();
+
 // Retourne le bloc texte d'une tuile qualité (recto = accroche, verso = détails)
 function qtileFlip(i,on){
   const t=document.getElementById('qtile-'+i);
@@ -407,6 +629,73 @@ function qcardForm(code,titre){
   showPage('contact');
   const m=document.getElementById('f-msg');
   if(m&&!m.value.trim()) m.value='Bonjour, je souhaite en savoir plus sur vos produits '+titre+'.';
+}
+
+// « En savoir + » du bloc presse internationale → retourne la carte (verso pays)
+function geoFlip(on){
+  if(on) window.prodiTrack?.('inter_plus');
+  document.getElementById('geo-card')?.classList.toggle('flipped',!!on);
+}
+function geoContact(){
+  window.prodiTrack?.('inter_form');
+  showPage('contact');
+  const m=document.getElementById('f-msg');
+  if(m&&!m.value.trim()) m.value='Bonjour, je souhaite être livré à l\'international. Pouvez-vous me recontacter ?';
+}
+
+// Flip d'ENTRÉE du bloc presse : la carte arrive en se retournant du verso
+// vers le recto (on a vu le dos une fois → on sait qu'elle se retourne)
+(function(){
+  const card=document.getElementById('geo-card');
+  if(!card) return;
+  // coin corné oblige : toute la photo retourne au clic
+  card.querySelector('.geo-front')?.addEventListener('click',()=>geoFlip(1));
+  // et côté verso, un clic n'importe où (hors boutons/liens) re-retourne
+  card.querySelector('.geo-backface')?.addEventListener('click',e=>{
+    if(e.target.closest('a,button')) return;
+    geoFlip(0);
+  });
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  card.classList.add('gintro');
+  new IntersectionObserver((es,obs)=>{
+    if(es[0].isIntersecting){
+      setTimeout(()=>card.classList.remove('gintro'),350);
+      obs.disconnect();
+    }
+  },{threshold:.45}).observe(card);
+})();
+
+// « Voir l'équipe » (carte Leadership) → popup organigramme
+function equipeOpen(){
+  window.prodiTrack?.('equipe_view');
+  document.getElementById('equipe-modal')?.classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function equipeClose(){
+  document.getElementById('equipe-modal')?.classList.remove('open');
+  document.body.style.overflow='';
+}
+
+// Cartes Logistique/Stock : clic n'importe où = flip (recto ET verso, hors boutons)
+(function(){
+  ['log','stock'].forEach(id=>{
+    const card=document.getElementById('pcard-'+id);
+    if(!card) return;
+    card.querySelector('.pcard-front')?.addEventListener('click',e=>{
+      if(e.target.closest('button')) return;
+      pcardFlip(id,1);
+    });
+    card.querySelector('.pcard-back')?.addEventListener('click',e=>{
+      if(e.target.closest('button')) return;
+      pcardFlip(id,0);
+    });
+  });
+})();
+
+// « En savoir + » des cartes Logistique/Stock → recto/verso
+function pcardFlip(id,on){
+  if(on) window.prodiTrack?.('pcard_plus',{q:id});
+  document.getElementById('pcard-'+id)?.classList.toggle('flipped',!!on);
 }
 
 // ─── REAL GLOBE (orthographic, silhouette only) — EN ROTATION ───
@@ -646,4 +935,28 @@ function toggleSound(){
       d.remove();
     });
   },1500);
+})();
+
+// ─── CONTACT : placeholder machine-à-écrire du champ Message (vraies
+// demandes papier) — coupé si reduced-motion, champ actif ou déjà rempli ───
+(function(){
+  const ta=document.getElementById('f-msg');
+  if(!ta||matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const PH=[
+    "Je cherche 20 tonnes de kraft brun 90 g…",
+    "Avez-vous du couché 135 g en 64×90 ?",
+    "Un conteneur d'offset 80 g pour Casablanca…",
+    "Quelles laizes disponibles en bobine 70 g ?",
+    "Envoyez-moi votre offre déstockage du moment…"
+  ];
+  let i=0,pos=0,del=false;
+  (function tick(){
+    if(document.activeElement===ta||ta.value){ta.placeholder='Message';setTimeout(tick,1200);return;}
+    const cur=PH[i];
+    pos+=del?-1:1;
+    ta.placeholder=cur.slice(0,pos)||'Message';
+    if(!del&&pos===cur.length){del=true;setTimeout(tick,1800);return;}
+    if(del&&pos===0){del=false;i=(i+1)%PH.length;}
+    setTimeout(tick,del?18:45);
+  })();
 })();
