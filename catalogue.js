@@ -930,6 +930,7 @@ async function init(){
   buildMsdOptions('sb-msd-mandrin',['70','76','150','152'],'Mandrins',v=>v+' mm','msd-mandrin');
   buildMsdOptions('sb-msd-format',FORMAT_OPTIONS,'Dimensions',v=>v===FORMAT_AUTRES?'Autres dimensions':v,'msd-format');
   buildMsdOptions('sb-msd-grammage',GRAMMAGE_OPTIONS,'Grammages',v=>v===GRAMMAGE_AUTRES?'Autres grammages':v,'msd-grammage');
+  _buildGrammageSlider('sb-msd-grammage');
   buildMsdOptions('sb-msd-laize',LAIZE_OPTIONS,'Laizes',v=>v===LAIZE_AUTRES?'Autres laizes':v,'msd-laize');
   buildMsdOptions('sb-msd-diametre',DIAM_OPTIONS,'Diamètre (Ø)',v=>v===DIAM_AUTRES?'Autres Ø':v,'msd-diametre');
   buildMsdOptions('sb-msd-poids',POIDS_OPTIONS,'Poids','msd-poids'===''?null:undefined,'msd-poids');
@@ -940,6 +941,7 @@ async function init(){
   buildMsdOptions('msd-mandrin-mob',['70','76','150','152'],'Mandrins',v=>v+' mm','msd-mandrin');
   buildMsdOptions('msd-format-mob',FORMAT_OPTIONS,'Dimensions',v=>v===FORMAT_AUTRES?'Autres dimensions':v,'msd-format');
   buildMsdOptions('msd-grammage-mob',GRAMMAGE_OPTIONS,'Grammages',v=>v===GRAMMAGE_AUTRES?'Autres grammages':v,'msd-grammage');
+  _buildGrammageSlider('msd-grammage-mob');
   buildMsdOptions('msd-laize-mob',LAIZE_OPTIONS,'Laizes',v=>v===LAIZE_AUTRES?'Autres laizes':v,'msd-laize');
   buildMsdOptions('msd-diametre-mob',DIAM_OPTIONS,'Diamètre (Ø)',v=>v===DIAM_AUTRES?'Autres Ø':v,'msd-diametre');
   buildMsdOptions('msd-poids-mob',POIDS_OPTIONS,'Poids',undefined,'msd-poids');
@@ -1040,6 +1042,70 @@ function _fmtPg(f){
 // (familles ≥30 produits). Sans grammage ou hors familles → Autres.
 const GRAMMAGE_TOL=5;
 const GRAMMAGE_FAMILLES=[17,32,40,52,60,70,80,90,100,110,120,130,140,150,160,170,180,190,200,220,240,250,275,300,325,350,400,850];
+
+// ── GRAMMAGES en DOUBLE CURSEUR (31/07) : remplace la liste à cases. Pilote
+// les champs cachés f-gmin/f-gmax (déjà branchés : requête serveur, prédicat
+// client, chip « Gram. : X → Y » avec sa croix). Pas de 5 en 5, bornes 15–850.
+function _gslSyncAll(){
+  ['sb-msd-grammage','msd-grammage-mob'].forEach(id=>{
+    const m=document.getElementById(id);
+    if(m&&m._gslSync)m._gslSync();
+  });
+}
+function _buildGrammageSlider(msdId){
+  const msd=document.getElementById(msdId);
+  const panel=msd?msd.querySelector('.msd-panel'):null;
+  if(!panel) return;
+  panel.querySelectorAll('.msd-option,.msd-search-wrap').forEach(o=>o.remove());
+  panel.classList.add('msd-slider-panel');
+  const LO=15,HI=850,PAS=5;
+  const wrap=document.createElement('div');
+  wrap.className='gsl';
+  wrap.innerHTML=
+    '<div class="gsl-val">Tous les grammages</div>'+
+    '<div class="gsl-track"><div class="gsl-fill"></div>'+
+    '<input type="range" min="'+LO+'" max="'+HI+'" value="'+LO+'" step="'+PAS+'" data-role="min" aria-label="Grammage minimum">'+
+    '<input type="range" min="'+LO+'" max="'+HI+'" value="'+HI+'" step="'+PAS+'" data-role="max" aria-label="Grammage maximum">'+
+    '</div>'+
+    '<div class="gsl-bornes"><span>'+LO+' g</span><span>'+HI+' g</span></div>'+
+    '<button type="button" class="gsl-reset">Tous les grammages</button>';
+  panel.appendChild(wrap);
+  const iMin=wrap.querySelector('[data-role=min]'),iMax=wrap.querySelector('[data-role=max]');
+  const fill=wrap.querySelector('.gsl-fill'),lbl=wrap.querySelector('.gsl-val');
+  const gn=document.getElementById('f-gmin'),gx=document.getElementById('f-gmax');
+  function paint(){
+    let a=+iMin.value,b=+iMax.value;
+    if(a>b){const t=a;a=b;b=t;}
+    fill.style.left=((a-LO)/(HI-LO)*100)+'%';
+    fill.style.right=(100-(b-LO)/(HI-LO)*100)+'%';
+    const plein=(a<=LO&&b>=HI);
+    lbl.textContent=plein?'Tous les grammages':a+' – '+b+' g/m²';
+    return {a,b,plein};
+  }
+  function apply(){
+    const r=paint();
+    gn.value=r.plein?'':r.a;
+    gx.value=r.plein?'':r.b;
+    document.querySelectorAll('#sb-msd-grammage .msd-btn,#msd-grammage-mob .msd-btn')
+      .forEach(bt=>bt.classList.toggle('has-sel',!r.plein));
+    _gslSyncAll();
+    filterProducts();
+  }
+  iMin.addEventListener('input',paint);
+  iMax.addEventListener('input',paint);
+  iMin.addEventListener('change',apply);
+  iMax.addEventListener('change',apply);
+  wrap.querySelector('.gsl-reset').addEventListener('click',()=>{iMin.value=LO;iMax.value=HI;apply();});
+  msd._gslSync=function(){
+    const vn=+gn.value||0,vx=+gx.value||0;
+    iMin.value=vn?Math.max(LO,Math.round(vn/PAS)*PAS):LO;
+    iMax.value=vx?Math.min(HI,Math.round(vx/PAS)*PAS):HI;
+    paint();
+    document.querySelectorAll('#sb-msd-grammage .msd-btn,#msd-grammage-mob .msd-btn')
+      .forEach(bt=>bt.classList.toggle('has-sel',!!(vn||vx)));
+  };
+  msd._gslSync();
+}
 const GRAMMAGE_AUTRES='__gsm_autres__';
 const _gsmLbl=g=>g+' g/m²';
 const GRAMMAGE_OPTIONS=[80,70,90,60,100].map(_gsmLbl)
@@ -3428,7 +3494,7 @@ function updateFilterChips(){
       chips.push({key:id,label:lbl+' : '+vals,clear:()=>{resetMsd(id);filterProducts();}});
     }
   });
-  if(gn||gx)chips.push({key:'grange',label:'Gram.'+' : '+(gn||'—')+' → '+(gx||'—')+' g/m²',clear:()=>{document.getElementById('f-gmin').value='';document.getElementById('f-gmax').value='';filterProducts();}});
+  if(gn||gx)chips.push({key:'grange',label:'Gram.'+' : '+(gn||'—')+' → '+(gx||'—')+' g/m²',clear:()=>{document.getElementById('f-gmin').value='';document.getElementById('f-gmax').value='';_gslSyncAll();filterProducts();}});
 
   if(lmin2||lmax2)chips.push({key:'lrange',label:'Laize'+' : '+(lmin2||'—')+' → '+(lmax2||'—')+' mm',clear:()=>{['f-lmin','f-lmax','f-lmin-fb','f-lmax-fb','f-lmin-mob','f-lmax-mob'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});filterProducts();}});
   const longmin2=document.getElementById('f-longmin')?.value||'';
