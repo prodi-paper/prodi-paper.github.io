@@ -677,6 +677,33 @@ Session de retouches à la demande d'Ethan, direction = répliquer apple.com :
 - **Confirmé** : pas de puces « profil » dans les formulaires (retirées sur demande).
   Pages d'essai essai_*.html = locales, jamais commitées.
 
+## Session 31/07/2026 (poussée)
+
+- **CATALOGUE — Grammages en DOUBLE CURSEUR** (`_buildGrammageSlider`, appelé après
+  les 2 buildMsdOptions grammage) : remplace la liste à cases dans le panneau
+  (desktop `sb-msd-grammage` + mobile `msd-grammage-mob`). Échelle LINÉAIRE de 5 en 5,
+  bornes 15–850 g. Pilote les champs cachés f-gmin/f-gmax (requête serveur, prédicat
+  client, compteurs croisés et chip « Gram. : X → Y » inchangés) ; la croix de la chip
+  appelle `_gslSyncAll()`. CSS `.gsl*`/`.msd-slider-panel`.
+- **CATALOGUE — fix Safari iOS panneaux filtres** : en mobile la `.sidebar-col` passe
+  `position:relative;z-index:99` (au-dessus du hero PRODIX z2-5, sous le header z100)
+  — sinon les .msd-panel (fixed z2000) se peignaient DERRIÈRE le voile du hero sur
+  iPhone (Chrome non affecté, ne pas « vérifier » qu'en headless). Plan B si récidive :
+  reparenter les panneaux vers body à l'ouverture.
+- **VITRINE mobile** : boutons hero centrés même largeur ; tuiles retournées = le
+  VERSO (repassé dans le flux) donne la hauteur (boutons plus coupés) ; photo presse
+  pleine largeur bord à bord ; .tel-wrap 100% dans le bandeau ; contact SANS le
+  100vh en ≤880px (grand vide sinon). Placeholder « Votre nom ou société » partout.
+  Popup équipe : Ethan ↔ David échangés.
+- **DÉTAILS produits — analyse « sans détails »** (fichier DOV du 30/07) : l'import
+  concatène DÉJÀ AR_Langue1+DETAIL+FIBRE+BACK+FINITION+QUALITE+TEINTE → la case
+  « Autres/Sans détails » (~904 au catalogue) = articles nus PARTOUT dans Sage, par
+  lots entiers. L'inférence « groupe fournisseur+famille+grammage+couleur unanime »
+  ne récupérerait que ~51 articles (dont 36 SECURITE) — NON implémentée (accord
+  Ethan en attente ; vraie piste = saisie Sage ou OCR étiquettes façon arrivages).
+- Marges (DOV, PRIXACH vs PUNET, hors transport) : container 25 T moyen ≈ 10,9 %
+  de marge brute (~2 240 €) ; RLUX ressort NÉGATIF (−0,5 %).
+
 ## Règles photos / images produit
 
 ### Priorité d'affichage (pour TOUS les produits)

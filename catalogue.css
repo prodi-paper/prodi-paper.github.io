@@ -2018,7 +2018,11 @@ body.topbar-view .phero-panel-head{display:none !important;}
   body.topbar-view .offre-menu{min-width:230px;}
   /* barre de filtres : rangée dérulante horizontale */
   body.topbar-view .body-wrap{display:block;padding:0 10px 24px;}
-  body.topbar-view .body-wrap>.sidebar-col{position:static;background:transparent;}
+  /* Safari iOS : la colonne filtres doit porter son PROPRE contexte au-dessus
+     du hero PRODIX, sinon les .msd-panel (fixed z2000) se peignent DERRIÈRE le
+     voile du hero (vécu 31/07 sur iPhone — Chrome n'est pas affecté).
+     z-index 99 = au-dessus du hero (z 2-5), sous le header sticky (z 100). */
+  body.topbar-view .body-wrap>.sidebar-col{position:relative;z-index:99;background:transparent;}
   body.topbar-view .msd-panel{width:auto !important;min-width:240px;max-width:calc(100vw - 16px);}
   body.topbar-view .filters-panel{position:static !important;top:auto;height:auto !important;border-right:none;background:transparent;flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;gap:6px;padding:10px 4px 12px;-webkit-overflow-scrolling:touch;scrollbar-width:none;pointer-events:auto;}
   body.topbar-view .filters-panel::-webkit-scrollbar{display:none;}
@@ -2104,3 +2108,22 @@ body.apple-view .pcard-promo-overlay{-webkit-backdrop-filter:none;backdrop-filte
   body.topbar-view .phero-card .sc-val{font-size:10.5px;}
   body.topbar-view .phero-card .sc-cell{padding:4px 5px !important;}
 }
+/* ── DOUBLE CURSEUR GRAMMAGES (31/07) — panneau .msd-panel en mode slider ── */
+.msd-slider-panel{padding:16px;max-height:none;overflow:visible;min-width:250px;}
+.gsl{display:flex;flex-direction:column;gap:13px;}
+.gsl-val{font-weight:700;font-size:15px;color:var(--ink);text-align:center;}
+.gsl-track{position:relative;height:26px;}
+.gsl-track::before{content:'';position:absolute;left:0;right:0;top:11px;height:4px;border-radius:99px;background:#e3e3e6;}
+.gsl-fill{position:absolute;top:11px;height:4px;border-radius:99px;background:#FE0000;}
+.gsl-track input[type=range]{position:absolute;inset:0;width:100%;height:26px;margin:0;background:none;
+  pointer-events:none;-webkit-appearance:none;appearance:none;}
+.gsl-track input[type=range]::-webkit-slider-runnable-track{background:transparent;height:26px;}
+.gsl-track input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;pointer-events:auto;
+  width:22px;height:22px;margin-top:2px;border-radius:50%;background:#fff;border:2px solid #FE0000;
+  box-shadow:0 1px 6px rgba(0,0,0,.18);cursor:pointer;}
+.gsl-track input[type=range]::-moz-range-thumb{pointer-events:auto;width:20px;height:20px;border-radius:50%;
+  background:#fff;border:2px solid #FE0000;cursor:pointer;}
+.gsl-bornes{display:flex;justify-content:space-between;font-size:11.5px;color:#86868b;margin-top:-7px;}
+.gsl-reset{border:1.5px solid #d2d2d7;background:#fff;border-radius:999px;padding:8px 12px;
+  font-family:'DM Sans',sans-serif;font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer;}
+.gsl-reset:hover{border-color:var(--ink);}

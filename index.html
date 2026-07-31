@@ -75,7 +75,7 @@
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js" integrity="sha384-Ukv1p/xTma6P4/2bY5KzWBw+ydSpXmhCMtyciIQVDJ1RmOxtCYNMF1uXT9T63H67" crossorigin="anonymous" defer></script>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@600;700&family=DM+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="vitrine.css?v=263">
+<link rel="stylesheet" href="vitrine.css?v=268">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -304,7 +304,7 @@
     <div class="sec-inner">
       <form class="rappel-band" id="rappel-form" data-reveal onsubmit="submitRappel(event)">
         <div class="rappel-txt">Un besoin&nbsp;? <b>Laissez un numéro.</b></div>
-        <input type="text" id="r-nom" placeholder="Nom" aria-label="Nom" required>
+        <input type="text" id="r-nom" placeholder="Votre nom ou société" aria-label="Votre nom ou société" required>
         <input type="tel" id="r-tel" placeholder="Téléphone" aria-label="Téléphone" required minlength="6">
         <input type="text" id="r-hp" name="website" autocomplete="off" tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px;opacity:0;height:0;width:0;pointer-events:none;">
         <button type="submit" class="rappel-btn" id="r-submit">On vous rappelle</button>
@@ -353,7 +353,7 @@
           <form id="contact-form" onsubmit="submitContact(event)">
             <div class="form-row">
               <div class="fg">
-                <input type="text" id="f-nom" placeholder="Nom" aria-label="Nom" required>
+                <input type="text" id="f-nom" placeholder="Votre nom ou société" aria-label="Votre nom ou société" required>
                 <div class="fg-msg" id="fg-msg-nom"></div>
               </div>
               <div class="fg">
@@ -531,13 +531,13 @@
     <div class="eq-groups">
       <div class="eq-group">
         <div class="eq-row">
-          <div class="eq-card"><div class="eq-role">Responsable comptabilité</div><div class="eq-name">David</div></div>
+          <div class="eq-card"><div class="eq-role">Chef de l'innovation</div><div class="eq-name">Ethan Elbilia</div></div>
           <div class="eq-card"><div class="eq-role">Responsable informatique</div><div class="eq-name">Lala</div></div>
         </div>
       </div>
       <div class="eq-group">
         <div class="eq-row">
-          <div class="eq-card"><div class="eq-role">Chef de l'innovation</div><div class="eq-name">Ethan Elbilia</div></div>
+          <div class="eq-card"><div class="eq-role">Responsable comptabilité</div><div class="eq-name">David</div></div>
           <div class="eq-card"><div class="eq-role">Responsable commercial</div><div class="eq-name">Julien</div></div>
         </div>
       </div>
@@ -570,7 +570,7 @@
       <h3 class="lead-h">Vous êtes imprimeur, transformateur, distributeur&nbsp;?</h3>
       <p class="lead-sub">Des solutions adaptées pour vous.</p>
       <form class="lead-form" id="lead-form" onsubmit="submitLead(event)">
-        <input type="text" id="l-nom" placeholder="Nom" aria-label="Nom" required>
+        <input type="text" id="l-nom" placeholder="Votre nom ou société" aria-label="Votre nom ou société" required>
         <input type="tel" id="l-tel" placeholder="Téléphone" aria-label="Téléphone" required minlength="6">
         <input type="text" id="l-hp" name="website" autocomplete="off" tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px;opacity:0;height:0;width:0;pointer-events:none;">
         <button type="submit" class="rappel-btn" id="l-submit">On vous rappelle</button>

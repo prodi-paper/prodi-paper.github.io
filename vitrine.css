@@ -393,6 +393,8 @@ button{cursor:pointer;border:none;font-family:inherit;background:none;}
 @media(max-width:880px){
   .geo-sec{padding:16px 0 0;}
   .geo-sec .geo-h{margin-bottom:24px;}
+  /* photo PLEINE LARGEUR bord à bord sur téléphone */
+  .geo-card{width:100vw;margin-left:calc(50% - 50vw);margin-bottom:22px;}
   /* l'image est basse en mobile : la carte retournée prend la hauteur du verso */
   .geo-card.flipped{min-height:520px;}
   .geo-verso-txt{font-size:16.5px;line-height:1.5;}
@@ -804,7 +806,8 @@ footer{background:#111;border-top:3px solid var(--red);padding:24px;}
   .avail-item:nth-child(n+4){border-top:1px solid rgba(255,255,255,.05);}
   .hero-inner{padding:75px 20px 0;}
   .hero h1{font-size:clamp(40px,11vw,62px);}
-  .hero-btns{flex-direction:column;gap:11px;}
+  .hero-btns{flex-direction:column;gap:11px;align-items:center;}
+  .btn-hero,.btn-hero-outline{width:min(100%,320px);justify-content:center;}
   .btn-hero,.btn-hero-outline{width:100%;justify-content:center;}
   .hero-stats{grid-template-columns:1fr 1fr;}
   .h-stat{padding:20px 20px;}
@@ -1047,6 +1050,10 @@ footer{background:#fff;border-top:1px solid #e8e8ed;}
   .qtiles{grid-template-columns:1fr;}
   .qtile{aspect-ratio:auto;min-height:365px;}
   .qtile-inner{padding-top:42px;}
+  /* verso plus haut que le recto en mobile : au flip, le VERSO (repassé dans
+     le flux) donne la hauteur de la tuile — sinon boutons coupés */
+  .qtile.flipped .qtile-front{position:absolute;inset:0;}
+  .qtile.flipped .qtile-backface{position:relative;inset:auto;padding-bottom:30px;}
 }
 
 /* ── AUTRES QUALITÉS : cartes défilantes façon apple.com ── */
@@ -1142,8 +1149,13 @@ footer{background:#f5f5f7;border-top:1px solid var(--border);padding:52px 0 30px
   .ft2-grid{grid-template-columns:1fr 1fr;gap:26px;}
   .ft2-brand{grid-column:1/-1;}
 }
-/* section contact = une PAGE entière (100vh), contenu centré verticalement */
+/* section contact = une PAGE entière (100vh), contenu centré verticalement
+   — DESKTOP seulement : en mobile ça créait un grand vide au-dessus du titre */
 #contact-section{min-height:100vh;display:flex;flex-direction:column;justify-content:center;}
+@media(max-width:880px){
+  #contact-section{min-height:0;display:block;}
+  #contact-section .ct-header{padding:34px var(--pad) 22px;}
+}
 #contact-section .ct-header{padding:24px var(--pad) 30px;}
 #contact-section .ct-wrap{padding-bottom:24px;}
 #contact-form .fg textarea{min-height:170px;}
@@ -1164,6 +1176,7 @@ footer{background:#f5f5f7;border-top:1px solid var(--border);padding:52px 0 30px
 @media(max-width:700px){
   .rappel-band{border-radius:24px;}
   .rappel-band input{width:100%;}
+  .rappel-band .tel-wrap{width:100%;}
   .rappel-btn{width:100%;}
 }
 /* ── POPUP LEAD après le hero ── */
