@@ -152,6 +152,7 @@ HIDDEN_FAMILIES = {'UMAC', 'UMAN', 'WFRA', 'WFRE', 'ECART'}
 
 def parse_dov(files):
     import openpyxl
+    _prix_aberrants = 0
     fp = next((f for f in files if 'toutarticle' in os.path.basename(f).lower().replace('_', '')), files[0] if files else None)
     if not fp:
         return []
@@ -228,7 +229,7 @@ def parse_dov(files):
         # (évite les 731 600 €/T affichés).
         prix = num(g(row, 'PUNET')) or num(g(row, 'AR_PRIXVEN'))
         if prix and prix > 3 and fam_code[:1] in ('R', 'S'):
-            log(f"prix aberrant ignoré: {ref} {fam_code} {prix} €/kg")
+            _prix_aberrants += 1  # logs Actions PUBLICS : ne pas y imprimer réfs/prix
             prix = None
         if promo and prix:
             prix = round(prix * 0.7, 4)
@@ -262,6 +263,8 @@ def parse_dov(files):
     products = [p for _, p in by_ref.values()]
     visibles = sum(1 for p in products if p['source'] == 'email')
     log(f"DOV: {len(products)} réfs uniques — {visibles} visibles catalogue, {len(products) - visibles} inventaire seul")
+    if _prix_aberrants:
+        log(f"prix aberrants ignorés : {_prix_aberrants} (valeurs non listées — logs publics)")
     return products
 
 # ── STEP 3: UPDATE SUPABASE ──
