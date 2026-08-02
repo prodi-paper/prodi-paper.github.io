@@ -1610,6 +1610,13 @@ body.apple-view .rbar-sel{height:auto !important;line-height:1.3;padding:9px 28p
 
 /* ---- Cartes catalogue = cartes étiquette de la vue client (18/07) ---- */
 body.apple-view .sc-card .sc-body{display:flex;flex-direction:column;flex:1;}
+/* Filet fantôme sous DÉTAIL (31/07) : une carte moins haute que sa voisine de
+   rangée laissait la grille flotter au-dessus du bas de carte → son bord
+   inférieur traçait un trait en travers. La grille remplit désormais le corps
+   et c'est la rangée DÉTAIL (1fr) qui absorbe l'espace en plus. Le décor hero
+   (.phero-card, 3 rangées sans DÉTAIL) est exclu. */
+body.apple-view .sc-card:not(.phero-card) .sc-grid{flex:1;grid-template-rows:auto auto auto 1fr;}
+body.apple-view .sc-card:not(.phero-card) .sc-grid.has-prix{grid-template-rows:auto auto auto 1fr auto;}
 body.apple-view .sc-card .pcard-grp-add{background:#fff;border-top:none;margin-top:auto;}
 body.apple-view .sc-foot{padding:10px 12px 12px;}
 body.apple-view .sc-foot .btn-add-cart{width:100%;text-align:center;}
@@ -1757,8 +1764,8 @@ body.apple-view:not(.shared-view) #album-photo-btn:hover{border-color:#86868b;ba
 #offre-wrap{position:relative;display:flex;align-items:center;margin-right:8px;}
 #offre-btn .offre-arrow{font-size:12px;line-height:1;margin-left:2px;transition:transform .15s;}
 #offre-btn.open .offre-arrow{transform:rotate(180deg);}
-body.apple-view:not(.shared-view) #offre-btn,body.topbar-view #offre-btn{background:#fff;border:1.5px solid #FE0000;color:#FE0000;}
-body.apple-view:not(.shared-view) #offre-btn:hover,body.topbar-view #offre-btn:hover{background:rgba(254,0,0,.08);border-color:#FE0000;color:#FE0000;}
+body.apple-view:not(.shared-view) #offre-btn,body.topbar-view #offre-btn{background:#fff;border:1px solid #86868b;color:#1d1d1f;}
+body.apple-view:not(.shared-view) #offre-btn:hover,body.topbar-view #offre-btn:hover{background:#f5f5f7;border-color:#86868b;color:#1d1d1f;}
 body.shared-view #offre-wrap{display:none !important;}
 .offre-menu{position:absolute;top:calc(100% + 10px);right:0;background:#fff;border:1px solid #e8e8ed;border-radius:16px;box-shadow:0 16px 44px rgba(0,0,0,.16);padding:6px;min-width:270px;max-width:calc(100vw - 16px);display:none;z-index:3000;}
 .offre-menu.show{display:block;}
@@ -1893,8 +1900,8 @@ body.topbar-view .phero-brand{display:inline-flex;align-items:center;gap:8px;}
 body.topbar-view .phero-brand img{width:28px;height:28px;border-radius:999px;display:block;box-shadow:0 1px 4px rgba(0,0,0,.08);}
 body.topbar-view .phero-brand b{font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:17px;letter-spacing:.06em;color:#1d1d1f;}
 body.topbar-view .phero-brand em{font-style:normal;font-size:12.5px;font-weight:500;color:#6e6e73;}
-body.topbar-view .phero-send{width:44px;height:44px;border-radius:999px;border:0;background:#FE0000;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,transform .12s;padding:0;}
-body.topbar-view .phero-send:hover{background:#cc0000;transform:scale(1.05);}
+body.topbar-view .phero-send{width:44px;height:44px;border-radius:999px;border:0;background:#111;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,transform .12s;padding:0;}
+body.topbar-view .phero-send:hover{background:#333;transform:scale(1.05);}
 body.topbar-view .phero-send:active{transform:scale(.94);}
 body.topbar-view .phero-pills{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:20px;}
 body.topbar-view .phero-pill{border:0;border-radius:999px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.06);padding:10px 17px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:#1d1d1f;cursor:pointer;transition:background .15s,transform .1s;}
@@ -2012,7 +2019,7 @@ body.topbar-view .phero-panel-head{display:none !important;}
   body.topbar-view #cart-btn svg{display:none;}
   body.topbar-view #cart-btn .btn-panier-txt{display:inline !important;font-size:14px !important;font-weight:700 !important;color:#fff !important;}
   body.topbar-view #cart-btn .cart-badge{background:#FE0000;color:#fff;}
-  body.topbar-view #offre-btn{display:flex !important;height:34px;width:auto !important;padding:0 14px !important;background:#fff !important;border:1.5px solid #FE0000 !important;border-radius:999px !important;color:#FE0000 !important;}
+  body.topbar-view #offre-btn{display:flex !important;height:34px;width:auto !important;padding:0 14px !important;background:#fff !important;border:1px solid #86868b !important;border-radius:999px !important;color:#1d1d1f !important;}
   body.topbar-view #offre-btn .offre-txt{font-size:14px !important;font-weight:700 !important;}
   body.topbar-view #offre-wrap{margin-right:6px;}
   body.topbar-view .offre-menu{min-width:230px;}
@@ -2112,18 +2119,88 @@ body.apple-view .pcard-promo-overlay{-webkit-backdrop-filter:none;backdrop-filte
 .msd-slider-panel{padding:16px;max-height:none;overflow:visible;min-width:250px;}
 .gsl{display:flex;flex-direction:column;gap:13px;}
 .gsl-val{font-weight:700;font-size:15px;color:var(--ink);text-align:center;}
-.gsl-track{position:relative;height:26px;}
-.gsl-track::before{content:'';position:absolute;left:0;right:0;top:11px;height:4px;border-radius:99px;background:#e3e3e6;}
-.gsl-fill{position:absolute;top:11px;height:4px;border-radius:99px;background:#FE0000;}
+/* La piste capte le POINTEUR (drag maison, cf _buildGrammageSlider) ; les
+   inputs range sont purement visuels — Safari ignore pointer-events sur le
+   pseudo-élément thumb, ne jamais revenir aux 2 ranges superposés cliquables. */
+.gsl-track{position:relative;height:26px;cursor:pointer;touch-action:none;}
+.gsl-track::before{content:'';position:absolute;left:0;right:0;top:11.5px;height:3px;border-radius:99px;background:#e3e3e6;}
+.gsl-fill{position:absolute;top:11.5px;height:3px;border-radius:99px;background:#FE0000;pointer-events:none;}
 .gsl-track input[type=range]{position:absolute;inset:0;width:100%;height:26px;margin:0;background:none;
   pointer-events:none;-webkit-appearance:none;appearance:none;}
 .gsl-track input[type=range]::-webkit-slider-runnable-track{background:transparent;height:26px;}
-.gsl-track input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;pointer-events:auto;
-  width:22px;height:22px;margin-top:2px;border-radius:50%;background:#fff;border:2px solid #FE0000;
-  box-shadow:0 1px 6px rgba(0,0,0,.18);cursor:pointer;}
-.gsl-track input[type=range]::-moz-range-thumb{pointer-events:auto;width:20px;height:20px;border-radius:50%;
-  background:#fff;border:2px solid #FE0000;cursor:pointer;}
+.gsl-track input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;
+  width:19px;height:19px;margin-top:3.5px;border-radius:50%;background:#fff;border:none;
+  box-shadow:0 0 0 .5px rgba(0,0,0,.04),0 1px 3px rgba(0,0,0,.22),0 3px 8px rgba(0,0,0,.12);}
+.gsl-track input[type=range]::-moz-range-thumb{width:19px;height:19px;border-radius:50%;
+  background:#fff;border:none;box-shadow:0 1px 3px rgba(0,0,0,.22),0 3px 8px rgba(0,0,0,.12);}
 .gsl-bornes{display:flex;justify-content:space-between;font-size:11.5px;color:#86868b;margin-top:-7px;}
-.gsl-reset{border:1.5px solid #d2d2d7;background:#fff;border-radius:999px;padding:8px 12px;
-  font-family:'DM Sans',sans-serif;font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer;}
-.gsl-reset:hover{border-color:var(--ink);}
+/* Curseur CIE dans le menu Détails (même dessin, encart dans la liste) */
+.gsl-cie{padding:12px 14px 12px;gap:11px;border-bottom:1px solid #ececf0;}
+.gsl-cie .gsl-val{font-size:14px;}
+/* ── ESSAI ?bas=1 : pilule PRODIX en barre basse fixe, grille en landing ── */
+body.saisie-basse #px-dock{position:fixed;left:0;right:0;bottom:0;z-index:1500;
+  display:flex;justify-content:center;pointer-events:none;
+  padding:12px 12px calc(12px + env(safe-area-inset-bottom));}
+body.saisie-basse #px-dock .phero-box{width:min(720px,100%);margin:0;
+  pointer-events:auto;border:none;box-shadow:0 6px 26px rgba(0,0,0,.16);}
+body.saisie-basse #pgrid{padding-bottom:96px;}
+body.saisie-basse footer{padding-bottom:110px;}
+/* Tuiles qualités en landing (mêmes visuels que la vitrine) */
+body.saisie-basse #px-tuiles{display:grid;grid-template-columns:1fr 1fr;gap:14px;
+  max-width:1720px;margin:0 auto;padding:10px 14px 14px;}
+body.saisie-basse .px-tuile{position:relative;overflow:hidden;border-radius:22px;
+  cursor:pointer;height:clamp(250px,38vh,440px);background:#eee;}
+body.saisie-basse .px-tuile img{position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;transition:transform .5s ease;}
+body.saisie-basse .px-tuile:hover img{transform:scale(1.04);}
+body.saisie-basse .px-tuile-in{position:absolute;inset:0;z-index:2;display:flex;
+  flex-direction:column;align-items:center;gap:12px;
+  padding-top:clamp(26px,6vh,58px);}
+body.saisie-basse .px-tuile h2{margin:0;font-family:'Bebas Neue',sans-serif;
+  font-weight:400;font-size:clamp(38px,4.4vw,64px);line-height:1;
+  letter-spacing:.02em;color:#111;}
+body.saisie-basse .px-tuile.dark h2{color:#fff;text-shadow:0 2px 16px rgba(0,0,0,.3);}
+body.saisie-basse .px-tuile-btn{background:#fff;color:#111;border-radius:999px;
+  padding:9px 20px;font-weight:700;font-size:14.5px;
+  box-shadow:0 2px 12px rgba(0,0,0,.14);}
+/* Bandeau « autres qualités » sous les tuiles — même dessin que la vitrine */
+body.saisie-basse #px-band-wrap{max-width:1720px;margin:0 auto;padding:0 14px 130px;}
+body.saisie-basse .px-band{display:flex;gap:12px;overflow-x:auto;
+  scroll-snap-type:x mandatory;scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;padding:4px 0;}
+body.saisie-basse .px-band::-webkit-scrollbar{display:none;}
+body.saisie-basse .px-qcard{position:relative;flex:0 0 clamp(300px,36vw,500px);
+  aspect-ratio:2/1;overflow:hidden;scroll-snap-align:start;background:#000;
+  cursor:pointer;border-radius:22px;}
+body.saisie-basse .px-qcard img{position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;display:block;}
+body.saisie-basse .px-qcard::after{content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(0,0,0,0) 42%,rgba(0,0,0,.58) 100%);}
+body.saisie-basse .px-qcard-title{position:absolute;left:18px;bottom:12px;z-index:2;
+  color:#fff;font-family:'Bebas Neue',sans-serif;font-size:26px;
+  letter-spacing:1.2px;line-height:1;text-shadow:0 1px 10px rgba(0,0,0,.4);}
+body.saisie-basse .px-qcard-btn{position:absolute;right:12px;bottom:12px;z-index:2;
+  background:rgba(255,255,255,.95);color:#1d1d1f;border:none;border-radius:999px;
+  padding:9px 18px;font-family:'DM Sans',sans-serif;font-size:13.5px;
+  font-weight:600;cursor:pointer;}
+body.saisie-basse .px-qcard:hover .px-qcard-btn{background:#fff;}
+/* points de pagination : la pilule active se remplit (durée = _PER du JS) */
+body.saisie-basse .px-band-dots{display:flex;gap:14px;justify-content:center;
+  align-items:center;margin-top:16px;}
+body.saisie-basse .pxdot{width:10px;height:10px;border-radius:999px;border:none;
+  padding:0;background:#b6b6ba;cursor:pointer;position:relative;overflow:hidden;
+  transition:width .35s ease;}
+body.saisie-basse .pxdot.on{width:58px;background:#d2d2d6;}
+body.saisie-basse .pxdot.on::after{content:'';position:absolute;left:0;top:0;bottom:0;
+  width:10px;border-radius:999px;background:#1d1d1f;
+  animation:pxdotfill 5.5s linear forwards;}
+body.saisie-basse .pxdot.on.still{background:#1d1d1f;}
+body.saisie-basse .pxdot.on.still::after{animation:none;}
+@keyframes pxdotfill{to{width:100%;}}
+@media(max-width:768px){
+  body.saisie-basse #px-tuiles{grid-template-columns:1fr;gap:10px;padding:8px 10px 10px;}
+  body.saisie-basse .px-tuile{height:210px;}
+  body.saisie-basse .px-tuile h2{font-size:38px;}
+  body.saisie-basse .px-qcard{flex-basis:76vw;}
+  body.saisie-basse #px-band-wrap{padding:0 10px 120px;}
+}

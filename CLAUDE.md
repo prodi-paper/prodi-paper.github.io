@@ -704,6 +704,43 @@ Session de retouches à la demande d'Ethan, direction = répliquer apple.com :
 - Marges (DOV, PRIXACH vs PUNET, hors transport) : container 25 T moyen ≈ 10,9 %
   de marge brute (~2 240 €) ; RLUX ressort NÉGATIF (−0,5 %).
 
+## Session 31/07→02/08/2026 (v683, poussée 02/08)
+
+- **ESSAI `?bas=1`** (flag URL, catalogue normal intouché) : landing = TUILES
+  qualités façon vitrine (6 tuiles Offset/Kraft/Papier couché/Carton couché/
+  Papier créations/Autocopiant + bandeau déroulant 7 cartes boucle infinie,
+  points apple.com) ; clic = coche les codes famille dans msd-type et dévoile
+  la grille ; pilule PRODIX ancrée en BARRE BASSE fixe (#px-dock, sans fond ni
+  contour, clics traversants hors pilule). `_tuilesDismiss` aussi déclenché par
+  tout filtre posé à la main.
+- **Cartes étiquette : 2 cases par rangée = filets ALIGNÉS** — bobine =
+  Grammage+Laize (Ø/mandrin restent sur la FICHE, gabarit complet conservé),
+  format = Grammage+Dimensions (2+2, fiche alignée pareil). **Filet fantôme
+  sous DÉTAIL corrigé** : `.sc-grid{flex:1;grid-template-rows:auto auto auto
+  1fr}` (+`.has-prix`) — la rangée DÉTAIL absorbe la hauteur en plus quand une
+  voisine est plus haute (.phero-card exclue, 3 rangées).
+- **Curseur grammage** : drag au POINTEUR sur la piste (⚠️ Safari ignore
+  pointer-events sur le pseudo-élément thumb — ne jamais revenir aux 2 ranges
+  cliquables superposés), poignée la plus proche du doigt, touch-action:none.
+  **Bornes ADAPTATIVES** au stock filtré (`_gslAdapt` dans _refreshAllFacets,
+  percentiles 0,5/99,5 contre les gsm aberrants Sage jusqu'à 5000) ; la plage
+  gn/gx est EXCLUE du prédicat quand excludeKey='msd-grammage' (gate
+  dump_facets repassé : 0 diff). Design épuré façon iOS (ligne fine, poignées
+  blanches ombrées). Bouton reset supprimé.
+- **Détails : LISTE PLATE** (plus de sous-familles) triée par volume, SEUIL
+  `DETAILS_MIN_N=20` — en dessous le tag disparaît et « Autres / Sans
+  détails » le récupère (cocher Autres sélectionne AUSSI les petits tags via
+  `window._detRareTags` ; chip compressée « Autres / Sans détails »). CIE en
+  DOUBLE CURSEUR en tête du menu (mêmes tags msd-details, chip « CIE 130 →
+  170 », resynchro via updateMsdBtn).
+- **Couleurs** caché aussi À L'ARRIVÉE (`_coulInAdv=!some(_isCoul)`) — ne
+  revient dans la barre que pour Offset/Dossier Couleur/SCOL.
+- UI : bouton envoi PRODIX NOIR, « Offre » contour gris fin + texte noir
+  (comme les champs Réf), titre tuile Papier couché en blanc.
+- **02/08 INCIDENT SUPABASE** : projet restreint (402 partout) pour quota
+  storage dépassé — voir mémoire « Supabase credentials » (ménage photos
+  1 840→605 Mo via SQL mgmt + `set storage.allow_delete_query='true'`).
+
 ## Règles photos / images produit
 
 ### Priorité d'affichage (pour TOUS les produits)
