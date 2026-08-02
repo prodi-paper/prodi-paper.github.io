@@ -72,6 +72,8 @@ const attrJs = s => esc(JSON.stringify(String(s ?? '')));
 const numId = v => Number.isFinite(+v) ? +v : 0;
 const WA='33609997407';
 let all=[],cur=null;
+// ESSAI 31/07 : ?bas=1 = arrivée sur la GRILLE + pilule PRODIX en barre basse
+window._SAISIE_BASSE=/[?&]bas=1/.test(location.search);
 const PAGE=40; let currentPage=1,_totalCount=0,_reqToken=0,_lastCorrections=[],_isFirstLoad=true,_featuredMode=false;
 // ─── MODE REGROUPÉ ───
 // Groupe les unités physiques par (qualité+couleur+détails+gsm+laize+format).
@@ -1058,7 +1060,8 @@ function _buildGrammageSlider(msdId){
   if(!panel) return;
   panel.querySelectorAll('.msd-option,.msd-search-wrap').forEach(o=>o.remove());
   panel.classList.add('msd-slider-panel');
-  const LO=15,HI=850,PAS=5;
+  const PAS=5;
+  let LO=15,HI=850; // bornes ADAPTÉES au stock filtré (_gslSetBounds via _gslAdapt)
   const wrap=document.createElement('div');
   wrap.className='gsl';
   wrap.innerHTML=
@@ -1067,11 +1070,11 @@ function _buildGrammageSlider(msdId){
     '<input type="range" min="'+LO+'" max="'+HI+'" value="'+LO+'" step="'+PAS+'" data-role="min" aria-label="Grammage minimum">'+
     '<input type="range" min="'+LO+'" max="'+HI+'" value="'+HI+'" step="'+PAS+'" data-role="max" aria-label="Grammage maximum">'+
     '</div>'+
-    '<div class="gsl-bornes"><span>'+LO+' g</span><span>'+HI+' g</span></div>'+
-    '<button type="button" class="gsl-reset">Tous les grammages</button>';
+    '<div class="gsl-bornes"><span>'+LO+' g</span><span>'+HI+' g</span></div>';
   panel.appendChild(wrap);
   const iMin=wrap.querySelector('[data-role=min]'),iMax=wrap.querySelector('[data-role=max]');
   const fill=wrap.querySelector('.gsl-fill'),lbl=wrap.querySelector('.gsl-val');
+  const bornes=wrap.querySelectorAll('.gsl-bornes span');
   const gn=document.getElementById('f-gmin'),gx=document.getElementById('f-gmax');
   function paint(){
     let a=+iMin.value,b=+iMax.value;
@@ -1091,11 +1094,38 @@ function _buildGrammageSlider(msdId){
     _gslSyncAll();
     filterProducts();
   }
+  // Drag au POINTEUR sur la piste : Safari ignore pointer-events sur le
+  // pseudo-élément thumb → avec 2 ranges superposés la poignée gauche était
+  // imprenable. On choisit nous-mêmes la poignée la plus proche du doigt.
+  const track=wrap.querySelector('.gsl-track');
+  const fromX=x=>{
+    const r=track.getBoundingClientRect();
+    if(!r.width)return LO;
+    let v=LO+(x-r.left)/r.width*(HI-LO);
+    v=Math.round(v/PAS)*PAS;
+    return Math.min(HI,Math.max(LO,v));
+  };
+  let drag=null;
+  track.addEventListener('pointerdown',e=>{
+    e.preventDefault();
+    const v=fromX(e.clientX);
+    const dMin=Math.abs(v-+iMin.value),dMax=Math.abs(v-+iMax.value);
+    drag=(dMin<dMax||(dMin===dMax&&v<+iMin.value))?iMin:iMax;
+    drag.value=v;paint();
+    try{track.setPointerCapture(e.pointerId);}catch(_){}
+  });
+  track.addEventListener('pointermove',e=>{
+    if(!drag)return;
+    drag.value=fromX(e.clientX);paint();
+  });
+  const endDrag=()=>{if(!drag)return;drag=null;apply();};
+  track.addEventListener('pointerup',endDrag);
+  track.addEventListener('pointercancel',endDrag);
+  // clavier : les inputs restent focusables
   iMin.addEventListener('input',paint);
   iMax.addEventListener('input',paint);
   iMin.addEventListener('change',apply);
   iMax.addEventListener('change',apply);
-  wrap.querySelector('.gsl-reset').addEventListener('click',()=>{iMin.value=LO;iMax.value=HI;apply();});
   msd._gslSync=function(){
     const vn=+gn.value||0,vx=+gx.value||0;
     iMin.value=vn?Math.max(LO,Math.round(vn/PAS)*PAS):LO;
@@ -1104,7 +1134,46 @@ function _buildGrammageSlider(msdId){
     document.querySelectorAll('#sb-msd-grammage .msd-btn,#msd-grammage-mob .msd-btn')
       .forEach(bt=>bt.classList.toggle('has-sel',!!(vn||vx)));
   };
+  msd._gslSetBounds=function(lo,hi){
+    if(lo===LO&&hi===HI)return;
+    LO=lo;HI=hi;
+    iMin.min=LO;iMax.min=LO;iMin.max=HI;iMax.max=HI;
+    if(bornes[0])bornes[0].textContent=LO+' g';
+    if(bornes[1])bornes[1].textContent=HI+' g';
+    msd._gslSync();
+  };
   msd._gslSync();
+}
+// Bornes du curseur = min/max RÉELS du stock sous les filtres actifs (hors
+// plage grammage elle-même) — sinon 15–850 g rend la plage inutilisable dès
+// qu'une famille est choisie. Appelé à chaque rafraîchissement des facettes.
+function _gslAdapt(){
+  if(!_allProductsCache)return;
+  const gs=[];
+  for(const r of _allProductsCache){
+    const g=+r.gsm||0;
+    if(!g)continue;
+    if(!_matchesActiveFilters(r,'msd-grammage'))continue;
+    gs.push(g);
+  }
+  let lo,hi;
+  if(!gs.length){lo=15;hi=850;}
+  else{
+    // Écrêtage des ABERRANTS isolés (gsm Sage jusqu'à 5000) : on ne coupe le
+    // min/max réel que s'il est loin du percentile 0,5/99,5 — une poignée à
+    // la borne = aucune contrainte, ces articles restent donc sélectionnables.
+    gs.sort((a,b)=>a-b);
+    const q=t=>gs[Math.min(gs.length-1,Math.floor(t*gs.length))];
+    const p005=q(0.005),p995=q(0.995);
+    lo=(gs[0]<p005*0.75)?p005:gs[0];
+    hi=(gs[gs.length-1]>p995*1.25)?p995:gs[gs.length-1];
+  }
+  lo=Math.floor(lo/5)*5;hi=Math.ceil(hi/5)*5;
+  if(hi<=lo)hi=lo+5;
+  ['sb-msd-grammage','msd-grammage-mob'].forEach(id=>{
+    const m=document.getElementById(id);
+    if(m&&m._gslSetBounds)m._gslSetBounds(lo,hi);
+  });
 }
 const GRAMMAGE_AUTRES='__gsm_autres__';
 const _gsmLbl=g=>g+' g/m²';
@@ -1452,6 +1521,12 @@ function toggleMsdOption(el, id) {
 }
 
 function updateMsdBtn(id) {
+  // Resynchronise le curseur CIE quand la sélection Détails change ailleurs
+  // (chip ✕, reset) — le menu ne se reconstruit pas sur ce chemin-là.
+  if(id==='msd-details')['sb-msd-details','msd-details-mob'].forEach(cid=>{
+    const m=document.getElementById(cid);
+    if(m&&m._cieSync)m._cieSync();
+  });
   const set = msdState[id];
   const _disp = v => v===DETAILS_NONE ? 'Sans détails' : v===DETAILS_AUTRES ? 'Autres' : v;
   const btns = [
@@ -1598,6 +1673,7 @@ let _detailsCacheKick=false, _detailsLastSig=null;
 function _estFormat(p){const f=String(p&&p.format||'');return f!=='Bobine';}
 const DETAILS_NONE='__none__'; // sentinel for "no details" option
 const DETAILS_AUTRES='__autres__'; // sentinel « Autres » (détails non reconnus)
+const DETAILS_MIN_N=20; // seuil (31/07) : un détail n'est montré qu'à ≥ 20 articles
 // ── DÉTAILS CANONIQUES (16/07) : 1 272 libellés bruts → ~53 catégories. ──
 // Le champ details recopie souvent la désignation entière (avec doublons,
 // espaces, tirets) → le filtre listait des centaines d'entrées à 1 produit.
@@ -1821,8 +1897,12 @@ function _matchesActiveFilters(row, excludeKey){
     if(pds.size>0 && !pds.has(_poidsTrancheOf(row)||'')) return false;
   }
   const S=_fafState();
-  if(S.gn && +row.gsm<S.gn) return false;
-  if(S.gx && +row.gsm>S.gx) return false;
+  // La plage grammage (curseur) appartient au menu Grammages : on l'exclut
+  // quand on calcule ses propres bornes/facettes (_gslAdapt).
+  if(excludeKey!=='msd-grammage'){
+    if(S.gn && +row.gsm<S.gn) return false;
+    if(S.gx && +row.gsm>S.gx) return false;
+  }
   if(S.lminCm && +row.width<S.lminCm) return false;
   if(S.lmaxCm && +row.width>S.lmaxCm) return false;
   if(S.longmin && +row.longueur<S.longmin) return false;
@@ -1986,6 +2066,7 @@ function _refreshAllFacets(){
   _updateMsdFacetCounts('msd-usine');
   _updateMsdFacetCounts('msd-diametre');
   _updateMsdFacetCounts('msd-poids');
+  _gslAdapt();
 }
 function _detailsFiltersSig(){
   // Signature of all filters EXCEPT msd-details — used to skip rebuild
@@ -2069,23 +2150,25 @@ function _rebuildDetailsMsd(){
     if(v===DETAILS_NONE||v===DETAILS_AUTRES)return;
     if(!counts.has(v)) counts.set(v,{label:v,n:0});
   });
-  // DEUX NIVEAUX (18/07) : le panneau montre d'abord les FAMILLES du wizard
-  // (sous-détails), on en choisit une pour voir ses options. La recherche
-  // court-circuite en liste plate. _detGrpOpen = famille ouverte (module).
-  const rendered=new Set();
-  const groups=[];
-  DETAIL_GROUPES.forEach(g=>{
-    const present=g.tags.filter(t=>counts.has(t));
-    if(!present.length)return;
-    groups.push({titre:g.titre,entries:present.map(t=>counts.get(t))});
-    present.forEach(t=>rendered.add(t));
+  // LISTE PLATE (31/07, Ethan) : plus de sous-familles. Tous les détails triés
+  // par volume, avec un SEUIL DE 20 ARTICLES — en dessous le détail n'est pas
+  // montré et ses articles rejoignent « Autres / Sans détails » (cocher Autres
+  // sélectionne aussi ces petits tags : serveur et client suivent tout seuls).
+  const _estCieTag=l=>/^CIE \d+$/.test(l);
+  const cieEntries=[...counts.values()].filter(e=>_estCieTag(e.label));
+  const plats=[...counts.values()].filter(e=>!_estCieTag(e.label));
+  const visibles=plats.filter(e=>e.n>=DETAILS_MIN_N||sel.has(e.label)).sort((a,b)=>b.n-a.n);
+  window._detRareTags=new Set(plats.filter(e=>e.n<DETAILS_MIN_N&&!sel.has(e.label)).map(e=>e.label));
+  // Compteur d'Autres = ce que rend RÉELLEMENT le clic (sans détails + non
+  // reconnus + tout article portant au moins un petit tag) — comme les autres
+  // facettes, un article à 2 tags compte dans chacun.
+  let orphelinsN=0;
+  rows.forEach(r=>{
+    const raw=String(r.details||'').trim();
+    if(!raw)return;
+    const tags=_detailTagsOf(raw);
+    if(tags.length&&tags.some(t=>window._detRareTags.has(t)))orphelinsN++;
   });
-  const restants=[...counts.values()].filter(e=>!rendered.has(e.label)).sort((a,b)=>b.n-a.n);
-  if(restants.length){
-    const g3=groups.find(g=>g.titre==='Codes & qualités');
-    if(g3)g3.entries.push(...restants);else groups.push({titre:'Codes & qualités',entries:restants});
-  }
-  if(_detGrpOpen&&!groups.some(g=>g.titre===_detGrpOpen))_detGrpOpen=null;
   // Render the same option list into each container (sidebar + mobile drawer)
   containers.forEach(msd=>{
     const panel=msd.querySelector('.msd-panel');
@@ -2096,10 +2179,6 @@ function _rebuildDetailsMsd(){
     sw.innerHTML='<input class="msd-search-inp" type="text" placeholder="Rechercher…" autocomplete="off">';
     panel.appendChild(sw);
     sw.addEventListener('click',e=>e.stopPropagation());
-    const back=document.createElement('div');
-    back.className='msd-back-row';
-    back.innerHTML='<span class="msd-back-ar">‹</span><span class="msd-back-lbl"></span>';
-    panel.appendChild(back);
     const mkOpt=(val,label,n,extraCls,grp)=>{
       const opt=document.createElement('div');
       opt.className='msd-option'+(extraCls?' '+extraCls:'');
@@ -2111,25 +2190,90 @@ function _rebuildDetailsMsd(){
       opt.addEventListener('click',()=>toggleMsdOption(opt,'msd-details'));
       panel.appendChild(opt);
     };
-    groups.forEach(g=>{
-      const gr=document.createElement('div');
-      gr.className='msd-group-row';
-      const nsel=g.entries.filter(e=>sel.has(e.label)).length;
-      gr.innerHTML=`<span>${esc(g.titre)}</span><span class="mgr-right">${nsel?`<span class="mgr-nsel">${nsel}</span>`:''}<span class="mgr-arrow">›</span></span>`;
-      gr.addEventListener('click',e=>{e.stopPropagation();_detGrpOpen=g.titre;apply();});
-      panel.appendChild(gr);
-      g.entries.forEach(en=>mkOpt(en.label,en.label,en.n,null,g.titre));
-    });
-    // « Autres / Sans détails » : UNE seule entrée qui coche les deux (18/07).
-    if(autresN>0||emptyN>0||sel.has(DETAILS_AUTRES)||sel.has(DETAILS_NONE)){
+    // Blancheur CIE en DOUBLE CURSEUR (31/07, même délire que Grammages) :
+    // les cases « CIE 100…170 » deviennent une plage de 10 en 10 qui coche
+    // les mêmes tags msd-details (sémantique de filtre inchangée).
+    const _estCie=l=>/^CIE \d+$/.test(l);
+    const mkCieSlider=(entries,grp)=>{
+      const vals=entries.map(e=>+e.label.slice(4)).sort((a,b)=>a-b);
+      const LO=vals[0],HI=vals[vals.length-1],PAS=10,W=HI-LO||1;
+      const box=document.createElement('div');
+      box.className='gsl gsl-cie';
+      if(grp)box.dataset.grp=grp;
+      box.innerHTML='<div class="gsl-val"></div>'+
+        '<div class="gsl-track"><div class="gsl-fill"></div>'+
+        '<input type="range" min="'+LO+'" max="'+HI+'" step="'+PAS+'" value="'+LO+'" data-role="min" aria-label="Blancheur CIE minimum">'+
+        '<input type="range" min="'+LO+'" max="'+HI+'" step="'+PAS+'" value="'+HI+'" data-role="max" aria-label="Blancheur CIE maximum">'+
+        '</div><div class="gsl-bornes"><span>CIE '+LO+'</span><span>CIE '+HI+'</span></div>';
+      panel.appendChild(box);
+      const iMin=box.querySelector('[data-role=min]'),iMax=box.querySelector('[data-role=max]');
+      const fill=box.querySelector('.gsl-fill'),lbl=box.querySelector('.gsl-val');
+      const paintCie=()=>{
+        let a=+iMin.value,b=+iMax.value;
+        if(a>b){const t=a;a=b;b=t;}
+        fill.style.left=((a-LO)/W*100)+'%';
+        fill.style.right=(100-(b-LO)/W*100)+'%';
+        const plein=(a<=LO&&b>=HI);
+        lbl.textContent=plein?'Toutes les blancheurs':'CIE '+a+' – '+b;
+        return {a,b,plein};
+      };
+      const applyCie=()=>{
+        const r=paintCie();
+        [...sel].forEach(v=>{if(_estCie(v))sel.delete(v);});
+        if(!r.plein)vals.forEach(v=>{if(v>=r.a&&v<=r.b)sel.add('CIE '+v);});
+        updateMsdBtn('msd-details');
+        filterProducts();
+      };
+      const track=box.querySelector('.gsl-track');
+      const fromX=x=>{
+        const rc=track.getBoundingClientRect();
+        if(!rc.width)return LO;
+        let v=LO+(x-rc.left)/rc.width*(HI-LO);
+        v=Math.round(v/PAS)*PAS;
+        return Math.min(HI,Math.max(LO,v));
+      };
+      let drag=null;
+      track.addEventListener('pointerdown',e=>{
+        e.preventDefault();e.stopPropagation();
+        const v=fromX(e.clientX);
+        const dMin=Math.abs(v-+iMin.value),dMax=Math.abs(v-+iMax.value);
+        drag=(dMin<dMax||(dMin===dMax&&v<+iMin.value))?iMin:iMax;
+        drag.value=v;paintCie();
+        try{track.setPointerCapture(e.pointerId);}catch(_){}
+      });
+      track.addEventListener('pointermove',e=>{if(!drag)return;drag.value=fromX(e.clientX);paintCie();});
+      const endCie=()=>{if(!drag)return;drag=null;applyCie();};
+      track.addEventListener('pointerup',endCie);
+      track.addEventListener('pointercancel',endCie);
+      box.addEventListener('click',e=>e.stopPropagation());
+      msd._cieSync=()=>{
+        const cur=[...sel].filter(_estCie).map(v=>+v.slice(4)).filter(v=>v>=LO&&v<=HI);
+        iMin.value=cur.length?Math.min(...cur):LO;
+        iMax.value=cur.length?Math.max(...cur):HI;
+        paintCie();
+      };
+      msd._cieSync();
+    };
+    // Curseur CIE en tête, puis la LISTE PLATE triée par volume
+    if(cieEntries.length>=2)mkCieSlider(cieEntries,null);
+    else cieEntries.forEach(en=>mkOpt(en.label,en.label,en.n,null,null));
+    visibles.forEach(en=>mkOpt(en.label,en.label,en.n,null,null));
+    // « Autres / Sans détails » : coche les deux sentinelles ET les petits
+    // tags sous le seuil (leurs articles restent donc trouvables ici).
+    if(autresN>0||emptyN>0||orphelinsN>0||sel.has(DETAILS_AUTRES)||sel.has(DETAILS_NONE)){
       const on=sel.has(DETAILS_AUTRES)||sel.has(DETAILS_NONE);
       const opt=document.createElement('div');
       opt.className='msd-option msd-option-none'+(on?' selected':'');
-      opt.innerHTML=`<div class="msd-check"><svg width="9" height="7" fill="none" stroke="#fff" stroke-width="2.5"><polyline points="1,4 3.5,6.5 8,1"/></svg></div><span class="msd-label">Autres / Sans détails</span><span class="msd-count-inline">${autresN+emptyN}</span>`;
+      opt.innerHTML=`<div class="msd-check"><svg width="9" height="7" fill="none" stroke="#fff" stroke-width="2.5"><polyline points="1,4 3.5,6.5 8,1"/></svg></div><span class="msd-label">Autres / Sans détails</span><span class="msd-count-inline">${autresN+emptyN+orphelinsN}</span>`;
       opt.addEventListener('click',()=>{
         const cur=sel.has(DETAILS_AUTRES)||sel.has(DETAILS_NONE);
-        if(cur){sel.delete(DETAILS_AUTRES);sel.delete(DETAILS_NONE);}
-        else{sel.add(DETAILS_AUTRES);sel.add(DETAILS_NONE);}
+        if(cur){
+          sel.delete(DETAILS_AUTRES);sel.delete(DETAILS_NONE);
+          if(window._detRareTags)window._detRareTags.forEach(t=>sel.delete(t));
+        }else{
+          sel.add(DETAILS_AUTRES);sel.add(DETAILS_NONE);
+          if(window._detRareTags)window._detRareTags.forEach(t=>sel.add(t));
+        }
         opt.classList.toggle('selected',!cur);
         updateMsdBtn('msd-details');
         filterProducts();
@@ -2138,31 +2282,16 @@ function _rebuildDetailsMsd(){
     }
     const apply=()=>{
       const query=(sw.querySelector('.msd-search-inp').value||'').trim().toLowerCase();
-      const opts=[...panel.querySelectorAll('.msd-option')];
-      const grows=[...panel.querySelectorAll('.msd-group-row')];
-      if(query){
-        back.style.display='none';
-        grows.forEach(g=>g.style.display='none');
-        opts.forEach(o=>{o.style.display=o.textContent.toLowerCase().includes(query)?'':'none';});
-      }else if(_detGrpOpen){
-        back.style.display='flex';
-        back.querySelector('.msd-back-lbl').textContent=_detGrpOpen;
-        grows.forEach(g=>g.style.display='none');
-        opts.forEach(o=>{o.style.display=(o.dataset.grp===_detGrpOpen)?'':'none';});
-      }else{
-        back.style.display='none';
-        grows.forEach(g=>g.style.display='');
-        opts.forEach(o=>{o.style.display=o.dataset.grp?'none':'';});
-      }
+      [...panel.querySelectorAll('.msd-option')].forEach(o=>{o.style.display=!query||o.textContent.toLowerCase().includes(query)?'':'none';});
+      [...panel.querySelectorAll('.gsl-cie')].forEach(s=>{s.style.display=!query||/ci|blanc/.test(query)?'':'none';});
     };
-    back.addEventListener('click',e=>{e.stopPropagation();_detGrpOpen=null;apply();});
     sw.querySelector('.msd-search-inp').addEventListener('input',apply);
     msd._applyL2=apply;
     const btn=msd.querySelector('.msd-btn');
     if(btn&&!btn._l2hook){
       btn._l2hook=true;
-      // Chaque ouverture repart des familles, recherche vidée
-      btn.addEventListener('click',()=>{_detGrpOpen=null;const i=msd.querySelector('.msd-search-inp');if(i)i.value='';msd._applyL2&&msd._applyL2();});
+      // Chaque ouverture : recherche vidée
+      btn.addEventListener('click',()=>{const i=msd.querySelector('.msd-search-inp');if(i)i.value='';msd._applyL2&&msd._applyL2();});
     }
     apply();
   });
@@ -2791,17 +2920,20 @@ function _anyFilterActive(){
 function filterProducts(){
   // Tous les filtres enlevés (et tri jamais touché) → retour à la PAGE DE
   // BASE (vitrine des arrivages récents), pas au catalogue trié brut (18/07).
-  _featuredMode=!_sortTouched&&!_anyFilterActive();
+  _featuredMode=!_sortTouched&&!_anyFilterActive()&&!window._SAISIE_BASSE;
+  // ?bas=1 : un filtre posé depuis la barre dévoile la grille (tuiles retirées)
+  if(window._SAISIE_BASSE&&!window._tuilesDone&&window._tuilesDismiss&&_anyFilterActive())window._tuilesDismiss();
   const _h=document.getElementById('prodix-hero');
   if(_h){
-    _h.style.display=_featuredMode?'':'none';
+    _h.style.display=(_featuredMode||_h.classList.contains('phero-convo'))?'':'none';
     document.body.classList.toggle('phero-lock',_featuredMode&&_h.classList.contains('phero-convo'));
     // Landing = hero seul : la grille ET le footer n'apparaissent qu'en
     // mode recherche/filtre
+    const _tuilesUp=window._SAISIE_BASSE&&!window._tuilesDone;
     const _pg2=document.getElementById('pgrid');
-    if(_pg2)_pg2.style.display=_featuredMode?'none':'';
+    if(_pg2)_pg2.style.display=(_featuredMode||_tuilesUp)?'none':'';
     const _ft=document.querySelector('footer');
-    if(_ft)_ft.style.display=_featuredMode?'none':'';
+    if(_ft)_ft.style.display=(_featuredMode||_tuilesUp)?'none':'';
   }
   clearTimeout(_filterTimer);
   _filterTimer=setTimeout(_doFilter,200);
@@ -3490,7 +3622,22 @@ function updateFilterChips(){
     const set=msdState[id];
     if(set.size>0){
       const lbl={'msd-type':'Type','msd-mandrin':'Mandrin','msd-couleur':'Couleur','msd-details':'Détails','msd-format':'Dimensions','msd-grammage':'Grammage','msd-laize':'Laize','msd-usine':'Usine','msd-diametre':'Ø','msd-poids':'Poids'}[id];
-      const vals=[...set].map(v=>v===DETAILS_NONE?'Sans détails':v===DETAILS_AUTRES?'Autres':v===FORMAT_AUTRES?'Autres formats':v===GRAMMAGE_AUTRES?'Autres grammages':v===LAIZE_AUTRES?'Autres laizes':v===DIAM_AUTRES?'Autres Ø':v).join(', ');
+      // La plage du curseur CIE s'affiche compressée (« CIE 120 → 160 ») ;
+      // les petits tags embarqués par « Autres » restent implicites, et les
+      // deux sentinelles fusionnent en une seule mention.
+      let items=[...set];
+      if(id==='msd-details'){
+        const cieN=items.filter(v=>/^CIE \d+$/.test(v)).map(v=>+v.slice(4));
+        if(cieN.length>1){
+          items=items.filter(v=>!/^CIE \d+$/.test(v));
+          items.unshift('CIE '+Math.min(...cieN)+' → '+Math.max(...cieN));
+        }
+        if(set.has(DETAILS_AUTRES)&&window._detRareTags)
+          items=items.filter(v=>!window._detRareTags.has(v));
+        if(set.has(DETAILS_AUTRES)&&set.has(DETAILS_NONE))
+          items=items.filter(v=>v!==DETAILS_NONE).map(v=>v===DETAILS_AUTRES?'Autres / Sans détails':v);
+      }
+      const vals=items.map(v=>v===DETAILS_NONE?'Sans détails':v===DETAILS_AUTRES?'Autres':v===FORMAT_AUTRES?'Autres formats':v===GRAMMAGE_AUTRES?'Autres grammages':v===LAIZE_AUTRES?'Autres laizes':v===DIAM_AUTRES?'Autres Ø':v).join(', ');
       chips.push({key:id,label:lbl+' : '+vals,clear:()=>{resetMsd(id);filterProducts();}});
     }
   });
@@ -3726,13 +3873,13 @@ function _renderCatalogueCard(p){
     if(document.body.classList.contains('apple-view')){
       const cell=(cap,val,span,cls)=>`<div class="sc-cell${cls?' '+cls:''}"${span?' style="grid-column:span '+span+';"':''}><div class="sc-cap">${cap}</div><div class="sc-val">${val}</div></div>`;
       let cells='';
-      cells+=cell('GRAMMAGE',p.grammage?esc(p.grammage)+' <small>g/m²</small>':'—');
+      // Cartes : 2 cases par rangée = filets verticaux ALIGNÉS (31/07).
+      // Bobine = Grammage + Laize ; Ø et mandrin restent sur la fiche.
+      cells+=cell('GRAMMAGE',p.grammage?esc(p.grammage)+' <small>g/m²</small>':'—',2);
       if(isPalette){
-        cells+=cell('DIMENSIONS',p.largeur&&p.longueur?esc(mmToCm(Math.min(p.largeur,p.longueur))+' × '+mmToCm(Math.max(p.largeur,p.longueur)))+' <small>mm</small>':(p.largeur?esc(mmToCm(p.largeur))+' <small>mm</small>':'—'),3);
+        cells+=cell('DIMENSIONS',p.largeur&&p.longueur?esc(mmToCm(Math.min(p.largeur,p.longueur))+' × '+mmToCm(Math.max(p.largeur,p.longueur)))+' <small>mm</small>':(p.largeur?esc(mmToCm(p.largeur))+' <small>mm</small>':'—'),2);
       }else{
-        cells+=cell('LAIZE',p.largeur?esc(mmToCm(p.largeur))+' <small>mm</small>':'—');
-        cells+=cell('DIAMÈTRE',p.longueur?esc(mmToCm(p.longueur))+' <small>mm</small>':'—');
-        cells+=cell('MANDRIN',_isGroup&&p._grpMandrins&&p._grpMandrins.length>1?esc(p._grpMandrins.join(' / '))+' <small>mm</small>':(p.noyau?esc(p.noyau)+' <small>mm</small>':'—'));
+        cells+=cell('LAIZE',p.largeur?esc(mmToCm(p.largeur))+' <small>mm</small>':'—',2);
       }
       cells+=cell('COULEUR',esc(p.couleur||'—'),2);
       const _wv=_isGroup?_grpTotal:p.poids_net;
@@ -3752,7 +3899,7 @@ function _renderCatalogueCard(p){
           ${_isGroup?`<span class="sc-count">× ${numId(p._grpCount)}</span>`:''}
         </div>
         <div class="sc-body">
-          <div class="sc-grid">
+          <div class="sc-grid${prixCell?' has-prix':''}">
             <div class="sc-cell sc-title" style="grid-column:span 4;">${esc(formatProductTitle(p.qualite,p.type))}</div>
             ${cells}${prixCell}
           </div>
@@ -3959,13 +4106,11 @@ function renderSharedCards(list){
     const isPal=_estFormat(p);
     const _det=p.details?p.details.replace(/[-–—\s]+/g,' ').trim():'';
     let cells='';
-    cells+=cell('GRAMMAGE',p.grammage?esc(p.grammage)+' <small>g/m²</small>':'—');
+    cells+=cell('GRAMMAGE',p.grammage?esc(p.grammage)+' <small>g/m²</small>':'—',2);
     if(isPal){
-      cells+=cell('DIMENSIONS',p.largeur&&p.longueur?esc(mmToCm(Math.min(p.largeur,p.longueur))+' × '+mmToCm(Math.max(p.largeur,p.longueur)))+' <small>mm</small>':(p.largeur?esc(mmToCm(p.largeur))+' <small>mm</small>':'—'),3);
+      cells+=cell('DIMENSIONS',p.largeur&&p.longueur?esc(mmToCm(Math.min(p.largeur,p.longueur))+' × '+mmToCm(Math.max(p.largeur,p.longueur)))+' <small>mm</small>':(p.largeur?esc(mmToCm(p.largeur))+' <small>mm</small>':'—'),2);
     }else{
-      cells+=cell('LAIZE',p.largeur?esc(mmToCm(p.largeur))+' <small>mm</small>':'—');
-      cells+=cell('DIAMÈTRE',p.longueur?esc(mmToCm(p.longueur))+' <small>mm</small>':'—');
-      cells+=cell('MANDRIN',p.noyau?esc(p.noyau)+' <small>mm</small>':'—');
+      cells+=cell('LAIZE',p.largeur?esc(mmToCm(p.largeur))+' <small>mm</small>':'—',2);
     }
     cells+=cell('COULEUR',esc(p.couleur||'—'),2);
     const _w=p._grpTotalWeight||p.poids_net;
@@ -3977,7 +4122,7 @@ function renderSharedCards(list){
         ${p._grpCount>1?`<span class="sc-count">× ${numId(p._grpCount)}</span>`:''}
       </div>
       <div class="sc-body">
-        <div class="sc-grid">
+        <div class="sc-grid${prix?' has-prix':''}">
           <div class="sc-cell sc-title" style="grid-column:span 4;">${esc(title)}</div>
           ${cells}${prix}
         </div>
@@ -4127,9 +4272,9 @@ async function openDetail(id){
     // dans un bloc secondaire discret.
     const isPal=_estFormat(p);
     const et=[];
-    et.push({lbl:'Grammage',val:p.grammage?esc(p.grammage)+' <small>g/m²</small>':'—'});
+    et.push({lbl:'Grammage',val:p.grammage?esc(p.grammage)+' <small>g/m²</small>':'—',span:isPal?2:0});
     if(isPal){
-      et.push({lbl:'Dimensions',val:p.largeur&&p.longueur?esc(mmToCm(Math.min(p.largeur,p.longueur))+' × '+mmToCm(Math.max(p.largeur,p.longueur)))+' <small>mm</small>':(p.largeur?esc(mmToCm(p.largeur))+' <small>mm</small>':'—'),span:3});
+      et.push({lbl:'Dimensions',val:p.largeur&&p.longueur?esc(mmToCm(Math.min(p.largeur,p.longueur))+' × '+mmToCm(Math.max(p.largeur,p.longueur)))+' <small>mm</small>':(p.largeur?esc(mmToCm(p.largeur))+' <small>mm</small>':'—'),span:2});
     }else{
       et.push({lbl:'Laize',val:p.largeur?esc(mmToCm(p.largeur))+' <small>mm</small>':'—'});
       et.push({lbl:'Diamètre',val:p.longueur?esc(mmToCm(p.longueur))+' <small>mm</small>':'—'});
@@ -5437,6 +5582,120 @@ if(_sharedMode)_sharedViewUI(true);
         if(_pgInit)_pgInit.style.display='none';
         const _ftInit=document.querySelector('footer');
         if(_ftInit)_ftInit.style.display='none';
+        // ── ESSAI ?bas=1 : tuiles qualités en landing (mêmes familles que la
+        // vitrine), pilule ancrée en barre basse fixe (#px-dock) ; un clic sur
+        // une tuile filtre la famille et dévoile la grille ; le hero ne sert
+        // plus que de panneau de convo ──
+        if(window._SAISIE_BASSE){
+          document.body.classList.add('saisie-basse');
+          const dock=document.createElement('div');
+          dock.id='px-dock';
+          document.body.appendChild(dock);
+          dock.appendChild(hero.querySelector('.phero-box'));
+          hero.style.display='none';
+          const _U='https://images.unsplash.com/',_P='?q=65&auto=format&fit=crop&w=1100';
+          const _TU=[
+            {codes:['ROFF','SOFF'],title:'Offset',img:_U+'flagged/photo-1562221054-cdc9dc299068'+_P,pos:'center 60%',dark:false},
+            {codes:['RKRA','RKRABRUN','SKRA'],title:'Kraft',img:_U+'photo-1777566131325-78f6e12c50b7'+'?q=60&auto=format&fit=crop&w=900',pos:'center 50%',dark:true},
+            {codes:['R2SC','S2SC'],title:'Papier couché',img:_U+'photo-1515891396453-6d7e56096a39'+_P,pos:'center 55%',dark:true},
+            {codes:['RBOA','SBOA'],title:'Carton couché',img:_U+'photo-1595246135406-803418233494'+_P,pos:'center 55%',dark:true},
+            {codes:['RLUX','SLUX'],title:'Papier créations',img:_U+'photo-1586207036106-90aae2456ccb'+_P,pos:'center 50%',dark:true},
+            {codes:['RCAR','SCAR'],title:'Autocopiant',img:_U+'photo-1579808324991-cecc784498cc'+_P,pos:'center 55%',dark:true},
+          ];
+          const tw=document.createElement('div');
+          tw.id='px-tuiles';
+          tw.innerHTML=_TU.map((t,i)=>`
+            <div class="px-tuile${t.dark?' dark':''}" onclick="_tuileGo(${i})">
+              <img src="${t.img}" alt="${esc(t.title)}"${i>3?' loading="lazy"':''} style="object-position:${t.pos}">
+              <div class="px-tuile-in">
+                <h2>${esc(t.title)}</h2>
+                <span class="px-tuile-btn">Voir le stock</span>
+              </div>
+            </div>`).join('');
+          // Bandeau « autres qualités » sous les tuiles — même dessin et même
+          // mécanique que la vitrine (boucle infinie 3 copies, points façon
+          // apple.com qui se remplissent, avance auto)
+          const _BAND=[
+            {codes:['Offset Couleur'],title:'Offset couleur',img:_U+'photo-1716471330459-063b3baf247e'+_P},
+            {codes:['RBOU','SBOU'],title:'Bouffant',img:_U+'photo-1457369804613-52c61a468e7d'+_P},
+            {codes:['RADH','SADH'],title:'Adhésif',img:_U+'photo-1569725730478-a2f4a1809bb4'+_P},
+            {codes:['SCUT'],title:'Ramette',img:_U+'photo-1573978828027-e830975e272c'+_P},
+            {codes:['RLINER'],title:'Liner / Testliner',img:_U+'photo-1640193698858-31565d448f90'+_P},
+            {codes:['RFLEX'],title:'Complexe / PE',img:_U+'photo-1677586883848-695b3ad692b4'+_P},
+            {codes:[],title:'Voir tout le stock',img:_U+'photo-1719529216596-d7c76431ee0d'+_P,more:true},
+          ];
+          const bw=document.createElement('div');
+          bw.id='px-band-wrap';
+          const _bandHtml=_BAND.map((c,j)=>c.more?`
+            <div class="px-qcard" onclick="_bandGo(${j})">
+              <img src="${c.img}" alt="${esc(c.title)}" loading="lazy">
+              <button class="px-qcard-btn" type="button" onclick="event.stopPropagation();_bandGo(${j})">Voir tout le stock →</button>
+            </div>`:`
+            <div class="px-qcard" onclick="_bandGo(${j})">
+              <img src="${c.img}" alt="${esc(c.title)}" loading="lazy">
+              <span class="px-qcard-title">${esc(c.title)}</span>
+              <button class="px-qcard-btn" type="button" onclick="event.stopPropagation();_bandGo(${j})">Voir le stock</button>
+            </div>`).join('');
+          bw.innerHTML=`<div class="px-band" id="px-band">${_bandHtml+_bandHtml+_bandHtml}</div><div class="px-band-dots" id="px-band-dots"></div>`;
+          const landing=document.createElement('div');
+          landing.id='px-landing';
+          landing.appendChild(tw);
+          landing.appendChild(bw);
+          _contentCol.insertBefore(landing,hero.nextSibling);
+          const _rail=bw.querySelector('#px-band'),_bdots=bw.querySelector('#px-band-dots');
+          const _NB=_BAND.length,_PER=5500;
+          const _bStep=()=>{const c=_rail.firstElementChild;return c?c.getBoundingClientRect().width+12:512;};
+          const _bSetW=()=>_NB*_bStep();
+          const _bRecentre=()=>{const w=_bSetW(),x=_rail.scrollLeft;if(!w)return;if(x<w*0.5)_rail.scrollLeft=x+w;else if(x>=w*1.5)_rail.scrollLeft=x-w;};
+          _rail.scrollLeft=_bSetW();
+          _rail.addEventListener('scroll',_bRecentre,{passive:true});
+          window.addEventListener('resize',_bRecentre);
+          const _bCur=()=>((Math.round(_rail.scrollLeft/_bStep())%_NB)+_NB)%_NB;
+          const _bStill=matchMedia('(prefers-reduced-motion: reduce)').matches;
+          let _bTmr=null,_bOn=false,_bLast=-1;
+          const _bDotsPaint=()=>{const i=_bCur();_bdots.innerHTML=_BAND.map((c,j)=>`<button class="pxdot${j===i?' on':''}${_bStill?' still':''}" aria-label="${esc(c.title)}" onclick="_bandDot(${j})"></button>`).join('');};
+          const _bArm=()=>{
+            if(_bStill)return;
+            clearTimeout(_bTmr);
+            _bTmr=setTimeout(()=>{
+              if(!document.body.contains(_rail))return;
+              if(_bOn&&document.visibilityState==='visible')_rail.scrollBy({left:_bStep(),behavior:'smooth'});
+              else _bArm();
+            },_PER);
+          };
+          window._bandDot=j=>{const d=((j-_bCur())%_NB+_NB)%_NB;_rail.scrollBy({left:(d>_NB/2?d-_NB:d)*_bStep(),behavior:'smooth'});};
+          _rail.addEventListener('scroll',()=>{const i=_bCur();if(i!==_bLast){_bLast=i;_bDotsPaint();_bArm();}},{passive:true});
+          _rail.addEventListener('pointerdown',()=>clearTimeout(_bTmr));
+          _rail.addEventListener('pointerup',_bArm);
+          document.addEventListener('visibilitychange',()=>{if(!document.body.contains(_rail))return;if(document.visibilityState==='visible'){_bDotsPaint();_bArm();}else clearTimeout(_bTmr);});
+          new IntersectionObserver(es=>{_bOn=es[0].isIntersecting;if(_bOn){_bDotsPaint();_bArm();}else clearTimeout(_bTmr);},{threshold:.3}).observe(_rail);
+          _bLast=_bCur();_bDotsPaint();_bArm();
+          window._tuilesDismiss=()=>{
+            if(window._tuilesDone)return;
+            window._tuilesDone=true;
+            clearTimeout(_bTmr);
+            landing.remove();
+            const pg=document.getElementById('pgrid');if(pg)pg.style.display='';
+            const ft=document.querySelector('footer');if(ft)ft.style.display='';
+          };
+          const _famSel=(t)=>{
+            window.prodiTrack?.('tuile_catalogue',{q:t.codes[0]||'tout'});
+            window._tuilesDismiss();
+            const _cs=(typeof CSS!=='undefined'&&CSS.escape)?CSS.escape:(s=>String(s).replace(/[^a-zA-Z0-9_-]/g,'\\$&'));
+            t.codes.forEach(c=>{
+              msdState['msd-type'].add(c);
+              document.querySelectorAll(`.msd-option[data-val="${_cs(c)}"]`).forEach(o=>{
+                if(!o.closest('#msd-type,#msd-type-mob,#sb-msd-type'))return;
+                o.classList.add('selected');
+              });
+            });
+            if(t.codes.length){updateMsdBtn('msd-type');updateFilterVisibility();}
+            window.scrollTo(0,0);
+            filterProducts();
+          };
+          window._tuileGo=(i)=>{const t=_TU[i];if(t)_famSel(t);};
+          window._bandGo=(i)=>{const t=_BAND[i];if(t)_famSel(t);};
+        }
         // Historique des offres : chips « Reprendre » sous la pilule (18/07)
         window._heroHistPaint=()=>{
           const el=document.getElementById('phero-hist');
@@ -5524,6 +5783,7 @@ if(_sharedMode)_sharedViewUI(true);
           const heroEl=document.getElementById('prodix-hero');
           if(!heroEl||heroEl.classList.contains('phero-convo'))return;
           heroEl.classList.add('phero-convo');
+          if(window._SAISIE_BASSE){heroEl.style.display='';window.scrollTo(0,0);}
           document.body.classList.add('phero-lock'); // page FIXE : seul le fil scrolle
           const lg=document.querySelector('.phero-logo');
           const bx=document.querySelector('.phero-box');
@@ -5558,7 +5818,16 @@ if(_sharedMode)_sharedViewUI(true);
           document.body.classList.remove('phero-lock');
           const _pnl=document.getElementById('phero-panel');
           _pnl.style.display='none';_pnl.classList.remove('phero-panel-in');
-          document.querySelector('.phero-inner').appendChild(document.querySelector('.phero-box'));
+          {
+            const _bxBack=document.querySelector('.phero-box');
+            if(window._SAISIE_BASSE){
+              document.getElementById('px-dock')?.appendChild(_bxBack);
+              const _h2=document.getElementById('prodix-hero');
+              if(_h2)_h2.style.display='none';
+            } else {
+              document.querySelector('.phero-inner').appendChild(_bxBack);
+            }
+          }
           const lg=document.querySelector('.phero-logo');if(lg)lg.style.display='';
           const hist=document.getElementById('phero-hist');if(hist)hist.style.display='';
           window._heroHistPaint&&window._heroHistPaint();
@@ -5573,13 +5842,11 @@ if(_sharedMode)_sharedViewUI(true);
             const cell=(cap,val,span)=>`<div class="sc-cell"${span?` style="grid-column:span ${span};"`:''}><div class="sc-cap">${cap}</div><div class="sc-val">${val}</div></div>`;
             const isPal=_estFormat(p);
             let cells='';
-            cells+=cell('GRAMMAGE',p.grammage?esc(p.grammage)+' <small>g/m²</small>':'—');
+            cells+=cell('GRAMMAGE',p.grammage?esc(p.grammage)+' <small>g/m²</small>':'—',2);
             if(isPal){
-              cells+=cell('DIMENSIONS',p.largeur&&p.longueur?esc(mmToCm(Math.min(p.largeur,p.longueur))+' × '+mmToCm(Math.max(p.largeur,p.longueur)))+' <small>mm</small>':(p.largeur?esc(mmToCm(p.largeur))+' <small>mm</small>':'—'),3);
+              cells+=cell('DIMENSIONS',p.largeur&&p.longueur?esc(mmToCm(Math.min(p.largeur,p.longueur))+' × '+mmToCm(Math.max(p.largeur,p.longueur)))+' <small>mm</small>':(p.largeur?esc(mmToCm(p.largeur))+' <small>mm</small>':'—'),2);
             }else{
-              cells+=cell('LAIZE',p.largeur?esc(mmToCm(p.largeur))+' <small>mm</small>':'—');
-              cells+=cell('DIAMÈTRE',p.longueur?esc(mmToCm(p.longueur))+' <small>mm</small>':'—');
-              cells+=cell('MANDRIN',p.noyau?esc(p.noyau)+' <small>mm</small>':'—');
+              cells+=cell('LAIZE',p.largeur?esc(mmToCm(p.largeur))+' <small>mm</small>':'—',2);
             }
             cells+=cell('COULEUR',esc(p.couleur||'—'),2);
             cells+=cell('POIDS NET',p.poids_net?esc(Math.round(p.poids_net).toLocaleString('fr-FR'))+' <small>kgs</small>':'—',2);
@@ -6144,9 +6411,10 @@ function updateFilterVisibility(){
   // 21/07 (Ethan) : le menu COULEURS ne reste dans la barre que pour les 3
   // familles couleur (RCOL offset/dossier, SCOL) — sinon il vit dans Filtres
   // avancés (colorer un offset blanc = cas rare, la barre respire).
+  // 31/07 (Ethan) : caché aussi À L'ARRIVÉE (aucun type choisi).
   const _isCoul=v=>v==='Offset Couleur'||v==='Dossier Couleur'||v==='SCOL';
   const _coulBefore=!!window._coulInAdv;
-  window._coulInAdv=_selTypes.length>0&&!_selTypes.some(_isCoul);
+  window._coulInAdv=!_selTypes.some(_isCoul);
   const _coulWrap=document.getElementById('sb-msd-couleur')?.parentElement;
   if(_coulWrap)_coulWrap.style.display=window._coulInAdv?'none':'';
   if(_dimsBefore!==window._dimsInAdv||_coulBefore!==window._coulInAdv)window._paintAdv&&window._paintAdv();
