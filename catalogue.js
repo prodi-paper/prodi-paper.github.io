@@ -308,7 +308,7 @@ async function _loadAllProducts(){
     // CACHE JOURNALIER (perf 19/07) : le stock ne change qu'à l'import du
     // matin — 3,4 Mo de JSON économisés à chaque visite suivante.
     // v2 : purge les caches bâtis avant l'exclusion Photo_BU* (20/07)
-    const CK='prodi_facets:v2:'+STOCK_DAY;
+    const CK='prodi_facets:v3:'+STOCK_DAY; // v3 = prix max(PUNET,AR_PRIXVEN) du 04/08 (réimport manuel intrajour)
     try{
       const hit=localStorage.getItem(CK);
       if(hit){const rows=JSON.parse(hit);if(Array.isArray(rows)&&rows.length>100){_allProductsCache=rows;return rows;}}
