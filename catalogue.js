@@ -73,7 +73,10 @@ const numId = v => Number.isFinite(+v) ? +v : 0;
 const WA='33609997407';
 let all=[],cur=null;
 // ESSAI 31/07 : ?bas=1 = arrivée sur la GRILLE + pilule PRODIX en barre basse
-window._SAISIE_BASSE=/[?&]bas=1/.test(location.search);
+// TUILES PAR DÉFAUT (04/08 Ethan « je veux la version dernière, avec les
+// tuiles, en ligne ») : l'atterrissage = tuiles qualités + saisie PRODIX en
+// barre basse. L'ancien hero plein écran reste accessible via ?hero=1.
+window._SAISIE_BASSE=!/[?&]hero=1/.test(location.search);
 const PAGE=40; let currentPage=1,_totalCount=0,_reqToken=0,_lastCorrections=[],_isFirstLoad=true,_featuredMode=false;
 // ─── MODE REGROUPÉ ───
 // Groupe les unités physiques par (qualité+couleur+détails+gsm+laize+format).
@@ -5619,11 +5622,11 @@ if(_sharedMode)_sharedViewUI(true);
             <div class="px-tuile${t.dark?' dark':''}" data-forme="Bobine" onclick="_tuileGo(${i})">
               <img src="${t.img}" alt="${esc(t.title)}"${i>3?' loading="lazy"':''} style="object-position:${t.pos}">
               <div class="px-tuile-in">
-                <h2>${esc(t.title)}</h2>
                 <div class="px-tuile-seg">
                   <button type="button" class="on" onclick="event.stopPropagation();_tuileSeg(this,'Bobine')">BOBINE</button>
                   <button type="button" onclick="event.stopPropagation();_tuileSeg(this,'Palette')">FORMAT</button>
                 </div>
+                <h2>${esc(t.title)}</h2>
               </div>
             </div>`).join('');
           window._tuileSeg=(btn,forme)=>{

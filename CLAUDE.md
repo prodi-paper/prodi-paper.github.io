@@ -740,6 +740,10 @@ Session de retouches à la demande d'Ethan, direction = répliquer apple.com :
 - **02/08 INCIDENT SUPABASE** : projet restreint (402 partout) pour quota
   storage dépassé — voir mémoire « Supabase credentials » (ménage photos
   1 840→605 Mo via SQL mgmt + `set storage.allow_delete_query='true'`).
+- **04/08 (v689) : TUILES = LANDING PAR DÉFAUT du catalogue** (le drapeau
+  `?bas=1` n'est plus nécessaire ; l'ancien hero plein écran = `?hero=1`).
+  Segment BOBINE|FORMAT AU-DESSUS du titre dans chaque tuile. Vue client
+  `?s=` inchangée (vérifié).
 - **04/08 (v687)** : tuiles `?bas=1` = segment BOBINE|FORMAT **dans chaque
   tuile** à la place de « Voir le stock » (Bobine préchoisi ; le segment ne
   fait que BASCULER l'état, c'est le clic tuile qui entre) → sélectionne
