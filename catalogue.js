@@ -104,7 +104,8 @@ const groupKey = p => [
   (p.details||'').trim(),
   p.grammage??'',
   p.largeur??'',
-  p.format||''
+  p.format||'',
+  String(p.usine||'').replace(/^REF\s*/i,'') // même usine = même lot (04/08)
 ].join('|');
 function groupProducts(rows){
   const map=new Map();
@@ -2731,15 +2732,18 @@ const OFFRE_PRESETS=[
   {label:'Kraft brun',codes:['RKRABRUN']},
   {label:'Kraft',codes:['RKRA','SKRA']},
   {label:'Autocopiant',codes:['RCAR','SCAR']},
-  {label:'Couché 1-2 faces',codes:['R1SC','R2SC','S1SC','S2SC']},
+  {label:'Couché 1 face',codes:['R1SC','S1SC']},
+  {label:'Couché 2 faces',codes:['R2SC','S2SC']},
   {label:'Bouffant',codes:['RBOU','SBOU']},
   {label:'Adhésif',codes:['RADH','SADH']},
 ];
-// Deux niveaux : familles → sous-liste d'offres HOMOGÈNES, une par
-// (code qualité × Bobine/Format) — on ne mélange JAMAIS ni les qualités
-// ni bobines et formats dans une même offre.
-let _offresCalc=null; // {FAB:[fam...],STOCK:[fam...]}, fam={label,offres:[{code,forme,units,gamme}]}
-let _offrePool='FAB';  // pool affiché (segment en haut du menu)
+// UNE offre par QUALITÉ (code Sage) : segments FAB/STOCK + BOBINE/FORMAT en
+// tête du menu, puis liste plate directement cliquable — on ne mélange JAMAIS
+// ni les qualités ni bobines et formats dans une même offre (forme = lettre
+// du code : R* bobines, S* formats, comme les tuiles de la landing).
+let _offresCalc=null; // {FAB:{Bobine:[offre…],Format:[…]},STOCK:{…}}, offre={label,code,forme,units,gamme,tons}
+let _offrePool='FAB';     // segment 1 du menu
+let _offreForme='Bobine'; // segment 2 du menu
 async function _offresData(){
   if(_offresCalc)return _offresCalc;
   const rows=await _loadAllProducts();
@@ -2766,121 +2770,71 @@ async function _offresData(){
       round++;}
     return sel;
   };
-  // 3 offres par (qualité × forme), découpées par BANDE de grammage :
-  //  • COURANT = les grammages les plus utilisés (60 % central du stock, bornes =
-  //    percentiles 20/80 pondérés par le poids) ;  • BAS = grammages légers ;
-  //  • HAUT = grammages lourds. Bandes vides ignorées (gamme étroite → moins d'offres).
-  const bandsOf=list=>{
-    const byG=new Map();
-    list.forEach(u=>{const g=+u.grammage||0;if(!g)return;
-      if(!byG.has(g))byG.set(g,{units:[],w:0});
-      const e=byG.get(g);e.units.push(u);e.w+=(+u.poids_net||0)||1;});
-    const gs=[...byG.keys()].sort((a,b)=>a-b);
-    if(gs.length<=1)return [{band:'Courant',units:gs.length?byG.get(gs[0]).units:list.slice()}];
-    const total=gs.reduce((s,g)=>s+byG.get(g).w,0);
-    const perc=p=>{let c=0;for(const g of gs){c+=byG.get(g).w;if(c/total>=p)return g;}return gs[gs.length-1];};
-    const lo=perc(0.2),hi=perc(0.8);
-    const pick=f=>gs.filter(f).flatMap(g=>byG.get(g).units);
-    const out=[
-      {band:'Courant',units:pick(g=>g>=lo&&g<=hi)},
-      {band:'Bas',units:pick(g=>g<lo)},
-      {band:'Haut',units:pick(g=>g>hi)},
-    ].filter(b=>b.units.length);
-    if(out.length===1)out[0].band='Courant'; // tout sur une bande → pas de label bas/haut
+  // Une offre = TOUT le stock du pool pour une qualité (tonnage calculé sur la
+  // liste complète, capRefs seulement pour tenir dans le lien ?s=).
+  const buildPool=poolUnits=>{
+    const out={Bobine:[],Format:[]};
+    OFFRE_PRESETS.forEach(p=>{
+      [...new Set(p.codes.flatMap(c=>_isCouleurPseudo(c)?['RCOL']:[c]))].forEach(code=>{
+        const forme=code[0]==='S'?'Format':'Bobine';
+        // La vue client classe par _estFormat (format NULL/Palette/Feuille =
+        // carte Dimensions) : un R* au format NULL polluerait l'offre bobine
+        // → on écarte les articles dont la forme réelle ne colle pas au code.
+        const list=poolUnits.filter(u=>u.qualite===code&&(_estFormat(u)?'Format':'Bobine')===forme);
+        if(!list.length)return;
+        out[forme].push({label:p.label,code,forme,units:capRefs(list),
+          tons:list.reduce((s,u)=>s+(+u.poids_net||0),0)/1000});
+      });
+    });
     return out;
   };
-  // Gamme TECHNIQUE affichée = calculée sur TOUT le stock de la bande (montrer ce
-  // qu'on a). Tout en mm (cohérent avec les filtres du catalogue).
-  const _rng=arr=>{const v=[...new Set(arr.filter(x=>x>0))].sort((a,b)=>a-b);
-    return v.length?(v.length===1?String(v[0]):v[0]+'–'+v[v.length-1]):'';};
-  const _gamme=(list,forme)=>{
-    const gr=_rng(list.map(u=>+u.grammage||0));
-    const grLbl=gr?gr+' g':'';
-    let dimLbl='';
-    if(forme==='Bobine'){
-      const lz=_rng(list.map(u=>+u.largeur||0)); // laize = largeur (Ø = longueur, ignoré)
-      dimLbl=lz?(lz.includes('–')?'laizes ':'laize ')+lz+' mm':'';
-    }else{ // feuilles : dimensions largeur×longueur (sens ignoré : min×max)
-      const fmts=[...new Set(list.map(u=>{
-        const w=+u.largeur||0,l=+u.longueur||0;if(!w||!l)return '';
-        return Math.min(w,l)+'×'+Math.max(w,l);}).filter(Boolean))];
-      dimLbl=!fmts.length?'':fmts.length<=2?fmts.join(' · ')+' mm':fmts.length+' formats';
-    }
-    return [grLbl,dimLbl].filter(Boolean).join(' · ');
-  };
-  const _bandRank={Courant:0,Bas:1,Haut:2};
-  const buildPool=poolUnits=>OFFRE_PRESETS.map(p=>{
-    const db=new Set(p.codes.flatMap(c=>_isCouleurPseudo(c)?['RCOL']:[c]));
-    const fam=poolUnits.filter(u=>db.has(u.qualite));
-    const bk=new Map();
-    fam.forEach(u=>{
-      const k=(u.qualite||'')+'|'+(_estFormat(u)?'Format':'Bobine');
-      if(!bk.has(k))bk.set(k,[]);
-      bk.get(k).push(u);
-    });
-    // Groupes qualité×forme : bobines d'abord, puis par volume dispo.
-    const groups=[...bk.entries()].sort((a,b)=>{
-      const fa=a[0].split('|')[1],fb=b[0].split('|')[1];
-      return fa===fb?b[1].length-a[1].length:(fa==='Bobine'?-1:1);});
-    const offres=[];
-    for(const [k,list] of groups){
-      const [code,forme]=k.split('|');
-      bandsOf(list).sort((a,b)=>_bandRank[a.band]-_bandRank[b.band]).forEach(b=>
-        offres.push({code,forme,band:b.band,units:capRefs(b.units),gamme:_gamme(b.units,forme)}));
-    }
-    return {label:p.label,offres};
-  }).filter(f=>f.offres.length);
   _offresCalc={FAB:buildPool(units.filter(u=>!isStock(u))),STOCK:buildPool(units.filter(isStock))};
-  if(!_offresCalc.FAB.length&&_offresCalc.STOCK.length)_offrePool='STOCK';
+  // Replis : pool vide → l'autre pool ; forme vide dans le pool → l'autre forme.
+  const _n=(p,f)=>((_offresCalc[p]||{})[f]||[]).length;
+  if(!_n(_offrePool,'Bobine')&&!_n(_offrePool,'Format'))_offrePool=_offrePool==='FAB'?'STOCK':'FAB';
+  if(!_n(_offrePool,_offreForme))_offreForme=_offreForme==='Bobine'?'Format':'Bobine';
   return _offresCalc;
 }
 function _offreSegHtml(){
-  const c=_offresCalc||{FAB:[],STOCK:[]};
-  const mk=(p,lbl)=>{const on=_offrePool===p,dis=!(c[p]&&c[p].length);
-    return `<button class="offre-seg-btn${on?' on':''}"${dis?' disabled':''} onclick="event.stopPropagation();_offreSetPool('${p}')">${lbl}</button>`;};
-  return `<div class="offre-seg">${mk('FAB','FAB')}${mk('STOCK','STOCK')}</div>`;
+  const c=_offresCalc||{};
+  const n=(p,f)=>(((c[p]||{})[f])||[]).length;
+  const mkP=p=>{const on=_offrePool===p,dis=!(n(p,'Bobine')+n(p,'Format'));
+    return `<button class="offre-seg-btn${on?' on':''}"${dis?' disabled':''} onclick="event.stopPropagation();_offreSetPool('${p}')">${p}</button>`;};
+  const mkF=(f,lbl)=>{const on=_offreForme===f,dis=!n(_offrePool,f);
+    return `<button class="offre-seg-btn${on?' on':''}"${dis?' disabled':''} onclick="event.stopPropagation();_offreSetForme('${f}')">${lbl}</button>`;};
+  return `<div class="offre-seg">${mkP('FAB')}${mkP('STOCK')}</div>`
+    +`<div class="offre-seg offre-seg-forme">${mkF('Bobine','BOBINE')}${mkF('Format','FORMAT')}</div>`;
 }
-function _renderOffreMenu(fams,view){
+function _renderOffreMenu(){
   const m=document.getElementById('offre-menu');if(!m)return;
-  const seg=_offreSegHtml();
-  if(view==null){
-    m.innerHTML=seg+'<div class="offre-hdr">Offres prêtes à envoyer</div>'+
-      (fams.length?fams.map((f,i)=>
-      `<button class="offre-item" role="menuitem" onclick="event.stopPropagation();_offreOuvrir(${i})">
-        <span class="offre-lbl">${esc(f.label)}</span>
-        <small>${f.offres.length} offre${f.offres.length>1?'s':''}</small>
-        <span class="offre-chev">›</span>
+  const offres=(((_offresCalc||{})[_offrePool]||{})[_offreForme])||[];
+  m.innerHTML=_offreSegHtml()
+    +(offres.length?offres.map((o,i)=>
+      `<button class="offre-item offre-offer" role="menuitem" onclick="_offreEnvoyer(${i})">
+        <span class="offre-lbl">${esc(o.label)} <small>${esc(o.code)}</small></span>
+        <small>${Math.max(1,Math.round(o.tons))} t</small>
       </button>`).join('')
-      :'<div class="offre-load">Aucune offre dans ce pool.</div>');
-  }else{
-    const f=fams[view];if(!f){_renderOffreMenu(fams,null);return;}
-    let last='';
-    const rows=f.offres.map((o,j)=>{
-      const key=o.code+'|'+o.forme;
-      const head=key!==last?(last=key,`<div class="offre-grp">${esc(o.code)} · ${esc(o.forme)}</div>`):'';
-      return head+
-      `<button class="offre-item offre-offer" role="menuitem" onclick="_offreEnvoyer(${view},${j})">
-        <span class="offre-band band-${o.band.toLowerCase()}">${esc(o.band)}</span>
-        <span class="offre-gamme">${esc(o.gamme||'—')}</span>
-      </button>`;
-    }).join('');
-    m.innerHTML=seg
-      +`<button class="offre-back" onclick="event.stopPropagation();_offreOuvrir(null)">‹ ${esc(f.label)}</button>`
-      +rows
-      +'<div class="offre-hint">Cliquer = ouvrir la liste client</div>';
-  }
+      +'<div class="offre-hint">Cliquer = ouvrir la liste client</div>'
+    :'<div class="offre-load">Aucune offre ici.</div>');
 }
 async function _buildOffreMenu(){
   const m=document.getElementById('offre-menu');if(!m)return;
   if(!_offresCalc)m.innerHTML='<div class="offre-load">Préparation des offres…</div>';
   await _offresData();
-  _renderOffreMenu(_offresCalc[_offrePool]||[],null);
+  _renderOffreMenu();
 }
-function _offreOuvrir(i){_renderOffreMenu((_offresCalc&&_offresCalc[_offrePool])||[],i);}
 function _offreSetPool(p){
-  if(!_offresCalc||!_offresCalc[p]||!_offresCalc[p].length)return;
+  const c=_offresCalc&&_offresCalc[p];
+  if(!c||!(c.Bobine.length+c.Format.length))return;
   _offrePool=p;
-  _renderOffreMenu(_offresCalc[p],null); // switch de pool = retour au niveau familles
+  if(!c[_offreForme].length)_offreForme=_offreForme==='Bobine'?'Format':'Bobine';
+  _renderOffreMenu();
+}
+function _offreSetForme(f){
+  const c=_offresCalc&&_offresCalc[_offrePool];
+  if(!c||!c[f]||!c[f].length)return;
+  _offreForme=f;
+  _renderOffreMenu();
 }
 function toggleOffreMenu(force){
   const m=document.getElementById('offre-menu');
@@ -2896,8 +2850,8 @@ document.addEventListener('click',e=>{
   const m=document.getElementById('offre-menu');
   if(m&&m.classList.contains('show'))toggleOffreMenu(false);
 });
-async function _offreEnvoyer(i,j){
-  const f=(_offresCalc&&_offresCalc[_offrePool]||[])[i];const o=f&&f.offres[j];if(!o)return;
+async function _offreEnvoyer(i){
+  const o=((((_offresCalc||{})[_offrePool]||{})[_offreForme])||[])[i];if(!o)return;
   toggleOffreMenu(false);
   cart.length=0; // l'offre REMPLACE la liste courante (liste non persistante par design)
   o.units.forEach(u=>cart.push({id:u.id,name:u.name,ref:u.ref,type:u.type,qualite:u.qualite||null,details:u.details||null,grammage:u.grammage,largeur:u.largeur,format:u.format,poids_net:u.poids_net,price:u.price||null,img:u.image_url||null,couleur:u.couleur||null,usine:u.usine||null,zone:u.zone||null,emplacement:u.emplacement||null,allee:u.allee||null}));
@@ -2905,8 +2859,8 @@ async function _offreEnvoyer(i,j){
   updateCartBadge();renderDrawer();
   if(typeof _updateAddPageBtn==='function')_updateAddPageBtn();
   const pg=document.getElementById('pgrid');if(pg&&pg._lastList)render(pg._lastList);
-  window.prodiTrack?.('offre_preset',{pool:_offrePool,label:f.label,code:o.code,forme:o.forme,band:o.band,nb:cart.length});
-  toast('✓ Offre '+o.code+' '+o.forme.toLowerCase()+' · '+o.band.toLowerCase()+' · '+cart.length+' articles');
+  window.prodiTrack?.('offre_preset',{pool:_offrePool,label:o.label,code:o.code,forme:o.forme,nb:cart.length});
+  toast('✓ Offre '+o.label+' · '+o.forme.toLowerCase()+' · '+cart.length+' articles');
   openClientLink(); // crée le lien ?s= et OUVRE la vue client — prête à envoyer
 }
 let _filterTimer=null;
@@ -6958,6 +6912,7 @@ async function exportListExcelTest(btn){
         mandrin:mandrin||'',
         poids:poids||'',
         usine:String(p.usine||f.usine||'').replace(/^REF\s*/i,''),
+        fmt:p.format||f.format||'',
         prixT:prixKg?Math.round(prixKg*1000):'',
         montant:prixKg&&poids?Math.round(poids*prixKg*100)/100:'',
         prix:prixKg||null,
@@ -6967,12 +6922,37 @@ async function exportListExcelTest(btn){
     const _byGsm=(a,b)=>(Number(a.grammage)||0)-(Number(b.grammage)||0);
     const bobines=rows.filter(r=>r.isBobine).sort(_byGsm);
     const formats=rows.filter(r=>!r.isBobine).sort(_byGsm);
+    // Feuille ASSEMBLÉE : une ligne par LOT — qualité/couleur/détails/GSM/forme
+    // + USINE + prix, RIEN en N°/Réf (demande Ethan 04/08), PN = poids total du
+    // lot. Pour les BOBINES, la laize (comme le Ø et le poids) ne sépare PAS
+    // les lots : elle s'affiche en plage min–max (04/08). Les formats gardent
+    // leurs dimensions exactes dans la clé. Mandrins distincts joints par « / ».
+    const _lotOf=new Map();
+    rows.forEach(d=>{
+      const k=[d.isBobine,d.fmt,d.qualite,d.detail,d.couleur,d.grammage,
+        d.isBobine?'':d.largeur,d.isBobine?'':d.longueur,d.usine,d.prixT].join('|');
+      let l=_lotOf.get(k);
+      if(!l){l={...d,ref:''};l._kg=0;l._larges=new Set();l._longs=new Set();l._mands=new Set();_lotOf.set(k,l);}
+      l._kg+=+d.poids||0;
+      if(d.largeur!=='')l._larges.add(+d.largeur||0);
+      if(d.longueur!=='')l._longs.add(+d.longueur||0);
+      if(d.mandrin!=='')l._mands.add(String(d.mandrin));
+      if(!l.img&&d.img)l.img=d.img;
+    });
+    const _rngOf=set=>{const v=[...set].filter(Boolean).sort((a,b)=>a-b);
+      return v.length?(v.length>1?v[0]+'–'+v[v.length-1]:String(v[0])):'';};
+    const _lots=[..._lotOf.values()].map(l=>({...l,
+      poids:Math.round(l._kg)||'',
+      largeur:_rngOf(l._larges),
+      longueur:_rngOf(l._longs),
+      mandrin:[...l._mands].join(' / '),
+      montant:(l.prix&&l._kg)?Math.round(l._kg*l.prix*100)/100:'',
+    }));
+    const lotsBob=_lots.filter(x=>x.isBobine).sort(_byGsm);
+    const lotsFmt=_lots.filter(x=>!x.isBobine).sort(_byGsm);
 
     const ExcelJS=window.ExcelJS;
     const wb=new ExcelJS.Workbook();
-    const ws=wb.addWorksheet('Offre',{views:[{showGridLines:false}],pageSetup:{orientation:'landscape',fitToPage:true,fitToWidth:1}});
-    // Largeurs colonnes A..I
-    [11,30,30,13,9,13,13,13,11,9,12].forEach((w,i)=>{ws.getColumn(i+1).width=w;});
 
     // Palette "industriel premium" Prodiconseil : charbon + blanc cassé chaud + rouge.
     const RED='FFFF0000', INK='FF1A1A1A', WHITE='FFFFFFFF'; // rouge pur = modèle USINE 83
@@ -6997,11 +6977,20 @@ async function exportListExcelTest(btn){
     // Helper insertion image robuste (strip data-URI prefix + try/catch).
     const _imgId=(dataUrl)=>{try{if(!dataUrl)return null;const ext=/image\/jpe?g/i.test(dataUrl)?'jpeg':'png';return wb.addImage({base64:dataUrl.split(',')[1],extension:ext});}catch(_){return null;}};
 
+    // Une PAGE par vue : « Offre » détaillée (une ligne par article) puis
+    // « Assemblé » (une ligne par lot) — même gabarit USINE 83 pour les deux.
+    const _buildSheet=async(ws,secBob,secFmt,opts)=>{
+    // Assemblé : PAS de colonne N° (une ligne = un lot, sans réf) → toutes les
+    // colonnes décalées d'un cran et élargies (surtout Qualité/Détails).
+    const noRef=!!(opts&&opts.noRef);
+    const COLW=noRef?[33,33,14,10,15,15,15,12,10,13]:[11,30,30,13,9,13,13,13,11,9,12];
+    COLW.forEach((w,i)=>{ws.getColumn(i+1).width=w;});
+    const NCOL=COLW.length, LAST=noRef?'J':'K', PREL=noRef?'I':'J';
     let r=1;
     // Logo (A1:B4)
     const logoB64=await _fetchImgB64(location.origin+'/img/logo.png');
     const _lid=_imgId(logoB64);
-    if(_lid!=null)ws.addImage(_lid,{tl:{col:8.05,row:0.1},ext:{width:235,height:40}}); // logo en haut à DROITE (17/07)
+    if(_lid!=null)ws.addImage(_lid,{tl:{col:noRef?7.05:8.05,row:0.1},ext:{width:235,height:40}}); // logo en haut à DROITE (17/07)
     // Encadré STOCKLOTS retiré (16/07).
     // Bloc société — nom mis en avant, coordonnées en gris (hiérarchie).
     // Bloc société COMPLET à gauche (copie conforme du modèle USINE 83).
@@ -7025,7 +7014,7 @@ async function exportListExcelTest(btn){
       ws.getRow(i+1).height=16;
     });
     // Date : sa propre ligne, CENTRÉE sur la largeur du tableau (ligne 10).
-    ws.mergeCells('A10:K10');
+    ws.mergeCells('A10:'+LAST+'10');
     const _dt=ws.getCell('A10');
     _dt.value=new Date().toLocaleDateString('fr-FR');
     _dt.font={bold:true,size:14,color:{argb:INK},name:'Arial'};
@@ -7035,12 +7024,12 @@ async function exportListExcelTest(btn){
     // Titre FR + EN en bandeaux BLEUS bordés (modèle USINE 83)
     const _darkB={style:'thin',color:{argb:'FF333333'}};
     const _darkBorders={top:_darkB,left:_darkB,bottom:_darkB,right:_darkB};
-    ws.mergeCells('A11:K11'); const t1=ws.getCell('A11');
+    ws.mergeCells('A11:'+LAST+'11'); const t1=ws.getCell('A11');
     t1.value='OFFRE PAPIER & CARTON EN STOCKLOTS';
     box(t1,{bold:true,size:18,color:INK,bg:BLEU,align:'center'});
     t1.border=_darkBorders;
     ws.getRow(11).height=30;
-    ws.mergeCells('A12:K12'); const t2=ws.getCell('A12');
+    ws.mergeCells('A12:'+LAST+'12'); const t2=ws.getCell('A12');
     t2.value='PAPER & CARDBOARD STOCKLOTS OFFER';
     box(t2,{bold:true,size:14,color:RED,bg:BLEU,align:'center'});
     t2.border=_darkBorders;
@@ -7053,7 +7042,7 @@ async function exportListExcelTest(btn){
     // Placement photos : ancres en fractions de colonnes (le mode nativeCol
     // d'ExcelJS chevauche) + RATIO NATUREL respecté par photo (les portraits
     // étaient étirés en paysage).
-    const _colWpx=[11,30,30,13,9,13,13,13,11,9,12].map(w=>Math.round(w*7+5));
+    const _colWpx=COLW.map(w=>Math.round(w*7+5));
     const _cumX=[0]; _colWpx.forEach(w=>_cumX.push(_cumX[_cumX.length-1]+w));
     const _pxToCol=(x)=>{let c=0;while(c<_colWpx.length-1&&_cumX[c+1]<=x)c++;return c+Math.min(Math.max((x-_cumX[c])/_colWpx[c],0),0.999);};
     const _totalW=_cumX[_cumX.length-1];
@@ -7075,85 +7064,104 @@ async function exportListExcelTest(btn){
         bandW=_ws.reduce((a,b)=>a+b,0)+(photos.length-1)*gap;
       }
       let x=Math.max(2,Math.round((_availW-bandW)/2)); // centre la bande
+      // Hauteurs de lignes AVANT addImage : ExcelJS convertit les ancres
+      // fractionnaires avec la hauteur CONNUE au moment de l'appel (défaut
+      // 15 pt sinon → photos écrasées en bandeau).
+      ws.getRow(13).height=Math.round(PH*0.75)+6; ws.getRow(14).height=6; ws.getRow(15).height=6;
+      // Ancrage tl+br en fractions de colonnes : chaque photo occupe EXACTEMENT
+      // son créneau [x, x+w] → plus de chevauchement (le mode tl+ext dérivait,
+      // notre modèle px→colonne étant approximatif face au rendu Excel réel).
       photos.forEach((b64,i)=>{
         const id=_imgId(b64);
         if(id==null){x+=_ws[i]+gap;return;}
-        ws.addImage(id,{tl:{col:_pxToCol(x),row:12.05},ext:{width:_ws[i],height:PH}});
+        ws.addImage(id,{tl:{col:_pxToCol(x),row:12.05},br:{col:_pxToCol(x+_ws[i]),row:12.97}});
         x+=_ws[i]+gap;
       });
-      ws.getRow(13).height=Math.round(PH*0.75)+6; ws.getRow(14).height=6; ws.getRow(15).height=6;
       r=16;
     }
 
     const HEAD=(labelsFr,labelsEn)=>{
-      const _sp=labelsFr.length===10; // formats : la dernière colonne s'étale J:K
+      if(noRef){labelsFr=labelsFr.slice(1);labelsEn=labelsEn.slice(1);} // pas de N° en assemblé
+      const _sp=labelsFr.length===NCOL-1; // formats : la dernière colonne s'étale sur 2
       const row1=ws.getRow(r); labelsFr.forEach((l,i)=>{const c=row1.getCell(i+1);c.value=l;box(c,{bold:true,size:13,color:INK,bg:BLEU,align:'center'});c.border=_darkBorders;});
-      if(_sp){ws.mergeCells(`J${r}:K${r}`);ws.getCell(`K${r}`).border=_darkBorders;}
+      if(_sp){ws.mergeCells(`${PREL}${r}:${LAST}${r}`);ws.getCell(`${LAST}${r}`).border=_darkBorders;}
       ws.getRow(r).height=32; r++;
       const row2=ws.getRow(r); labelsEn.forEach((l,i)=>{const c=row2.getCell(i+1);c.value=l;box(c,{bold:true,size:11,color:RED,bg:BLEU,align:'center'});c.border=_darkBorders;});
-      if(_sp){ws.mergeCells(`J${r}:K${r}`);ws.getCell(`K${r}`).border=_darkBorders;}
+      if(_sp){ws.mergeCells(`${PREL}${r}:${LAST}${r}`);ws.getCell(`${LAST}${r}`).border=_darkBorders;}
       ws.getRow(r).height=24; r++;
     };
     // Chiffres stockés en NOMBRE (sinon Excel affiche « nombre sous forme de texte »)
     const _num=(v)=>(typeof v==='string'&&v!==''&&/^\d+(\.\d+)?$/.test(v))?+v:v;
     const DATA=(d,cells,idx)=>{
+      const _qual=String(cells[1]||''),_det=String(cells[2]||'');
+      if(noRef)cells=cells.slice(1); // pas de colonne N° en assemblé
       const row=ws.getRow(r);
       const zeb=(idx%2===1)?ZEBRA:null; // 1 ligne sur 2 (lisibilité)
-      const _sp=cells.length===10; // formats : prix étalé J:K (même largeur que bobines)
+      const _sp=cells.length===NCOL-1; // formats : prix étalé sur 2 colonnes (même largeur que bobines)
+      const _lg=noRef?[0,1]:[1,2]; // Qualité/Détails alignés à gauche
       cells.forEach((v,i)=>{
         const c=row.getCell(i+1); c.value=_num(v);
-        box(c,{size:13,align:(i===1||i===2)?'left':'center',border:true,bg:zeb});
+        box(c,{size:13,align:_lg.includes(i)?'left':'center',border:true,bg:zeb});
         if(i===cells.length-1&&String(v).includes('€')){ c.font={bold:true,size:13,color:{argb:RED},name:'Arial'}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:VERT}}; } // prix rouge sur vert
       });
       // Auto-hauteur : le DÉTAIL (colonne C) peut wrapper sur 2-3 lignes → on
       // estime le nombre de lignes pour que rien ne soit coupé (col C ≈ 46 car/ligne).
       if(_sp){
-        ws.mergeCells(`J${r}:K${r}`);
-        const ck=row.getCell(11); ck.border=allBorders;
-        const cj=row.getCell(10);
+        ws.mergeCells(`${PREL}${r}:${LAST}${r}`);
+        const ck=row.getCell(NCOL); ck.border=allBorders;
+        const cj=row.getCell(NCOL-1);
         if(cj.fill)ck.fill=cj.fill; // vert du prix (ou zébrure) sur toute la fusion
         else if(zeb)ck.fill={type:'pattern',pattern:'solid',fgColor:{argb:zeb}};
       }
-      const _det=String(cells[2]||'');
-      const _lines=Math.max(1,Math.ceil(_det.length/30),Math.ceil(String(cells[1]||'').length/30));
+      const _lines=Math.max(1,Math.ceil(_det.length/30),Math.ceil(_qual.length/30));
       row.height=Math.max(row.height||0,12+_lines*17);
       r++;
     };
-    const sectionTitle=(fr)=>{ws.mergeCells(`A${r}:K${r}`);const c=ws.getCell(`A${r}`);c.value=fr;box(c,{bold:true,size:16,color:INK,bg:BLEU,align:'center'});c.border=_darkBorders;ws.getRow(r).height=30;r++;};
+    const sectionTitle=(fr)=>{ws.mergeCells(`A${r}:${LAST}${r}`);const c=ws.getCell(`A${r}`);c.value=fr;box(c,{bold:true,size:16,color:INK,bg:BLEU,align:'center'});c.border=_darkBorders;ws.getRow(r).height=30;r++;};
 
-    if(bobines.length){
+    if(secBob.length){
       sectionTitle('BOBINES / REELS');
       HEAD(
         ['N°','QUALITÉ','DÉTAILS','COULEUR','GSM','LAIZE (mm)','Ø (mm)','MANDRIN (mm)','PN (KG)','USINE','P/T (€)'],
         ['NUMBER','QUALITY','DETAILS','COLOR','GSM','WIDTH (mm)','DIAMETER (mm)','CORE (mm)','NET WEIGHT','MILL','PRICE €/T'],
       );
-      bobines.forEach((d,idx)=>DATA(d,[d.ref,d.qualite,d.detail,d.couleur,d.grammage,d.largeur,d.longueur,d.mandrin,d.poids,d.usine,d.prixT!==''?d.prixT+' €/t':''],idx));
+      secBob.forEach((d,idx)=>DATA(d,[d.ref,d.qualite,d.detail,d.couleur,d.grammage,d.largeur,d.longueur,d.mandrin,d.poids,d.usine,d.prixT!==''?d.prixT+' €/t':''],idx));
       r++;
     }
-    if(formats.length){
+    if(secFmt.length){
       sectionTitle('FORMATS / PALETTES — SHEETS / PALLETS');
       HEAD(
         ['N°','QUALITÉ','DÉTAILS','COULEUR','GSM','LARGEUR (mm)','LONGUEUR (mm)','PN (KG)','USINE','P/T (€)'],
         ['NUMBER','QUALITY','DETAILS','COLOR','GSM','WIDTH (mm)','LENGTH (mm)','NET WEIGHT','MILL','PRICE €/T'],
       );
-      formats.forEach((d,idx)=>DATA(d,[d.ref,d.qualite,d.detail,d.couleur,d.grammage,d.largeur,d.longueur,d.poids,d.usine,d.prixT!==''?d.prixT+' €/t':''],idx));
+      secFmt.forEach((d,idx)=>DATA(d,[d.ref,d.qualite,d.detail,d.couleur,d.grammage,d.largeur,d.longueur,d.poids,d.usine,d.prixT!==''?d.prixT+' €/t':''],idx));
       r++;
     }
 
     // TOTAL kg sur jaune (sous la colonne PN)
-    const _totKg=rows.reduce((s2,d)=>s2+(+d.poids||0),0);
-    const _pnCol=formats.length?'H':'I'; // PN de la dernière section affichée
-    ws.mergeCells(`A${r}:${_pnCol==='H'?'G':'H'}${r}`);
+    const _totKg=[...secBob,...secFmt].reduce((s2,d)=>s2+(+d.poids||0),0);
+    // PN de la dernière section affichée (décalé d'un cran sans colonne N°)
+    const _pnCol=String.fromCharCode((secFmt.length?'H':'I').charCodeAt(0)-(noRef?1:0));
+    ws.mergeCells(`A${r}:${String.fromCharCode(_pnCol.charCodeAt(0)-1)}${r}`);
     const _tl=ws.getCell(`A${r}`); _tl.value='TOTAL'; box(_tl,{bold:true,size:13,align:'right'});
     const _tk=ws.getCell(`${_pnCol}${r}`); _tk.value=_totKg; box(_tk,{bold:true,size:13,color:RED,bg:JAUNE,align:'center',border:true});
     ws.getRow(r).height=26; r+=2;
     // Conditions de vente (bilingue)
     ws.mergeCells(`A${r}:C${r}`); let _c1=ws.getCell(`A${r}`); _c1.value='CONDITIONS DE VENTE'; box(_c1,{bold:true,size:12,align:'center',border:true,bg:HEADBG});
-    ws.mergeCells(`D${r}:K${r}`); let _c2=ws.getCell(`D${r}`); _c2.value='30% VIREMENT AVANT EXPÉDITION ET 70% CONTRE DOCUMENTS'; box(_c2,{bold:true,size:12,align:'center',border:true});
+    ws.mergeCells(`D${r}:${LAST}${r}`); let _c2=ws.getCell(`D${r}`); _c2.value='30% VIREMENT AVANT EXPÉDITION ET 70% CONTRE DOCUMENTS'; box(_c2,{bold:true,size:12,align:'center',border:true});
     ws.getRow(r).height=24; r++;
     ws.mergeCells(`A${r}:C${r}`); _c1=ws.getCell(`A${r}`); _c1.value='TERMS OF SALE'; box(_c1,{italic:true,size:12,color:SUB,align:'center',border:true,bg:HEADBG});
-    ws.mergeCells(`D${r}:K${r}`); _c2=ws.getCell(`D${r}`); _c2.value='30% TRANSFER BEFORE SHIPMENT AND 70% AGAINST DOCUMENTS'; box(_c2,{italic:true,size:12,color:SUB,align:'center',border:true});
+    ws.mergeCells(`D${r}:${LAST}${r}`); _c2=ws.getCell(`D${r}`); _c2.value='30% TRANSFER BEFORE SHIPMENT AND 70% AGAINST DOCUMENTS'; box(_c2,{italic:true,size:12,color:SUB,align:'center',border:true});
     ws.getRow(r).height=24; r++;
+    // Fond GRIS autour de l'offre (04/08) : colonnes à droite du tableau et
+    // lignes sous le document — le document A1:LAST reste blanc.
+    const _greyFill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEDEDED'}};
+    for(let rr=1;rr<=r+120;rr++)for(let cc=NCOL+1;cc<=NCOL+18;cc++)ws.getRow(rr).getCell(cc).fill=_greyFill;
+    for(let rr=r;rr<=r+120;rr++)for(let cc=1;cc<=NCOL;cc++)ws.getRow(rr).getCell(cc).fill=_greyFill;
+    };
+    const _shOpts={views:[{showGridLines:false}],pageSetup:{orientation:'landscape',fitToPage:true,fitToWidth:1}};
+    await _buildSheet(wb.addWorksheet('Offre',_shOpts),bobines,formats);
+    await _buildSheet(wb.addWorksheet('Assemblé',_shOpts),lotsBob,lotsFmt,{noRef:true});
 
     const buf=await wb.xlsx.writeBuffer();
     const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});

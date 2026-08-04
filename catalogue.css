@@ -1769,15 +1769,11 @@ body.apple-view:not(.shared-view) #offre-btn:hover,body.topbar-view #offre-btn:h
 body.shared-view #offre-wrap{display:none !important;}
 .offre-menu{position:absolute;top:calc(100% + 10px);right:0;background:#fff;border:1px solid #e8e8ed;border-radius:16px;box-shadow:0 16px 44px rgba(0,0,0,.16);padding:6px;min-width:270px;max-width:calc(100vw - 16px);display:none;z-index:3000;}
 .offre-menu.show{display:block;}
-.offre-hdr{padding:8px 14px 6px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:#a1a1a6;}
 .offre-load{padding:14px;font-family:'DM Sans',sans-serif;font-size:13px;color:#6e6e73;}
 .offre-item{display:flex;align-items:baseline;gap:12px;width:100%;padding:10px 14px;border:none;background:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14.5px;font-weight:700;color:#1d1d1f;cursor:pointer;text-align:left;}
 .offre-item .offre-lbl{flex:1;}
 .offre-item small{font-size:12px;font-weight:600;color:#6e6e73;white-space:nowrap;}
 .offre-item:hover{background:#f5f5f7;}
-.offre-chev{font-size:15px;color:#c7c7cc;font-weight:600;}
-.offre-back{display:block;width:100%;padding:9px 12px 7px;border:none;background:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;color:#1d1d1f;cursor:pointer;text-align:left;border-radius:8px;}
-.offre-back:hover{background:#f5f5f7;}
 .offre-hint{padding:7px 14px 8px;font-family:'DM Sans',sans-serif;font-size:11px;color:#a1a1a6;border-top:1px solid #f0f0f2;margin-top:4px;}
 /* Segment FAB / STOCK en haut du menu (même style que le popup Quantité) */
 .offre-seg{display:flex;gap:2px;background:#f0f0f2;border-radius:999px;padding:3px;margin:2px 6px 6px;}
@@ -1785,12 +1781,9 @@ body.shared-view #offre-wrap{display:none !important;}
 .offre-seg-btn.on{background:#fff;color:#1d1d1f;box-shadow:0 1px 4px rgba(0,0,0,.12);}
 .offre-seg-btn:disabled{opacity:.4;cursor:default;}
 /* Offre (niveau 2) : sous-en-tête qualité×forme + lignes par bande de grammage */
-.offre-grp{padding:10px 14px 3px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:800;color:#1d1d1f;}
-.offre-grp:first-of-type{padding-top:2px;}
-.offre-offer{align-items:center;gap:9px;padding:7px 14px 7px 16px;}
-.offre-band{flex:none;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;padding:3px 9px;border-radius:999px;background:#f0f0f2;color:#6e6e73;}
-.offre-band.band-courant{background:#eef0f2;color:#1d1d1f;}
-.offre-gamme{flex:1;font-family:'DM Sans',sans-serif;font-size:12.5px;font-weight:600;color:#1d1d1f;white-space:normal;text-align:left;}
+.offre-seg-forme{margin-top:0;}
+.offre-offer{padding:9px 14px;}
+.offre-offer .offre-lbl small{font-size:11px;font-weight:700;letter-spacing:.3px;color:#a1a1a6;margin-left:4px;}
 /* + page (2e ligne) : rond BLEU Apple assorti au bouton Liste */
 body.topbar-view #topbar-row2 #add-page-btn{border:none;background:#1d1d1f;color:#fff;border-radius:999px;width:36px;height:36px;min-width:36px;display:flex;align-items:center;justify-content:center;margin:0;padding:0;box-shadow:0 2px 8px rgba(0,0,0,.18);}
 body.topbar-view #topbar-row2 #add-page-btn:hover{background:#333;color:#fff;border:none;}
@@ -2165,7 +2158,7 @@ body.saisie-basse .px-tuile img{position:absolute;inset:0;width:100%;height:100%
 body.saisie-basse .px-tuile:hover img{transform:scale(1.04);}
 body.saisie-basse .px-tuile-in{position:absolute;inset:0;z-index:2;display:flex;
   flex-direction:column;align-items:center;gap:12px;
-  padding-top:clamp(26px,6vh,58px);}
+  padding-top:clamp(16px,calc(6vh - 10px),48px);}
 body.saisie-basse .px-tuile h2{margin:0;font-family:'Bebas Neue',sans-serif;
   font-weight:400;font-size:clamp(38px,4.4vw,64px);line-height:1;
   letter-spacing:.02em;color:#111;}
