@@ -3612,7 +3612,9 @@ function updateFilterChips(){
   const lmax2=document.getElementById('f-lmax')?.value||'';
   if(q)chips.push({key:'q',label:'Recherche'+' : "'+q+'"',clear:()=>{document.getElementById('search-input').value='';document.getElementById('search-input-mob').value='';filterProducts();}});
   // Add format pills chip
-  const _activeFmts=Array.from(document.querySelectorAll('.fpill.active:not(.fpill-orig):not(.fpill-stock):not(.fpill-depot):not(.fpill-photo):not(.fpill-resa)')).map(b=>b.dataset.format);
+  // Set : les pilules existent en double (desktop + mobile) — sans dédup la
+  // chip affichait « Bobine, Bobine » (04/08).
+  const _activeFmts=[...new Set(Array.from(document.querySelectorAll('.fpill.active:not(.fpill-orig):not(.fpill-stock):not(.fpill-depot):not(.fpill-photo):not(.fpill-resa)')).map(b=>b.dataset.format))];
   const _activeOrigs=Array.from(document.querySelectorAll('.fpill-orig.active')).map(b=>b.dataset.origine==='R'?'Stocklot':'Fabrication');
   if(_activeOrigs.length>0)chips.push({key:'orig',label:('Origine')+' : '+_activeOrigs.join(', '),clear:()=>{document.querySelectorAll('.fpill-orig.active').forEach(b=>b.classList.remove('active'));filterProducts();}});
   if(_photoFilter)chips.push({key:'photo',label:_photoFilter==='with'?'Avec photo':'Sans photo',clear:()=>{_photoFilter='';syncFilterPills();filterProducts();}});
@@ -5149,9 +5151,14 @@ async function _pxSend(){
         // le bloc reste compact en hauteur. Colonnes fluides (repli en pile
         // sur écran étroit via flex-wrap).
         const rangee=document.createElement('div');
-        // GRILLE à colonnes ÉGALES pleine largeur (21/07 Ethan « utiliser la
-        // largeur ») : n questions = n colonnes ; repli auto en pile si étroit.
-        rangee.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:12px 16px;align-items:start;width:100%;';
+        // GRILLE à colonnes ÉGALES pleine largeur. 04/08 (Ethan « je veux ça
+        // en paysage ») : n colonnes FORCÉES sur desktop — l'auto-fit
+        // retombait en pile dès que la bulle manquait de place ; la pile ne
+        // reste que sur écran étroit (mobile).
+        const _mobQ=window.matchMedia('(max-width:640px)').matches;
+        rangee.style.cssText='display:grid;grid-template-columns:'+
+          (_mobQ?'repeat(auto-fit,minmax(min(200px,100%),1fr))':'repeat('+qs.length+',minmax(0,1fr))')+
+          ';gap:12px 16px;align-items:start;width:100%;';
         bloc.appendChild(rangee);
         const reps=qs.map(()=>new Set());
         const _val=document.createElement('button');
@@ -5604,14 +5611,27 @@ if(_sharedMode)_sharedViewUI(true);
           ];
           const tw=document.createElement('div');
           tw.id='px-tuiles';
+          // Chaque tuile porte son segment BOBINE/FORMAT à la place de
+          // « Voir le stock » (04/08 Ethan), Bobine préchoisi. Le segment ne
+          // fait que BASCULER l'état de la tuile (pas de navigation) — c'est
+          // le clic sur la tuile qui entre, avec la forme choisie.
           tw.innerHTML=_TU.map((t,i)=>`
-            <div class="px-tuile${t.dark?' dark':''}" onclick="_tuileGo(${i})">
+            <div class="px-tuile${t.dark?' dark':''}" data-forme="Bobine" onclick="_tuileGo(${i})">
               <img src="${t.img}" alt="${esc(t.title)}"${i>3?' loading="lazy"':''} style="object-position:${t.pos}">
               <div class="px-tuile-in">
                 <h2>${esc(t.title)}</h2>
-                <span class="px-tuile-btn">Voir le stock</span>
+                <div class="px-tuile-seg">
+                  <button type="button" class="on" onclick="event.stopPropagation();_tuileSeg(this,'Bobine')">BOBINE</button>
+                  <button type="button" onclick="event.stopPropagation();_tuileSeg(this,'Palette')">FORMAT</button>
+                </div>
               </div>
             </div>`).join('');
+          window._tuileSeg=(btn,forme)=>{
+            const tuile=btn.closest('.px-tuile');
+            if(!tuile)return;
+            tuile.dataset.forme=forme;
+            tuile.querySelectorAll('.px-tuile-seg button').forEach(b=>b.classList.toggle('on',b===btn));
+          };
           // Bandeau « autres qualités » sous les tuiles — même dessin et même
           // mécanique que la vitrine (boucle infinie 3 copies, points façon
           // apple.com qui se remplissent, avance auto)
@@ -5678,23 +5698,39 @@ if(_sharedMode)_sharedViewUI(true);
             const pg=document.getElementById('pgrid');if(pg)pg.style.display='';
             const ft=document.querySelector('footer');if(ft)ft.style.display='';
           };
-          const _famSel=(t)=>{
-            window.prodiTrack?.('tuile_catalogue',{q:t.codes[0]||'tout'});
+          const _famSel=(t,forme)=>{
+            window.prodiTrack?.('tuile_catalogue',{q:t.codes[0]||'tout',forme:forme||''});
             window._tuilesDismiss();
+            // BOBINE → seulement les codes R* de la famille, FORMAT → les S*
+            // (04/08 Ethan : pas de pilule « Bobine » en chip, et pas ROFF+SOFF
+            // ensemble — un seul des deux selon le segment).
+            let codes=t.codes;
+            if(forme){
+              const f=t.codes.filter(c=>forme==='Bobine'?c[0]==='R':c[0]==='S');
+              if(f.length)codes=f;
+            }
             const _cs=(typeof CSS!=='undefined'&&CSS.escape)?CSS.escape:(s=>String(s).replace(/[^a-zA-Z0-9_-]/g,'\\$&'));
-            t.codes.forEach(c=>{
+            codes.forEach(c=>{
               msdState['msd-type'].add(c);
               document.querySelectorAll(`.msd-option[data-val="${_cs(c)}"]`).forEach(o=>{
                 if(!o.closest('#msd-type,#msd-type-mob,#sb-msd-type'))return;
                 o.classList.add('selected');
               });
             });
-            if(t.codes.length){updateMsdBtn('msd-type');updateFilterVisibility();}
+            if(codes.length)updateMsdBtn('msd-type');
+            updateFilterVisibility();
             window.scrollTo(0,0);
             filterProducts();
           };
-          window._tuileGo=(i)=>{const t=_TU[i];if(t)_famSel(t);};
-          window._bandGo=(i)=>{const t=_BAND[i];if(t)_famSel(t);};
+          // Tuile : la forme vient de l'état du segment de LA tuile (Bobine
+          // par défaut). Bandeau : pas de forme imposée (certaines familles
+          // n'existent qu'en formats, ex. Ramette).
+          window._tuileGo=(i)=>{
+            const t=_TU[i];if(!t)return;
+            const el=document.querySelectorAll('#px-tuiles .px-tuile')[i];
+            _famSel(t,(el&&el.dataset.forme)||'Bobine');
+          };
+          window._bandGo=(i)=>{const t=_BAND[i];if(t)_famSel(t,null);};
         }
         // Historique des offres : chips « Reprendre » sous la pilule (18/07)
         window._heroHistPaint=()=>{
