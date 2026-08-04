@@ -2558,7 +2558,7 @@ function _qtyModal(dispoT,onPick,cfg){
   const segHtml=cfg&&cfg.seg?`
     <div id="qty-seg" style="display:flex;background:#f5f5f7;border-radius:999px;padding:3px;margin-top:12px;">
       <button data-m="FAB" style="flex:1;padding:9px;border:none;border-radius:999px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.12);font-size:13.5px;font-weight:700;color:#1d1d1f;cursor:pointer;font-family:'DM Sans',sans-serif;">FAB</button>
-      <button data-m="STOCK" style="flex:1;padding:9px;border:none;border-radius:999px;background:transparent;font-size:13.5px;font-weight:600;color:#6e6e73;cursor:pointer;font-family:'DM Sans',sans-serif;">STOCK</button>
+      <button data-m="STOCK" style="flex:1;padding:9px;border:none;border-radius:999px;background:transparent;font-size:13.5px;font-weight:600;color:#6e6e73;cursor:pointer;font-family:'DM Sans',sans-serif;">LOTS</button>
     </div>`:'';
   const sliderHtml=maxT>0?`
     <div style="text-align:center;margin:2px 0 6px;">
@@ -2798,11 +2798,11 @@ async function _offresData(){
 function _offreSegHtml(){
   const c=_offresCalc||{};
   const n=(p,f)=>(((c[p]||{})[f])||[]).length;
-  const mkP=p=>{const on=_offrePool===p,dis=!(n(p,'Bobine')+n(p,'Format'));
-    return `<button class="offre-seg-btn${on?' on':''}"${dis?' disabled':''} onclick="event.stopPropagation();_offreSetPool('${p}')">${p}</button>`;};
+  const mkP=(p,lbl)=>{const on=_offrePool===p,dis=!(n(p,'Bobine')+n(p,'Format'));
+    return `<button class="offre-seg-btn${on?' on':''}"${dis?' disabled':''} onclick="event.stopPropagation();_offreSetPool('${p}')">${lbl}</button>`;};
   const mkF=(f,lbl)=>{const on=_offreForme===f,dis=!n(_offrePool,f);
     return `<button class="offre-seg-btn${on?' on':''}"${dis?' disabled':''} onclick="event.stopPropagation();_offreSetForme('${f}')">${lbl}</button>`;};
-  return `<div class="offre-seg">${mkP('FAB')}${mkP('STOCK')}</div>`
+  return `<div class="offre-seg">${mkP('FAB','FAB')}${mkP('STOCK','LOTS')}</div>`
     +`<div class="offre-seg offre-seg-forme">${mkF('Bobine','BOBINE')}${mkF('Format','FORMAT')}</div>`;
 }
 function _renderOffreMenu(){
@@ -2814,7 +2814,6 @@ function _renderOffreMenu(){
         <span class="offre-lbl">${esc(o.label)} <small>${esc(o.code)}</small></span>
         <small>${Math.max(1,Math.round(o.tons))} t</small>
       </button>`).join('')
-      +'<div class="offre-hint">Cliquer = ouvrir la liste client</div>'
     :'<div class="offre-load">Aucune offre ici.</div>');
 }
 async function _buildOffreMenu(){
@@ -2861,7 +2860,14 @@ async function _offreEnvoyer(i){
   const pg=document.getElementById('pgrid');if(pg&&pg._lastList)render(pg._lastList);
   window.prodiTrack?.('offre_preset',{pool:_offrePool,label:o.label,code:o.code,forme:o.forme,nb:cart.length});
   toast('✓ Offre '+o.label+' · '+o.forme.toLowerCase()+' · '+cart.length+' articles');
-  openClientLink(); // crée le lien ?s= et OUVRE la vue client — prête à envoyer
+  await openClientLink(); // crée le lien ?s= et OUVRE la vue client — prête à envoyer
+  // L'offre est JETABLE : la liste ne servait qu'à fabriquer le lien — on la
+  // vide pour ne pas retrouver 350 articles (badge + poubelle) au retour.
+  cart.length=0;
+  try{localStorage.setItem('prodi_cart',JSON.stringify(cart));}catch(_){}
+  updateCartBadge();renderDrawer();
+  if(typeof _updateAddPageBtn==='function')_updateAddPageBtn();
+  const pg2=document.getElementById('pgrid');if(pg2&&pg2._lastList)render(pg2._lastList);
 }
 let _filterTimer=null;
 let _sortTouched=false; // l'utilisateur a choisi un tri explicitement
@@ -5142,7 +5148,7 @@ async function _pxSend(){
             seg.style.cssText='display:flex;background:#f5f5f7;border-radius:999px;padding:3px;';
             const mkSeg=(m,on)=>{
               const b=document.createElement('button');
-              b.textContent=m;
+              b.textContent=m==='STOCK'?'LOTS':m; // affichage LOTS, réponse API inchangée
               b.style.cssText='flex:1;padding:9px;border:none;border-radius:999px;font-size:13px;font-weight:'+(on?'700':'600')+';color:'+(on?'#1d1d1f':'#6e6e73')+';cursor:pointer;font-family:inherit;background:'+(on?'#fff':'transparent')+';box-shadow:'+(on?'0 1px 4px rgba(0,0,0,.12)':'none')+';';
               b.onclick=()=>{
                 reps[j].clear();reps[j].add(m);
