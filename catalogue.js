@@ -2561,11 +2561,11 @@ function _qtyModal(dispoT,onPick,cfg){
     </div>`:'';
   const sliderHtml=maxT>0?`
     <div style="text-align:center;margin:2px 0 6px;">
-      <span id="qty-val" style="font-family:'Bebas Neue',sans-serif;font-size:27px;color:#FE0000;">${fmt(maxT)} t</span>
+      <span id="qty-val" style="font-family:'Bebas Neue',sans-serif;font-size:27px;color:#1d1d1f;">${fmt(maxT)} t</span>
     </div>
-    <input id="qty-range" type="range" min="1" max="${cum?cum.length:Math.max(1,Math.round(maxT*2))}" step="1" value="${cum?cum.length:Math.max(1,Math.round(maxT*2))}" style="width:100%;accent-color:#FE0000;height:32px;cursor:pointer;">
-    <div id="qty-contwrap" style="position:relative;height:20px;margin-top:-4px;display:${maxT>26.5?'':'none'};"><button id="qty-cont" title="Caler sur un container (26,5 t)" style="position:absolute;left:${Math.min(96,Math.max(4,26.5/(maxT||1)*100)).toFixed(2)}%;transform:translateX(-50%);background:none;border:none;cursor:pointer;font-size:11.5px;font-weight:700;color:#FE0000;font-family:'DM Sans',sans-serif;padding:0;white-space:nowrap;line-height:1.2;">▲<br>Container</button></div>
-    <button id="qty-go" style="width:100%;margin:10px 0 0;padding:14px;border:none;border-radius:999px;background:#FE0000;color:#fff;font-size:16px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;">Valider</button>`:'';
+    <input id="qty-range" type="range" min="1" max="${cum?cum.length:Math.max(1,Math.round(maxT*2))}" step="1" value="${cum?cum.length:Math.max(1,Math.round(maxT*2))}" style="width:100%;accent-color:#1d1d1f;height:32px;cursor:pointer;">
+    <div id="qty-contwrap" style="position:relative;height:20px;margin-top:-4px;display:${maxT>26.5?'':'none'};"><button id="qty-cont" title="Caler sur un container (26,5 t)" style="position:absolute;left:${Math.min(96,Math.max(4,26.5/(maxT||1)*100)).toFixed(2)}%;transform:translateX(-50%);background:none;border:none;cursor:pointer;font-size:11.5px;font-weight:700;color:#1d1d1f;font-family:'DM Sans',sans-serif;padding:0;white-space:nowrap;line-height:1.2;">▲<br>Container</button></div>
+    <button id="qty-go" style="width:100%;margin:10px 0 0;padding:14px;border:none;border-radius:999px;background:#111;color:#fff;font-size:16px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;">Valider</button>`:'';
   d.innerHTML=`<div style="background:#fff;border-radius:22px;padding:32px;max-width:430px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2);position:relative;">
     <button onclick="document.getElementById('tonnage-bg').remove()" aria-label="Fermer" style="position:absolute;top:16px;right:16px;width:34px;height:34px;border-radius:999px;background:#e8e8ed;border:none;color:#6e6e73;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;" onmouseover="this.style.background='#dededf'" onmouseout="this.style.background='#e8e8ed'">✕</button>
     <div id="qty-dispo" style="text-align:center;margin-bottom:12px;font-family:'Bebas Neue',sans-serif;font-size:44px;letter-spacing:.5px;color:#000;white-space:nowrap;line-height:1;">${(()=>{const v=parseFloat(String(dispoT).replace(',','.'));return isNaN(v)?'?':Math.round(v).toLocaleString('fr-FR');})()} <span style="font-size:22px;color:#6e6e73;">T</span></div>
@@ -5089,7 +5089,7 @@ async function _pxSend(){
       };
             // 21/07 (Ethan) : un seul CTA « Partager » (icône du header) —
       // ouvre le lien client direct ; l'Excel vit dans la vue client.
-      btnVoir.appendChild(mkBtn('Partager',()=>{ouvrirLienClient();},false,'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FE0000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-right:7px;vertical-align:-3px;"><path d="M12 15V4"/><path d="M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>'));
+      btnVoir.appendChild(mkBtn('Partager',()=>{ouvrirLienClient();},false,'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-right:7px;vertical-align:-3px;"><path d="M12 15V4"/><path d="M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>'));
       // Feedback 👍/👎 : nourrit la boucle apprenante (prodix_feedback)
       const _fb=document.createElement('span');
       _fb.style.cssText='display:inline-flex;gap:2px;margin-left:auto;align-self:center;';
@@ -5210,11 +5210,11 @@ async function _pxSend(){
           if((q.cle==='tonnes'||_maxT>0)&&_maxT>0){
             const fmtT=v=>Math.round(v).toLocaleString('fr-FR');
             const lbl=document.createElement('div');
-            lbl.style.cssText='text-align:center;font-family:\'Bebas Neue\',sans-serif;font-size:23px;color:#FE0000;';
+            lbl.style.cssText='text-align:center;font-family:\'Bebas Neue\',sans-serif;font-size:23px;color:#1d1d1f;';
             lbl.textContent=fmtT(_maxT)+' t';
             const rng=document.createElement('input');
             rng.type='range';rng.min='0.5';rng.max=String(_maxT);rng.step='0.5';rng.value=String(_maxT);
-            rng.style.cssText='width:100%;accent-color:#FE0000;height:28px;cursor:pointer;';
+            rng.style.cssText='width:100%;accent-color:#1d1d1f;height:28px;cursor:pointer;';
             const setRep=v=>{reps[j].clear();reps[j].add((v===26.5?'26,5':fmtT(v))+' t');};
             const paintT=()=>{let v=+rng.value;
               if(_maxT>26.5&&Math.abs(v-26.5)<=Math.max(1,_maxT*0.04)){v=26.5;rng.value='26.5';}
@@ -5226,7 +5226,7 @@ async function _pxSend(){
               mk.style.cssText='position:relative;height:18px;';
               const cb=document.createElement('button');
               cb.textContent='▲ Container';
-              cb.style.cssText='position:absolute;left:'+Math.min(96,Math.max(4,26.5/_maxT*100)).toFixed(1)+'%;transform:translateX(-50%);background:none;border:none;cursor:pointer;font-size:10.5px;font-weight:700;color:#FE0000;font-family:\'DM Sans\',sans-serif;padding:2px 10px;white-space:nowrap;';
+              cb.style.cssText='position:absolute;left:'+Math.min(96,Math.max(4,26.5/_maxT*100)).toFixed(1)+'%;transform:translateX(-50%);background:none;border:none;cursor:pointer;font-size:10.5px;font-weight:700;color:#1d1d1f;font-family:\'DM Sans\',sans-serif;padding:2px 10px;white-space:nowrap;';
               cb.onclick=()=>{rng.value='26.5';paintT();};
               mk.appendChild(cb);col.appendChild(mk);
             }
@@ -5246,7 +5246,7 @@ async function _pxSend(){
               const on=sel.has(c);
               if(!q.multi){sel.clear();rangee.querySelectorAll('[data-q="'+j+'"]').forEach(x=>{x.style.background='#fff';const n2=x.querySelector('span');n2.style.background='#f5f5f7';n2.style.color='#6e6e73';n2.textContent=x.dataset.i;});}
               if(on&&q.multi){sel.delete(c);b.style.background='#fff';num.style.background='#f5f5f7';num.style.color='#6e6e73';num.textContent=String(i+1);}
-              else if(!on){sel.add(c);b.style.background='#ffecec';num.style.background='#FE0000';num.style.color='#fff';num.textContent='✓';}
+              else if(!on){sel.add(c);b.style.background='#f0f0f2';num.style.background='#1d1d1f';num.style.color='#fff';num.textContent='✓';}
               _maj();
             };
             b.dataset.q=String(j);b.dataset.i=String(i+1);
@@ -5274,7 +5274,7 @@ async function _pxSend(){
           if(i2){i2.value=rep;_pxSend();}
         };
         window.__pxMajVal=_maj;window.__pxEnvoyer=_envoyer;
-        _val.style.cssText='display:none;align-self:flex-end;margin-top:8px;padding:9px 18px;border:none;border-radius:999px;background:#FE0000;color:#fff;font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit;';
+        _val.style.cssText='display:none;align-self:flex-end;margin-top:8px;padding:9px 18px;border:none;border-radius:999px;background:#111;color:#fff;font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit;';
         _val.onclick=_envoyer;
         bloc.appendChild(_val);
         // Multi-questions : pas de texte d'intro (les titres de colonnes suffisent)
@@ -5311,7 +5311,7 @@ async function _pxSend(){
               return;
             }
             if(_sel.has(c)){_sel.delete(c);b.style.background='#fff';num.style.background='#f5f5f7';num.style.color='#6e6e73';num.textContent=String(i+1);}
-            else{_sel.add(c);b.style.background='#ffecec';num.style.background='#FE0000';num.style.color='#fff';num.textContent='✓';}
+            else{_sel.add(c);b.style.background='#f0f0f2';num.style.background='#1d1d1f';num.style.color='#fff';num.textContent='✓';}
             window.__pxMajVal&&window.__pxMajVal();
           };
           extra.appendChild(b);
@@ -5347,7 +5347,7 @@ async function _pxSend(){
         _libre.appendChild(_li);
         extra.appendChild(_libre);
         window.__pxMajVal=_majVal;window.__pxEnvoyer=_envoyer;
-        _val.style.cssText='display:none;align-self:flex-end;margin-top:2px;padding:9px 18px;border:none;border-radius:999px;background:#FE0000;color:#fff;font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit;';
+        _val.style.cssText='display:none;align-self:flex-end;margin-top:2px;padding:9px 18px;border:none;border-radius:999px;background:#111;color:#fff;font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit;';
         _val.onclick=()=>{window.__pxEnvoyer&&window.__pxEnvoyer();};
         extra.appendChild(_val);
       }
@@ -5408,7 +5408,7 @@ async function _pxFichier(file){
     const extra=document.createElement('div');
     extra.style.cssText='display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;';
     const mkB=(label,fn,dark,ico)=>{const b=document.createElement('button');b.innerHTML=(ico||'')+label;b.style.cssText='display:inline-flex;align-items:center;padding:14px 24px;border-radius:999px;font-weight:700;font-size:16px;cursor:pointer;font-family:inherit;'+(dark?'background:#1d1d1f;color:#fff;border:none;':'background:#fff;color:#1d1d1f;border:none;box-shadow:0 1px 5px rgba(0,0,0,.14);');b.onclick=fn;return b;};
-    extra.appendChild(mkB('Partager',()=>{ouvrirLienClient();},false,'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FE0000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-right:7px;vertical-align:-3px;"><path d="M12 15V4"/><path d="M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>'));
+    extra.appendChild(mkB('Partager',()=>{ouvrirLienClient();},false,'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-right:7px;vertical-align:-3px;"><path d="M12 15V4"/><path d="M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>'));
     _pxBulle('assistant',`J'ai lu ${refs.length} référence${refs.length>1?'s':''} dans « ${file.name} » — ${ajoutes} article${ajoutes>1?'s':''} retrouvé${ajoutes>1?'s':''} au stock (${(poids/1000).toFixed(1)} t), ils sont dans ta liste.`,extra);
     window.prodiTrack?.('prodix_fichier',{nom:file.name,refs:refs.length,trouves:ajoutes});
   }catch(e){

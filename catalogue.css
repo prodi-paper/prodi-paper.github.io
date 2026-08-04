@@ -1419,7 +1419,7 @@ body.apple-view .sc-cap{color:#6e6e73;font-weight:600;}
 body.apple-view .sc-val{color:#1d1d1f;font-weight:700;}
 body.apple-view .pbig-ref{background:rgba(255,255,255,.88);color:#1d1d1f;backdrop-filter:blur(8px);font-family:'DM Sans',sans-serif;font-weight:700;font-size:14px;border-radius:999px;}
 body.apple-view .pbig-usine{background:rgba(29,29,31,.65);backdrop-filter:blur(8px);border-radius:999px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;}
-body.apple-view .sc-count{background:#FE0000;border-radius:999px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;}
+body.apple-view .sc-count{background:#1d1d1f;border-radius:999px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;}
 body.apple-view .rbar-sel{border:none;background:#fff;border-radius:999px;box-shadow:0 2px 10px rgba(0,0,0,.06);padding:9px 14px;color:#1d1d1f;}
 body.apple-view .btn-head{border:none;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.06);border-radius:999px;}
 body.apple-view #f-refmin-top{border:none !important;box-shadow:0 2px 10px rgba(0,0,0,.06);border-radius:999px !important;}
@@ -1683,9 +1683,9 @@ body.apple-view .sc-add{flex-shrink:0;width:34px;height:34px;border-radius:999px
 body.apple-view .sc-add svg{display:none;}
 body.apple-view .sc-add::before{content:'+';font-size:21px;font-weight:500;color:#1d1d1f;font-family:'DM Sans',sans-serif;line-height:1;}
 body.apple-view .sc-add:hover{border-color:#1d1d1f;}
-body.apple-view .sc-add.added{background:#fff;border-color:#FE0000;}
+body.apple-view .sc-add.added{background:#fff;border-color:#1d1d1f;}
 /* 21/07 (Ethan) : + devient − quand l'article est dans la liste (re-clic = retire). */
-body.apple-view .sc-add.added::before{content:'\2212';color:#FE0000;font-size:21px;font-weight:600;}
+body.apple-view .sc-add.added::before{content:'\2212';color:#1d1d1f;font-size:21px;font-weight:600;}
 
 /* topbar UNE ligne (v2, 18/07) : tri = pastille avec menu, + page et pager en bout de barre, tout compacte */
 body.topbar-view .filters-panel{gap:6px;}
@@ -1753,10 +1753,10 @@ body.apple-view .vt-toggle-btn.add-page-btn.all-in svg{display:block;transform:r
 @media(min-width:769px){
 body.apple-view:not(.shared-view) header{background:transparent;border-bottom:none;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;top:10px;padding:0 16px;}
 body.apple-view:not(.shared-view) .header-inner{background:rgba(255,255,255,.88);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);border-radius:20px;box-shadow:0 4px 24px rgba(0,0,0,.09);max-width:1360px;margin:0 auto;padding:0 20px;height:58px;}
-body.apple-view:not(.shared-view) #cart-btn{background:#fff;border:1.5px solid #FE0000;color:#FE0000;}
-body.apple-view:not(.shared-view) #cart-btn:hover{background:rgba(254,0,0,.08);border:1.5px solid #FE0000;color:#FE0000;}
-body.apple-view:not(.shared-view) #cart-btn .btn-panier-txt{color:#FE0000;}
-body.apple-view:not(.shared-view) #cart-btn .cart-badge{background:#FE0000;color:#fff;}
+body.apple-view:not(.shared-view) #cart-btn{background:#fff;border:1px solid #86868b;color:#1d1d1f;}
+body.apple-view:not(.shared-view) #cart-btn:hover{background:#f5f5f7;border:1px solid #86868b;color:#1d1d1f;}
+body.apple-view:not(.shared-view) #cart-btn .btn-panier-txt{color:#1d1d1f;}
+body.apple-view:not(.shared-view) #cart-btn .cart-badge{background:#1d1d1f;color:#fff;}
 body.apple-view:not(.shared-view) #album-photo-btn{background:#fff;border:1.5px solid #d2d2d7;color:#1d1d1f;}
 body.apple-view:not(.shared-view) #album-photo-btn:hover{border-color:#86868b;background:#fff;color:#1d1d1f;}
 }
@@ -1773,10 +1773,10 @@ body.shared-view #offre-wrap{display:none !important;}
 .offre-load{padding:14px;font-family:'DM Sans',sans-serif;font-size:13px;color:#6e6e73;}
 .offre-item{display:flex;align-items:baseline;gap:12px;width:100%;padding:10px 14px;border:none;background:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14.5px;font-weight:700;color:#1d1d1f;cursor:pointer;text-align:left;}
 .offre-item .offre-lbl{flex:1;}
-.offre-item small{font-size:12px;font-weight:600;color:#FE0000;white-space:nowrap;}
+.offre-item small{font-size:12px;font-weight:600;color:#6e6e73;white-space:nowrap;}
 .offre-item:hover{background:#f5f5f7;}
 .offre-chev{font-size:15px;color:#c7c7cc;font-weight:600;}
-.offre-back{display:block;width:100%;padding:9px 12px 7px;border:none;background:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;color:#FE0000;cursor:pointer;text-align:left;border-radius:8px;}
+.offre-back{display:block;width:100%;padding:9px 12px 7px;border:none;background:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;color:#1d1d1f;cursor:pointer;text-align:left;border-radius:8px;}
 .offre-back:hover{background:#f5f5f7;}
 .offre-hint{padding:7px 14px 8px;font-family:'DM Sans',sans-serif;font-size:11px;color:#a1a1a6;border-top:1px solid #f0f0f2;margin-top:4px;}
 /* Segment FAB / STOCK en haut du menu (même style que le popup Quantité) */
@@ -1789,15 +1789,15 @@ body.shared-view #offre-wrap{display:none !important;}
 .offre-grp:first-of-type{padding-top:2px;}
 .offre-offer{align-items:center;gap:9px;padding:7px 14px 7px 16px;}
 .offre-band{flex:none;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;padding:3px 9px;border-radius:999px;background:#f0f0f2;color:#6e6e73;}
-.offre-band.band-courant{background:#ffecec;color:#FE0000;}
+.offre-band.band-courant{background:#eef0f2;color:#1d1d1f;}
 .offre-gamme{flex:1;font-family:'DM Sans',sans-serif;font-size:12.5px;font-weight:600;color:#1d1d1f;white-space:normal;text-align:left;}
 /* + page (2e ligne) : rond BLEU Apple assorti au bouton Liste */
-body.topbar-view #topbar-row2 #add-page-btn{border:none;background:#FE0000;color:#fff;border-radius:999px;width:36px;height:36px;min-width:36px;display:flex;align-items:center;justify-content:center;margin:0;padding:0;box-shadow:0 2px 8px rgba(254,0,0,.3);}
-body.topbar-view #topbar-row2 #add-page-btn:hover{background:#cc0000;color:#fff;border:none;}
+body.topbar-view #topbar-row2 #add-page-btn{border:none;background:#1d1d1f;color:#fff;border-radius:999px;width:36px;height:36px;min-width:36px;display:flex;align-items:center;justify-content:center;margin:0;padding:0;box-shadow:0 2px 8px rgba(0,0,0,.18);}
+body.topbar-view #topbar-row2 #add-page-btn:hover{background:#333;color:#fff;border:none;}
 /* 21/07 (Ethan) : le + bleu reste TOUJOURS le + bleu — plus d'état sombre
    trash/croix quand tout est en liste (le clic ouvre le popup Quantité de
    toute façon ; retirer = poubelle du header). */
-body.topbar-view #topbar-row2 #add-page-btn.all-in{background:#FE0000;color:#fff;box-shadow:0 2px 8px rgba(254,0,0,.3);}
+body.topbar-view #topbar-row2 #add-page-btn.all-in{background:#1d1d1f;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.18);}
 body.topbar-view #topbar-row2 #add-page-btn.all-in::before{display:none;content:none;}
 body.topbar-view #topbar-row2 #add-page-btn.all-in svg{display:block;transform:none;}
 
@@ -1826,7 +1826,7 @@ body.apple-view:not(.shared-view) #cart-btn svg.cart-share-ico,body.topbar-view 
 body.apple-view:not(.shared-view) #cart-btn .btn-panier-txt{font-size:14px !important;font-weight:400 !important;}
 body.apple-view:not(.shared-view) #album-photo-btn,body.apple-view:not(.shared-view) #cart-btn{border-radius:999px;}
 /* + des cartes : survol BLEU */
-body.apple-view .sc-add:hover{border-color:#FE0000;background:#FE0000;}
+body.apple-view .sc-add:hover{border-color:#1d1d1f;background:#1d1d1f;}
 body.apple-view .sc-add:hover::before{color:#fff;}
 /* badge x N : blanc translucide discret */
 body.apple-view .sc-count{background:rgba(255,255,255,.78);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);color:#1d1d1f;font-size:12px;font-weight:600;box-shadow:0 1px 4px rgba(0,0,0,.12);}
@@ -1838,7 +1838,7 @@ body.topbar-view .filters-panel .fg:has(#sb-msd-poids){display:none !important;}
 body.apple-view:not(.shared-view) #f-refmin-top,body.apple-view:not(.shared-view) #f-refmax-top{background:#fff !important;border:1px solid #86868b !important;box-shadow:none !important;}
 body.apple-view:not(.shared-view) #f-refmin-top::placeholder,body.apple-view:not(.shared-view) #f-refmax-top::placeholder{color:#86868b;}
 /* toasts : rappel de marque — texte + contour ROUGE Prodi sur blanc depoli */
-body.apple-view .toast{color:#FE0000;border:1.5px solid rgba(254,0,0,.55);font-weight:700;}
+body.apple-view .toast{color:#1d1d1f;border:1px solid rgba(0,0,0,.22);font-weight:700;}
 /* badges x N et RESERVE : +5 % */
 body.apple-view .sc-count{font-size:12.6px;padding:4px 11.5px;}
 body.apple-view .pcard-resa-overlay{font-size:11px;padding:5.5px 10.5px;}
@@ -2015,10 +2015,10 @@ body.topbar-view .phero-panel-head{display:none !important;}
   body.topbar-view #f-refmin-top,body.topbar-view #f-refmax-top{flex:1 1 0 !important;width:auto !important;height:34px;font-size:13px;}
   body.topbar-view #rbar-count{display:none !important;}
   body.topbar-view .cart-wrap{display:flex !important;}
-  body.topbar-view #cart-btn{display:flex !important;height:34px;width:auto !important;padding:0 16px !important;background:#fff !important;border:1.5px solid #FE0000 !important;border-radius:999px !important;color:#FE0000 !important;}
+  body.topbar-view #cart-btn{display:flex !important;height:34px;width:auto !important;padding:0 16px !important;background:#fff !important;border:1px solid #86868b !important;border-radius:999px !important;color:#1d1d1f !important;}
   body.topbar-view #cart-btn svg{display:none;}
   body.topbar-view #cart-btn .btn-panier-txt{display:inline !important;font-size:14px !important;font-weight:700 !important;color:#fff !important;}
-  body.topbar-view #cart-btn .cart-badge{background:#FE0000;color:#fff;}
+  body.topbar-view #cart-btn .cart-badge{background:#1d1d1f;color:#fff;}
   body.topbar-view #offre-btn{display:flex !important;height:34px;width:auto !important;padding:0 14px !important;background:#fff !important;border:1px solid #86868b !important;border-radius:999px !important;color:#1d1d1f !important;}
   body.topbar-view #offre-btn .offre-txt{font-size:14px !important;font-weight:700 !important;}
   body.topbar-view #offre-wrap{margin-right:6px;}
@@ -2124,7 +2124,7 @@ body.apple-view .pcard-promo-overlay{-webkit-backdrop-filter:none;backdrop-filte
    pseudo-élément thumb, ne jamais revenir aux 2 ranges superposés cliquables. */
 .gsl-track{position:relative;height:26px;cursor:pointer;touch-action:none;}
 .gsl-track::before{content:'';position:absolute;left:0;right:0;top:11.5px;height:3px;border-radius:99px;background:#e3e3e6;}
-.gsl-fill{position:absolute;top:11.5px;height:3px;border-radius:99px;background:#FE0000;pointer-events:none;}
+.gsl-fill{position:absolute;top:11.5px;height:3px;border-radius:99px;background:#1d1d1f;pointer-events:none;}
 .gsl-track input[type=range]{position:absolute;inset:0;width:100%;height:26px;margin:0;background:none;
   pointer-events:none;-webkit-appearance:none;appearance:none;}
 .gsl-track input[type=range]::-webkit-slider-runnable-track{background:transparent;height:26px;}
