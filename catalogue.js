@@ -4085,6 +4085,7 @@ function renderSharedCards(list){
     return`<div class="pcard sc-card" onclick="openDetail(${numId(p.id)})">
       <div class="pcard-img">${img}
         ${p._grpCount>1?`<span class="sc-count">× ${numId(p._grpCount)}</span>`:''}
+        ${window._sharedEdit?`<button class="sc-del" onclick="event.stopPropagation();_sharedRemove(${numId(p.id)})" aria-label="Retirer de la liste">✕</button>`:''}
       </div>
       <div class="sc-body">
         <div class="sc-grid${prix?' has-prix':''}">
@@ -4098,6 +4099,47 @@ function renderSharedCards(list){
   g.innerHTML=sorted.map(card).join('');
   _updatePager();
 }
+// ── MODE MODIFICATION vue client (&edit=1, 04/08) : l'expéditeur retire des
+// lots avant d'envoyer, puis « Créer le lien client » régénère un ?s= propre. ──
+window._sharedRemove=function(id){
+  const p=_sharedAll.find(x=>+x.id===+id);if(!p)return;
+  const refs=new Set((p._grpRefs&&p._grpRefs.length?p._grpRefs:[p.ref]).map(String));
+  _sharedAll=_sharedAll.filter(x=>x!==p);
+  all=_sharedAll;
+  cart=cart.filter(c=>!refs.has(String(c.ref)));
+  try{localStorage.setItem('prodi_cart',JSON.stringify(cart));}catch(_){}
+  _totalCount=_sharedAll.length;
+  _rbarSharedCounts(cart);
+  const rbarTons=document.getElementById('rbar-tons');
+  if(rbarTons)rbarTons.textContent=(cart.reduce((s,c)=>s+(+c.poids_net||0),0)/1000).toFixed(1);
+  if(typeof _filterSharedLocal==='function')_filterSharedLocal();else render(_sharedAll);
+  _sharedEditBar();
+};
+window._sharedEditBar=function(){
+  if(!window._sharedEdit)return;
+  let b=document.getElementById('shared-editbar');
+  if(!b){b=document.createElement('div');b.id='shared-editbar';document.body.appendChild(b);}
+  const t=cart.reduce((s,c)=>s+(+c.poids_net||0),0)/1000;
+  b.innerHTML=`<span>Modification — ${numId(_sharedAll.length)} carte${_sharedAll.length>1?'s':''} · ${esc(t.toFixed(1))} t</span>
+    <button onclick="_sharedNewLink(this)">Créer le lien client</button>`;
+};
+window._sharedNewLink=async function(btn){
+  if(!cart.length){toast('Liste vide');return;}
+  if(btn){btn.disabled=true;btn.textContent='…';}
+  const code=_shortCode();
+  const refs=cart.map(x=>x.ref).filter(Boolean).join(',');
+  try{
+    const res=await sbQ('shared_carts',{method:'POST',body:{code,cart_ids:refs},headers:{'Prefer':'return=minimal'}});
+    if(res&&res.status&&res.status>=400)throw new Error('HTTP '+res.status);
+  }catch(e){
+    console.error('share',e);toast('Erreur création du lien');
+    if(btn){btn.disabled=false;btn.textContent='Créer le lien client';}
+    return;
+  }
+  window.prodiTrack?.('panier_partage',{code,nb:cart.length,via:'edit_vue_client'});
+  // Recharge sur le lien PROPRE (sans edit) = exactement ce que verra le client.
+  location.href=window.location.origin+window.location.pathname+'?s='+code+(_priceMode?'&p=1':'');
+};
 
 const _DET_NO_PHOTO=`<img src="/img/photos-sur-demande.png" alt="Photos sur demande" style="width:100%;height:100%;object-fit:contain;background:#fff;">`;
 const _DET_FAB_PHOTO=`<img src="/img/fabrication-sur-demande.png" alt="Fabrication sur demande" style="width:100%;height:100%;object-fit:contain;">`;
@@ -6062,6 +6104,9 @@ async function loadSharedQuote(idsOverride){
   _maxKnownPage=1; // vue client : tout sur UNE page (listes 40-60 T)
   currentPage=1;
   _viewMode='grid'; // vue fiches uniquement (tableau retiré 18/07)
+  // Mode modification (&edit=1) : posé AVANT le render pour que les cartes
+  // portent leur croix « retirer » (la barre, elle, attend le cart rempli).
+  window._sharedEdit=new URLSearchParams(window.location.search).get('edit')==='1';
 
   const totalKg=units.reduce((s,p)=>s+(+p.weight||0),0);
   const rbarRefs=document.getElementById('rbar-refs');
@@ -6079,6 +6124,7 @@ async function loadSharedQuote(idsOverride){
   localStorage.setItem('prodi_cart',JSON.stringify(cart));
   updateCartBadge();
   renderDrawer();
+  if(window._sharedEdit)_sharedEditBar();
   // Perf intro (19/07) : le rendu des 40-60 cartes + décodage photos saturait
   // le main thread PENDANT la chorégraphie (départs d'animations en retard =
   // saccades). On le diffère à la fin du splash.
@@ -6801,7 +6847,9 @@ async function openClientLink(btn){
     toast('Erreur création du lien partagé');
     return;
   }
-  window.open(url,'_blank','noopener');
+  // &edit=1 = MODE MODIFICATION pour l'expéditeur (croix sur les cartes +
+  // barre « Créer le lien client ») — le lien envoyé au client reste le ?s= nu.
+  window.open(url+'&edit=1','_blank','noopener');
 }
 async function copyCartLink(btn){
   if(!cart.length){toast('Liste vide — ajoutez des produits d\'abord');return;}
