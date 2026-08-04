@@ -793,6 +793,17 @@ Session de retouches à la demande d'Ethan, direction = répliquer apple.com :
   → pas besoin de changer de source. Effectif au 1er import après push.
 - Outils de test : /tmp/cdp_offre*.mjs (menu Offre headless), export xlsx
   intercepté via Browser.setDownloadBehavior + openpyxl.
+- **Soirée (v701/css 696, poussée)** : segment des TUILES au même dessin que
+  celui du menu Offre (piste #f0f0f2, pilule active BLANCHE, outline:none —
+  l'anneau bleu était le focus navigateur) ; **« STOCK » affiché « LOTS »**
+  partout (menu Offre, popup Quantité, interrupteur pool PRODIX — clés
+  internes et réponse API restent 'STOCK') ; **liste VIDÉE après envoi d'une
+  offre** (await openClientLink puis cart.length=0 — sinon badge 350 +
+  poubelle au retour ; le Partager du header garde la liste) ; ligne
+  « Cliquer = ouvrir la liste client » retirée (CSS offre-hint purgé).
+  Règle FAB/LOTS revérifiée aux dates réelles : SLUX 0 mal classé,
+  RLUX 2/501 borderline (juil. 2025) — frontière réf figée, bascule
+  date_arrivee à faire un jour.
 
 ## Règles photos / images produit
 
