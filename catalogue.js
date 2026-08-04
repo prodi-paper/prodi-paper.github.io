@@ -7069,20 +7069,24 @@ async function exportListExcelTest(btn){
         _ws=_ws.map(w=>Math.max(80,Math.floor(w*k)));
         bandW=_ws.reduce((a,b)=>a+b,0)+(photos.length-1)*gap;
       }
-      let x=Math.max(2,Math.round((_availW-bandW)/2)); // centre la bande
+      const x=Math.max(2,Math.round((_availW-bandW)/2)); // centre la bande
+      // BANDE COMPOSÉE EN UNE SEULE IMAGE (canvas) : positionner N photos via
+      // les ancres Excel dérive toujours (le modèle px→colonne est approximatif
+      // face au rendu réel → chevauchements en tl+ext, étirements en tl+br).
+      // Une image unique ancrée en tl+ext garde ratios et taille EXACTS.
+      const cv=document.createElement('canvas');
+      cv.width=bandW;cv.height=PH;
+      const cx2=cv.getContext('2d');
+      cx2.fillStyle='#fff';cx2.fillRect(0,0,bandW,PH);
+      const imgs=await Promise.all(photos.map(b64=>new Promise(res=>{const im=new Image();im.onload=()=>res(im);im.onerror=()=>res(null);im.src=b64;})));
+      let cxX=0;
+      imgs.forEach((im,i)=>{if(im)cx2.drawImage(im,cxX,0,_ws[i],PH);cxX+=_ws[i]+gap;});
       // Hauteurs de lignes AVANT addImage : ExcelJS convertit les ancres
       // fractionnaires avec la hauteur CONNUE au moment de l'appel (défaut
       // 15 pt sinon → photos écrasées en bandeau).
       ws.getRow(13).height=Math.round(PH*0.75)+6; ws.getRow(14).height=6; ws.getRow(15).height=6;
-      // Ancrage tl+br en fractions de colonnes : chaque photo occupe EXACTEMENT
-      // son créneau [x, x+w] → plus de chevauchement (le mode tl+ext dérivait,
-      // notre modèle px→colonne étant approximatif face au rendu Excel réel).
-      photos.forEach((b64,i)=>{
-        const id=_imgId(b64);
-        if(id==null){x+=_ws[i]+gap;return;}
-        ws.addImage(id,{tl:{col:_pxToCol(x),row:12.05},br:{col:_pxToCol(x+_ws[i]),row:12.97}});
-        x+=_ws[i]+gap;
-      });
+      const bid=_imgId(cv.toDataURL('image/jpeg',0.86));
+      if(bid!=null)ws.addImage(bid,{tl:{col:_pxToCol(x),row:12.05},ext:{width:bandW,height:PH}});
       r=16;
     }
 
@@ -7144,13 +7148,14 @@ async function exportListExcelTest(btn){
       r++;
     }
 
-    // TOTAL kg sur jaune (sous la colonne PN)
+    // TOTAL en TONNES sur jaune (sous la colonne PN) — les kg bruts se
+    // lisaient comme un prix (38043).
     const _totKg=[...secBob,...secFmt].reduce((s2,d)=>s2+(+d.poids||0),0);
     // PN de la dernière section affichée (décalé d'un cran sans colonne N°)
     const _pnCol=String.fromCharCode((secFmt.length?'H':'I').charCodeAt(0)-(noRef?1:0));
     ws.mergeCells(`A${r}:${String.fromCharCode(_pnCol.charCodeAt(0)-1)}${r}`);
     const _tl=ws.getCell(`A${r}`); _tl.value='TOTAL'; box(_tl,{bold:true,size:13,align:'right'});
-    const _tk=ws.getCell(`${_pnCol}${r}`); _tk.value=_totKg; box(_tk,{bold:true,size:13,color:RED,bg:JAUNE,align:'center',border:true});
+    const _tk=ws.getCell(`${_pnCol}${r}`); _tk.value=(Math.round(_totKg/100)/10).toLocaleString('fr-FR')+' t'; box(_tk,{bold:true,size:13,color:RED,bg:JAUNE,align:'center',border:true});
     ws.getRow(r).height=26; r+=2;
     // Conditions de vente (bilingue)
     ws.mergeCells(`A${r}:C${r}`); let _c1=ws.getCell(`A${r}`); _c1.value='CONDITIONS DE VENTE'; box(_c1,{bold:true,size:12,align:'center',border:true,bg:HEADBG});
