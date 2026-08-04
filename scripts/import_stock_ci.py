@@ -403,6 +403,15 @@ if __name__ == '__main__':
     if len(products) < 5000:
         log(f"ABANDON: {len(products)} produits parsés (< 5000) — base NON touchée")
         sys.exit(1)
+    # Garde-fou PRIX (04/08) : si les colonnes PUNET/AR_PRIXVEN disparaissent
+    # ou changent de nom dans le DOV, on publierait un catalogue sans prix.
+    # Couverture normale ≈ 99 % — sous 60 %, on refuse (mail d'alerte Resend
+    # via le step if:failure du workflow) et la base d'hier reste en place.
+    _vis = [p for p in products if p['source'] == 'email']
+    _avec_prix = sum(1 for p in _vis if p.get('price'))
+    if _vis and _avec_prix / len(_vis) < 0.6:
+        log(f"ABANDON: {_avec_prix}/{len(_vis)} produits visibles avec prix (< 60 %) — colonnes prix du DOV suspectes, base NON touchée")
+        sys.exit(1)
     update_supabase(products)
     backfill_image_urls()
     rematch_inventaire_lignes()
