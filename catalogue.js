@@ -5601,7 +5601,7 @@ if(_sharedMode)_sharedViewUI(true);
           // mécanique que la vitrine (boucle infinie 3 copies, points façon
           // apple.com qui se remplissent, avance auto)
           const _BAND=[
-            {codes:['Offset Couleur'],title:'Offset couleur',img:_U+'photo-1716471330459-063b3baf247e'+_P},
+            {codes:['Offset Couleur','SCOL'],title:'Offset couleur',img:_U+'photo-1716471330459-063b3baf247e'+_P},
             {codes:['RBOU','SBOU'],title:'Bouffant',img:_U+'photo-1457369804613-52c61a468e7d'+_P},
             {codes:['RADH','SADH'],title:'Adhésif',img:_U+'photo-1569725730478-a2f4a1809bb4'+_P},
             {codes:['SCUT'],title:'Ramette',img:_U+'photo-1573978828027-e830975e272c'+_P},
