@@ -5465,6 +5465,7 @@ if(_sharedMode)_sharedViewUI(true);
         else if(kind==='diametre'){const s=msdState['msd-diametre'];s.has(val)?s.delete(val):s.add(val);updateMsdBtn('msd-diametre');}
         else if(kind==='photo'){_photoFilter=_photoFilter===val?'':val;syncFilterPills();}
         else if(kind==='resa'){_resaFilter=_resaFilter===val?'':val;document.querySelectorAll('.fpill-resa').forEach(b=>b.classList.toggle('active',_resaFilter===(b.dataset.resa||'with')));}
+        else if(kind==='prix'){togglePriceMode(!_priceMode);window._paintAdv&&window._paintAdv();return;} // affichage seul, pas un filtre
         filterProducts();window._paintAdv&&window._paintAdv();
       };
       window._advOpenSec=null; // section dépliée (accordéon)
@@ -5487,6 +5488,7 @@ if(_sharedMode)_sharedViewUI(true);
           {id:'photo',t:'Photo',n:_photoFilter?1:0,rows:()=>row('photo','with','Avec photo',_photoFilter==='with')+row('photo','without','Sans photo',_photoFilter==='without')},
           {id:'resa',t:'Réservation',n:_resaFilter?1:0,rows:()=>row('resa','with','Réservés',_resaFilter==='with')+row('resa','without','Dispo',_resaFilter==='without')},
           {id:'usine',t:'Réf usine',n:msdState['msd-usine'].size,rows:()=>`<div class="msd-search-wrap"><input class="msd-search-inp" id="adv-usine-q" type="text" placeholder="Rechercher…" autocomplete="off" value="${esc(window._advUsineQ||'')}"></div>`+usines.map(u=>row('usine',u,'Usine '+u,msdState['msd-usine'].has(u))).join('')},
+          {id:'prix',t:'Prix',n:_priceMode?1:0,rows:()=>row('prix','on','Afficher le P/Tonne (€/T)',_priceMode)},
         ];
         _faPn.innerHTML=secs.map(s=>{
           const open=window._advOpenSec===s.id;
