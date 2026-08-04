@@ -754,6 +754,46 @@ Session de retouches à la demande d'Ethan, direction = répliquer apple.com :
   dédupliquée (« Bobine, Bobine » = pilules desktop+mobile ×2). PRODIX =
   clé API dédiée côté app arrivages (PRODIX_API_KEY, voir repo arrivages).
 
+## Session 04/08/2026 (v698, poussée)
+
+- **Tuiles landing** : bloc segment+titre remonté de 10px (`.px-tuile-in`
+  padding-top `clamp(16px, 6vh − 10px, 48px)`).
+- **Menu OFFRE refondu** : 2 segments empilés en tête (FAB|STOCK puis
+  BOBINE|FORMAT, `_offrePool`/`_offreForme`, grisé si vide + bascule auto),
+  puis **liste plate = UNE offre par QUALITÉ** (plus de bandes de grammage ni
+  de niveau 2 ; « Couché 1-2 faces » scindé en 1 face / 2 faces dans
+  OFFRE_PRESETS). Ligne = « Famille CODE » + **tonnage seul à droite** (pas de
+  gamme, pas de ≈). Forme = lettre du code (R*/S*) **ET** `_estFormat` par
+  article (un R* au format NULL est écarté — sinon il s'affichait en carte
+  Dimensions au milieu des bobines de la vue client). Clic = openClientLink
+  direct. CSS bandes/niveau 2/offre-hdr/offre-chev/offre-back supprimés.
+- **`groupKey` + USINE** : un lot (cartes ×N vue client, mode Groupé, pools
+  Quantité) ne mélange plus deux usines.
+- **Excel export = 2 FEUILLES** (`_buildSheet(ws,secBob,secFmt,opts)` factorise
+  le gabarit USINE 83) : « Offre » détaillée inchangée (une ligne par article,
+  réf en N°) + « **Assemblé** » = une ligne par LOT — clé qualité/couleur/
+  détails/GSM/forme/USINE/prix, **laize HORS clé pour les bobines** (comme le
+  poids : affichée en plage min–max, idem Ø ; les formats gardent leurs
+  dimensions exactes), PN = poids total, mandrins joints « / », **SANS colonne
+  N°** (opts.noRef : colonnes décalées/élargies, merges recalés via
+  NCOL/LAST/PREL).
+- **Photos de la bande** : ancrage **tl+br** (chaque photo occupe exactement
+  son créneau → plus de chevauchement, le tl+ext dérivait) + ⚠️ **hauteurs de
+  lignes posées AVANT addImage** — ExcelJS convertit les ancres fractionnaires
+  avec la hauteur connue au moment de l'appel (défaut 15 pt → photos écrasées).
+- **Fond gris** autour du document sur les 2 feuilles (colonnes à droite +
+  ~120 lignes sous les conditions, doc blanc).
+- **PRIX IMPORT = max(PUNET, AR_PRIXVEN)** (les 2 scripts, synchro) : audit du
+  DOV 04/08 — PUNET = PRIXACH ±1 % sur 52 % des lignes et SOUS l'achat sur
+  20 % (SLUX 85 %, RLUX 94 %) = valorisation de stock, pas un prix de vente.
+  Garde-fou >3 €/kg par CANDIDAT (une valeur folle n'efface plus l'autre).
+  Impact médianes €/t : SLUX 618→760, RLUX 460→680, ROFF 615→730, RCAR
+  580→1120. Vérif croisée : le prix « DÉPART USINE » du mail STOCK DÉTAILLÉ
+  (83 PJ, 64 % du stock seulement) = ce max à ±5 % sur 91 % des réfs communes
+  → pas besoin de changer de source. Effectif au 1er import après push.
+- Outils de test : /tmp/cdp_offre*.mjs (menu Offre headless), export xlsx
+  intercepté via Browser.setDownloadBehavior + openpyxl.
+
 ## Règles photos / images produit
 
 ### Priorité d'affichage (pour TOUS les produits)

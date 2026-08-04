@@ -222,15 +222,19 @@ def parse_dov(files):
             date_arrivee = None
 
         promo = ref.isdigit() and int(ref) < 900000
-        # Prix (21/07, audit pricing) : PUNET (prix du lot) prioritaire,
-        # repli AR_PRIXVEN (tarif article, rempli à ~100 %) — récupère ~1 190
-        # prix manquants. Garde-fou : famille papier (R*/S*) à plus de
-        # 3 €/kg = prix unitaire saisi dans un champ €/kg → prix retiré
-        # (évite les 731 600 €/T affichés).
-        prix = num(g(row, 'PUNET')) or num(g(row, 'AR_PRIXVEN'))
-        if prix and prix > 3 and fam_code[:1] in ('R', 'S'):
-            _prix_aberrants += 1  # logs Actions PUBLICS : ne pas y imprimer réfs/prix
-            prix = None
+        # Prix (04/08) : PUNET vaut le prix d'ACHAT à ±1 % sur 52 % des lignes
+        # du DOV et est SOUS l'achat sur 20 % — c'est une valorisation de
+        # stock, pas un prix de vente. On prend donc le MAX de PUNET et
+        # AR_PRIXVEN (tarif article, rempli à ~100 %). Garde-fou PAR CANDIDAT :
+        # famille papier (R*/S*) au-dessus de 3 €/kg = prix unitaire saisi
+        # dans un champ €/kg → candidat écarté (évite les 731 600 €/T), sans
+        # perdre l'autre valeur si elle est saine.
+        cands = [num(g(row, 'PUNET')), num(g(row, 'AR_PRIXVEN'))]
+        if fam_code[:1] in ('R', 'S'):
+            if any(c > 3 for c in cands if c):
+                _prix_aberrants += 1  # logs Actions PUBLICS : ne pas y imprimer réfs/prix
+            cands = [c for c in cands if c and c <= 3]
+        prix = max([c for c in cands if c], default=None)
         if promo and prix:
             prix = round(prix * 0.7, 4)
         by_ref[ref] = (qty, {
