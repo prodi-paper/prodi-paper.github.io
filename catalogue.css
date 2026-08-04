@@ -2145,6 +2145,16 @@ body.saisie-basse #px-dock .phero-box{width:min(720px,100%);margin:0;
   pointer-events:auto;border:none;box-shadow:0 6px 26px rgba(0,0,0,.16);}
 body.saisie-basse #pgrid{padding-bottom:96px;}
 body.saisie-basse footer{padding-bottom:110px;}
+/* Segment BOBINE / FORMAT dans CHAQUE tuile (remplace « Voir le stock »,
+   Bobine préchoisi — clic ailleurs sur la tuile = Bobine aussi) */
+body.saisie-basse .px-tuile-seg{display:flex;background:#fff;border-radius:999px;
+  padding:3px;box-shadow:0 2px 12px rgba(0,0,0,.16);}
+body.saisie-basse .px-tuile-seg button{border:none;background:transparent;
+  border-radius:999px;padding:8px 20px;font-family:'DM Sans',sans-serif;
+  font-weight:800;font-size:13px;letter-spacing:.3px;color:#86868b;cursor:pointer;
+  transition:color .15s;}
+body.saisie-basse .px-tuile-seg button:not(.on):hover{color:#1d1d1f;}
+body.saisie-basse .px-tuile-seg button.on{background:#111;color:#fff;}
 /* Tuiles qualités en landing (mêmes visuels que la vitrine) */
 body.saisie-basse #px-tuiles{display:grid;grid-template-columns:1fr 1fr;gap:14px;
   max-width:1720px;margin:0 auto;padding:10px 14px 14px;}

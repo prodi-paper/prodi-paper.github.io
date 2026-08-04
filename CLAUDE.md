@@ -740,6 +740,15 @@ Session de retouches à la demande d'Ethan, direction = répliquer apple.com :
 - **02/08 INCIDENT SUPABASE** : projet restreint (402 partout) pour quota
   storage dépassé — voir mémoire « Supabase credentials » (ménage photos
   1 840→605 Mo via SQL mgmt + `set storage.allow_delete_query='true'`).
+- **04/08 (v687)** : tuiles `?bas=1` = segment BOBINE|FORMAT **dans chaque
+  tuile** à la place de « Voir le stock » (Bobine préchoisi ; le segment ne
+  fait que BASCULER l'état, c'est le clic tuile qui entre) → sélectionne
+  SEULEMENT les codes R* (Bobine) ou S* (Format) de la famille — pas de
+  pilule format, chip unique « Type : ROFF ». Bandeau sans forme imposée
+  (Ramette = formats seuls). Bloc questions PRODIX : n colonnes FORCÉES sur
+  desktop (l'auto-fit retombait en pile), pile seulement ≤640px. Chip format
+  dédupliquée (« Bobine, Bobine » = pilules desktop+mobile ×2). PRODIX =
+  clé API dédiée côté app arrivages (PRODIX_API_KEY, voir repo arrivages).
 
 ## Règles photos / images produit
 
