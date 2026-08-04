@@ -7173,8 +7173,10 @@ async function exportListExcelTest(btn){
     for(let rr=r;rr<=r+120;rr++)for(let cc=1;cc<=NCOL;cc++)ws.getRow(rr).getCell(cc).fill=_greyFill;
     };
     const _shOpts={views:[{showGridLines:false}],pageSetup:{orientation:'landscape',fitToPage:true,fitToWidth:1}};
-    await _buildSheet(wb.addWorksheet('Offre',_shOpts),bobines,formats);
-    await _buildSheet(wb.addWorksheet('Assemblé',_shOpts),lotsBob,lotsFmt,{noRef:true});
+    // Onglet 1 « Offre » = la vue ASSEMBLÉE (une ligne par lot) ; le détail
+    // article par article passe en onglet 2 « Détails » (04/08 Ethan).
+    await _buildSheet(wb.addWorksheet('Offre',_shOpts),lotsBob,lotsFmt,{noRef:true});
+    await _buildSheet(wb.addWorksheet('Détails',_shOpts),bobines,formats);
 
     const buf=await wb.xlsx.writeBuffer();
     const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
