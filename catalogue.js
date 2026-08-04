@@ -6994,11 +6994,20 @@ async function exportListExcelTest(btn){
     const COLW=noRef?[33,33,14,10,15,15,15,12,10,13]:[11,30,30,13,9,13,13,13,11,9,12];
     COLW.forEach((w,i)=>{ws.getColumn(i+1).width=w;});
     const NCOL=COLW.length, LAST=noRef?'J':'K', PREL=noRef?'I':'J';
+    // Conversion px → colonne fractionnaire (largeurs inégales) — sert au logo
+    // et à la bande photos. NB le rendu Excel réel est ~1,27× ce modèle.
+    const _colWpx=COLW.map(w=>Math.round(w*7+5));
+    const _cumX=[0]; _colWpx.forEach(w=>_cumX.push(_cumX[_cumX.length-1]+w));
+    const _pxToCol=(x)=>{let c=0;while(c<_colWpx.length-1&&_cumX[c+1]<=x)c++;return c+Math.min(Math.max((x-_cumX[c])/_colWpx[c],0),0.999);};
+    const _totalW=_cumX[_cumX.length-1];
     let r=1;
     // Logo (A1:B4)
     const logoB64=await _fetchImgB64(location.origin+'/img/logo.png');
     const _lid=_imgId(logoB64);
-    if(_lid!=null)ws.addImage(_lid,{tl:{col:noRef?7.05:8.05,row:0.1},ext:{width:235,height:40}}); // logo en haut à DROITE (17/07)
+    // Logo +20 % calé DANS le coin droit (04/08) : ancre à (largeur réelle −
+    // logo), même calibrage ×1,27 que la bande photos.
+    const _lw=282,_lh=48;
+    if(_lid!=null)ws.addImage(_lid,{tl:{col:_pxToCol(_totalW-Math.round(_lw/1.27)-6),row:0.15},ext:{width:_lw,height:_lh}});
     // Encadré STOCKLOTS retiré (16/07).
     // Bloc société — nom mis en avant, coordonnées en gris (hiérarchie).
     // Bloc société COMPLET à gauche (copie conforme du modèle USINE 83).
@@ -7050,18 +7059,17 @@ async function exportListExcelTest(btn){
     // Placement photos : ancres en fractions de colonnes (le mode nativeCol
     // d'ExcelJS chevauche) + RATIO NATUREL respecté par photo (les portraits
     // étaient étirés en paysage).
-    const _colWpx=COLW.map(w=>Math.round(w*7+5));
-    const _cumX=[0]; _colWpx.forEach(w=>_cumX.push(_cumX[_cumX.length-1]+w));
-    const _pxToCol=(x)=>{let c=0;while(c<_colWpx.length-1&&_cumX[c+1]<=x)c++;return c+Math.min(Math.max((x-_cumX[c])/_colWpx[c],0),0.999);};
-    const _totalW=_cumX[_cumX.length-1];
     const _imgSize=(b64)=>new Promise(res=>{const im=new Image();im.onload=()=>res({w:im.naturalWidth||4,h:im.naturalHeight||3});im.onerror=()=>res({w:4,h:3});im.src=b64;});
     const _imgUrls=rows.map(x=>x.img).filter(Boolean);
     for(let i=_imgUrls.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[_imgUrls[i],_imgUrls[j]]=[_imgUrls[j],_imgUrls[i]];}
-    const photoUrls=_imgUrls.slice(0,6);
+    const photoUrls=_imgUrls.slice(0,8);
     const photos=(await Promise.all(photoUrls.map(_fetchImgB64))).filter(Boolean);
     if(photos.length){
       let PH=215; const gap=8;
-      const _availW=_totalW-10; // marge de sécurité : jamais au-delà de la colonne L
+      // ×1,27 : Excel (Mac surtout) rend les colonnes ~25 % plus larges que le
+      // modèle 7 px/caractère — sans ce calibrage la bande laissait un grand
+      // blanc à droite (constaté 04/08).
+      const _availW=Math.round(_totalW*1.27)-10;
       const _sizes=await Promise.all(photos.map(_imgSize));
       let _ws=_sizes.map(sz=>Math.max(120,Math.min(340,Math.round(PH*sz.w/sz.h))));
       let bandW=_ws.reduce((a,b)=>a+b,0)+(photos.length-1)*gap;
@@ -7071,7 +7079,8 @@ async function exportListExcelTest(btn){
         _ws=_ws.map(w=>Math.max(80,Math.floor(w*k)));
         bandW=_ws.reduce((a,b)=>a+b,0)+(photos.length-1)*gap;
       }
-      const x=Math.max(2,Math.round((_availW-bandW)/2)); // centre la bande
+      // Centre la bande : l'ancre se donne en px MODÈLE, la largeur en px réels.
+      const x=Math.max(2,Math.round((_totalW-bandW/1.27)/2));
       // BANDE COMPOSÉE EN UNE SEULE IMAGE (canvas) : positionner N photos via
       // les ancres Excel dérive toujours (le modèle px→colonne est approximatif
       // face au rendu réel → chevauchements en tl+ext, étirements en tl+br).
