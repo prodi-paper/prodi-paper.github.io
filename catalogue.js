@@ -4085,8 +4085,8 @@ function renderSharedCards(list){
     return`<div class="pcard sc-card" onclick="openDetail(${numId(p.id)})">
       <div class="pcard-img">${img}
         ${p._grpCount>1?`<span class="sc-count">× ${numId(p._grpCount)}</span>`:''}
-        ${window._sharedEdit?`<button class="sc-del" onclick="event.stopPropagation();_sharedRemove(${numId(p.id)})" aria-label="Retirer de la liste">✕</button>`:''}
       </div>
+      ${window._sharedEdit?`<button class="sc-add sc-moins added" title="Retirer de la liste" onclick="event.stopPropagation();_sharedRemove(${numId(p.id)})"></button>`:''}
       <div class="sc-body">
         <div class="sc-grid${prix?' has-prix':''}">
           <div class="sc-cell sc-title" style="grid-column:span 4;">${esc(title)}</div>
@@ -4099,9 +4099,11 @@ function renderSharedCards(list){
   g.innerHTML=sorted.map(card).join('');
   _updatePager();
 }
-// ── MODE MODIFICATION vue client (&edit=1, 04/08) : l'expéditeur retire des
-// lots avant d'envoyer, puis « Créer le lien client » régénère un ?s= propre. ──
-window._sharedRemove=function(id){
+// ── RETRAIT direct en vue client (04/08, appareils ÉQUIPE seulement — flag
+// prodi_team d'analytics, posé par /?team) : bouton − sur chaque carte, le
+// retrait met à jour LE MÊME lien ?s= (UPDATE RLS borné sur cart_ids) — on
+// renvoie le même lien au client, rien à régénérer. ──
+window._sharedRemove=async function(id){
   const p=_sharedAll.find(x=>+x.id===+id);if(!p)return;
   const refs=new Set((p._grpRefs&&p._grpRefs.length?p._grpRefs:[p.ref]).map(String));
   _sharedAll=_sharedAll.filter(x=>x!==p);
@@ -4113,32 +4115,14 @@ window._sharedRemove=function(id){
   const rbarTons=document.getElementById('rbar-tons');
   if(rbarTons)rbarTons.textContent=(cart.reduce((s,c)=>s+(+c.poids_net||0),0)/1000).toFixed(1);
   if(typeof _filterSharedLocal==='function')_filterSharedLocal();else render(_sharedAll);
-  _sharedEditBar();
-};
-window._sharedEditBar=function(){
-  if(!window._sharedEdit)return;
-  let b=document.getElementById('shared-editbar');
-  if(!b){b=document.createElement('div');b.id='shared-editbar';document.body.appendChild(b);}
-  const t=cart.reduce((s,c)=>s+(+c.poids_net||0),0)/1000;
-  b.innerHTML=`<span>Modification — ${numId(_sharedAll.length)} carte${_sharedAll.length>1?'s':''} · ${esc(t.toFixed(1))} t</span>
-    <button onclick="_sharedNewLink(this)">Créer le lien client</button>`;
-};
-window._sharedNewLink=async function(btn){
-  if(!cart.length){toast('Liste vide');return;}
-  if(btn){btn.disabled=true;btn.textContent='…';}
-  const code=_shortCode();
-  const refs=cart.map(x=>x.ref).filter(Boolean).join(',');
-  try{
-    const res=await sbQ('shared_carts',{method:'POST',body:{code,cart_ids:refs},headers:{'Prefer':'return=minimal'}});
-    if(res&&res.status&&res.status>=400)throw new Error('HTTP '+res.status);
-  }catch(e){
-    console.error('share',e);toast('Erreur création du lien');
-    if(btn){btn.disabled=false;btn.textContent='Créer le lien client';}
-    return;
-  }
-  window.prodiTrack?.('panier_partage',{code,nb:cart.length,via:'edit_vue_client'});
-  // Recharge sur le lien PROPRE (sans edit) = exactement ce que verra le client.
-  location.href=window.location.origin+window.location.pathname+'?s='+code+(_priceMode?'&p=1':'');
+  const code=new URLSearchParams(location.search).get('s')||'';
+  if(!/^[A-Za-z0-9_]{4,16}$/.test(code))return; // vieux lien ?s=refs inline : rien à mettre à jour
+  if(!cart.length){toast('Liste vide — lien inchangé');return;}
+  const ids=cart.map(x=>x.ref).filter(Boolean).join(',');
+  const res=await sbQ('shared_carts?code=eq.'+encodeURIComponent(code),{method:'PATCH',body:{cart_ids:ids},headers:{'Prefer':'return=minimal'}}).catch(()=>({error:true}));
+  if(res&&res.error){console.error('maj lien',res.error);toast('Retiré ici — mais lien NON mis à jour');return;}
+  window.prodiTrack?.('panier_partage',{code,nb:cart.length,via:'retrait_vue_client'});
+  toast('Retiré — le lien est à jour');
 };
 
 const _DET_NO_PHOTO=`<img src="/img/photos-sur-demande.png" alt="Photos sur demande" style="width:100%;height:100%;object-fit:contain;background:#fff;">`;
@@ -6104,9 +6088,10 @@ async function loadSharedQuote(idsOverride){
   _maxKnownPage=1; // vue client : tout sur UNE page (listes 40-60 T)
   currentPage=1;
   _viewMode='grid'; // vue fiches uniquement (tableau retiré 18/07)
-  // Mode modification (&edit=1) : posé AVANT le render pour que les cartes
-  // portent leur croix « retirer » (la barre, elle, attend le cart rempli).
-  window._sharedEdit=new URLSearchParams(window.location.search).get('edit')==='1';
+  // Bouton − de retrait : seulement pour l'ÉQUIPE (appareil marqué /?team,
+  // même flag que l'analytics) — le client ne le voit jamais, même lien.
+  window._sharedEdit=(()=>{try{return localStorage.getItem('prodi_team')==='1';}catch(_){return false;}})()
+    ||/^(localhost|127\.)/.test(location.hostname);
 
   const totalKg=units.reduce((s,p)=>s+(+p.weight||0),0);
   const rbarRefs=document.getElementById('rbar-refs');
@@ -6124,7 +6109,6 @@ async function loadSharedQuote(idsOverride){
   localStorage.setItem('prodi_cart',JSON.stringify(cart));
   updateCartBadge();
   renderDrawer();
-  if(window._sharedEdit)_sharedEditBar();
   // Perf intro (19/07) : le rendu des 40-60 cartes + décodage photos saturait
   // le main thread PENDANT la chorégraphie (départs d'animations en retard =
   // saccades). On le diffère à la fin du splash.
@@ -6847,9 +6831,7 @@ async function openClientLink(btn){
     toast('Erreur création du lien partagé');
     return;
   }
-  // &edit=1 = MODE MODIFICATION pour l'expéditeur (croix sur les cartes +
-  // barre « Créer le lien client ») — le lien envoyé au client reste le ?s= nu.
-  window.open(url+'&edit=1','_blank','noopener');
+  window.open(url,'_blank','noopener');
 }
 async function copyCartLink(btn){
   if(!cart.length){toast('Liste vide — ajoutez des produits d\'abord');return;}
