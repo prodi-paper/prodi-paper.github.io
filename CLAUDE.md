@@ -805,6 +805,33 @@ Session de retouches à la demande d'Ethan, direction = répliquer apple.com :
   RLUX 2/501 borderline (juil. 2025) — frontière réf figée, bascule
   date_arrivee à faire un jour.
 
+## HARMONISATION DESIGN (05/08, revue validée Ethan)
+
+- **Tokens PARTAGÉS identiques** en tête de catalogue.css ET vitrine.css :
+  ombres `--sh-sm/md/lg` (3 niveaux au lieu de ~15 variantes), gris
+  `--g1 #515154 / --g2 #6e6e73 / --g3 #86868b`, `--hairline #e0e0e5`.
+  Les ombres intentionnelles (vidéo hero .7, témoignages .05) sont conservées.
+- **Rayons : 3 valeurs** — 999 (pilules), 20 (surfaces flottantes : capsule,
+  menus, modales, tuiles), 10 (contrôles/cartes). menus 16→20, modale 22→20,
+  tuiles 22→20, msd-btn 12→10.
+- **Crans de texte contrôles** : 11/13/14.5/19 (chips 12.5→13).
+- **Segment BOBINE|FORMAT** : un seul dessin tokenisé (tuiles = menu Offre).
+- **GABARIT/ZOOM (05/08)** : `--gab` unique (min(1720,100vw−32)) + capsule
+  header `--gab-head` (~80 %, ancres % pas vw) ; ≥1760px de viewport le
+  catalogue ZOOME globalement (index.html inline, borné largeur ET hauteur,
+  plafond 1.6, var `--fitz`) — vitrine idem (vitrine.js, seuil 1440, design
+  BASE 1240 conservé). ⚠️ sous zoom : rects = px visuels mais style.left d'un
+  fixed est re-multiplié → TOUJOURS diviser par `_zf()` (helper catalogue.js) ;
+  l'intro container ANNULE le zoom (`#ctn-splash{zoom:calc(1/var(--fitz))}`).
+  5 cartes/rangée ≥2100px. Fiche produit : photo compressible min(48vh,600px),
+  étiquette toujours entière.
+- **Menu USINE (ex-Fabrication)** : qualité → usines repliées (« Usine 99 ·
+  6 offres ») → offres (g · laize · Ø · prix départ), clic = Excel de l'usine
+  (variantes pré-générées, lignes des autres usines masquées par chirurgie
+  XML — openpyxl PERD les images en resauvant). Manifest = fichiers + usines +
+  offres extraites (en-têtes Sage avec \n : normaliser les espaces !).
+  Fichiers VIDES (0 réf) exclus du menu. Pilule PRODIX cachée hors landing.
+
 ## Règles photos / images produit
 
 ### Priorité d'affichage (pour TOUS les produits)
