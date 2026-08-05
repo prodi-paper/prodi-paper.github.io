@@ -51,6 +51,10 @@ async function sbQ(path,opts={}){
 }
 
 // ─── SECURITY HELPERS — XSS escape for product fields injected via innerHTML ───
+// Facteur du zoom global « adaptation grands écrans » (index.html) : les
+// rects sont en px VISUELS, mais un style.left posé sur un élément fixed DANS
+// le body zoomé est re-multiplié par le zoom → diviser par _zf().
+const _zf=()=>parseFloat(document.body.style.zoom)||1;
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // safeUrl: whitelist http(s) and trusted hosts; returns empty string for anything else (data:, javascript:, etc.)
 // Vignette CDN (perf 19/07) : les photos brutes font 0,1-3 Mo, les cartes
@@ -1471,10 +1475,10 @@ function toggleMsd(id) {
   const isOpen = panel.classList.contains('show');
   // Position fixed panel under button
   if(!isOpen){
-    const r=btn.getBoundingClientRect();
-    panel.style.top=(r.bottom+4)+'px';
-    panel.style.left=r.left+'px';
-    panel.style.width=r.width+'px';
+    const r=btn.getBoundingClientRect(),z=_zf();
+    panel.style.top=((r.bottom+4)/z)+'px';
+    panel.style.left=(r.left/z)+'px';
+    panel.style.width=(r.width/z)+'px';
   }
   // Close all
   document.querySelectorAll('.msd-panel.show').forEach(p => p.classList.remove('show'));
@@ -1495,9 +1499,9 @@ function toggleMsd(id) {
     // Ne jamais déborder du bord droit (ex. tri ⇅ en bout de barre) : on
     // recale le panneau vers la gauche si besoin, une fois sa largeur connue.
     {
-      const r2=btn.getBoundingClientRect();
-      const pw=panel.offsetWidth;
-      if(r2.left+pw>window.innerWidth-8)panel.style.left=Math.max(8,window.innerWidth-pw-8)+'px';
+      const z=_zf(),r2=btn.getBoundingClientRect();
+      const pw=panel.offsetWidth*z; // offsetWidth = px layout, rects = px visuels
+      if(r2.left+pw>window.innerWidth-8)panel.style.left=(Math.max(8,window.innerWidth-pw-8)/z)+'px';
     }
     // Add scroll hint if panel is scrollable
     let hint=panel.querySelector('.msd-scroll-hint');
@@ -2741,9 +2745,11 @@ const OFFRE_PRESETS=[
 // tête du menu, puis liste plate directement cliquable — on ne mélange JAMAIS
 // ni les qualités ni bobines et formats dans une même offre (forme = lettre
 // du code : R* bobines, S* formats, comme les tuiles de la landing).
-let _offresCalc=null; // {FAB:{Bobine:[offre…],Format:[…]},STOCK:{…}}, offre={label,code,forme,units,gamme,tons}
+let _offresCalc=null; // {FAB:{Bobine:[offre…],Format:[…]},STOCK:{…}}, offre={label,code,forme,units,full,tons}
 let _offrePool='FAB';     // segment 1 du menu
 let _offreForme='Bobine'; // segment 2 du menu
+let _offreUsineOpen=null; // ligne dépliée « par usine » (index dans pool×forme courants)
+let _offreCapRefs=null;   // capRefs exposé hors de _offresData (offres par usine)
 async function _offresData(){
   if(_offresCalc)return _offresCalc;
   const rows=await _loadAllProducts();
@@ -2761,7 +2767,7 @@ async function _offresData(){
   // 380 réfs → au-delà, round-robin par lot pour garder la VARIÉTÉ (pas tronquer).
   const MAX_REFS=350;
   const refNg=g=>Math.max(...g.units.map(refN));
-  const capRefs=list=>{
+  const capRefs=_offreCapRefs=list=>{
     if(list.length<=MAX_REFS)return list.slice();
     const grps=groupProducts(list).sort((a,b)=>refNg(b)-refNg(a));
     const sel=[];let round=0,added=true;
@@ -2782,10 +2788,14 @@ async function _offresData(){
         // → on écarte les articles dont la forme réelle ne colle pas au code.
         const list=poolUnits.filter(u=>u.qualite===code&&(_estFormat(u)?'Format':'Bobine')===forme);
         if(!list.length)return;
-        out[forme].push({label:p.label,code,forme,units:capRefs(list),
+        out[forme].push({label:p.label,code,forme,units:capRefs(list),full:list,
           tons:list.reduce((s,u)=>s+(+u.poids_net||0),0)/1000});
       });
     });
+    // Tri par TONNAGE décroissant dans chaque pool×forme (05/08 Ethan) — fait
+    // ICI pour que les index du menu restent alignés avec _offreEnvoyer(i).
+    out.Bobine.sort((a,b)=>(b.tons||0)-(a.tons||0));
+    out.Format.sort((a,b)=>(b.tons||0)-(a.tons||0));
     return out;
   };
   _offresCalc={FAB:buildPool(units.filter(u=>!isStock(u))),STOCK:buildPool(units.filter(isStock))};
@@ -2805,17 +2815,34 @@ function _offreSegHtml(){
   return `<div class="offre-seg">${mkP('FAB','FAB')}${mkP('STOCK','LOTS')}</div>`
     +`<div class="offre-seg offre-seg-forme">${mkF('Bobine','BOBINE')}${mkF('Format','FORMAT')}</div>`;
 }
+const _offreUsineNorm=u=>String(u.usine||'').replace(/^REF\s*/i,'').trim()||'—';
 function _renderOffreMenu(){
   const m=document.getElementById('offre-menu');if(!m)return;
   const offres=(((_offresCalc||{})[_offrePool]||{})[_offreForme])||[];
   m.innerHTML=_offreSegHtml()
-    +(offres.length?offres.map((o,i)=>
-      `<button class="offre-item offre-offer" role="menuitem" onclick="_offreEnvoyer(${i})">
-        <span class="offre-lbl">${esc(o.label)} <small>${esc(o.code)}</small></span>
-        <small>${Math.max(1,Math.round(o.tons))} t</small>
-      </button>`).join('')
+    +(offres.length?offres.map((o,i)=>{
+      const open=_offreUsineOpen===i;
+      let sub='';
+      if(open){
+        // Offres PAR USINE (05/08) : ventilation du stock de la qualité par
+        // usine, tonnage décroissant — clic = offre qualité × usine seule.
+        const us={};
+        (o.full||o.units).forEach(u=>{const k=_offreUsineNorm(u);us[k]=(us[k]||0)+(+u.poids_net||0);});
+        sub=Object.entries(us).sort((a,b)=>b[1]-a[1]).map(([k,kg])=>
+          `<button class="offre-item offre-usine" role="menuitem" onclick="_offreEnvoyerUsine(${i},${attrJs(k)})">
+            <span class="offre-lbl">Usine ${esc(k)}</span>
+            <small>${Math.max(1,Math.round(kg/1000))} t</small>
+          </button>`).join('');
+      }
+      return `<button class="offre-item offre-offer" role="menuitem" onclick="_offreEnvoyer(${i})">
+          <span class="offre-lbl">${esc(o.label)} <small>${esc(o.code)}</small></span>
+          <small>${Math.max(1,Math.round(o.tons))} t</small>
+          <span class="offre-chev-us${open?' open':''}" role="button" title="Choisir l'usine" onclick="event.stopPropagation();_offreUsines(${i})">›</span>
+        </button>`+sub;
+    }).join('')
     :'<div class="offre-load">Aucune offre ici.</div>');
 }
+function _offreUsines(i){_offreUsineOpen=_offreUsineOpen===i?null:i;_renderOffreMenu();}
 async function _buildOffreMenu(){
   const m=document.getElementById('offre-menu');if(!m)return;
   if(!_offresCalc)m.innerHTML='<div class="offre-load">Préparation des offres…</div>';
@@ -2825,14 +2852,14 @@ async function _buildOffreMenu(){
 function _offreSetPool(p){
   const c=_offresCalc&&_offresCalc[p];
   if(!c||!(c.Bobine.length+c.Format.length))return;
-  _offrePool=p;
+  _offrePool=p;_offreUsineOpen=null;
   if(!c[_offreForme].length)_offreForme=_offreForme==='Bobine'?'Format':'Bobine';
   _renderOffreMenu();
 }
 function _offreSetForme(f){
   const c=_offresCalc&&_offresCalc[_offrePool];
   if(!c||!c[f]||!c[f].length)return;
-  _offreForme=f;
+  _offreForme=f;_offreUsineOpen=null;
   _renderOffreMenu();
 }
 function toggleOffreMenu(force){
@@ -2842,24 +2869,138 @@ function toggleOffreMenu(force){
   const on=force!==undefined?force:!m.classList.contains('show');
   m.classList.toggle('show',on);
   if(b)b.classList.toggle('open',on);
-  if(on)_buildOffreMenu(); // rouvre toujours au niveau familles
+  if(on){if(typeof toggleFabMenu==='function')toggleFabMenu(false);_offreUsineOpen=null;_buildOffreMenu();} // rouvre toujours au niveau familles
 }
 document.addEventListener('click',e=>{
   if(e.target.closest('#offre-wrap'))return;
   const m=document.getElementById('offre-menu');
   if(m&&m.classList.contains('show'))toggleOffreMenu(false);
 });
+// ── OFFRES FABRICATION (05/08) : bouton à gauche d'Offre — sert les EXCELS
+// USINE tels quels (bucket public offres-fab, republiés chaque matin par
+// l'import depuis le mail STOCK DÉTAILLÉ). RIEN n'entre au catalogue, aucun
+// mélange avec les offres stock : simple accès aux mêmes fichiers que Sage. ──
+const FAB_BUCKET='https://bvcgpdoukhcatjibmvnb.supabase.co/storage/v1/object/public/offres-fab/';
+const FAB_FAMILLES={ROFF:'Offset',SOFF:'Offset',R2SC:'Couché 2 faces',S2SC:'Couché 2 faces',
+  RADH:'Adhésif',SADH:'Adhésif',RTHERM:'Thermique',RCOL:'Offset couleur',SCOL:'Offset couleur',
+  SCUT:'Ramette',RBOA:'Carton couché',SBOA:'Carton couché','RKRA brun':'Kraft brun',
+  RKRA:'Kraft',RCAR:'Autocopiant',SCAR:'Autocopiant',RLINER:'Liner / Testliner'};
+let _fabManifest=null;
+let _fabForme='Bobine';
+let _fabOpenIdx=null; // ligne dépliée (choix d'usine)
+let _fabUsineOuvre=null; // usine dépliée dans la qualité ouverte
+function _fabSetForme(f){_fabForme=f;_fabOpenIdx=null;_fabUsineOuvre=null;_buildFabMenu();}
+async function _buildFabMenu(){
+  const m=document.getElementById('fab-menu');if(!m)return;
+  if(!_fabManifest){
+    m.innerHTML='<div class="offre-load">Chargement…</div>';
+    try{_fabManifest=await fetch(FAB_BUCKET+'manifest.json?t='+Date.now()).then(r=>r.json());}
+    catch(_){m.innerHTML='<div class="offre-load">Indisponible pour le moment.</div>';return;}
+  }
+  // Segment BOBINE|FORMAT en tête (même dessin que le menu Offre, 05/08),
+  // puis une ligne par famille de la forme choisie — clic = Excel usine.
+  const fs=(_fabManifest.fichiers||[]);
+  const n=f=>fs.filter(x=>x.forme===f).length;
+  if(!n(_fabForme))_fabForme=_fabForme==='Bobine'?'Format':'Bobine';
+  const seg=['Bobine','Format'].map(f=>{
+    const on=_fabForme===f,dis=!n(f);
+    return `<button class="offre-seg-btn${on?' on':''}"${dis?' disabled':''} onclick="event.stopPropagation();_fabSetForme('${f}')">${f.toUpperCase()}</button>`;
+  }).join('');
+  m.innerHTML=`<div class="offre-seg offre-seg-forme">${seg}</div>`
+    +fs.filter(f=>f.forme===_fabForme)
+      .sort((a,b)=>((b.nb||(b.usines||[]).length)-(a.nb||(a.usines||[]).length))||String(FAB_FAMILLES[a.code]||a.code).localeCompare(FAB_FAMILLES[b.code]||b.code))
+      .map((f,i)=>{
+    const fam=FAB_FAMILLES[f.code]||f.code;
+    const us=f.usines||[]; // variantes pré-générées par l'import (lignes des
+    // autres usines MASQUÉES dans le même fichier Sage, logos intacts)
+    const open=_fabOpenIdx===i;
+    let sub='';
+    if(open){
+      // Dépliage = les OFFRES elles-mêmes (05/08 Ethan, option 2) : une ligne
+      // par offre du fichier (g · dimensions · prix départ usine), clic =
+      // l'Excel de SON usine (variante) ou le fichier complet à défaut.
+      const offres=f.offres||[];
+      if(offres.length){
+        // groupées PAR USINE — repliées par défaut (05/08) : clic sur
+        // l'usine = déplie SES offres, clic sur une offre = son Excel.
+        const grp=new Map();
+        offres.forEach(o=>{const k=o.usine||'—';if(!grp.has(k))grp.set(k,[]);grp.get(k).push(o);});
+        sub=[...grp.entries()].sort((a,b)=>b[1].length-a[1].length).map(([u,list])=>{
+          const v=us.find(x=>x.usine===u);
+          const fich=v?v.fichier:f.fichier;
+          const uOpen=_fabUsineOuvre===u;
+          return `<button class="offre-item offre-usine fab-us-hdr" role="menuitem" onclick="event.stopPropagation();_fabToggleUsine(${attrJs(u)})">
+              <span class="offre-lbl">Usine ${esc(u)}</span>
+              <small>${list.length} offre${list.length>1?'s':''}</small>
+              <span class="offre-chev-us${uOpen?' open':''}">›</span>
+            </button>`
+            +(uOpen?list.map(o=>{
+              const dim=f.forme==='Bobine'?[o.laize?'laize '+o.laize:'',o.long?'Ø '+o.long:''].filter(Boolean).join(' · ')
+                :(o.long&&o.laize?o.laize+'×'+o.long:(o.laize?'laize '+o.laize:''));
+              return `<button class="offre-item offre-usine fab-offre" role="menuitem" onclick="_fabOpenU(${attrJs(fich)},${attrJs(f.code)},${attrJs(u)})">
+                <span class="offre-lbl">${o.g?numId(o.g)+' g':'—'}${dim?' · '+esc(dim):''}</span>
+                <small>${o.prix?numId(o.prix).toLocaleString('fr-FR')+' €/t':''}</small>
+              </button>`;}).join(''):'');
+        }).join('');
+      }else{
+        sub=us.map(v=>`<button class="offre-item offre-usine" role="menuitem" onclick="_fabOpenU(${attrJs(v.fichier)},${attrJs(f.code)},${attrJs(v.usine)})">
+          <span class="offre-lbl">Usine ${esc(v.usine)}</span>
+        </button>`).join('');
+      }
+    }
+    const act=(us.length||(f.offres||[]).length)?`event.stopPropagation();_fabToggle(${i})`:`_fabOpen(${attrJs(f.fichier)},${attrJs(f.code)})`;
+    return `<button class="offre-item offre-offer" role="menuitem" onclick="${act}">
+      <span class="offre-lbl">${esc(fam)} <small>${esc(f.code)}</small></span>
+      <span class="offre-chev-us${open?' open':''}">›</span>
+    </button>`+sub;
+  }).join('');
+}
+function _fabToggle(i){_fabOpenIdx=_fabOpenIdx===i?null:i;_fabUsineOuvre=null;_buildFabMenu();}
+function _fabToggleUsine(u){_fabUsineOuvre=_fabUsineOuvre===u?null:u;_buildFabMenu();}
+function _fabOpen(fichier,code){
+  window.prodiTrack?.('fab_excel',{code});
+  toggleFabMenu(false);
+  window.open(FAB_BUCKET+encodeURIComponent(fichier),'_blank','noopener');
+}
+function _fabOpenU(fichier,code,usine){
+  window.prodiTrack?.('fab_excel',{code,usine});
+  toggleFabMenu(false);
+  window.open(FAB_BUCKET+encodeURIComponent(fichier),'_blank','noopener');
+}
+function toggleFabMenu(force){
+  const m=document.getElementById('fab-menu');
+  const b=document.getElementById('fab-btn');
+  if(!m)return;
+  const on=force!==undefined?force:!m.classList.contains('show');
+  m.classList.toggle('show',on);
+  if(b)b.classList.toggle('open',on);
+  if(on){toggleOffreMenu(false);_fabOpenIdx=null;_buildFabMenu();}
+}
+document.addEventListener('click',e=>{
+  if(e.target.closest('#fab-wrap'))return;
+  const m=document.getElementById('fab-menu');
+  if(m&&m.classList.contains('show'))toggleFabMenu(false);
+});
 async function _offreEnvoyer(i){
   const o=((((_offresCalc||{})[_offrePool]||{})[_offreForme])||[])[i];if(!o)return;
+  await _offreGo(o,o.units,null);
+}
+async function _offreEnvoyerUsine(i,us){
+  const o=((((_offresCalc||{})[_offrePool]||{})[_offreForme])||[])[i];if(!o)return;
+  const list=(o.full||o.units).filter(u=>_offreUsineNorm(u)===us);
+  if(!list.length)return;
+  await _offreGo(o,_offreCapRefs?_offreCapRefs(list):list.slice(0,350),us);
+}
+async function _offreGo(o,units,usine){
   toggleOffreMenu(false);
   cart.length=0; // l'offre REMPLACE la liste courante (liste non persistante par design)
-  o.units.forEach(u=>cart.push({id:u.id,name:u.name,ref:u.ref,type:u.type,qualite:u.qualite||null,details:u.details||null,grammage:u.grammage,largeur:u.largeur,format:u.format,poids_net:u.poids_net,price:u.price||null,img:u.image_url||null,couleur:u.couleur||null,usine:u.usine||null,zone:u.zone||null,emplacement:u.emplacement||null,allee:u.allee||null}));
+  units.forEach(u=>cart.push({id:u.id,name:u.name,ref:u.ref,type:u.type,qualite:u.qualite||null,details:u.details||null,grammage:u.grammage,largeur:u.largeur,format:u.format,poids_net:u.poids_net,price:u.price||null,img:u.image_url||null,couleur:u.couleur||null,usine:u.usine||null,zone:u.zone||null,emplacement:u.emplacement||null,allee:u.allee||null}));
   try{localStorage.setItem('prodi_cart',JSON.stringify(cart));}catch(_){}
   updateCartBadge();renderDrawer();
   if(typeof _updateAddPageBtn==='function')_updateAddPageBtn();
   const pg=document.getElementById('pgrid');if(pg&&pg._lastList)render(pg._lastList);
-  window.prodiTrack?.('offre_preset',{pool:_offrePool,label:o.label,code:o.code,forme:o.forme,nb:cart.length});
-  toast('✓ Offre '+o.label+' · '+o.forme.toLowerCase()+' · '+cart.length+' articles');
+  window.prodiTrack?.('offre_preset',{pool:_offrePool,label:o.label,code:o.code,forme:o.forme,usine:usine||null,nb:cart.length});
+  toast('✓ Offre '+o.label+(usine?' · usine '+usine:'')+' · '+o.forme.toLowerCase()+' · '+cart.length+' articles');
   await openClientLink(); // crée le lien ?s= et OUVRE la vue client — prête à envoyer
   // L'offre est JETABLE : la liste ne servait qu'à fabriquer le lien — on la
   // vide pour ne pas retrouver 350 articles (badge + poubelle) au retour.
@@ -4713,15 +4854,16 @@ function _openGrpPopover(gid,anchor){
       <button class="plist-grp-popover-add${allIn?' added':''}" onclick="addGroupToCart(${attrJs(gid)});_closeGrpPopover();">${allIn?`${_ICO_TRASH} Retirer`:'+ Ajouter'}</button>
     </div>`;
   document.body.appendChild(pop);
+  const _z=_zf();
   const r=anchor.getBoundingClientRect();
-  const popW=pop.offsetWidth;
-  const popH=pop.offsetHeight;
+  const popW=pop.offsetWidth*_z;
+  const popH=pop.offsetHeight*_z;
   let left=r.left;
   if(left+popW>window.innerWidth-8)left=window.innerWidth-popW-8;
   let top=r.bottom+6;
   if(top+popH>window.innerHeight-8)top=r.top-popH-6;
-  pop.style.left=Math.max(8,left)+'px';
-  pop.style.top=Math.max(8,top)+'px';
+  pop.style.left=(Math.max(8,left)/_z)+'px';
+  pop.style.top=(Math.max(8,top)/_z)+'px';
   setTimeout(()=>{
     document.addEventListener('click',_onGrpPopoverOutside,true);
     document.addEventListener('keydown',_onGrpPopoverKey,true);
@@ -5526,7 +5668,7 @@ if(_sharedMode)_sharedViewUI(true);
         // le bord droit (le clamp de toggleMsd ne tourne qu'a l'ouverture)
         if(_faPn.classList.contains('show')){
           const pw=_faPn.offsetWidth,pl=_faPn.getBoundingClientRect().left;
-          if(pl+pw>window.innerWidth-8)_faPn.style.left=Math.max(8,window.innerWidth-pw-8)+'px';
+          if(pl+pw*_zf()>window.innerWidth-8)_faPn.style.left=(Math.max(8,window.innerWidth-pw*_zf()-8)/_zf())+'px';
         }
       };
       _faPn.addEventListener('input',e=>{
@@ -5686,6 +5828,11 @@ if(_sharedMode)_sharedViewUI(true);
             window._tuilesDone=true;
             clearTimeout(_bTmr);
             landing.remove();
+            // La pilule PRODIX ne suit pas en page 2 : pas utilisée sur la
+            // landing = aucun intérêt ensuite (05/08 Ethan). On la garde
+            // seulement si une conversation est en cours.
+            const _dk=document.getElementById('px-dock');
+            if(_dk&&!(window._pxHist&&window._pxHist.length))_dk.style.display='none';
             const pg=document.getElementById('pgrid');if(pg)pg.style.display='';
             const ft=document.querySelector('footer');if(ft)ft.style.display='';
           };
@@ -6318,7 +6465,7 @@ document.addEventListener('scroll',()=>{
       if(!wrapper)return;
       const id=wrapper.id;
       const btn=document.querySelector(`#${id} .msd-btn`)||document.querySelector(`#${id} .fb-msd-btn`);
-      if(btn){const r=btn.getBoundingClientRect();panel.style.top=(r.bottom+4)+'px';panel.style.left=r.left+'px';}
+      if(btn){const r=btn.getBoundingClientRect(),z=_zf();panel.style.top=((r.bottom+4)/z)+'px';panel.style.left=(r.left/z)+'px';}
     });
     _scrollTick=false;
   });

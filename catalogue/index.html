@@ -85,7 +85,7 @@
 <link rel="preconnect" href="https://images.weserv.nl">
 <link rel="dns-prefetch" href="https://stock.prodi.net">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/catalogue.css?v=699">
+<link rel="stylesheet" href="/catalogue.css?v=725">
 <!-- EmailJS : chargé À LA DEMANDE par _ejsReady() (perf 18/07) -->
 </head>
 <body>
@@ -96,6 +96,18 @@
 (function(){try{var p=new URLSearchParams(location.search),c=document.body.classList;
 if(p.get('amazon')!=='1'&&p.get('zara')!=='1'&&p.get('etiquette')!=='1')c.add('apple-view');
 if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
+/* ADAPTATION GRANDS ÉCRANS (05/08, même règle que la vitrine) : le catalogue
+   est dessiné pour ~1760px — au-delà, zoom proportionnel borné par la largeur
+   ET la hauteur (plafond 1.6). Avant le 1er paint pour éviter tout saut. */
+(function(){
+  function fit(){
+    var z=Math.max(1,Math.min(window.innerWidth/1550,window.innerHeight/860,1.6));
+    document.body.style.zoom=z>1.01?z:'';
+    document.documentElement.style.setProperty('--fitz',z>1.01?z:1);
+  }
+  fit();
+  window.addEventListener('resize',fit);
+})();
 </script>
 
 <div class="load-bar-wrap" id="load-bar-wrap" style="display:none"><div class="load-bar" id="load-bar"></div></div>
@@ -127,6 +139,13 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
     </div>
     </div>
     <div class="hright">
+      <div class="offre-wrap" id="fab-wrap">
+        <button class="btn-head" id="fab-btn" onclick="toggleFabMenu()" title="Offres fabrication sur demande (Excel usine)">
+          <span class="offre-txt" style="font-size:19px;font-weight:800;">Usine</span>
+          <span class="offre-arrow">▾</span>
+        </button>
+        <div class="offre-menu" id="fab-menu" role="menu" aria-label="Offres fabrication par qualité"></div>
+      </div>
       <div class="offre-wrap" id="offre-wrap">
         <button class="btn-head" id="offre-btn" onclick="toggleOffreMenu()" title="Offres préfaites par qualité de papier">
           <span class="offre-txt" style="font-size:19px;font-weight:800;">Offre</span>
@@ -847,7 +866,7 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
 <div class="spin-bg" id="spinner"><div class="spin"></div></div>
 
 <script src="/analytics.js?v=1"></script>
-<script src="/catalogue.js?v=709"></script>
+<script src="/catalogue.js?v=730"></script>
 <!-- Traqueur de perf, inerte sans ?perf=1 (voir perf-hud.js) -->
 <script src="/perf-hud.js?v=1" defer></script>
 </body>

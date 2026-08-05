@@ -415,9 +415,186 @@ if __name__ == '__main__':
     update_supabase(products)
     backfill_image_urls()
     rematch_inventaire_lignes()
+    try:
+        sync_offres_fab()
+    except Exception as e:
+        log(f"offres fab: échec NON bloquant — {e}")
 
     # Cleanup
     import shutil
     shutil.rmtree(tmpdir, ignore_errors=True)
 
     log(f"=== Terminé ! {len(products)} produits importés ===")
+
+
+# ── STEP 5 (bonus) : OFFRES FABRICATION ──
+def sync_offres_fab():
+    """Publie les PJ « * FABRICATION.xlsx » du mail « STOCK DÉTAILLÉ » sur le
+    bucket PUBLIC offres-fab + manifest.json — servies par le bouton
+    « Fabrication » du catalogue (05/08). Les Excel téléchargés par les
+    clients sont EXACTEMENT ceux de Sage, aucun retraitement. Échec = log
+    seulement : l'import du stock ne doit jamais tomber pour ça."""
+    import urllib.request, urllib.parse
+    from datetime import date
+    mail = imaplib.IMAP4_SSL(IMAP_HOST, 993)
+    mail.login(IMAP_USER, IMAP_PASS)
+    mail.select('INBOX')
+    _, msgs = mail.search(None, f'(FROM "{SENDER}")')
+    ids = list(reversed(msgs[0].split()))[:12]
+
+    def _subj(mid):
+        _, d = mail.fetch(mid, '(BODY.PEEK[HEADER.FIELDS (SUBJECT)])')
+        raw = email.message_from_bytes(d[0][1]).get('Subject', '')
+        return ''.join(
+            (b.decode(enc or 'utf-8', 'replace') if isinstance(b, bytes) else b)
+            for b, enc in email.header.decode_header(raw)
+        ).upper()
+
+    # « STOCK DÉTAILLÉ » (83 PJ par qualité) — TAILL évite l'accent encodé
+    mid = next((m for m in ids if 'STOCK' in _subj(m) and 'TAILL' in _subj(m)), None)
+    if mid is None:
+        log("offres fab: mail STOCK DÉTAILLÉ introuvable — bucket inchangé")
+        mail.logout()
+        return
+    _, data = mail.fetch(mid, '(RFC822)')
+    msg = email.message_from_bytes(data[0][1])
+    mail.logout()
+
+    def _up(name, blob, ctype):
+        req = urllib.request.Request(
+            f"{SUPABASE_URL}/storage/v1/object/offres-fab/{urllib.parse.quote(name)}",
+            data=blob, method='POST',
+            headers={'Authorization': f'Bearer {SERVICE_ROLE}',
+                     'Content-Type': ctype, 'x-upsert': 'true'})
+        urllib.request.urlopen(req, timeout=60)
+
+    import io as _io
+    import zipfile as _zip
+    import openpyxl as _px
+    XCT = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+
+    def _extrait_offres(blob):
+        """Lignes d'offres du fichier (menu Usine déplié, 05/08) : mappées par
+        les EN-TÊTES (GR, Laize, Longueur/Diamètre, Poids, DEPART, REF QUALITE)."""
+        wb = _px.load_workbook(_io.BytesIO(blob), read_only=True, data_only=True)
+        rows = list(wb.active.iter_rows(values_only=True))
+        wb.close()
+        hi = None
+        ix = {}
+        for i, r in enumerate(rows):
+            vals = [str(v or '') for v in r]
+            if 'GR' in vals and any('Qualit' in v for v in vals):
+                hi = i
+                for j, h in enumerate(vals):
+                    hl = re.sub(r'\s+', ' ', h.lower())  # « REF\nQUALITE » a un saut de ligne
+                    if h == 'GR':
+                        ix['g'] = j
+                    elif 'laize' in hl:
+                        ix['laize'] = j
+                    elif 'longueur' in hl or 'diam' in hl:
+                        ix['long'] = j
+                    elif 'poids' in hl:
+                        ix['poids'] = j
+                    elif 'depart' in hl:
+                        ix['prix'] = j
+                    elif 'ref qualite' in hl or 'ref qualité' in hl:
+                        ix['usine'] = j
+                break
+        out = []
+        if hi is None:
+            return out
+
+        def _n(v):
+            try:
+                return int(float(str(v).replace(' ', '').replace(',', '.')))
+            except Exception:
+                return None
+        for r in rows[hi + 1:]:
+            vals = [str(v or '') for v in r]
+            if not any(v.startswith('Photo_') for v in vals):
+                continue
+            mp = re.search(r'(\d+(?:[.,]\d+)?)\s*Eur?/T', str(r[ix['prix']] if 'prix' in ix else ''), re.I)
+            mu = re.search(r'USINE\s*0*(\d+)', str(r[ix['usine']] if 'usine' in ix else ''), re.I)
+            out.append({'g': _n(r[ix['g']]) if 'g' in ix else None,
+                        'laize': _n(r[ix['laize']]) if 'laize' in ix else None,
+                        'long': _n(r[ix['long']]) if 'long' in ix else None,
+                        'poids': _n(r[ix['poids']]) if 'poids' in ix else None,
+                        'prix': int(float(mp.group(1))) if mp else None,
+                        'usine': mu.group(1) if mu else None})
+        out.sort(key=lambda o: (o['g'] or 0, o['laize'] or 0))
+        return out
+
+    def _usines_rows(blob):
+        """({usine: [n° de lignes]}, nb de réfs Photo_) — un fichier SANS réf
+        est un gabarit vide (vécu SADH 05/08) : on l'exclut du menu."""
+        wb = _px.load_workbook(_io.BytesIO(blob), read_only=True, data_only=True)
+        out = {}
+        refs = 0
+        for row in wb.active.iter_rows():
+            for c in row:
+                sv = str(c.value or '')
+                if sv.startswith('Photo_'):
+                    refs += 1
+                mu = re.match(r'.*USINE\s*0*(\d+)', sv)
+                if mu:
+                    out.setdefault(mu.group(1), []).append(c.row)
+        wb.close()
+        return out, refs
+
+    def _variante(blob, hide_rows):
+        """Copie du zip d'origine avec hidden=1 sur les lignes des autres
+        usines (feuille 1) — logos/styles byte-identiques (openpyxl PERDRAIT
+        les images en resauvant, d'où la chirurgie XML)."""
+        zin = _zip.ZipFile(_io.BytesIO(blob))
+        buf = _io.BytesIO()
+        with _zip.ZipFile(buf, 'w', _zip.ZIP_DEFLATED) as zout:
+            for item in zin.infolist():
+                data = zin.read(item.filename)
+                if item.filename == 'xl/worksheets/sheet1.xml':
+                    x = data.decode('utf-8')
+                    for rn in hide_rows:
+                        x = re.sub(f'<row r="{rn}"(?![0-9])', f'<row r="{rn}" hidden="1"', x, count=1)
+                    data = x.encode('utf-8')
+                zout.writestr(item, data)
+        return buf.getvalue()
+
+    manifest = []
+    for part in msg.walk():
+        if part.get_content_disposition() != 'attachment':
+            continue
+        fname = ''.join(
+            (b.decode(enc or 'utf-8', 'replace') if isinstance(b, bytes) else b)
+            for b, enc in email.header.decode_header(part.get_filename() or '')
+        )
+        if 'FABRICATION' not in fname.upper() or not fname.lower().endswith('.xlsx'):
+            continue
+        m = re.match(r'\d+([RS]) - (.+?) FABRICATION', fname)
+        code = m.group(2).strip() if m else fname
+        forme = 'Bobine' if (m and m.group(1) == 'R') else 'Format'
+        safe = fname.replace(' ', '_')
+        blob = part.get_payload(decode=True)
+        # Variantes PAR USINE (choix d'usine dans le menu Fabrication, 05/08)
+        variants = []
+        try:
+            ur, _refs = _usines_rows(blob)
+            if _refs == 0:
+                log(f"offres fab: {fname} VIDE (0 réf) — exclu du menu")
+                continue
+            _up(safe, blob, XCT)
+            allrows = set(r for rows in ur.values() for r in rows)
+            for us, rows in sorted(ur.items(), key=lambda kv: -len(kv[1])):
+                vname = safe.replace('.xlsx', f'__USINE_{us}.xlsx')
+                _up(vname, _variante(blob, sorted(allrows - set(rows))), XCT)
+                variants.append({'usine': us, 'fichier': vname})
+        except Exception as e:
+            log(f"offres fab: variantes usines KO pour {fname} — {e}")
+            try:
+                _up(safe, blob, XCT)  # au moins le fichier complet
+            except Exception:
+                pass
+        manifest.append({'fichier': safe, 'nom': fname, 'code': code, 'forme': forme, 'usines': variants, 'nb': _refs, 'offres': _extrait_offres(blob)})
+    if manifest:
+        _up('manifest.json',
+            json.dumps({'date': date.today().isoformat(), 'fichiers': manifest},
+                       ensure_ascii=False).encode(), 'application/json')
+    log(f"offres fab: {len(manifest)} Excel + {sum(len(x['usines']) for x in manifest)} variantes usine publiés")

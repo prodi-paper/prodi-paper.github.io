@@ -561,7 +561,7 @@ async function submitRappel(e){
   const rail=document.getElementById('temoin-rail');
   const dots=document.getElementById('temoin-dots');
   if(!rail) return;
-  const N=rail.children.length, GAP=20, PERIOD=2000;
+  const N=rail.children.length, GAP=20, PERIOD=5500; // 2000 → 5500 (05/08) : à 2 s le bandeau « part n'importe comment » sur grand écran (téléport de boucle en pleine anim)
   rail.innerHTML=rail.innerHTML+rail.innerHTML+rail.innerHTML;
   const step=()=>{const c=rail.firstElementChild;return c?c.getBoundingClientRect().width+GAP:400;};
   const setW=()=>N*step();
@@ -959,4 +959,18 @@ function toggleSound(){
     if(del&&pos===0){del=false;i=(i+1)%PH.length;}
     setTimeout(tick,del?18:45);
   })();
+})();
+
+// ─── ADAPTATION GRANDS ÉCRANS (05/08) : la vitrine est DESSINÉE pour ~1440px.
+// Au-delà, on zoome TOUT proportionnellement (un seul facteur, design intact)
+// au lieu d'étirer les blocs un par un. ≤1440 : aucun effet.
+(function(){
+  function fit(){
+    // borné par la LARGEUR ET LA HAUTEUR (écran large mais peu haut = zoom
+    // réduit, sinon le hero déborde verticalement), plafond 1.6
+    var z=Math.max(1,Math.min(window.innerWidth/1440,window.innerHeight/860,1.6));
+    document.body.style.zoom=z>1.01?z:'';
+  }
+  fit();
+  window.addEventListener('resize',fit);
 })();
