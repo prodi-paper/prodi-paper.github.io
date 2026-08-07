@@ -1151,7 +1151,7 @@ footer{background:#f5f5f7;border-top:1px solid var(--border);padding:52px 0 30px
 .ft2-col a:hover{color:var(--ink);}
 .ft2-bottom{max-width:var(--max);margin:38px auto 0;padding:20px var(--pad) 0;
   border-top:1px solid #e3e3e6;font-size:12px;color:var(--g3);text-align:center;letter-spacing:.4px;}
-@media(max-width:800px){
+@media(max-width:1024px){
   .ft2-grid{grid-template-columns:1fr 1fr;gap:26px;}
   .ft2-brand{grid-column:1/-1;}
 }
