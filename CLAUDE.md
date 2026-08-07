@@ -5,7 +5,7 @@ Site statique de catalogue papier/carton B2B. Déployé sur GitHub Pages.
 ## Stack
 - **Frontend** : HTML/CSS/JS vanilla (aucun framework)
 - **Backend** : Supabase (PostgREST + RLS) — lecture seule côté client
-- **Déploiement** : GitHub Pages → `https://prodi-paper.github.io/` (migration 2026-06-04 depuis `ethanelb.github.io` ; ancien repo conservé en lecture, workflow d'import désactivé là-bas pour éviter le double-write Supabase). Pas de CNAME custom — `paper.prodi.com` est un autre site Bitrix24, sans rapport avec ce repo.
+- **Déploiement** : GitHub Pages → `https://prodi-paper.github.io/` (migration 2026-06-04 depuis `ethanelb.github.io` ; ancien repo conservé en lecture, workflow d'import désactivé là-bas pour éviter le double-write Supabase). CNAME = `paper.prodi.com` (domaine custom GitHub Pages, sert CE repo depuis ~07/2026 — l'ancienne note « autre site Bitrix24 » est caduque). robots.txt + sitemap + canonicals pointent tous sur https://paper.prodi.com/.
 - **Repo** : `https://github.com/prodi-paper/prodi-paper.github.io` (`origin`). Ancien `ethanelb/ethanelb.github.io` accessible via remote local `ethanelb-old`.
 
 ## Fichiers principaux
@@ -890,3 +890,22 @@ Un produit est siderun si **les deux** conditions sont vraies :
 - **`ALL_KEYS` (haut des 2 scripts import) supprime les champs non listés** : la normalisation finale fait `del p[k] if k not in ALL_KEYS`. Ajouter une colonne au produit (ex `zone`) SANS l'ajouter à `ALL_KEYS` = elle disparaît silencieusement avant l'INSERT. (Bug vécu 2026-06-18 sur `zone`.)
 - **Choix du mail d'import** : toujours par SUJET (cf section Import). Prendre le dernier mail de l'expéditeur prenait le mauvais (sans zone) et pouvait attraper un courrier sans rapport.
 - **Secrets du repo** : `ethanelb` n'a PAS les droits (403/404 Settings). Utiliser `gh auth switch --user prodi-paper` puis `-R prodi-paper/prodi-paper.github.io`, et rebasculer sur `ethanelb` ensuite.
+
+## VITRINE — pages pays SEO (07/08/2026, poussé)
+
+Objectif : capter les requêtes « fournisseur / grossiste / import papier + pays »
+sur les 3 marchés cibles (Maghreb + Afrique de l'Ouest).
+- **3 pages pays réelles** (`/maroc/`, `/algerie/`, `/senegal/`, `<body class="souspage">`,
+  mêmes vitrine.css/js que les autres sous-pages) — contenu 100 % UNIQUE par pays
+  (ports/villes réels, papiers demandés localement, logistique + incoterms EXW/FOB/CIF,
+  douane : EUR.1 Maroc / domiciliation Algérie / hub Dakar). PAS des doorway pages.
+- **Schema par page** : BreadcrumbList + Service (areaServed=Country) + **FAQPage**
+  (5 Q/R visibles en `<details>` natifs + JSON-LD → résultats enrichis). Styles `gp-*`
+  en `<style>` scoped dans chaque page (pas dans vitrine.css).
+- **Visibilité (anti-undercover)** : footer site-wide = **5e colonne « Zones desservies »**
+  (`.ft2-grid` passé à 5 cols dans vitrine.css, `vitrine.css?v=290→291` sur les 5 pages) ;
+  accueil = ligne `.geo-zones` de liens contextuels sous la section #international.
+- **sitemap.xml** : 4→7 URLs (pays priority 0.9), lastmod 2026-08-07.
+- robots.txt inchangé (pays autorisés ; seul `/catalogue/` reste Disallow).
+- Reste à faire hors code : Google Search Console (soumettre le sitemap, suivre les
+  positions) — aucune balise google-site-verification posée à ce jour.
