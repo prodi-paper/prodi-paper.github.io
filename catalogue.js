@@ -6235,10 +6235,9 @@ async function loadSharedQuote(idsOverride){
   _maxKnownPage=1; // vue client : tout sur UNE page (listes 40-60 T)
   currentPage=1;
   _viewMode='grid'; // vue fiches uniquement (tableau retiré 18/07)
-  // Bouton − de retrait : seulement pour l'ÉQUIPE (appareil marqué /?team,
-  // même flag que l'analytics) — le client ne le voit jamais, même lien.
-  window._sharedEdit=(()=>{try{return localStorage.getItem('prodi_team')==='1';}catch(_){return false;}})()
-    ||/^(localhost|127\.)/.test(location.hostname);
+  // Bouton − de retrait : OUVERT À TOUS sur le lien partagé (choix Ethan 07/08) —
+  // le client peut aussi retirer ; le retrait met à jour le MÊME lien ?s=.
+  window._sharedEdit=true;
 
   const totalKg=units.reduce((s,p)=>s+(+p.weight||0),0);
   const rbarRefs=document.getElementById('rbar-refs');

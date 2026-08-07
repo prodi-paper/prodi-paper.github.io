@@ -909,3 +909,14 @@ sur les 3 marchés cibles (Maghreb + Afrique de l'Ouest).
 - robots.txt inchangé (pays autorisés ; seul `/catalogue/` reste Disallow).
 - Reste à faire hors code : Google Search Console (soumettre le sitemap, suivre les
   positions) — aucune balise google-site-verification posée à ce jour.
+
+## Vue client — retrait OUVERT À TOUS (07/08/2026, poussé)
+
+`window._sharedEdit` (catalogue.js ~6240) = **`true` en dur** désormais : le bouton
+`−` de retrait s'affiche pour TOUT LE MONDE sur les liens `?s=` (plus seulement les
+appareils flag `prodi_team`/localhost — choix Ethan). Conséquence assumée : le client
+peut aussi retirer un produit, et `_sharedRemove` met à jour le MÊME lien (PATCH
+`shared_carts.cart_ids`, RLS anon UPDATE). catalogue.js?v=730→731.
+NB donnée : le compteur bobine/format s'appuie sur `_estFormat` (format==='Bobine'
+strict) → 5 réfs bobine `R*` avec `format` Palette(3)/NULL(2) dans Sage se comptent
+en « format » (à corriger à la source Sage).
