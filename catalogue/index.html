@@ -85,10 +85,62 @@
 <link rel="preconnect" href="https://images.weserv.nl">
 <link rel="dns-prefetch" href="https://stock.prodi.net">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/catalogue.css?v=725">
+<link rel="stylesheet" href="/catalogue.css?v=729">
 <!-- EmailJS : chargé À LA DEMANDE par _ejsReady() (perf 18/07) -->
 </head>
 <body>
+<!-- ── PORTE MOT DE PASSE CATALOGUE (08/08 Ethan) ───────────────────────────
+     Demandé à la 1re visite d'un appareil (même via lien direct). Une fois
+     validé → mémorisé (localStorage 'prodi_cat_ok') : plus de re-saisie sur cet
+     appareil. Les liens client ?s=/?share= NE sont PAS bloqués.
+     ⚠️ Porte côté navigateur (dissuasive), pas une sécurité forte.
+     👉 MOT DE PASSE : changer la constante PWD dans le 2e <script> ci-dessous. -->
+<script>(function(){try{var p=new URLSearchParams(location.search);if(p.get('s')||p.get('share')||localStorage.getItem('prodi_cat_ok')==='1')document.documentElement.classList.add('cat-unlocked');}catch(e){document.documentElement.classList.add('cat-unlocked');}})();</script>
+<style>
+#cat-gate{position:fixed;inset:0;z-index:100000;background:#F5F3EE;display:flex;align-items:center;justify-content:center;padding:24px;font-family:'DM Sans',system-ui,sans-serif;}
+html.cat-unlocked #cat-gate{display:none !important;}
+.cat-gate-card{background:#fff;border-radius:20px;box-shadow:0 16px 44px rgba(0,0,0,.16);padding:38px 34px 28px;width:100%;max-width:370px;text-align:center;box-sizing:border-box;}
+.cat-gate-logo{height:32px;margin-bottom:16px;}
+.cat-gate-t{font-size:22px;font-weight:800;color:#1d1d1f;letter-spacing:-.3px;}
+.cat-gate-s{font-size:13.5px;color:#86868b;margin:7px 0 20px;line-height:1.4;}
+#cat-gate-form{display:flex;flex-direction:column;gap:10px;}
+#cat-gate-input{height:46px;border:1.5px solid #e0e0e5;border-radius:12px;padding:0 16px;font-size:16px;outline:none;box-sizing:border-box;text-align:center;}
+#cat-gate-input:focus{border-color:#1d1d1f;}
+#cat-gate-form button{height:46px;border:none;border-radius:12px;background:#1d1d1f;color:#fff;font-size:16px;font-weight:700;cursor:pointer;}
+#cat-gate-form button:active{transform:scale(.98);}
+.cat-gate-err{color:#FE0000;font-size:13px;font-weight:600;min-height:17px;margin-top:11px;}
+.cat-gate-shake{animation:catShake .34s;}
+@keyframes catShake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+</style>
+<div id="cat-gate">
+  <div class="cat-gate-card">
+    <img src="/img/logo.png?v=2" alt="Prodiconseil" class="cat-gate-logo">
+    <div class="cat-gate-t">Catalogue réservé</div>
+    <div class="cat-gate-s">Accès professionnel.<br>Entrez le mot de passe pour continuer.</div>
+    <form id="cat-gate-form" autocomplete="off">
+      <input type="password" id="cat-gate-input" placeholder="Mot de passe" autocomplete="off" spellcheck="false">
+      <button type="submit">Entrer</button>
+    </form>
+    <div class="cat-gate-err" id="cat-gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){
+  var PWD='PRODI2026'; /* ← MOT DE PASSE du catalogue — changer ici */
+  if(document.documentElement.classList.contains('cat-unlocked'))return;
+  function boot(){
+    var g=document.getElementById('cat-gate'),f=document.getElementById('cat-gate-form'),i=document.getElementById('cat-gate-input'),err=document.getElementById('cat-gate-err');
+    if(!f)return;
+    setTimeout(function(){try{i.focus();}catch(e){}},60);
+    f.addEventListener('submit',function(e){
+      e.preventDefault();
+      if(i.value.trim()===PWD){try{localStorage.setItem('prodi_cat_ok','1');}catch(e){}document.documentElement.classList.add('cat-unlocked');}
+      else{err.textContent='Mot de passe incorrect';var card=g.querySelector('.cat-gate-card');card.classList.remove('cat-gate-shake');void card.offsetWidth;card.classList.add('cat-gate-shake');i.select();}
+    });
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})();
+</script>
 <script>
 /* Anti-CLS : applique apple-view/topbar-view AVANT le 1er paint. Sinon le header
    se peint en layout ancien puis saute quand catalogue.js ajoute les classes
@@ -127,7 +179,7 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
     <button class="mob-filter-head" onclick="openFilterDrawer()" aria-label="Filtres">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><circle cx="8" cy="6" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="16" cy="12" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="8" cy="18" r="2" fill="currentColor" stroke="none"/></svg>
     </button>
-    <div class="header-search-group" style="position:absolute;left:50%;transform:translateX(-50%);margin:0;">
+    <div class="header-search-group" style="position:absolute;left:303px;transform:none;margin:0;">
     <div class="header-search" style="background:none;border:none;box-shadow:none;border-radius:0;display:flex;gap:8px;padding:0;max-width:264px;overflow:visible;">
       <!-- Barre texte remplacée par la plage Réf article (16/07). Le champ
            search-input reste CACHÉ : le scanner QR et le mode partagé écrivent
@@ -139,6 +191,12 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
     </div>
     </div>
     <div class="hright">
+      <div class="offre-wrap" id="album-wrap">
+        <button class="btn-head" id="album-btn" onclick="document.getElementById('album-file-input').click()" title="Importer des références depuis un fichier (Excel, PDF, BL, texte…)">
+          <span class="offre-txt" style="font-size:19px;font-weight:800;">Album photo</span>
+        </button>
+        <input type="file" id="album-file-input" accept=".pdf,.xlsx,.xls,.csv,.txt,.docx" style="display:none" onchange="if(this.files[0])_albumImport(this.files[0]);this.value='';">
+      </div>
       <div class="offre-wrap" id="fab-wrap">
         <button class="btn-head" id="fab-btn" onclick="toggleFabMenu()" title="Offres fabrication sur demande (Excel usine)">
           <span class="offre-txt" style="font-size:19px;font-weight:800;">Usine</span>
@@ -420,10 +478,10 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
           <select class="rbar-sel" id="sort-sel" onchange="filterProducts()">
             <option value="price_asc">Prix : moins cher d’abord</option>
             <option value="price_desc">Prix : plus cher d’abord</option>
-            <option value="gsm_asc" selected>Grammage croissant</option>
+            <option value="gsm_asc">Grammage croissant</option>
             <option value="gsm_desc">Grammage décroissant</option>
             <option value="ref_asc">Arrivage : plus anciens</option>
-            <option value="ref_desc">Arrivage : plus récents</option>
+            <option value="ref_desc" selected>Arrivage : plus récents</option>
           </select>
         </div>
         <button class="rbar-reset" id="rbar-reset" onclick="resetFilters()" style="display:none">Réinitialiser</button>
@@ -866,7 +924,7 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
 <div class="spin-bg" id="spinner"><div class="spin"></div></div>
 
 <script src="/analytics.js?v=1"></script>
-<script src="/catalogue.js?v=731"></script>
+<script src="/catalogue.js?v=732"></script>
 <!-- Traqueur de perf, inerte sans ?perf=1 (voir perf-hud.js) -->
 <script src="/perf-hud.js?v=1" defer></script>
 </body>

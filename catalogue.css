@@ -260,6 +260,9 @@ body.topbar-view .pgrid.pgrid-loading{min-height:340px;}
 /* Image zone */
 .pcard-img{height:279px;background:var(--off2);overflow:hidden;position:relative;flex-shrink:0;}
 .pcard-img img{width:100%;height:100%;object-fit:cover;}
+/* Catalogue : cadre image un peu moins haut → ratio proche des photos (paysage)
+   → moins de rognage/zoom sur les cartes (08/08 Ethan « dézoome ceux qui dépassent ») */
+body.topbar-view .pgrid .pcard-img{height:230px;}
 .pcard-nophoto{width:100%;height:100%;object-fit:contain!important;background:#fff;}
 
 /* Type badge — overlay on image, top-left */
@@ -1236,7 +1239,7 @@ body.shared-view .body-wrap>div:last-child{padding-left:0 !important;}
 body.shared-view .fab-prodix{display:none !important;}
 .sc-body{padding:0;}
 .sc-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.6px;line-height:1.1;padding:7px 8px;}
-.sc-grid{display:grid;grid-template-columns:repeat(4,1fr);border:2px solid #000;border-radius:0 0 10px 10px;overflow:hidden;}
+.sc-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:2px solid #000;border-radius:0 0 10px 10px;overflow:hidden;}
 .sc-cell{border:.5px solid #000;padding:7px 5px;min-width:0;}
 .sc-cap{font-size:9px;font-weight:700;letter-spacing:.3px;color:#222;white-space:nowrap;overflow:hidden;}
 .sc-val{font-weight:800;font-size:15.5px;color:#000;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -1342,7 +1345,7 @@ body.shared-view .body-wrap{grid-template-columns:1fr !important;}
 .si-wa:hover{background:#1fb457;}
 .sc-count{position:absolute;top:10px;left:10px;background:#111;color:#fff;font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:1px;padding:4px 11px;border-radius:7px;}
 /* Fiche vue client : quadrillage copié de l'étiquette + reste en bas */
-body.shared-view .dspecs,body.apple-view .dspecs{display:block;border:none;overflow:visible;}
+body.shared-view .dspecs,body.apple-view .dspecs{display:block;border:none;overflow:visible;margin-bottom:6px;}
 .det-etq{display:grid;grid-template-columns:repeat(4,1fr);border:2.5px solid #000;border-radius:10px;overflow:hidden;}
 .det-etq-cell{border:.5px solid #000;padding:9px 12px;min-width:0;}
 .det-etq-lbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#222;white-space:nowrap;}
@@ -1369,7 +1372,7 @@ body.shared-view .dhead-actions,body.apple-view .dhead-actions{position:absolute
 body.shared-view .dprice-row,body.apple-view .dprice-row{padding:0 16px;}
 .det-etq-wrap .det-etq-val{white-space:normal;overflow:visible;text-overflow:clip;font-size:17px;line-height:1.3;font-weight:700;}
 .sc-wrap .sc-val{white-space:normal;overflow:hidden;text-overflow:clip;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:11.5px;line-height:1.25;}
-body.shared-view .dmodal,body.apple-view .dmodal{max-width:840px;}
+body.shared-view .dmodal,body.apple-view .dmodal{max-width:672px;}
 body.shared-view .dimg-col,body.shared-view .dmain,body.apple-view .dimg-col,body.apple-view .dmain{height:min(48vh,600px);}
 /* la photo cède la place si l'écran manque de hauteur, l'étiquette reste entière */
 body.shared-view .dimg-col,body.apple-view .dimg-col{flex-shrink:1;min-height:220px;}
@@ -1378,6 +1381,14 @@ body.shared-view .det-etq-title,body.apple-view .det-etq-title{font-size:29px;pa
 body.shared-view .det-etq-cell,body.apple-view .det-etq-cell{padding:8px 12px;}
 body.shared-view .det-etq .det-etq-val,body.apple-view .det-etq .det-etq-val{font-size:19px;}
 body.shared-view .det-etq .det-etq-wrap .det-etq-val,body.apple-view .det-etq .det-etq-wrap .det-etq-val{font-size:16px;}
+/* (08/08) Fiche = carte : DÉTAIL en sous-titre sous le titre (sans label) */
+.det-etq-sub{border-top:none !important;padding-top:0 !important;padding-bottom:10px !important;}
+.det-etq-sub .det-etq-val{white-space:normal !important;overflow:visible !important;text-overflow:clip !important;font-family:'DM Sans',sans-serif !important;font-size:26px !important;font-weight:800 !important;color:#000 !important;line-height:1.08;letter-spacing:-.4px;}
+/* Ligne PRIX = valeur + rond « + » à droite (comme la carte, sans label « PRIX ») */
+.det-etq-prix{display:flex !important;flex-direction:row;align-items:center;justify-content:space-between;gap:10px;}
+.det-etq-prixval{font-size:22px !important;font-weight:800 !important;color:#000 !important;}
+body.apple-view .det-etq-prixval{color:#1d1d1f !important;}
+.det-etq-prix .sc-add{flex:0 0 auto;}
 
 /* Vue client : fond BLANC épuré (fini le crème) */
 body.shared-view{background:#fff;}
@@ -1403,13 +1414,13 @@ body.shared-view .pbig-ref{font-size:17px;padding:4px 10px;background:rgba(0,0,0
 body.shared-view .pbig-usine{background:rgba(0,0,0,.55);}
 body.shared-view .dnav-inline,body.apple-view .dnav-inline{display:none !important;}
 body.shared-view .modal-bg.show .dmod-nav,body.apple-view .modal-bg.show .dmod-nav{display:flex !important;background:rgba(255,255,255,.92);color:#111;box-shadow:0 4px 14px rgba(0,0,0,.2);}
-body.shared-view .dmod-prev,body.apple-view .dmod-prev{left:calc(50% - 530px);}
-body.shared-view .dmod-next,body.apple-view .dmod-next{right:calc(50% - 530px);}
+body.shared-view .dmod-prev,body.apple-view .dmod-prev{left:calc(50% - 400px);}
+body.shared-view .dmod-next,body.apple-view .dmod-next{right:calc(50% - 400px);}
 @media(max-width:900px){body.shared-view .dmod-prev,body.apple-view .dmod-prev{left:8px;}body.shared-view .dmod-next,body.apple-view .dmod-next{right:8px;}}
-body.shared-view .dhead-actions,body.apple-view .dhead-actions{position:fixed;top:16px;right:16px;z-index:9999;}
+body.shared-view .dhead-actions,body.apple-view .dhead-actions{position:absolute;top:12px;right:12px;z-index:9999;}
 body.shared-view .dhead-actions .dclose,body.apple-view .dhead-actions .dclose{background:#fff;width:44px;height:44px;box-shadow:0 4px 14px rgba(0,0,0,.25);}
 body.shared-view .dmodal .d-actions,body.apple-view .dmodal .d-actions{display:none;}
-body.shared-view .det-reste,body.apple-view .det-reste{padding:12px 16px 6px;}
+body.shared-view .det-reste,body.apple-view .det-reste{padding:2px 16px 3px;line-height:1.1;}
 body.shared-view .pgrid{grid-template-columns:repeat(4,1fr);max-width:var(--gab);margin-left:auto;margin-right:auto;}
 /* Écrans très larges : 5-6 colonnes plutôt que des cartes étirées (05/08) */
 body.shared-view .sc-val{font-size:15.5px;}
@@ -1463,6 +1474,14 @@ body.apple-view .det-etq-val{font-weight:800;font-size:23px;color:#000;}
 body.apple-view .det-etq-wrap .det-etq-val{font-size:18px;font-weight:700;}
 body.apple-view .det-reste{color:#48484a;}
 body.apple-view .det-reste-item b{color:#000;}
+/* (08/08 Ethan) Hauteur uniforme des bandeaux fiche = 50px ; Zone/Code = 25px */
+body.apple-view .det-etq,body.shared-view .det-etq{grid-auto-rows:50px;}
+body.apple-view .det-etq-cell,body.shared-view .det-etq-cell{display:flex;flex-direction:column;justify-content:center;}
+body.apple-view .det-etq-prix,body.shared-view .det-etq-prix{flex-direction:row;align-items:center;justify-content:space-between;}
+body.apple-view .det-etq-sub,body.shared-view .det-etq-sub{padding-top:0 !important;padding-bottom:0 !important;}
+body.apple-view .det-reste,body.shared-view .det-reste{height:25px;padding-top:0;padding-bottom:0;align-items:center;}
+/* Anti-coupe : la valeur (avec son unité <small>) ne doit pas être rognée en bas */
+body.apple-view .det-etq-cell:not(.det-etq-sub) > .det-etq-val,body.shared-view .det-etq-cell:not(.det-etq-sub) > .det-etq-val{overflow:visible;line-height:1.3;}
 /* Apple : cran au-dessus (+5 % de carte accepté) */
 body.apple-view .sc-cell{padding:8px 8px;}
 body.apple-view .sc-cap{font-size:10.5px;}
@@ -1655,7 +1674,7 @@ body.topbar-view .msd-panel{width:auto !important;min-width:230px;max-width:340p
 body.topbar-view .body-wrap>div:last-child{padding:12px 0 0;}
 }
 @media(min-width:769px){
-body.topbar-view .pgrid{grid-template-columns:repeat(4,1fr);max-width:var(--gab);margin-left:auto;margin-right:auto;}
+body.topbar-view .pgrid{grid-template-columns:repeat(4,1fr);max-width:var(--gab);margin-left:auto;margin-right:auto;gap:8px;}
 /* Grand écran : 5 cartes (photos cohérentes) — le zoom global fait le reste */
 @media(min-width:2100px){body.topbar-view .pgrid,body.shared-view .pgrid{grid-template-columns:repeat(5,1fr);}}
 /* Perf CLS desktop : quand on quitte le hero pour la grille, la bascule est
@@ -1720,11 +1739,16 @@ body.topbar-view .filters-panel #add-page-btn{order:-1;border:none;background:#f
 body.topbar-view .filters-panel .pager-top{order:-1;margin:0;}
 
 /* Panneau Details a deux niveaux : familles puis options (18/07) */
-.msd-group-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:var(--ink);}
+.msd-group-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:var(--ink);border-top:1px solid var(--hairline);}
+.msd-group-row:first-child{border-top:none;}
 .msd-group-row:hover{background:#f5f5f7;}
 .mgr-right{display:flex;align-items:center;gap:7px;}
 .mgr-arrow{color:#a1a1a6;font-size:17px;line-height:1;}
 .mgr-nsel{background:#1d1d1f;color:#fff;border-radius:999px;font-size:11px;font-weight:700;padding:2px 8px;line-height:1.4;}
+/* Popup FLOTTANT des sections avancées (08/08) : options en dropdown sous la ligne */
+.adv-pop{background:#fff;border:1px solid var(--hairline);border-radius:10px;box-shadow:var(--sh-md);max-height:340px;overflow-y:auto;padding:4px 2px;margin-top:2px;}
+.adv-pop .msd-search-wrap{position:sticky;top:0;background:#fff;z-index:2;padding:2px 2px 4px;}
+@media(min-width:769px){.adv-pop{position:absolute;left:0;right:0;top:0;z-index:60;margin-top:0;}}
 .msd-back-row{display:none;align-items:center;gap:7px;padding:10px 12px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;color:var(--ink);border-bottom:1px solid #eee;position:sticky;top:0;background:#fff;z-index:2;}
 .msd-back-row:hover{background:#f5f5f7;}
 .msd-back-ar{font-size:17px;line-height:1;}
@@ -1787,8 +1811,12 @@ body.apple-view:not(.shared-view) #album-photo-btn:hover{border-color:var(--g3);
 body.apple-view:not(.shared-view) #offre-btn,body.topbar-view #offre-btn,body.apple-view:not(.shared-view) #fab-btn,body.topbar-view #fab-btn{background:#fff;border:none;box-shadow:var(--sh-sm);color:#1d1d1f;}
 body.apple-view:not(.shared-view) #offre-btn:hover,body.topbar-view #offre-btn:hover,body.apple-view:not(.shared-view) #fab-btn:hover,body.topbar-view #fab-btn:hover{background:#fff;border:none;box-shadow:var(--sh-md);color:#1d1d1f;}
 body.shared-view #offre-wrap,body.shared-view #fab-wrap{display:none !important;}
-.offre-menu{position:absolute;top:calc(100% + 10px);right:0;background:#fff;border:1px solid #e8e8ed;border-radius:20px;box-shadow:var(--sh-lg);padding:6px;min-width:270px;max-width:calc(100vw - 16px);display:none;z-index:3000;}
+.offre-menu{position:absolute;top:calc(100% + 10px);right:0;background:#fff;border:1px solid #e8e8ed;border-radius:20px;box-shadow:var(--sh-lg);padding:6px;min-width:270px;max-width:calc(100vw - 16px);max-height:min(74vh,660px);overflow-y:auto;overscroll-behavior:contain;display:none;z-index:3000;}
 .offre-menu.show{display:block;}
+/* Segment FAB|LOTS du popup Quantité masqué (pools fusionnés, demande Ethan 08/08) */
+#qty-seg{display:none !important;}
+/* Bandeau « PRIX DÉPART USINE » de la fiche produit retiré (demande Ethan 08/08) */
+#det-price-row{display:none !important;}
 .offre-load{padding:14px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--g2);}
 .offre-item{display:flex;align-items:baseline;gap:12px;width:100%;padding:10px 14px;border:none;background:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14.5px;font-weight:700;color:#1d1d1f;cursor:pointer;text-align:left;}
 .offre-item .offre-lbl{flex:1;}
@@ -1873,6 +1901,10 @@ body.apple-view .sc-count{font-size:12.6px;padding:4px 11.5px;}
 body.apple-view .pcard-resa-overlay{font-size:11px;padding:5.5px 10.5px;}
 /* topbar : Details juste avant Ref usine (18/07) */
 body.topbar-view .filters-panel .fg:has(#sb-msd-details){order:5;}
+/* Grammages JUSTE au-dessus de Filtres avancés (08/08) : entre Détails(5) et tb-adv(9) */
+body.topbar-view .filters-panel .fg:has(#sb-msd-grammage){order:7;}
+/* Dimensions (quand elle remonte dans la barre) APRÈS Détails (08/08) */
+body.topbar-view .filters-panel .fg:has(#sb-msd-format){order:6;}
 body.topbar-view .filters-panel .fg:has(#sb-msd-usine){display:none !important;}
 body.topbar-view .filters-panel .fg:has(.fpill-photo){display:none !important;}
 /* Filtres avances : en bout de barre */
@@ -1881,7 +1913,7 @@ body.topbar-view #tb-adv .msd-btn{width:auto;padding:9px 14px;}
 
 /* topbar : la zone de filtres (barre + tags) COLLE sous le header au scroll (18/07) */
 @media(min-width:769px){
-body.topbar-view .body-wrap>.sidebar-col{position:sticky;top:72px;z-index:90;background:transparent;pointer-events:none;}
+body.topbar-view .body-wrap>.sidebar-col{position:sticky;top:52px;z-index:90;background:transparent;pointer-events:none;}
 body.topbar-view .body-wrap>.sidebar-col button,body.topbar-view .body-wrap>.sidebar-col .msd,body.topbar-view .body-wrap>.sidebar-col .fchip,body.topbar-view .body-wrap>.sidebar-col input{pointer-events:auto;}
 }
 
@@ -2154,17 +2186,23 @@ body.apple-view .pcard-promo-overlay{-webkit-backdrop-filter:none;backdrop-filte
 /* La piste capte le POINTEUR (drag maison, cf _buildGrammageSlider) ; les
    inputs range sont purement visuels — Safari ignore pointer-events sur le
    pseudo-élément thumb, ne jamais revenir aux 2 ranges superposés cliquables. */
-.gsl-track{position:relative;height:26px;cursor:pointer;touch-action:none;}
-.gsl-track::before{content:'';position:absolute;left:0;right:0;top:11.5px;height:3px;border-radius:99px;background:#e3e3e6;}
-.gsl-fill{position:absolute;top:11.5px;height:3px;border-radius:99px;background:#1d1d1f;pointer-events:none;}
-.gsl-track input[type=range]{position:absolute;inset:0;width:100%;height:26px;margin:0;background:none;
+.gsl-track{position:relative;height:34px;margin:6px 10px 0;cursor:pointer;touch-action:none;}
+.gsl-btnval{margin-left:auto;padding-right:8px;font-weight:700;font-size:15.4px;color:#1d1d1f;white-space:nowrap;}
+.gsl-track::before{content:'';position:absolute;left:0;right:0;top:15.5px;height:3px;border-radius:99px;background:#e3e3e6;}
+.gsl-fill{position:absolute;top:15.5px;height:3px;border-radius:99px;background:#1d1d1f;pointer-events:none;}
+.gsl-track input[type=range]{position:absolute;inset:0;width:100%;height:34px;margin:0;background:none;
   pointer-events:none;-webkit-appearance:none;appearance:none;}
-.gsl-track input[type=range]::-webkit-slider-runnable-track{background:transparent;height:26px;}
+.gsl-track input[type=range]::-webkit-slider-runnable-track{background:transparent;height:34px;}
 .gsl-track input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;
-  width:19px;height:19px;margin-top:3.5px;border-radius:50%;background:#fff;border:none;
-  box-shadow:0 0 0 .5px rgba(0,0,0,.04),0 1px 3px rgba(0,0,0,.22),0 3px 8px rgba(0,0,0,.12);}
-.gsl-track input[type=range]::-moz-range-thumb{width:19px;height:19px;border-radius:50%;
-  background:#fff;border:none;box-shadow:0 1px 3px rgba(0,0,0,.22),0 3px 8px rgba(0,0,0,.12);}
+  width:14px;height:30px;margin-top:2px;border-radius:8px;background:#fff;border:1px solid #ececef;
+  box-shadow:0 1px 3px rgba(0,0,0,.22),0 3px 8px rgba(0,0,0,.12);}
+.gsl-track input[type=range]::-moz-range-thumb{width:14px;height:30px;border-radius:8px;
+  background:#fff;border:1px solid #ececef;box-shadow:0 1px 3px rgba(0,0,0,.22),0 3px 8px rgba(0,0,0,.12);}
+/* Bulles de valeur suivant chaque poignée (design F pilules + D bulles, choix Ethan) */
+.gsl-bub{position:absolute;top:-30px;transform:translateX(-50%);background:#1d1d1f;color:#fff;
+  font-size:12.5px;font-weight:700;padding:4px 9px;border-radius:8px;white-space:nowrap;pointer-events:none;z-index:2;}
+.gsl-bub::after{content:'';position:absolute;left:50%;top:100%;transform:translateX(-50%);
+  border:5px solid transparent;border-top-color:#1d1d1f;}
 .gsl-bornes{display:flex;justify-content:space-between;font-size:11.5px;color:var(--g3);margin-top:-7px;}
 /* Curseur CIE dans le menu Détails (même dessin, encart dans la liste) */
 .gsl-cie{padding:12px 14px 12px;gap:11px;border-bottom:1px solid #ececf0;}
@@ -2245,4 +2283,223 @@ body.saisie-basse .pxdot.on.still::after{animation:none;}
   body.saisie-basse .px-tuile h2{font-size:38px;}
   body.saisie-basse .px-qcard{flex-basis:76vw;}
   body.saisie-basse #px-band-wrap{padding:0 10px 120px;}
+}
+
+/* ===== DESKTOP : filtres en COLONNE GAUCHE (07/08, demande Ethan) =====
+   Le mobile (@media max-width:768px) reste en barre du haut, inchangé.
+   .body-wrap n'a que 2 enfants : .sidebar-col (filtres) + le <div> contenu →
+   grid 2 colonnes propre. On ANNULE la barre horizontale topbar sur desktop. */
+@media(min-width:769px){
+  /* Grille 2 colonnes : rail filtres (gauche) + contenu (droite) */
+  body.topbar-view .body-wrap{
+    position:relative;
+    display:grid;
+    grid-template-columns:300px minmax(0,1fr);
+    gap:10px;
+    align-items:start;
+    max-width:none;
+    margin:0;
+    padding:0 26px 48px 0;
+  }
+  body.topbar-view .mob-filter-btn{display:none !important;}
+  /* Ancienne ligne titre FILTRES (#topbar-row2) masquée → le rail démarre flush sous le header */
+  body.topbar-view #topbar-row2{display:none !important;}
+  /* Header : collé en haut, PLEINE LARGEUR, logo à gauche, hauteur réduite (demande Ethan) */
+  body.apple-view header{top:0 !important;padding:0 !important;border-bottom:1px solid var(--border) !important;}
+  body.apple-view .header-inner{max-width:none !important;margin:0 !important;border-radius:0 !important;box-shadow:none !important;background:#fff !important;padding:0 24px !important;height:50px !important;}
+  body.apple-view .header-inner .logo-link{margin-left:20px;}
+  /* Boutons header (Album photo · Usine · Offre · Liste) réduits ~ à la taille des
+     champs Réf article/Max (08/08 Ethan) : h 38px, texte 14.5px, padding resserré */
+  body.topbar-view .hright .btn-head{height:38px !important;min-height:0 !important;padding:0 16px !important;}
+  body.topbar-view .hright .btn-head .offre-txt,body.topbar-view .hright .btn-head .btn-panier-txt{font-size:14.5px !important;font-weight:700 !important;}
+  body.topbar-view .hright .btn-head .btn-panier-txt+*,body.topbar-view .hright #cart-btn svg{width:16px !important;height:16px !important;}
+  /* Pas de trait au-dessus du footer (demande Ethan) */
+  body.topbar-view footer{border-top:none !important;}
+  /* Barre du haut de la colonne produits (déplacée en JS) : + à GAUCHE, tri à DROITE */
+  body.topbar-view #desk-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 2px 6px;min-height:34px;margin-top:-8px;}
+  /* Tonnage de la sélection filtrée, à côté du + (08/08 Ethan) */
+  body.topbar-view #desk-toolbar #tb-tons{flex:0 0 auto;order:0;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--g2);white-space:nowrap;margin-left:8px;transform:translateY(-5px);}
+  body.topbar-view #desk-toolbar #tb-tons:empty{display:none;}
+  body.topbar-view #desk-toolbar #tb-tons b{font-weight:800;color:#1d1d1f;font-size:16.5px;}
+  /* + = pastille BLANCHE (couleurs inversées avec le tri) */
+  body.topbar-view #desk-toolbar #add-page-btn{position:static !important;order:0;width:35.6px !important;height:35.6px !important;margin:0 !important;transform:translate(5px,-5px);flex:0 0 auto !important;background:#fff !important;border:none !important;border-radius:999px !important;box-shadow:var(--sh-md);color:#1d1d1f !important;padding:0 !important;display:flex;align-items:center;justify-content:center;}
+  body.topbar-view #desk-toolbar #add-page-btn svg{width:18px;height:18px;stroke:#1d1d1f;}
+  /* chips des filtres actifs ENTRE le + et le tri */
+  body.topbar-view #desk-toolbar #filter-chips{order:1;flex:1 1 auto;display:flex !important;flex-wrap:wrap;gap:6px;margin:0;padding:0 6px;justify-content:center;align-items:center;max-width:none;transform:translateY(-5px);}
+  /* chips = pilules NEUTRES (blanc + ombre), comme le système d'origine (08/08) */
+  body.topbar-view #desk-toolbar #filter-chips .fchip{background:#fff !important;border:none !important;box-shadow:var(--sh-sm) !important;color:#1d1d1f !important;font-size:13px !important;font-weight:600 !important;padding:7px 10px 7px 14px !important;border-radius:999px !important;}
+  body.topbar-view #desk-toolbar #filter-chips .fchip button{color:var(--g2) !important;font-size:15px !important;}
+  body.topbar-view #desk-toolbar #filter-chips .fchip button:hover{color:#1d1d1f !important;}
+  body.topbar-view #desk-toolbar #tb-sort{position:static !important;order:2;width:auto;margin:0;}
+  /* .sidebar-col = colonne flex sticky ; rangée haute (tri/+/chips) AU-DESSUS des filtres */
+  body.topbar-view .sidebar-col{display:flex;flex-direction:column;gap:12px;}
+
+  /* Panneau filtres = liste verticale pleine largeur, carte blanche */
+  body.topbar-view .filters-panel{
+    order:2;
+    width:100% !important;
+    position:static !important;
+    display:flex !important;
+    flex-direction:column;
+    align-items:stretch;
+    justify-content:flex-start;
+    flex-wrap:nowrap !important;
+    gap:9px;
+    padding:16px;
+    height:auto !important;
+    overflow:visible !important;
+    background:#fff;
+    border-radius:0 0 16px 16px;
+    box-shadow:var(--sh-sm);
+  }
+  body.topbar-view .filters-panel .fg{width:100%;margin:0;}
+  body.topbar-view .filters-panel .msd{width:100% !important;}
+  /* Boutons filtres = PLEINE LARGEUR du rail (bat #sb-msd-type width:134px + .msd-btn width:auto!important) */
+  body.topbar-view .filters-panel .msd-btn,
+  body.topbar-view #sb-msd-type .msd-btn,
+  body.topbar-view #sb-msd-details .msd-btn,
+  body.topbar-view #sb-msd-grammage .msd-btn,
+  body.topbar-view #sb-msd-couleur .msd-btn,
+  body.topbar-view #sb-msd-format .msd-btn,
+  body.topbar-view #sb-msd-laize .msd-btn,
+  body.topbar-view #sb-msd-mandrin .msd-btn,
+  body.topbar-view #sb-msd-diametre .msd-btn,
+  body.topbar-view #sb-msd-poids .msd-btn,
+  body.topbar-view #tb-adv .msd-btn{width:100% !important;justify-content:space-between !important;padding:11px 14px !important;box-sizing:border-box;font-size:17px !important;font-weight:700 !important;color:#1d1d1f !important;}
+
+  /* Polices du rail +15% + plus noires/grasses (demande Ethan) */
+  body.topbar-view .filters-panel .format-pills .fpill{font-size:16.5px !important;font-weight:800 !important;}
+  body.topbar-view .filters-panel .fp-title{font-size:15px !important;font-weight:800 !important;color:#1d1d1f !important;}
+  body.topbar-view .filters-panel .gsl-val{font-size:16px !important;font-weight:800 !important;color:#1d1d1f !important;}
+  body.topbar-view .filters-panel .gsl-bornes span{font-size:15px !important;font-weight:700 !important;color:#48484a !important;}
+  body.topbar-view .filters-panel .msd-option,
+  body.topbar-view .filters-panel .msd-label{font-size:16px !important;font-weight:600 !important;color:#1d1d1f !important;}
+  body.topbar-view .filters-panel .msd-group-row{font-size:16px !important;font-weight:700 !important;color:#1d1d1f !important;}
+  body.topbar-view .filters-panel .msd-search-inp{font-size:16px !important;}
+
+  /* Flèche ▾ des boutons filtres remplacée par l'icône FILTRE (sliders) */
+  body.topbar-view .filters-panel .msd-btn .msd-arrow{font-size:0 !important;width:20px;height:20px;flex:0 0 20px;opacity:.9;background:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%231d1d1f'%20stroke-width='2.2'%20stroke-linecap='round'%3E%3Cline%20x1='4'%20y1='9'%20x2='20'%20y2='9'/%3E%3Cline%20x1='4'%20y1='15'%20x2='20'%20y2='15'/%3E%3Ccircle%20cx='10'%20cy='9'%20r='2.4'%20fill='%23fff'/%3E%3Ccircle%20cx='15'%20cy='15'%20r='2.4'%20fill='%23fff'/%3E%3C/svg%3E")%20center/19px%20no-repeat;}
+  body.topbar-view .filters-panel .fg:has([data-format]){display:block !important;order:-1;}
+
+  /* FILTRES AVANCÉS dépliés DIRECTEMENT dans le rail (08/08 Ethan) — plus de clic */
+  body.topbar-view .filters-panel #tb-adv .msd-panel{display:block !important;margin-top:2px !important;}
+  body.topbar-view .filters-panel #tb-adv .msd-btn{pointer-events:none;border:none !important;background:transparent !important;box-shadow:none !important;padding:8px 4px 1px !important;font-size:13px !important;font-weight:800 !important;color:var(--g2) !important;text-transform:uppercase;letter-spacing:.5px;}
+  body.topbar-view .filters-panel #tb-adv .msd-btn .msd-arrow{display:none !important;}
+  /* Compactage général du rail (08/08) : lignes avancées + slider plus serrés */
+  body.topbar-view .filters-panel .msd-group-row{padding-top:8px !important;padding-bottom:8px !important;}
+  body.topbar-view .filters-panel .gsl-track{margin:3px 12px 0 !important;}
+
+  /* HOMOGÉNÉITÉ (08/08 Ethan) : Offre, Type de papier, Détails = MÊME ligne plate
+     que les sections avancées (label + filet + chevron ›), plus de cartes/pilules */
+  body.topbar-view .filters-panel #sb-msd-type .msd-btn,
+  body.topbar-view .filters-panel #sb-msd-details .msd-btn,
+  body.topbar-view .filters-panel #sb-msd-couleur .msd-btn,
+  body.topbar-view .filters-panel #sb-msd-format .msd-btn{
+    width:100% !important;height:auto !important;min-height:0 !important;
+    border:none !important;border-bottom:1px solid var(--hairline) !important;
+    background:transparent !important;box-shadow:none !important;border-radius:0 !important;
+    padding:9px 12px !important;font-size:16px !important;font-weight:700 !important;
+    color:#1d1d1f !important;justify-content:space-between !important;}
+  /* chevron › à droite (on masque le ▾ / l'icône filtre et on pose un › en ::after) */
+  body.topbar-view .filters-panel #sb-msd-type .msd-arrow,
+  body.topbar-view .filters-panel #sb-msd-details .msd-arrow,
+  body.topbar-view .filters-panel #sb-msd-couleur .msd-arrow,
+  body.topbar-view .filters-panel #sb-msd-format .msd-arrow{
+    background:none !important;width:auto !important;height:auto !important;flex:none !important;
+    transform:none !important;font-size:0 !important;}
+  body.topbar-view .filters-panel #sb-msd-type .msd-arrow::after,
+  body.topbar-view .filters-panel #sb-msd-details .msd-arrow::after,
+  body.topbar-view .filters-panel #sb-msd-couleur .msd-arrow::after,
+  body.topbar-view .filters-panel #sb-msd-format .msd-arrow::after{
+    content:'\203A';font-size:19px;line-height:1;color:#a1a1a6;font-weight:400;}
+
+  /* Rangée haute du rail : FILTRES + tri (⤓) + ajout (+) + chips — compacte */
+  body.topbar-view #topbar-row2{
+    display:none !important;            /* masqué : chips/tri/+ déplacés ailleurs, le rail démarre flush */
+  }
+  body.topbar-view #topbar-row2 .fp-head{order:0;flex:1 1 auto;border:none !important;padding:0;margin:0;}
+  body.topbar-view #topbar-row2 .fp-title{display:block;font-size:15px;}
+  body.topbar-view #topbar-row2 .pager-top{display:none !important;}   /* scroll infini desktop */
+  body.topbar-view #topbar-row2 .filter-chips{order:5;flex:1 1 100%;justify-content:flex-start;margin:0;padding:0;}
+
+  /* Tri ⤓ = pastille ronde NOIRE (couleurs inversées avec le +) */
+  body.topbar-view #tb-sort .tb-sort-btn{width:37.3px !important;height:37.3px !important;border-radius:999px;background:#fff !important;border:none !important;box-shadow:var(--sh-md);transform:translateY(-5px);}
+  body.topbar-view #desk-toolbar #tb-sort .tb-sort-btn svg{stroke:#1d1d1f;width:17.6px !important;height:17.6px !important;}
+
+  /* BOBINE / FORMAT : contrôle SEGMENTÉ (piste grise + pastille blanche active) */
+  /* Segments BOBINE/FORMAT des tuiles RETIRÉS sur desktop (le rail a le sien) */
+  body.saisie-basse .px-tuile-seg{display:none !important;}
+  /* Tuiles : plus BASSES (6 visibles sans scroll) + remplissent la colonne jusqu'au rail */
+  body.saisie-basse #px-tuiles{max-width:none !important;margin:0 !important;}
+  body.saisie-basse .px-tuile{height:250px !important;}
+  /* Titres des tuiles en BAS À GAUCHE (comme les cartes de la bande) */
+  body.saisie-basse .px-tuile-in{align-items:flex-start !important;justify-content:flex-end !important;padding:0 24px clamp(14px,3vh,24px) 28px !important;gap:0 !important;background:linear-gradient(to top,rgba(0,0,0,.55),rgba(0,0,0,.08) 32%,transparent 55%) !important;}
+  body.saisie-basse .px-tuile h2{text-align:left !important;width:100%;color:#fff !important;text-shadow:0 1px 10px rgba(0,0,0,.35);}
+  /* Cartes du bandeau = MÊME taille que les tuiles (2 par vue), rangées uniformes + ALIGNÉES */
+  body.saisie-basse #px-band-wrap{max-width:none !important;margin:0 !important;padding:0 0 20px !important;}
+  body.saisie-basse .px-band{gap:14px !important;padding:0 !important;}
+  body.saisie-basse .px-qcard{flex:0 0 calc(50% - 7px) !important;height:225px !important;aspect-ratio:auto !important;}
+  /* Grille articles = remplit toute la colonne (plus de centrage max-width qui laissait un vide à gauche) */
+  body.topbar-view .pgrid{max-width:none !important;margin:0 !important;}
+  /* Hauteur UNIFORME des lignes de carte : 55px, titre 45px (demande Ethan) */
+  body.topbar-view .pgrid .sc-card .sc-grid{grid-template-rows:none !important;}
+  body.topbar-view .pgrid .sc-card .sc-cell{height:45px !important;min-height:0 !important;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;}
+  /* Valeurs de carte : line-height assez ample pour ne pas rogner le haut des
+     glyphes (ex. « Argent ») malgré overflow:hidden (ellipsis) — 08/08 Ethan */
+  body.topbar-view .pgrid .sc-card .sc-cell:not(.sc-det-only):not(.sc-price-main) .sc-val{line-height:1.25 !important;flex-shrink:0 !important;}
+  body.topbar-view .pgrid .sc-card .sc-cell:not(.sc-det-only):not(.sc-price-main) .sc-cap{flex-shrink:0 !important;}
+  body.topbar-view .pgrid .sc-card .sc-cell.sc-title{height:35px !important;display:block !important;line-height:35px !important;padding-top:0 !important;padding-bottom:0 !important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  body.topbar-view .pgrid .sc-card .sc-cell.sc-det-only{height:35px !important;display:flex !important;flex-direction:row !important;align-items:center;min-width:0 !important;overflow:hidden;}
+  body.topbar-view .pgrid .sc-card .sc-cell.sc-det-only .sc-val{min-width:0;flex:1;display:block !important;-webkit-line-clamp:unset !important;white-space:nowrap !important;overflow:hidden;text-overflow:ellipsis;}
+  /* Ligne PRIX en CELLULES GRID (span 2) : USINE (gauche) | PRIX + bouton (droite),
+     alignées PILE sur les colonnes du dessus (COULEUR/POIDS) grâce au grid. */
+  body.topbar-view .pgrid .sc-card .sc-cell.sc-price-usine{height:35px !important;padding:2px 5px 2px 8px !important;display:flex !important;flex-direction:row !important;align-items:center !important;justify-content:flex-start;gap:7px;overflow:hidden;}
+  body.topbar-view .pgrid .sc-card .sc-cell.sc-price-main{height:35px !important;padding:2px 3px 2px 8px !important;display:flex !important;flex-direction:row !important;align-items:center !important;justify-content:flex-start;gap:12px;}
+  body.topbar-view .pgrid .sc-card .sc-price-val{font-size:20px !important;font-weight:800 !important;line-height:1 !important;}
+  /* + de carte = MÊME design que le + de la barre outils (#add-page-btn) :
+     cercle blanc, pas de bordure, ombre var(--sh-md), + gras noir (08/08 Ethan). */
+  body.topbar-view .pgrid .sc-card .sc-price-main .sc-add{width:28px !important;height:28px !important;flex:0 0 auto;margin-left:auto !important;border:none !important;background:#fff !important;box-shadow:0 2px 9px rgba(0,0,0,.19) !important;}
+  body.topbar-view .pgrid .sc-card .sc-price-main .sc-add::before{font-size:18px !important;font-weight:700 !important;color:#1d1d1f !important;}
+  body.topbar-view .pgrid .sc-card .sc-price-main .sc-add:hover{border:none !important;background:#1d1d1f !important;box-shadow:var(--sh-md) !important;}
+  body.topbar-view .pgrid .sc-card .sc-price-main .sc-add:hover::before{color:#fff !important;}
+  /* Barre PRODIX du bas masquée POUR LE MOMENT (desktop) — réactivable en retirant cette ligne */
+  body.saisie-basse #px-dock{display:none !important;}
+  /* + et tri ⤓ (barre) masqués sur le LANDING (inutiles avant d'avoir filtré) */
+  body.saisie-basse #desk-toolbar{display:none !important;}
+  /* Boutons « Voir le stock » retirés (le clic sur la tuile entre déjà dans le stock) */
+  body.saisie-basse .px-qcard-btn,body.saisie-basse .px-tuile-cta{display:none !important;}
+
+  /* Segment Bobine/Format = COPIE EXACTE du segment des tuiles (.px-tuile-seg) */
+  body.topbar-view .filters-panel .format-pills{display:flex !important;width:100% !important;margin:0 !important;position:relative;grid-template-columns:none !important;gap:2px;background:#ececed;border-radius:999px;padding:4px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.03);}
+  /* séparateur central pour bien distinguer les 2 options */
+  body.topbar-view .filters-panel .format-pills::before{content:'';position:absolute;left:50%;top:26%;bottom:26%;width:1.5px;border-radius:2px;background:#d3d3d8;transform:translateX(-50%);z-index:0;}
+  /* séparateur caché quand une option est active (la pilule foncée suffit) */
+  body.topbar-view .filters-panel .format-pills:has(.fpill.active)::before{display:none;}
+  body.topbar-view .filters-panel .format-pills .fpill{flex:1 1 0 !important;position:relative;z-index:1;border:none !important;background:transparent !important;outline:none;border-radius:999px !important;padding:9px 0 !important;width:auto !important;font-family:'DM Sans',sans-serif;font-weight:800;font-size:14.5px !important;letter-spacing:.3px;color:var(--g2) !important;box-shadow:none !important;}
+  body.topbar-view .filters-panel .format-pills .fpill:not(.active):hover{color:#1d1d1f !important;}
+  body.topbar-view .filters-panel .format-pills .fpill.active{background:#fff !important;color:#1d1d1f !important;box-shadow:0 2px 9px rgba(0,0,0,.19) !important;}
+  /* Bouton « Offre » en HAUT du rail (déplacé du header en JS), pleine largeur */
+  body.topbar-view .filters-panel #offre-wrap{order:-2;width:100%;position:relative;margin-bottom:2px;}
+  body.topbar-view .filters-panel #offre-wrap .btn-head{width:100% !important;justify-content:space-between !important;}
+
+  /* Tous les menus du rail se déroulent INLINE (partie du panneau, pas d'overlay
+     flottant) — le rail s'allonge. S'ouvre/ferme via .show (toggleMsd). */
+  body.topbar-view .filters-panel .msd:not(#sb-msd-type):not(#sb-msd-details) .msd-panel{position:static !important;inset:auto !important;width:100% !important;min-width:0 !important;max-width:none !important;transform:none !important;box-shadow:none !important;border:none !important;margin:6px 0 0 !important;background:transparent !important;max-height:none !important;overflow-x:clip;}
+  /* Type de papier ET Détails = dropdowns FLOTTANTS qui SURVOLENT le panneau (ne le
+     rallongent pas), largeur du rail, ~6 items visibles puis SCROLL. */
+  body.topbar-view #sb-msd-type .msd-panel,
+  body.topbar-view #sb-msd-details .msd-panel{position:absolute !important;top:calc(100% + 4px) !important;left:0 !important;right:auto !important;inset-inline:0 auto !important;transform:none !important;width:100% !important;min-width:0 !important;max-width:none !important;max-height:344px !important;overflow-y:auto !important;overflow-x:hidden;box-sizing:border-box;}
+  /* Rail = largeur FIXE 300px, RIEN ne la bouge (ni menu ouvert, ni contenu long) */
+  body.topbar-view .sidebar-col{width:300px !important;min-width:300px !important;max-width:300px !important;box-sizing:border-box;position:sticky;top:52px;align-self:start;}
+  body.topbar-view .filters-panel{box-sizing:border-box;max-width:100%;}
+  body.topbar-view .filters-panel .msd-option{white-space:normal !important;}
+  body.topbar-view .filters-panel .msd-label{white-space:normal !important;overflow-wrap:anywhere;min-width:0;}
+
+  /* GRAMMAGES : curseur affiché DIRECTEMENT (plus de menu déroulant) */
+  body.topbar-view #sb-msd-grammage .msd-btn{pointer-events:none;background:transparent !important;box-shadow:none !important;border:none !important;padding:2px 12px 0 !important;font-weight:700;}
+  body.topbar-view #sb-msd-grammage .gsl-btnval{padding-right:0 !important;}
+  body.topbar-view #sb-msd-grammage .msd-btn .msd-arrow{display:none;}
+  body.topbar-view #sb-msd-grammage .gsl-val{display:none;}
+  body.topbar-view #sb-msd-grammage .gsl-bornes{display:none !important;}
+  body.topbar-view #sb-msd-grammage .msd-panel{position:static !important;inset:auto !important;display:block !important;width:100% !important;min-width:0 !important;max-width:none !important;transform:none !important;box-shadow:none !important;border:none !important;padding:4px 2px 0 !important;margin:0 !important;background:transparent !important;}
 }
