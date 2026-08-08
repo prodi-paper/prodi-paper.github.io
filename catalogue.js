@@ -69,6 +69,24 @@ function imgThumb(u,w){
   if(!s)return '';
   return 'https://images.weserv.nl/?url='+encodeURIComponent(s.replace(/^https?:\/\//,''))+'&w='+(w||560)+'&q=72';
 }
+// (08/08 Ethan « dézoome ceux qui dépassent ») : les cartes remplissent le cadre
+// en object-fit:cover ; une photo nettement PLUS PORTRAIT que le cadre s'y fait
+// rogner fort (bobine verticale zoomée sur le milieu). On la bascule alors en
+// photo ENTIÈRE (contain, fond blanc). Les autres gardent le remplissage.
+function _fitCardImg(img){
+  try{
+    if(!img||img.classList.contains('pcard-nophoto'))return;
+    const nw=img.naturalWidth,nh=img.naturalHeight;if(!nw||!nh)return;
+    const box=img.parentElement;if(!box)return;
+    const bw=box.clientWidth,bh=box.clientHeight;if(!bw||!bh)return;
+    const ia=nw/nh,ba=bw/bh;
+    // fit=1 → l'image épouse le cadre ; <1 → décalage (cover rogne d'autant).
+    // Sous 0,72 (≈ >28% rogné, portrait OU paysage) on montre la photo ENTIÈRE.
+    const fit=Math.min(ia,ba)/Math.max(ia,ba);
+    if(fit < 0.6){img.style.objectFit='contain';box.style.background='#fff';}
+    else{img.style.objectFit='';box.style.background='';}
+  }catch(e){}
+}
 
 // attrJs: produces a valid HTML-attribute-safe JS string literal (use WITHOUT surrounding quotes in onclick)
 const attrJs = s => esc(JSON.stringify(String(s ?? '')));
@@ -76,11 +94,10 @@ const attrJs = s => esc(JSON.stringify(String(s ?? '')));
 const numId = v => Number.isFinite(+v) ? +v : 0;
 const WA='33609997407';
 let all=[],cur=null;
-// ESSAI 31/07 : ?bas=1 = arrivée sur la GRILLE + pilule PRODIX en barre basse
-// TUILES PAR DÉFAUT (04/08 Ethan « je veux la version dernière, avec les
-// tuiles, en ligne ») : l'atterrissage = tuiles qualités + saisie PRODIX en
-// barre basse. L'ancien hero plein écran reste accessible via ?hero=1.
-window._SAISIE_BASSE=!/[?&]hero=1/.test(location.search);
+// 08/08 (Ethan « enlève les tuiles, je veux voir les derniers arrivages en
+// premier ») : atterrissage PAR DÉFAUT = GRILLE triée « Arrivage : plus récents ».
+// Tuiles qualités uniquement via ?tuiles=1 ; ancien hero plein écran via ?hero=1.
+window._SAISIE_BASSE=/[?&]tuiles=1/.test(location.search);
 const PAGE=40; let currentPage=1,_totalCount=0,_reqToken=0,_lastCorrections=[],_isFirstLoad=true,_featuredMode=false;
 // ─── MODE REGROUPÉ ───
 // Groupe les unités physiques par (qualité+couleur+détails+gsm+laize+format).
@@ -146,7 +163,8 @@ function _updateGroupedToggleBtn(){
   const lbl=btn.querySelector('.grp-toggle-lbl');
   if(lbl)lbl.textContent=_groupedMode?'Groupé':'Détaillé';
 }
-let _priceMode=(()=>{try{return localStorage.getItem('prodi_price_mode')==='1';}catch(_){return false;}})();
+// Prix TOUJOURS affiché au catalogue (interne), JAMAIS en vue client (?s=/?share=) — Ethan 08/08.
+let _priceMode=!(new URLSearchParams(location.search).get('s')||new URLSearchParams(location.search).get('share'));
 function togglePriceMode(on){
   _priceMode=on;
   try{localStorage.setItem('prodi_price_mode',on?'1':'0');}catch(_){}
@@ -975,8 +993,21 @@ async function init(){
   }
 
   // type tiles disabled
-  // Single query: first page + total count
-  _featuredMode = true;
+  // Landing PAR DÉFAUT (08/08 Ethan) = GRILLE triée « Arrivage : plus récents »
+  // (ref décroissante). ?hero=1 conserve l'ancien hero plein écran.
+  if(/[?&]hero=1/.test(location.search)){
+    _featuredMode = true;
+  }else{
+    const _ss=document.getElementById('sort-sel'); if(_ss)_ss.value='ref_desc';
+    _sortTouched = true;
+    _featuredMode = false;
+    // Le toggle hero/grille vit dans filterProducts(), qu'init ne passe pas
+    // (il appelle _doFilter direct) → on affiche la grille + footer, on masque le hero.
+    const _h=document.getElementById('prodix-hero'); if(_h)_h.style.display='none';
+    document.body.classList.remove('phero-lock');
+    const _pg=document.getElementById('pgrid'); if(_pg)_pg.style.display='';
+    const _ft=document.querySelector('footer'); if(_ft)_ft.style.display='';
+  }
   _updateGroupedToggleBtn();
   _refreshAllFacets();
   await _doFilter();
@@ -1082,14 +1113,17 @@ function _buildGrammageSlider(msdId){
   panel.appendChild(wrap);
   const iMin=wrap.querySelector('[data-role=min]'),iMax=wrap.querySelector('[data-role=max]');
   const fill=wrap.querySelector('.gsl-fill'),lbl=wrap.querySelector('.gsl-val');
+  const _gbtn=msd.querySelector('.msd-btn');let btnval=_gbtn&&_gbtn.querySelector('.gsl-btnval');if(_gbtn&&!btnval){btnval=document.createElement('span');btnval.className='gsl-btnval';_gbtn.insertBefore(btnval,_gbtn.querySelector('.msd-arrow'));}
   const bornes=wrap.querySelectorAll('.gsl-bornes span');
   const gn=document.getElementById('f-gmin'),gx=document.getElementById('f-gmax');
   function paint(){
     let a=+iMin.value,b=+iMax.value;
     if(a>b){const t=a;a=b;b=t;}
-    fill.style.left=((a-LO)/(HI-LO)*100)+'%';
-    fill.style.right=(100-(b-LO)/(HI-LO)*100)+'%';
+    const pa=(a-LO)/(HI-LO)*100,pb=(b-LO)/(HI-LO)*100;
+    fill.style.left=pa+'%';
+    fill.style.right=(100-pb)+'%';
     const plein=(a<=LO&&b>=HI);
+    if(btnval)btnval.textContent=a+' – '+b+' g';
     lbl.textContent=plein?'Tous les grammages':a+' – '+b+' g/m²';
     return {a,b,plein};
   }
@@ -2165,8 +2199,12 @@ function _rebuildDetailsMsd(){
   const _estCieTag=l=>/^CIE \d+$/.test(l);
   const cieEntries=[...counts.values()].filter(e=>_estCieTag(e.label));
   const plats=[...counts.values()].filter(e=>!_estCieTag(e.label));
-  const visibles=plats.filter(e=>e.n>=DETAILS_MIN_N||sel.has(e.label)).sort((a,b)=>b.n-a.n);
-  window._detRareTags=new Set(plats.filter(e=>e.n<DETAILS_MIN_N&&!sel.has(e.label)).map(e=>e.label));
+  // Seuil ADAPTATIF (07/08, Ethan) : le 20 était calibré sur la GLOBALITÉ du
+  // stock. Dans une petite catégorie il masquait tout → on l'abaisse au prorata
+  // du nombre de produits courant (élevé sur tout le stock, bas en sous-ensemble).
+  const _detMinN=Math.max(2,Math.min(DETAILS_MIN_N,Math.ceil(rows.length/50)));
+  const visibles=plats.filter(e=>e.n>=_detMinN||sel.has(e.label)).sort((a,b)=>b.n-a.n);
+  window._detRareTags=new Set(plats.filter(e=>e.n<_detMinN&&!sel.has(e.label)).map(e=>e.label));
   // Compteur d'Autres = ce que rend RÉELLEMENT le clic (sans détails + non
   // reconnus + tout article portant au moins un petit tag) — comme les autres
   // facettes, un article à 2 tags compte dans chacun.
@@ -2644,9 +2682,9 @@ async function _openTonnage(){
         // juillet 2025 — frontière Ethan 21/07). Le reste = FAB.
         const refU=u=>parseInt(String(u.ref||'').replace(/\D/g,''),10)||0;
         const isStock=u=>u.promo||(refU(u)>0&&refU(u)<981600);
-        const fabL=flat(units.filter(u=>!isStock(u)),true); // récents d'abord
-        const stockL=flat(units.filter(isStock),false);     // anciens d'abord
-        pools={FAB:{list:fabL,cum:cumOf(fabL)},STOCK:{list:stockL,cum:cumOf(stockL)}};
+        // FAB/LOTS FUSIONNÉS (demande Ethan 08/08) : un seul pool = tout le stock (récents d'abord).
+        const allL=flat(units,true);
+        pools={FAB:{list:allL,cum:cumOf(allL)},STOCK:{list:allL,cum:cumOf(allL)}};
       }
     }catch(_){}
   }
@@ -2798,7 +2836,10 @@ async function _offresData(){
     out.Format.sort((a,b)=>(b.tons||0)-(a.tons||0));
     return out;
   };
-  _offresCalc={FAB:buildPool(units.filter(u=>!isStock(u))),STOCK:buildPool(units.filter(isStock))};
+  // FAB et LOTS FUSIONNÉS (demande Ethan 08/08) : un seul pool = TOUT le stock
+  // (les deux clés pointent sur le même calcul, le segment FAB|LOTS est retiré).
+  const _merged=buildPool(units);
+  _offresCalc={FAB:_merged,STOCK:_merged};
   // Replis : pool vide → l'autre pool ; forme vide dans le pool → l'autre forme.
   const _n=(p,f)=>((_offresCalc[p]||{})[f]||[]).length;
   if(!_n(_offrePool,'Bobine')&&!_n(_offrePool,'Format'))_offrePool=_offrePool==='FAB'?'STOCK':'FAB';
@@ -2812,8 +2853,8 @@ function _offreSegHtml(){
     return `<button class="offre-seg-btn${on?' on':''}"${dis?' disabled':''} onclick="event.stopPropagation();_offreSetPool('${p}')">${lbl}</button>`;};
   const mkF=(f,lbl)=>{const on=_offreForme===f,dis=!n(_offrePool,f);
     return `<button class="offre-seg-btn${on?' on':''}"${dis?' disabled':''} onclick="event.stopPropagation();_offreSetForme('${f}')">${lbl}</button>`;};
-  return `<div class="offre-seg">${mkP('FAB','FAB')}${mkP('STOCK','LOTS')}</div>`
-    +`<div class="offre-seg offre-seg-forme">${mkF('Bobine','BOBINE')}${mkF('Format','FORMAT')}</div>`;
+  // Segment FAB|LOTS retiré (pools fusionnés) — on ne garde que BOBINE|FORMAT.
+  return `<div class="offre-seg offre-seg-forme">${mkF('Bobine','BOBINE')}${mkF('Format','FORMAT')}</div>`;
 }
 const _offreUsineNorm=u=>String(u.usine||'').replace(/^REF\s*/i,'').trim()||'—';
 function _renderOffreMenu(){
@@ -3609,6 +3650,9 @@ async function _fetchAndRender(token){
   const rbarTons=document.getElementById('rbar-tons');
   if(rbarRefs)rbarRefs.textContent=_displayCount.toLocaleString('fr-FR');
   if(rbarTons)rbarTons.textContent=(_totalWeightKg/1000).toFixed(1);
+  // Compteur tonnage dans la barre outils (à côté du +) — sélection filtrée
+  const tbTons=document.getElementById('tb-tons');
+  if(tbTons){const _t=_totalWeightKg/1000;tbTons.innerHTML=_t>0?`<b>${_t>=100?Math.round(_t).toLocaleString('fr-FR'):_t.toFixed(1).replace('.',',')}</b> t`:'';}
   const cn=document.getElementById('correction-note');
   if(cn)cn.innerHTML=_lastCorrections.length?` <span class="correction-note">· correction : ${_lastCorrections.map(c=>`<b>${esc(c.from)}</b> → ${esc(c.to)}`).join(', ')}</span>`:'';
   // Update fd-count for mobile drawer
@@ -3723,7 +3767,7 @@ function updateFilterChips(){
   if(_activeOrigs.length>0)chips.push({key:'orig',label:('Origine')+' : '+_activeOrigs.join(', '),clear:()=>{document.querySelectorAll('.fpill-orig.active').forEach(b=>b.classList.remove('active'));filterProducts();}});
   if(_photoFilter)chips.push({key:'photo',label:_photoFilter==='with'?'Avec photo':'Sans photo',clear:()=>{_photoFilter='';syncFilterPills();filterProducts();}});
   if(_resaFilter)chips.push({key:'resa',label:_resaFilter==='with'?'Réservé':'Dispo',clear:()=>{_resaFilter='';document.querySelectorAll('.fpill-resa').forEach(b=>b.classList.remove('active'));filterProducts();}});
-  if(_activeFmts.length>0)chips.push({key:'fmtpill',label:_activeFmts.map(f=>f==='Bobine'?'Bobine':f==='Palette'?'Format':f).join(', '),clear:()=>{_formatFilter='';syncFilterPills();filterProducts();}});
+  if(_activeFmts.length>0&&window.innerWidth<=768)chips.push({key:'fmtpill',label:_activeFmts.map(f=>f==='Bobine'?'Bobine':f==='Palette'?'Format':f).join(', '),clear:()=>{_formatFilter='';syncFilterPills();filterProducts();}}); // desktop : le segment Bobine/Format suffit, pas de chip redondant
   ['msd-type','msd-mandrin','msd-couleur','msd-details','msd-format','msd-grammage','msd-laize','msd-usine','msd-diametre','msd-poids'].forEach(id=>{
     const set=msdState[id];
     if(set.size>0){
@@ -3886,7 +3930,7 @@ function getProductDetailText(p){
     raw=w.join(' ');
   }
   raw=raw.replace(/\s{2,}/g,' ').trim();
-  if(raw.length>2)return raw;
+  if(raw)return raw; // garde même les détails courts (« MG », « MAT »…) — le résumé auto ne sert que si vraiment vide
   return _productSummary(p);
 }
 
@@ -3900,7 +3944,7 @@ function _renderCatalogueCard(p){
     const _isSiderun=p.ref&&/^Photo_DU/i.test(String(p.ref));
     const _fallbackImg=_isSiderun?'/img/siderun-sur-demande.png':_isFab?'/img/fabrication-sur-demande.png':'/img/no-photo.png';
     const imgHtml=p.image_url
-        ?`<img src="${imgThumb(p.image_url,560)}" alt="${esc(_altTxt)}" loading="lazy" width="300" height="279" onerror="if(!this._o){this._o=1;this.src='${safeUrl(p.image_url)}';}else{this.src='${esc(_fallbackImg)}';this.className='pcard-nophoto';}">`
+        ?`<img src="${imgThumb(p.image_url,560)}" alt="${esc(_altTxt)}" loading="lazy" width="300" height="279" onload="_fitCardImg(this)" onerror="if(!this._o){this._o=1;this.src='${safeUrl(p.image_url)}';}else{this.src='${esc(_fallbackImg)}';this.className='pcard-nophoto';}">`
         :`<img src="${esc(_fallbackImg)}" alt="Photo sur demande" class="pcard-nophoto" width="300" height="279">`;
     const {cls:badgeCls,txt:badgeTxt}=decodeQuality(p.type);
     const isPalette=_estFormat(p);
@@ -3926,7 +3970,9 @@ function _renderCatalogueCard(p){
     const photoRef='';
     // Mini spec rows (label + value, only if value exists)
     // Usine désormais affichée en chip overlay sur la photo
-    const _detClean=(p.details||'').replace(/(?<=^|\s)-(?=\s|$)/g,'').replace(/\s{2,}/g,' ').trim();
+    // Nettoie le détail : retire le préfixe BOB./PAL. + dédoublonne les mots (plus de
+    // titre/désignation répété). Détail vide → « — » (pas de résumé qui doublonne les cellules).
+    const _detClean=(()=>{const raw=(p.details||'').replace(/(?<=^|\s)-(?=\s|$)/g,'').replace(/\s{2,}/g,' ').trim();return raw?getProductDetailText(p):'';})();
     const _mandrinTxt=_isGroup&&p._grpMandrins&&p._grpMandrins.length
       ?(p._grpMandrins.length>1?p._grpMandrins.join(' / '):`Ø${p._grpMandrins[0]} mm`)
       :(p.noyau?`Ø${p.noyau} mm`:'');
@@ -3990,13 +4036,14 @@ function _renderCatalogueCard(p){
       cells+=cell('COULEUR',esc(p.couleur||'—'),2);
       const _wv=_isGroup?_grpTotal:p.poids_net;
       cells+=cell(_isGroup?'POIDS TOTAL':'POIDS NET',_wv?esc(Math.round(_wv).toLocaleString('fr-FR'))+' <small>kgs</small>':'—',2);
-      // Le + s'incruste à droite de la ligne DÉTAIL (18/07). Groupé : plus de
-      // sélecteur −/+, le + prend TOUT le lot d'un coup (re-clic = tout retirer).
+      // (08/08 Ethan) DÉTAIL juste SOUS LE TITRE (sans le +) ; le + s'incruste sur la ligne PRIX.
       const _addBtn=_isGroup
         ?`<button class="sc-add${_isInCart?' added':''}" title="${_isInCart?'Retirer le lot':'Ajouter le lot ('+p._grpCount+')'}" onclick="event.stopPropagation();_grpRound(${attrJs(p._grpKey)})">+</button>`
         :`<button class="sc-add${_isInCart?' added':''}" ${_btnAttrs}>+</button>`;
-      cells+=`<div class="sc-cell sc-wrap sc-det-row" style="grid-column:span 4;"><div style="flex:1;min-width:0;"><div class="sc-cap">DÉTAIL</div><div class="sc-val">${_detClean?esc(_detClean):'—'}</div></div>${_addBtn}</div>`;
-      const prixCell=_priceMode&&p.price?cell('PRIX',esc(Math.round(p.price*1000).toLocaleString('fr-FR'))+' <small>€/T</small>',4):'';
+      const detRow=`<div class="sc-cell sc-wrap sc-det-only" style="grid-column:span 4;"><div class="sc-val">${_detClean?esc(_detClean):'—'}</div></div>`;
+      const prixVal=p.price?esc(Math.round(p.price*1000).toLocaleString('fr-FR'))+' <small>€/T</small>':'—';
+      const usineCell=`<div class="sc-cell sc-price-usine" style="grid-column:span 2;"><div class="sc-cap">USINE</div><div class="sc-val">${_usineLbl?esc(_usineLbl):'—'}</div></div>`;
+      const prixCell=`<div class="sc-cell sc-det-row sc-price-main" style="grid-column:span 2;"><div class="sc-val sc-price-val">${_priceMode?prixVal:'—'}</div>${_addBtn}</div>`;
       const foot='';
       return`<div class="pcard sc-card" onclick="openDetail(${numId(p.id)})">
         <div class="pcard-img">${imgHtml}${resaOverlay}${p.promo?'<div class="pcard-promo-overlay">PROMO</div>':''}
@@ -4005,9 +4052,9 @@ function _renderCatalogueCard(p){
           ${_isGroup?`<span class="sc-count">× ${numId(p._grpCount)}</span>`:''}
         </div>
         <div class="sc-body">
-          <div class="sc-grid${prixCell?' has-prix':''}">
+          <div class="sc-grid has-prix">
             <div class="sc-cell sc-title" style="grid-column:span 4;">${esc(formatProductTitle(p.qualite,p.type))}</div>
-            ${cells}${prixCell}
+            ${detRow}${cells}${usineCell}${prixCell}
           </div>
           ${foot}
         </div>
@@ -4207,7 +4254,7 @@ function renderSharedCards(list){
     const _isSiderun=p.ref&&/^Photo_DU/i.test(String(p.ref));
     const fallback=_isSiderun?'/img/siderun-sur-demande.png':'/img/no-photo.png';
     const img=p.image_url
-      ?`<img src="${imgThumb(p.image_url,560)}" alt="${esc(title)}" width="300" height="279" loading="lazy" onerror="if(!this._o){this._o=1;this.src='${safeUrl(p.image_url)}';}else{this.src='${esc(fallback)}';}">`
+      ?`<img src="${imgThumb(p.image_url,560)}" alt="${esc(title)}" width="300" height="279" loading="lazy" onload="_fitCardImg(this)" onerror="if(!this._o){this._o=1;this.src='${safeUrl(p.image_url)}';}else{this.src='${esc(fallback)}';}">`
       :`<img src="${esc(fallback)}" alt="" width="300" height="279">`;
     const isPal=_estFormat(p);
     const _det=p.details?p.details.replace(/[-–—\s]+/g,' ').trim():'';
@@ -4403,7 +4450,11 @@ async function openDetail(id){
     // (même ordre, mêmes cases) — le reste (zone, type, code douanier) descend
     // dans un bloc secondaire discret.
     const isPal=_estFormat(p);
+    const _uR=p.usine?String(p.usine).replace(/^REF\s*/i,''):null;
     const et=[];
+    // (08/08 Ethan) Fiche calquée sur la CARTE : même ordre, même mise en forme —
+    // DÉTAIL juste sous le titre (sans label), puis specs, puis USINE | PRIX (+).
+    et.push({val:esc(getProductDetailText(p)||'—'),sub:true});
     et.push({lbl:'Grammage',val:p.grammage?esc(p.grammage)+' <small>g/m²</small>':'—',span:isPal?2:0});
     if(isPal){
       et.push({lbl:'Dimensions',val:p.largeur&&p.longueur?esc(mmToCm(Math.min(p.largeur,p.longueur))+' × '+mmToCm(Math.max(p.largeur,p.longueur)))+' <small>mm</small>':(p.largeur?esc(mmToCm(p.largeur))+' <small>mm</small>':'—'),span:2});
@@ -4414,29 +4465,34 @@ async function openDetail(id){
     }
     et.push({lbl:'Couleur',val:esc(p.couleur||'—'),span:2});
     et.push({lbl:'Poids net',val:p.poids_net?esc(Math.round(p.poids_net).toLocaleString('fr-FR'))+' <small>kgs</small>':'—',span:2});
-    et.push({lbl:'Détail',val:esc((p.details||'').replace(/[-–—\s]+/g,' ').trim()||'—'),full:true});
-    // TYPE remplacé par la RÉF USINE (18/07)
     const reste=specDefs.filter(s=>['Zone','Code douanier'].includes(s.lbl));
-    const _uR=p.usine?String(p.usine).replace(/^REF\s*/i,''):null;
-    if(_uR)reste.splice(1,0,{lbl:'Usine',val:_uR});
-    document.getElementById('det-specs').innerHTML=
-      `<div class="det-etq"><div class="det-etq-cell det-etq-title" style="grid-column:1/-1;">${esc(formatProductTitle(p.qualite,p.name||'Produit'))}</div>${et.map(s=>`<div class="det-etq-cell${s.full?' det-etq-wrap':''}"${s.full?' style="grid-column:1/-1;"':(s.span?' style="grid-column:span '+s.span+';"':'')}><div class="det-etq-lbl">${esc(s.lbl)}</div><div class="det-etq-val">${s.val}</div></div>`).join('')}</div>`+
-      (reste.length?`<div class="det-reste">${reste.map(s=>`<span class="det-reste-item"><b>${esc(s.lbl)}</b> ${esc(s.val)}</span>`).join('')}</div>`:'');
-    // Catalogue : + rond en bas à droite de la fiche (ligne DÉTAIL), comme
-    // sur les cartes — absent de la vue client (18/07).
+    // Ligne USINE | PRIX (+) en bas comme la carte — catalogue seul (jamais
+    // de prix ni de + sur la vue client ?s=). En vue client, USINE reste en
+    // ligne grise discrète.
     if(!_sharedMode){
-      const wrapCell=document.querySelector('#det-specs .det-etq-wrap');
-      if(wrapCell){
-        wrapCell.style.display='flex';wrapCell.style.alignItems='center';wrapCell.style.gap='10px';
-        const inner=document.createElement('div');inner.style.cssText='flex:1;min-width:0;';
-        while(wrapCell.firstChild)inner.appendChild(wrapCell.firstChild);
-        wrapCell.appendChild(inner);
+      const _prixV=(_priceMode&&p.price)?esc(Math.round(p.price*1000).toLocaleString('fr-FR'))+' <small>€/T</small>':'—';
+      et.push({lbl:'Usine',val:_uR?esc(_uR):'—',span:2});
+      et.push({val:_prixV,span:2,prix:true});
+    }else if(_uR){
+      reste.splice(1,0,{lbl:'Usine',val:esc(_uR)});
+    }
+    document.getElementById('det-specs').innerHTML=
+      `<div class="det-etq"><div class="det-etq-cell det-etq-title" style="grid-column:1/-1;">${esc(formatProductTitle(p.qualite,p.name||'Produit'))}</div>${et.map(s=>{
+        if(s.sub)return `<div class="det-etq-cell det-etq-sub" style="grid-column:1/-1;"><div class="det-etq-val">${s.val}</div></div>`;
+        if(s.prix)return `<div class="det-etq-cell det-etq-prix" style="grid-column:span 2;"><div class="det-etq-val det-etq-prixval">${s.val}</div></div>`;
+        return `<div class="det-etq-cell"${s.span?' style="grid-column:span '+s.span+';"':''}><div class="det-etq-lbl">${esc(s.lbl)}</div><div class="det-etq-val">${s.val}</div></div>`;
+      }).join('')}</div>`+
+      (reste.length?`<div class="det-reste">${reste.map(s=>`<span class="det-reste-item"><b>${esc(s.lbl)}</b> ${esc(s.val)}</span>`).join('')}</div>`:'');
+    // + rond sur la ligne PRIX (comme la carte) — catalogue seul.
+    if(!_sharedMode){
+      const prixCell=document.querySelector('#det-specs .det-etq-prix');
+      if(prixCell){
         const b=document.createElement('button');
         b.className='sc-add'+(cart.find(x=>x.id===+p.id)?' added':'');
         b.textContent='+';
         b.title='Ajouter / retirer de la liste';
         b.onclick=(e)=>{e.stopPropagation();addToCart(p.id);b.classList.toggle('added',!!cart.find(x=>x.id===+p.id));};
-        wrapCell.appendChild(b);
+        prixCell.appendChild(b);
       }
     }
   }else{
@@ -5545,6 +5601,26 @@ async function _pxFichier(file){
     window.prodiTrack?.('prodix_fichier_echec',{nom:file.name,err:String(e.message||e).slice(0,120)});
   }
 }
+// ALBUM PHOTO (07/08) : import de références depuis un fichier (Excel/PDF/BL/texte)
+// SANS ouvrir le chat PRODIX — réutilise l'extraction de _pxFichier + _pxRemplir.
+async function _albumImport(file){
+  try{
+    toast('Lecture du document…');
+    const text=await _extractTextFromFile(file);
+    let six; try{six=text.match(new RegExp('(?<![\\d.,])\\d{6}(?![\\d.,])','g'))||[];}catch(_){six=text.match(/\b\d{6}\b/g)||[];}
+    const codes=(text.match(/\b(?:DU|FAB)[A-Z0-9-]{2,}\b/gi)||[]).map(c=>c.toUpperCase());
+    const refs=[...new Set([...six,...codes])];
+    if(!refs.length){toast('Aucune référence trouvée dans ce document');return;}
+    const avant=cart.length;
+    await _pxRemplir(refs);
+    const ajoutes=cart.length-avant;
+    toast(ajoutes+' article'+(ajoutes>1?'s':'')+' ajouté'+(ajoutes>1?'s':'')+' à la liste');
+    window.prodiTrack?.('album_import',{nom:file.name,refs:refs.length,trouves:ajoutes});
+  }catch(e){
+    toast('Impossible de lire ce fichier (PDF, Excel ou texte)');
+    window.prodiTrack?.('album_import_echec',{nom:file.name});
+  }
+}
 // Remplit la liste depuis des réfs SANS ouvrir la modal d'import (fond de tâche).
 async function _pxRemplir(refs){
   try{
@@ -5616,6 +5692,24 @@ if(_sharedMode)_sharedViewUI(true);
        document.getElementById('filter-chips'),_sd,_fp.querySelector('.fp-head')]
         .forEach(el=>{if(el)_r2.appendChild(el);});
       const _rb=document.getElementById('results-bar');if(_rb)_rb.style.display='none';
+      // DESKTOP sidebar (07/08, Ethan) : sort + « + page » vont dans une BARRE
+      // en haut de la colonne produits (flow, pas d'absolu → le zoom global ne
+      // les décale plus). Mobile (≤768) garde tout dans le rail/topbar.
+      if(window.innerWidth>768){
+        const _sc=_fp.closest('.sidebar-col');
+        const _content=_sc&&_sc.nextElementSibling;
+        if(_content){
+          let _bar=document.getElementById('desk-toolbar');
+          if(!_bar){_bar=document.createElement('div');_bar.id='desk-toolbar';_content.insertBefore(_bar,_content.firstChild);}
+          const _ap=document.getElementById('add-page-btn'); if(_ap)_bar.appendChild(_ap);
+          // Tonnage de la sélection filtrée (08/08 Ethan) — à côté du +
+          if(!document.getElementById('tb-tons')){const _tt=document.createElement('div');_tt.id='tb-tons';_bar.appendChild(_tt);}
+          const _fc=document.getElementById('filter-chips'); if(_fc)_bar.appendChild(_fc); // chips ENTRE le + et le tri
+          _bar.appendChild(_sd);
+        }
+        // « Offre » reste dans le HEADER (avec Album photo · Usine · Liste) — demande
+        // Ethan 08/08 : c'est une action, pas un filtre. (Avant : déplacé en haut du rail.)
+      }
       // FILTRES AVANCÉS (18/07) : regroupe les filtres retirés de la barre
       // (Sans photo, Réservés, Bobine/Format, tranches de Poids).
       const _fa=document.createElement('div');
@@ -5647,21 +5741,41 @@ if(_sharedMode)_sharedViewUI(true);
         const couleurs=[...document.querySelectorAll('#sb-msd-couleur .msd-option')].filter(o=>o.style.display!=='none'||msdState['msd-couleur'].has(o.dataset.val)).map(o=>o.dataset.val).filter(Boolean);
         const diams=[...document.querySelectorAll('#sb-msd-diametre .msd-option')].map(o=>o.dataset.val).filter(Boolean);
         const secs=[
-          {id:'poids',t:'Poids',n:msdState['msd-poids'].size,rows:()=>POIDS_OPTIONS.map(o=>row('poids',o,o,msdState['msd-poids'].has(o))).join('')},
           ...(window._coulInAdv?[{id:'couleur',t:'Couleurs',n:msdState['msd-couleur'].size,rows:()=>couleurs.length?couleurs.map(v=>row('couleur',v,v,msdState['msd-couleur'].has(v))).join(''):'<div class="msd-option" style="opacity:.5;cursor:default;">Aucune couleur dans la sélection en cours</div>'}]:[]),
           ...(window._dimsInAdv?[{id:'format',t:'Dimensions',n:msdState['msd-format'].size,rows:()=>formats.length?formats.map(v=>row('format',v,v===FORMAT_AUTRES?'Autres dimensions':v,msdState['msd-format'].has(v))).join(''):'<div class="msd-option" style="opacity:.5;cursor:default;">Aucun format dans la sélection en cours</div>'}]:[]),
           {id:'mandrin',t:'Mandrin',n:msdState['msd-mandrin'].size,rows:()=>mandrins.length?mandrins.map(m=>row('mandrin',m,m+' mm',msdState['msd-mandrin'].has(m))).join(''):'<div class="msd-option" style="opacity:.5;cursor:default;">Aucun mandrin dans la sélection en cours</div>'},
           {id:'laize',t:'Laizes',n:msdState['msd-laize'].size,rows:()=>laizes.length?laizes.map(v=>row('laize',v,v===LAIZE_AUTRES?'Autres laizes':v,msdState['msd-laize'].has(v))).join(''):'<div class="msd-option" style="opacity:.5;cursor:default;">Choisis d\'abord un type bobine</div>'},
           {id:'diametre',t:'Diamètre (Ø)',n:msdState['msd-diametre'].size,rows:()=>diams.length?diams.map(v=>row('diametre',v,v===DIAM_AUTRES?'Autres Ø':v,msdState['msd-diametre'].has(v))).join(''):'<div class="msd-option" style="opacity:.5;cursor:default;">Choisis d\'abord un type bobine</div>'},
+          {id:'poids',t:'Poids',n:msdState['msd-poids'].size,rows:()=>POIDS_OPTIONS.map(o=>row('poids',o,o,msdState['msd-poids'].has(o))).join('')},
           {id:'photo',t:'Photo',n:_photoFilter?1:0,rows:()=>row('photo','with','Avec photo',_photoFilter==='with')+row('photo','without','Sans photo',_photoFilter==='without')},
           {id:'resa',t:'Réservation',n:_resaFilter?1:0,rows:()=>row('resa','with','Réservés',_resaFilter==='with')+row('resa','without','Dispo',_resaFilter==='without')},
           {id:'usine',t:'Réf usine',n:msdState['msd-usine'].size,rows:()=>`<div class="msd-search-wrap"><input class="msd-search-inp" id="adv-usine-q" type="text" placeholder="Rechercher…" autocomplete="off" value="${esc(window._advUsineQ||'')}"></div>`+usines.map(u=>row('usine',u,'Usine '+u,msdState['msd-usine'].has(u))).join('')},
-          {id:'prix',t:'Prix',n:_priceMode?1:0,rows:()=>row('prix','on','Afficher le P/Tonne (€/T)',_priceMode)},
         ];
         _faPn.innerHTML=secs.map(s=>{
           const open=window._advOpenSec===s.id;
-          return `<div class="msd-group-row" data-sec="${s.id}"><span>${s.t}</span><span class="mgr-right">${s.n?`<span class="mgr-nsel">${s.n}</span>`:''}<span class="mgr-arrow">${open?'▾':'›'}</span></span></div>`+(open?s.rows():'');
+          return `<div class="msd-group-row${open?' open':''}" data-sec="${s.id}"><span>${s.t}</span><span class="mgr-right">${s.n?`<span class="mgr-nsel">${s.n}</span>`:''}<span class="mgr-arrow">${open?'▾':'›'}</span></span></div>`+(open?`<div class="adv-pop">${s.rows()}</div>`:'');
         }).join('');
+        // Dropdown FLOTTANT (comme Type/Détails, 08/08) : le popup des options
+        // s'ancre SOUS sa ligne en position absolue (#tb-adv = .msd position:relative),
+        // il ne pousse plus le rail (avant : déplié inline = rail interminable).
+        if(window._advOpenSec){
+          const _row=_faPn.querySelector(`.msd-group-row[data-sec="${window._advOpenSec}"]`);
+          const _pop=_faPn.querySelector('.adv-pop');
+          if(_row&&_pop){
+            const _z=(typeof _zf==='function'?_zf():1)||1;
+            const _rb=_row.getBoundingClientRect();
+            const _below=window.innerHeight-_rb.bottom-14; // place dispo en bas (px visuels)
+            const _above=_rb.top-14;                        // place dispo en haut
+            const _natV=_pop.scrollHeight*_z;               // hauteur naturelle (visuel)
+            const _up=_natV>_below && _above>_below;         // pas la place en bas + plus en haut → vers le HAUT
+            const _availV=Math.max(140,Math.min(340*_z,_up?_above:_below));
+            _pop.style.maxHeight=(_availV/_z)+'px';
+            const _hL=Math.min(_pop.scrollHeight,_availV/_z); // hauteur rendue (layout)
+            _pop.style.top=_up
+              ? (_row.offsetTop-_hL-2)+'px'
+              : (_row.offsetTop+_row.offsetHeight+2)+'px';
+          }
+        }
         const _q=(window._advUsineQ||'').trim().toLowerCase();
         if(_q)_faPn.querySelectorAll('.msd-option[data-k="usine"]').forEach(o=>{o.style.display=o.textContent.toLowerCase().includes(_q)?'':'none';});
         // l'accordeon s'elargit apres ouverture d'une section : re-clamper
@@ -5686,6 +5800,8 @@ if(_sharedMode)_sharedViewUI(true);
       });
       window._paintAdv();
       _fa.querySelector('.msd-btn').addEventListener('click',window._paintAdv);
+      // Fermer le popup avancé au clic DEHORS (les clics DEDANS sont stopPropagation'd)
+      document.addEventListener('click',()=>{ if(window._advOpenSec){window._advOpenSec=null;window._paintAdv();} });
       // ── HERO PRODIX (18/07) : page d'arrivée façon Base44 × Apple — on
       // propose direct de parler à PRODIX, cartes produits en décor animé.
       const _contentCol=document.querySelector('.body-wrap>div:last-child');
@@ -5720,8 +5836,7 @@ if(_sharedMode)_sharedViewUI(true);
         // Au chargement (mode vitrine) : hero seul, grille et footer masqués
         const _pgInit=document.getElementById('pgrid');
         if(_pgInit)_pgInit.style.display='none';
-        const _ftInit=document.querySelector('footer');
-        if(_ftInit)_ftInit.style.display='none';
+        // Footer CONSERVÉ sur le landing (demande Ethan 08/08) — seule la grille est masquée.
         // ── ESSAI ?bas=1 : tuiles qualités en landing (mêmes familles que la
         // vitrine), pilule ancrée en barre basse fixe (#px-dock) ; un clic sur
         // une tuile filtre la famille et dévoile la grille ; le hero ne sert
@@ -5739,8 +5854,6 @@ if(_sharedMode)_sharedViewUI(true);
             {codes:['RKRA','RKRABRUN','SKRA'],title:'Kraft',img:_U+'photo-1777566131325-78f6e12c50b7'+'?q=60&auto=format&fit=crop&w=900',pos:'center 50%',dark:true},
             {codes:['R2SC','S2SC'],title:'Papier couché',img:_U+'photo-1515891396453-6d7e56096a39'+_P,pos:'center 55%',dark:true},
             {codes:['RBOA','SBOA'],title:'Carton couché',img:_U+'photo-1595246135406-803418233494'+_P,pos:'center 55%',dark:true},
-            {codes:['RLUX','SLUX'],title:'Papier créations',img:_U+'photo-1586207036106-90aae2456ccb'+_P,pos:'center 50%',dark:true},
-            {codes:['RCAR','SCAR'],title:'Autocopiant',img:_U+'photo-1579808324991-cecc784498cc'+_P,pos:'center 55%',dark:true},
           ];
           const tw=document.createElement('div');
           tw.id='px-tuiles';
@@ -5769,20 +5882,21 @@ if(_sharedMode)_sharedViewUI(true);
           // mécanique que la vitrine (boucle infinie 3 copies, points façon
           // apple.com qui se remplissent, avance auto)
           const _BAND=[
+            {codes:['RLUX','SLUX'],title:'Papier créations',img:_U+'photo-1586207036106-90aae2456ccb'+_P},
+            {codes:['RCAR','SCAR'],title:'Autocopiant',img:_U+'photo-1579808324991-cecc784498cc'+_P},
             {codes:['Offset Couleur','SCOL'],title:'Offset couleur',img:_U+'photo-1716471330459-063b3baf247e'+_P},
             {codes:['RBOU','SBOU'],title:'Bouffant',img:_U+'photo-1457369804613-52c61a468e7d'+_P},
             {codes:['RADH','SADH'],title:'Adhésif',img:_U+'photo-1569725730478-a2f4a1809bb4'+_P},
             {codes:['SCUT'],title:'Ramette',img:_U+'photo-1573978828027-e830975e272c'+_P},
             {codes:['RLINER'],title:'Liner / Testliner',img:_U+'photo-1640193698858-31565d448f90'+_P},
             {codes:['RFLEX'],title:'Complexe / PE',img:_U+'photo-1677586883848-695b3ad692b4'+_P},
-            {codes:[],title:'Voir tout le stock',img:_U+'photo-1719529216596-d7c76431ee0d'+_P,more:true},
           ];
           const bw=document.createElement('div');
           bw.id='px-band-wrap';
           const _bandHtml=_BAND.map((c,j)=>c.more?`
             <div class="px-qcard" onclick="_bandGo(${j})">
               <img src="${c.img}" alt="${esc(c.title)}" loading="lazy">
-              <button class="px-qcard-btn" type="button" onclick="event.stopPropagation();_bandGo(${j})">Voir tout le stock →</button>
+              <span class="px-qcard-title">${esc(c.title)}</span>
             </div>`:`
             <div class="px-qcard" onclick="_bandGo(${j})">
               <img src="${c.img}" alt="${esc(c.title)}" loading="lazy">
@@ -6170,8 +6284,8 @@ function _ctnSplash(){
 }
 if(_sharedMode)_ctnSplash();
 let _sharedAll=[];
-if(new URLSearchParams(window.location.search).get('p')==='1')togglePriceMode(true);
-else if(_priceMode)togglePriceMode(true);
+// Le prix ne s'active plus via ?p=1 (retiré) — jamais de prix en vue client.
+if(_priceMode)togglePriceMode(true);
 
 async function loadSharedQuote(idsOverride){
   const rawIds=idsOverride||_shareParam;
@@ -6967,7 +7081,7 @@ async function openClientLink(btn){
   const code=_shortCode();
   const refs=cart.map(x=>x.ref).filter(Boolean).join(',');
   if(!refs){toast('Aucune référence valide dans la liste');return;}
-  const url=window.location.origin+window.location.pathname+'?s='+code+(typeof _priceMode!=='undefined'&&_priceMode?'&p=1':'');
+  const url=window.location.origin+window.location.pathname+'?s='+code; // jamais de &p=1 : le prix ne fuite pas aux clients
   try{
     const res=await sbQ('shared_carts',{method:'POST',body:{code,cart_ids:refs},headers:{'Prefer':'return=minimal'}});
     window.prodiTrack?.('panier_partage',{code,nb:(refs.match(/,/g)||[]).length+1,via:'partager_direct'});
@@ -6984,7 +7098,7 @@ async function copyCartLink(btn){
   const code=_shortCode();
   const refs=cart.map(x=>x.ref).filter(Boolean).join(',');
   if(!refs){toast('Aucune référence valide dans la liste');return;}
-  const url=window.location.origin+window.location.pathname+'?s='+code+(typeof _priceMode!=='undefined'&&_priceMode?'&p=1':'');
+  const url=window.location.origin+window.location.pathname+'?s='+code; // jamais de &p=1 : le prix ne fuite pas aux clients
   const shareText=url;
   try{
     const res=await sbQ('shared_carts',{method:'POST',body:{code,cart_ids:refs},headers:{'Prefer':'return=minimal'}});
