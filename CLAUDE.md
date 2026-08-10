@@ -984,3 +984,17 @@ en « format » (à corriger à la source Sage).
 - **Plus de double saisie** : la porte vitrine pose aussi `localStorage prodi_cat_ok`
   au succès → la porte catalogue (lue en synchrone dans le <head>) ne s'affiche plus
   après passage par la vitrine. vitrine.js?v=150 sur les 7 pages.
+
+## Vue client : header logo seul + popup Excel (10/08/2026, poussé)
+
+- **Header vue client (?s=) réduit au logo Prodi** (logo-full forcé, panda mobile
+  masqué) + **bouton icône Excel seule** à droite = `#cart-btn` texte masqué
+  (`.btn-panier-txt` display:none), toujours câblé sur `exportListExcelTest`.
+  Masqués : `.rbar-count`, `.header-search-group`, `#album-wrap`, `#fab-wrap`,
+  `#offre-wrap`, `#cart-clear-btn`, icônes mobiles (règles GLOBALES hors media
+  queries, bloc « Header vue client ÉPURÉ » catalogue.css ~1204).
+- **Popup Excel à l'ouverture** (`_excelPopup`, catalogue.js avant `_sharedRecap`) :
+  après l'intro container (700ms) ou direct (400ms sans splash), gabarit
+  `recap-card` — icône Excel + « Votre liste est prête » + bouton « Télécharger
+  le Excel » (ferme après download), ✕/clic dehors pour passer. Traqueur
+  `shared_excel_popup`. catalogue.css v731, catalogue.js v733.

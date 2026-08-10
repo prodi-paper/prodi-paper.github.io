@@ -6372,8 +6372,8 @@ async function loadSharedQuote(idsOverride){
   // Perf intro (19/07) : le rendu des 40-60 cartes + décodage photos saturait
   // le main thread PENDANT la chorégraphie (départs d'animations en retard =
   // saccades). On le diffère à la fin du splash.
-  if(document.getElementById('ctn-splash')){window._ctnRender=()=>render(all);}
-  else render(all);
+  if(document.getElementById('ctn-splash')){window._ctnRender=()=>{render(all);setTimeout(_excelPopup,700);};}
+  else{render(all);setTimeout(_excelPopup,400);}
   _updatePager();
   // _buildSharedTabs(); // onglets Bobines/Formats retirés (18/07) — code conservé
   // Header vue client : le bouton Liste devient l'export Excel direct
@@ -7527,6 +7527,23 @@ function _buildSharedTabs(){
   d.innerHTML=`<button class="on" onclick="_sharedTab('all',this)">Tous les produits</button><button onclick="_sharedTab('bob',this)">Bobines</button><button onclick="_sharedTab('fmt',this)">Formats</button>`;
   const g=document.getElementById('pgrid');
   if(g)g.parentNode.insertBefore(d,g);
+}
+// Popup d'accueil vue client (10/08) : le header est réduit au logo, le
+// téléchargement Excel est proposé D'ENTRÉE dans ce popup (gabarit recap-card).
+function _excelPopup(){
+  if(document.getElementById('recap-bg'))return;
+  if(!cart||!cart.length)return;
+  const d=document.createElement('div');
+  d.id='recap-bg';
+  d.innerHTML=`<div class="recap-card" style="text-align:center;">
+    <button class="recap-x" onclick="document.getElementById('recap-bg').remove()" aria-label="Fermer">✕</button>
+    <svg width="54" height="54" viewBox="0 0 32 32" style="margin-bottom:10px;"><rect x="9" y="2" width="21" height="14" rx="3.5" fill="#8bd47e"/><rect x="20" y="2" width="10" height="14" rx="3.5" fill="#b9e695"/><path d="M9 9h17.5A3.5 3.5 0 0 1 30 12.5V26.5a3.5 3.5 0 0 1-3.5 3.5H12.5A3.5 3.5 0 0 1 9 26.5Z" fill="#2f9e55"/><rect x="2" y="12" width="16" height="16" rx="3.5" fill="#185c37"/><path d="M6.4 16.5h2.7l1.8 3.2 1.8-3.2h2.7l-3.1 4.7 3.2 4.8h-2.8l-1.8-3.3-1.9 3.3H6.2l3.2-4.8z" fill="#fff"/></svg>
+    <div class="recap-title">Votre liste est prête</div>
+    <button class="recap-go" onclick="exportListExcelTest(this).then(()=>document.getElementById('recap-bg')?.remove()).catch(()=>toast('Erreur export'))">Télécharger le Excel</button>
+  </div>`;
+  d.onclick=e=>{if(e.target===d)d.remove();};
+  document.body.appendChild(d);
+  window.prodiTrack?.('shared_excel_popup');
 }
 // Popup récap après l'animation : résumé de l'offre avant de découvrir la liste.
 function _sharedRecap(){

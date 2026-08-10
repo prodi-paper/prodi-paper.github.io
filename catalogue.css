@@ -1198,6 +1198,14 @@ body.drawer-open .fab-contact{right:444px;}
 /* ── Vue client (lien partagé ?s=) : catalogue sans panneau filtres ── */
 body.shared-view .sidebar-col{display:none !important;}
 body.shared-view .body-wrap{grid-template-columns:1fr !important;max-width:none !important;padding:0 16px 32px !important;}
+/* Header vue client ÉPURÉ (10/08) : logo Prodi + bouton icône Excel seule à
+   droite (#cart-btn sans texte = filet de secours si le popup d'accueil
+   _excelPopup a été fermé). Compteur, champs Réf, Album/Usine/Offre et icônes
+   mobiles masqués. */
+body.shared-view .rbar-count,body.shared-view .header-search-group,body.shared-view #album-wrap,body.shared-view #fab-wrap,body.shared-view #offre-wrap,body.shared-view #cart-clear-btn,body.shared-view .mob-search-head,body.shared-view .mob-filter-head{display:none !important;}
+body.shared-view #cart-btn .btn-panier-txt{display:none !important;}
+body.shared-view .logo-full{display:block !important;}
+body.shared-view .logo-mob{display:none !important;}
 body.shared-view .pbig-list{display:flex;flex-direction:column;gap:14px;}
 .pbig-card{display:grid;grid-template-columns:150px 1fr;padding:0;overflow:hidden;}
 .pbig-img{position:relative;background:#f4f2ee;aspect-ratio:3/4;}
