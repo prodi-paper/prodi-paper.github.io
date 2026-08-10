@@ -920,3 +920,67 @@ peut aussi retirer un produit, et `_sharedRemove` met à jour le MÊME lien (PAT
 NB donnée : le compteur bobine/format s'appuie sur `_estFormat` (format==='Bobine'
 strict) → 5 réfs bobine `R*` avec `format` Palette(3)/NULL(2) dans Sage se comptent
 en « format » (à corriger à la source Sage).
+
+## SESSION 08/08/2026 (v800+, poussée 35874f2c) — rail, fiche, landing, porte MDP
+
+- **RAIL FILTRES desktop refondu** : les sections avancées (Poids, Couleurs,
+  Dimensions, Mandrin, Laizes, Ø, Photo, Réservation, Réf usine) s'affichent
+  DIRECTEMENT (accordéon `#tb-adv` forcé `display:block`, bouton « Filtres
+  avancés » = titre de section non cliquable), en **lignes plates** `.msd-group-row`
+  (filet `border-top`, chevron ›). Clic sur une ligne → **popup FLOTTANT** `.adv-pop`
+  (absolue dans `#tb-adv`, `.msd{position:relative}`), positionné sous la ligne via
+  `_row.offsetTop`, **bascule vers le HAUT** si pas la place en bas (calcul viewport
+  ÷ `_zf()`), search `position:sticky`, ferme au clic dehors (les clics dedans sont
+  `stopPropagation`). Le tout dans `_paintAdv`.
+- **Homogénéité boutons rail** : Type/Détails/Couleurs(`#sb-msd-couleur`)/Dimensions
+  (`#sb-msd-format`) = même ligne plate (`.msd-btn` sans bordure + `::after` chevron
+  ›). Grammages `order:7` (juste au-dessus de tb-adv `order:9`, après Détails
+  `order:5`) ; Dimensions `order:6` (après Détails quand elle remonte dans la barre).
+- **Rail STICKY** (`.body-wrap>.sidebar-col{position:sticky;top:52px}` — l'ancien
+  `top:72px` créait 21px de gap sous le header). ⚠️ NE PAS mettre `overflow` sur le
+  rail (rognerait `.adv-pop`).
+- **Segment BOBINE|FORMAT** : piste `#ececed`, actif = **pilule blanche surélevée**
+  (`box-shadow:0 2px 9px`, pas foncé — Ethan a refusé le pavé noir), défaut = labels
+  gris `--g2` + séparateur central.
+- **FICHE MODAL calquée sur la CARTE** (`_etqFiche`) : DÉTAIL en sous-titre sous le
+  titre (sans label, même typo/taille), specs, puis **USINE | PRIX + bouton** en bas
+  (jamais de prix/+ en vue client), bandeaux uniformes **50px** (Zone/Code douanier
+  25px, `.dspecs margin-bottom:6px`), largeur `-20%` (840→672px), flèches à 8px du
+  modal, croix `absolute` au coin du modal.
+- **LANDING PAR DÉFAUT = GRILLE triée « Arrivage : plus récents »** (`ref_desc`) :
+  `window._SAISIE_BASSE=/[?&]tuiles=1/` (tuiles seulement sur `?tuiles=1`), `init()`
+  pose `sort-sel=ref_desc` + `_sortTouched=true` + `_featuredMode=false` + affiche
+  la grille/masque le hero (le toggle vit dans `filterProducts`, pas dans le
+  `_doFilter` d'init). `?hero=1` garde l'ancien hero.
+- **PORTE MOT DE PASSE** (`catalogue/index.html` haut de `<body>`) : overlay `#cat-gate`
+  + script inline. Demandé à la 1re visite d'un appareil, **mémorisé** localStorage
+  `prodi_cat_ok`. Liens client `?s=`/`?share=` EXEMPTÉS (classe `html.cat-unlocked`
+  posée en synchrone → pas de flash). **Mot de passe = constante `PWD` (actuel
+  `PRODI2026`, à changer)**. ⚠️ Porte côté navigateur (dissuasive) — la clé Supabase
+  anon est publique, pas une vraie sécu (vraie protection = edge/Cloudflare Access).
+- **BARRE OUTILS** (`#desk-toolbar`, `margin-top:-8px` compacté) : **compteur tonnage**
+  `#tb-tons` de la sélection filtrée à côté du + (maj avec `rbar-tons`, `_totalWeightKg`),
+  **chips filtres centrés** (`#filter-chips` `justify-content:center`, pilules NEUTRES
+  blanches = style `#topbar-row2 .fchip`), boutons +/tri = cercle blanc + icône foncée
+  (inversés), taillés ~35-37px.
+- **CARTES** : détail tronqué `…` (`.sc-det-only` `flex-direction:row`+ellipsis —
+  la règle générale `.sc-cell{flex-direction:column}` cassait l'ellipsis) ;
+  `.sc-grid` en `minmax(0,1fr)` (anti-débordement) ; valeurs anti-clip
+  (`flex-shrink:0` sur `.sc-val`+`.sc-cap` — le flex comprimait « Argent » sous la
+  hauteur du glyphe) ; gap grille **16→8px** (cartes +6px) ; + poussé à droite
+  (`margin-left:auto`) ; **photos moins zoomées** : cadre `.pcard-img` **279→230**
+  (ratio ~1.3 proche des photos paysage → rognage 27%→14%) + `_fitCardImg(img)`
+  (onload) bascule en `contain` fond blanc si photo trop atypique (`fit<0.6`).
+- **HEADER** : Offre REMIS dans le header (JS ne le déplace plus dans le rail),
+  boutons `.hright .btn-head` réduits à ~38px/texte 14.5px (= champs Réf article),
+  champs Réf article/Max `left:288→303px` (30px+ du logo).
+
+## Code d'accès UNIFIÉ (10/08/2026, poussé)
+
+- **Un seul code : `PRODI2026`** pour les DEUX portes — vitrine (`STOCK_CODE='prodi2026'`
+  dans vitrine.js:11, comparaison en minuscules donc insensible à la casse) et
+  catalogue (`PWD='PRODI2026'` dans catalogue/index.html:129, sensible à la casse).
+  ⚠️ Si on change le code un jour : changer LES DEUX constantes.
+- **Plus de double saisie** : la porte vitrine pose aussi `localStorage prodi_cat_ok`
+  au succès → la porte catalogue (lue en synchrone dans le <head>) ne s'affiche plus
+  après passage par la vitrine. vitrine.js?v=150 sur les 7 pages.

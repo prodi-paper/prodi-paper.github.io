@@ -8,7 +8,7 @@ const safeUrl = u => {
 
 
 // ─── STOCK ACCESS GATE ───
-const STOCK_CODE = 'depot2026';
+const STOCK_CODE = 'prodi2026';
 function openStock(){
   window.prodiTrack?.('cta_catalogue');
   try{
@@ -34,6 +34,7 @@ function submitStockGate(e){
   if(code===STOCK_CODE){
     window.prodiTrack?.('gate_code_ok');
     try{ sessionStorage.setItem('stock_unlocked','1'); }catch(_){}
+    try{ localStorage.setItem('prodi_cat_ok','1'); }catch(_){}
     window.location.href='/catalogue/';
   }else{
     window.prodiTrack?.('gate_code_ko',{essai:code.slice(0,20)});
