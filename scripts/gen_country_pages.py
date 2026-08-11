@@ -235,7 +235,7 @@ def build(slug, d):
     nom = d["nom"]; au = d["au"]; region = d["region"]; reglabel = REGIONS[region]
     url = "https://paper.prodi.com/"+slug+"/"
     ports_villes = d["ports"] + [c for c in d["cities"] if c not in d["ports"]]
-    wa_txt = "Bonjour, je souhaite une offre papier / carton pour "+("le "+nom if nom[0] not in "AEÉOÎ" and not nom.startswith(("Côte","Émirats","Arabie","RD")) else nom)+"."
+    wa_txt = "Bonjour Ethan,\nJe voudrais recevoir une offre pour du papier / carton.\nMerci"
     wa_url = "https://wa.me/"+WA+"?text="+urllib.parse.quote(wa_txt)
     # cartes
     cards = ""

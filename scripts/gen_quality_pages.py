@@ -338,7 +338,7 @@ def build(slug, c):
     cards_html = ""
     for h3, p, ch in c["cards"]:
         cards_html += ('\n        <div class="gp-card">\n          <h3>'+html.escape(h3)+'</h3>\n          <p>'+html.escape(p)+'</p>\n          <div class="gp-chips">'+chips(ch)+'\n          </div>\n        </div>')
-    wa_url = "https://wa.me/33649754915?text="+_u(c["wa"])
+    wa_url = "https://wa.me/33649754915?text="+_u("Bonjour Ethan,\nJe voudrais recevoir une offre pour du papier / carton.\nMerci")
     return TEMPLATE.replace("@@TITLE@@", html.escape(c["title"])) \
         .replace("@@DESC@@", html.escape(c["desc"])) \
         .replace("@@URL@@", url) \
