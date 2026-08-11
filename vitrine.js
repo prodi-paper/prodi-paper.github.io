@@ -198,30 +198,57 @@ function ccInit(inputId){
   btn.innerHTML='<span>'+ccFlag('fr')+'</span> +33';
   wrap.appendChild(btn);wrap.appendChild(inp);
   const pan=document.createElement('div');pan.className='tel-cc-pan';
-  pan.innerHTML='<input type="text" class="tel-cc-search" placeholder="Rechercher un pays…" aria-label="Rechercher un pays">'
+  pan.innerHTML='<input type="text" class="tel-cc-search" placeholder="Pays ou indicatif (+245)…" aria-label="Rechercher un pays ou saisir un indicatif">'
+    +'<button type="button" class="tel-cc-custom" style="display:none"></button>'
     +'<div class="tel-cc-list">'+CC_PAYS.map((c,i)=>
       '<button type="button" data-i="'+i+'"><span>'+ccFlag(c[1])+'</span>'+c[0]+' <em>'+c[2]+'</em></button>').join('')+'</div>';
   wrap.appendChild(pan);
   const search=pan.querySelector('.tel-cc-search');
+  const custom=pan.querySelector('.tel-cc-custom');
+  function setCC(code,iso){
+    inp.dataset.cc=code;
+    btn.innerHTML='<span>'+(iso?ccFlag(iso):'🌐')+'</span> '+code;
+    pan.classList.remove('open');
+    inp.focus();
+  }
+  function asDial(q){
+    const d=(q||'').replace(/[^\d+]/g,'');
+    if(/^\+\d{1,4}$/.test(d)) return d;
+    if(/^00\d{1,4}$/.test(d)) return '+'+d.slice(2);
+    if(/^\d{1,4}$/.test(d)) return '+'+d;
+    return null;
+  }
   btn.addEventListener('click',()=>{
     pan.classList.toggle('open');
     if(pan.classList.contains('open')){search.value='';filtre('');setTimeout(()=>search.focus(),40);}
   });
   const norm=t=>t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
   function filtre(q){
-    q=norm(q);
+    const nq=norm(q);
     pan.querySelectorAll('.tel-cc-list button').forEach(b=>{
       const c=CC_PAYS[+b.dataset.i];
-      b.style.display=(!q||norm(c[0]).includes(q)||c[2].includes(q))?'':'none';
+      b.style.display=(!nq||norm(c[0]).includes(nq)||c[2].includes(nq))?'':'none';
     });
+    const dial=asDial(q);
+    if(dial && !CC_PAYS.some(c=>c[2]===dial)){
+      custom.textContent='Utiliser « '+dial+' »';
+      custom.dataset.code=dial;
+      custom.style.display='';
+    } else custom.style.display='none';
   }
   search.addEventListener('input',()=>filtre(search.value));
+  search.addEventListener('keydown',e=>{
+    if(e.key!=='Enter') return;
+    e.preventDefault();
+    const dial=asDial(search.value);
+    if(dial && !CC_PAYS.some(c=>c[2]===dial)){ setCC(dial,null); return; }
+    const vis=[...pan.querySelectorAll('.tel-cc-list button')].filter(b=>b.style.display!=='none');
+    if(vis.length) vis[0].click();
+  });
+  custom.addEventListener('click',()=>setCC(custom.dataset.code,null));
   pan.querySelectorAll('.tel-cc-list button').forEach(b=>b.addEventListener('click',()=>{
     const c=CC_PAYS[+b.dataset.i];
-    inp.dataset.cc=c[2];
-    btn.innerHTML='<span>'+ccFlag(c[1])+'</span> '+c[2];
-    pan.classList.remove('open');
-    inp.focus();
+    setCC(c[2],c[1]);
   }));
   document.addEventListener('click',e=>{
     if(!wrap.contains(e.target)) pan.classList.remove('open');
@@ -441,17 +468,17 @@ async function submitRappel(e){
   // verso = texte rédigé par tuile, à partir des détails réellement en stock
   // (top du champ details du catalogue par famille, bobines + formats confondus)
   const TILES=[
-    {code:'ROFF',    title:'Offset',        sub:'Le blanc de référence, du livre à la notice.',            img:U+'flagged/photo-1562221054-cdc9dc299068'+P, pos:'center 60%', dark:false,
+    {code:'ROFF',    slug:'offset',    title:'Offset',        sub:'Le blanc de référence, du livre à la notice.',            img:U+'flagged/photo-1562221054-cdc9dc299068'+P, pos:'center 60%', dark:false,
      verso:['Du blanc courant aux blancs les plus lumineux','Blancheurs CIE de 120 à 170','Notice, bristol, satiné ou rugueux','En bobines comme en formats']},
-    {code:'RKRABRUN',title:'Kraft',         sub:'Le naturel résistant du sac et de l\'emballage.',          img:U+'photo-1777566131325-78f6e12c50b7'+'?q=60&auto=format&fit=crop&w=900', pos:'center 50%', dark:true,
+    {code:'RKRABRUN',slug:'kraft',title:'Kraft',         sub:'Le naturel résistant du sac et de l\'emballage.',          img:U+'photo-1777566131325-78f6e12c50b7'+'?q=60&auto=format&fit=crop&w=900', pos:'center 50%', dark:true,
      verso:['Du 100 % recyclé à la pure pâte','Finition frictionnée MG ou machine MF','Krafts spéciaux pour enveloppe','Le brun de l\'emballage sous toutes ses formes']},
-    {code:'R2SC',    title:'Papier couché', sub:'Le papier des magazines, catalogues et brochures.',       img:U+'photo-1515891396453-6d7e56096a39'+P, pos:'center 55%', dark:false,
+    {code:'R2SC',    slug:'papier-couche',    title:'Papier couché', sub:'Le papier des magazines, catalogues et brochures.',       img:U+'photo-1515891396453-6d7e56096a39'+P, pos:'center 55%', dark:false,
      verso:['Brillant, demi-mat ou mat','Séries recyclées','Magazines, catalogues et brochures','En bobines comme en formats']},
-    {code:'RBOA',    title:'Carton couché', sub:'Le carton du packaging et de la belle boîte.',            img:U+'photo-1595246135406-803418233494'+P, pos:'center 55%', dark:true,
+    {code:'RBOA',    slug:'carton-couche',    title:'Carton couché', sub:'Le carton du packaging et de la belle boîte.',            img:U+'photo-1595246135406-803418233494'+P, pos:'center 55%', dark:true,
      verso:['GC1 dos blanc · GC2 dos crème','GD2 dos gris · GT4 & CKB dos kraft','Face aluminium pour l\'emballage alimentaire','Le carton du packaging et de la belle boîte']},
-    {code:'RLUX',    title:'Papier créations', sub:'Papiers de caractère : teintes, textures, finitions.', img:U+'photo-1586207036106-90aae2456ccb'+P, pos:'center 50%', dark:true,
+    {code:'RLUX',    slug:'papier-creations',    title:'Papier créations', sub:'Papiers de caractère : teintes, textures, finitions.', img:U+'photo-1586207036106-90aae2456ccb'+P, pos:'center 50%', dark:true,
      verso:['Calque','Vergé blanc ou ivoire','Martelé','Chromolux une face','Papiers sécurité : fibres invisibles ou filigranés']},
-    {code:'RCAR',    title:'Autocopiant',   sub:'Liasses sans carbone, prêtes à imprimer.',                img:U+'photo-1579808324991-cecc784498cc'+P, pos:'center 55%', dark:true,
+    {code:'RCAR',    slug:'autocopiant',    title:'Autocopiant',   sub:'Liasses sans carbone, prêtes à imprimer.',                img:U+'photo-1579808324991-cecc784498cc'+P, pos:'center 55%', dark:true,
      verso:['Trois feuillets : CB, CFB et CF','Rames prêtes à assembler en liasses','Séries spéciales impression digitale']},
   ];
   wrap.innerHTML=TILES.map((t,i)=>`
@@ -468,6 +495,7 @@ async function submitRappel(e){
           <ul class="qtile-list">${t.verso.map(v=>`<li>${esc(v)}</li>`).join('')}</ul>
           <div class="qtile-btns">
             <a href="#contact" class="qtile-btn qtile-btn-red" onclick="qtileDevis('${esc(t.code)}','${esc(t.title)}');return false;">Demander un devis →</a>
+            <a href="/${t.slug}/" class="qtile-btn qtile-btn-out qtile-more" onclick="window.prodiTrack?.('qualite_page',{q:'${esc(t.code)}'})"><span class="qm-full">Encore plus de précisions →</span><span class="qm-dots">···</span></a>
             <button type="button" class="qtile-btn qtile-btn-out" onclick="qtileFlip(${i},0)">Retour</button>
           </div>
         </div>
@@ -478,12 +506,12 @@ async function submitRappel(e){
   // Autres familles à +100 réfs au catalogue (bobines + formats confondus),
   // triées par nombre de références — cartes défilantes façon apple.com
   const CARDS=[
-    {code:'COL',  title:'Offset couleur',    img:U+'photo-1716471330459-063b3baf247e'+P},
-    {code:'BOU',  title:'Bouffant',          img:U+'photo-1457369804613-52c61a468e7d'+P},
-    {code:'ADH',  title:'Adhésif',           img:U+'photo-1569725730478-a2f4a1809bb4'+P},
-    {code:'CUT',  title:'Ramette',           img:U+'photo-1573978828027-e830975e272c'+P},
-    {code:'LINER',title:'Liner / Testliner', img:U+'photo-1640193698858-31565d448f90'+P},
-    {code:'FLEX', title:'Complexe / PE',     img:U+'photo-1677586883848-695b3ad692b4'+P},
+    {code:'COL',  slug:'offset-couleur', title:'Offset couleur',    img:U+'photo-1716471330459-063b3baf247e'+P},
+    {code:'BOU',  slug:'bouffant', title:'Bouffant',          img:U+'photo-1457369804613-52c61a468e7d'+P},
+    {code:'ADH',  slug:'papier-adhesif', title:'Adhésif',           img:U+'photo-1569725730478-a2f4a1809bb4'+P},
+    {code:'CUT',  slug:'ramette', title:'Ramette',           img:U+'photo-1573978828027-e830975e272c'+P},
+    {code:'LINER',slug:'liner-testliner', title:'Liner / Testliner', img:U+'photo-1640193698858-31565d448f90'+P},
+    {code:'FLEX', slug:'complexe-pe', title:'Complexe / PE',     img:U+'photo-1677586883848-695b3ad692b4'+P},
     {code:'MORE', title:'Voir tout le stock', img:U+'photo-1719529216596-d7c76431ee0d'+P, more:true},
   ];
   const cwrap=document.getElementById('qcards');
@@ -496,7 +524,7 @@ async function submitRappel(e){
     <div class="qcard" onclick="window.prodiTrack?.('qualite_plus',{q:'${esc(c.code)}'});openStock();">
       <img src="${c.img}" alt="${esc(c.title)}" loading="lazy">
       <span class="qcard-title">${esc(c.title)}</span>
-      <button class="qcard-btn" type="button" onclick="event.stopPropagation();qcardForm('${esc(c.code)}','${esc(c.title)}')">En savoir +</button>
+      <a class="qcard-btn" href="/${c.slug}/" onclick="event.stopPropagation();window.prodiTrack?.('qualite_page',{q:'${esc(c.code)}'})">En savoir +</a>
     </div>`).join('');
     // Boucle infinie : 3 copies des cartes, le scroll reste dans la copie
     // centrale — jamais de bout de piste, donc jamais de vide
@@ -516,7 +544,7 @@ async function submitRappel(e){
     // pendant PERIOD ms puis le bandeau avance d'une carte (durée = celle
     // de l'animation CSS qdotfill, à garder synchro)
     const dots=document.getElementById('qcards-dots');
-    const PERIOD=5500, N=CARDS.length;
+    const PERIOD=4400, N=CARDS.length;
     const step=()=>{const c=cwrap.firstElementChild;return c?c.getBoundingClientRect().width+12:512;};
     const curIdx=()=>((Math.round(cwrap.scrollLeft/step())%N)+N)%N;
     const still=matchMedia('(prefers-reduced-motion: reduce)').matches;
