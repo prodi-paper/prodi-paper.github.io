@@ -28,6 +28,11 @@
     display:flex;flex-direction:column;align-items:center;justify-content:center;
   }
   #book-wrap{width:min(96vw,1500px);height:min(88vh,780px);display:flex;align-items:center;justify-content:center}
+  @media (max-width:768px){
+    #book-wrap{width:100vw;height:86vh}
+    #barre{margin-top:6px;font-size:13px;gap:22px}
+    #barre button{width:56px;height:56px;font-size:26px}
+  }
   #book{width:100%;height:100%}
 
   /* ══ PAGES ══ */
@@ -250,8 +255,8 @@
     user-select:none;font-family:'DM Sans',sans-serif;
   }
   #barre button{
-    background:#fff;border:0;color:var(--ink);font-size:16px;
-    width:34px;height:34px;cursor:pointer;border-radius:999px;box-shadow:var(--sh-sm);
+    background:#fff;border:0;color:var(--ink);font-size:22px;
+    width:48px;height:48px;cursor:pointer;border-radius:999px;box-shadow:var(--sh-sm);
   }
   #barre button:hover{background:var(--red);color:#fff}
 </style>
@@ -586,11 +591,15 @@
 
 <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
 <script>
+  // Téléphone : pages en format PORTRAIT (plus hautes que larges) pour
+  // occuper la hauteur de l'écran — la maquette s'étire, la typo suit la largeur.
+  const MOBILE = window.matchMedia("(max-width: 768px)").matches;
+  const PAGE_H = MOBILE ? 1150 : 780;
   const flip = new St.PageFlip(document.getElementById("book"), {
-    width: 780, height: 780,
+    width: 780, height: PAGE_H,
     size: "stretch",
     minWidth: 300, maxWidth: 780,
-    minHeight: 300, maxHeight: 780,
+    minHeight: 300, maxHeight: PAGE_H,
     showCover: true,
     maxShadowOpacity: 0.3,
     flippingTime: 800,
