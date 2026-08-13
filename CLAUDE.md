@@ -1010,3 +1010,14 @@ intérieures blanches, grilles hairline, photos = tuiles Unsplash du site +
 presse_internationale. Livre fermé recentré (translateX ±25% sur cover/dos).
 Source de travail : ~/Code/prodi_plaquette (copie synchronisée à la main).
 Reste à faire : vraies adresses/tél au dos, bouton Télécharger PDF.
+
+## Menu OFFRE dynamique (13/08/2026, poussé)
+
+`_offresData`/`buildPool` (catalogue.js ~2810) : plus de liste figée
+`OFFRE_PRESETS` — le menu construit UNE offre par qualité **réellement en
+stock** (codes distincts de `poolUnits`, libellés `QUALITE_LABELS`, forme =
+lettre du code R*/S* + garde `_estFormat` inchangée). Seuil `OFFRE_MIN_TONS=5` :
+sous 5 t la qualité n'apparaît pas (queues de stock RTIS/SENV/SPLA…).
+Motif : ~670 t étaient invisibles (RLINER 125 t, RFLEX, RNEW, RLWC, SCUT,
+RSIL, SSBS…). Toute nouvelle qualité entrant en stock apparaît seule.
+Test : /tmp/cdp_offre_dyn.mjs (dump `_offresData()` headless). v734.

@@ -2766,19 +2766,11 @@ async function _tonnagePick(tonnes){
 // par qualité, articles récents d'abord, lots gardés ensemble — calculées
 // depuis le cache facettes du jour). Cliquer une offre remplit Ma Liste et
 // OUVRE la vue client (?s=) : l'offre est prête à envoyer.
-const OFFRE_PRESETS=[
-  {label:'Offset',codes:['ROFF','SOFF']},
-  {label:'Papier luxe',codes:['RLUX','SLUX']},
-  {label:'Carton couché',codes:['RBOA','SBOA']},
-  {label:'Offset couleur',codes:['Offset Couleur','Dossier Couleur','SCOL']},
-  {label:'Kraft brun',codes:['RKRABRUN']},
-  {label:'Kraft',codes:['RKRA','SKRA']},
-  {label:'Autocopiant',codes:['RCAR','SCAR']},
-  {label:'Couché 1 face',codes:['R1SC','S1SC']},
-  {label:'Couché 2 faces',codes:['R2SC','S2SC']},
-  {label:'Bouffant',codes:['RBOU','SBOU']},
-  {label:'Adhésif',codes:['RADH','SADH']},
-];
+// Menu DYNAMIQUE (13/08) : une offre par QUALITÉ réellement en stock — plus de
+// liste figée (l'ancienne OFFRE_PRESETS à 11 familles laissait ~670 t
+// invisibles : RLINER, RFLEX, RNEW, RLWC, SCUT…). Libellés = QUALITE_LABELS.
+// Seuil : sous OFFRE_MIN_TONS la qualité n'apparaît pas (queues de stock).
+const OFFRE_MIN_TONS=5;
 // UNE offre par QUALITÉ (code Sage) : segments FAB/STOCK + BOBINE/FORMAT en
 // tête du menu, puis liste plate directement cliquable — on ne mélange JAMAIS
 // ni les qualités ni bobines et formats dans une même offre (forme = lettre
@@ -2818,17 +2810,17 @@ async function _offresData(){
   // liste complète, capRefs seulement pour tenir dans le lien ?s=).
   const buildPool=poolUnits=>{
     const out={Bobine:[],Format:[]};
-    OFFRE_PRESETS.forEach(p=>{
-      [...new Set(p.codes.flatMap(c=>_isCouleurPseudo(c)?['RCOL']:[c]))].forEach(code=>{
-        const forme=code[0]==='S'?'Format':'Bobine';
-        // La vue client classe par _estFormat (format NULL/Palette/Feuille =
-        // carte Dimensions) : un R* au format NULL polluerait l'offre bobine
-        // → on écarte les articles dont la forme réelle ne colle pas au code.
-        const list=poolUnits.filter(u=>u.qualite===code&&(_estFormat(u)?'Format':'Bobine')===forme);
-        if(!list.length)return;
-        out[forme].push({label:p.label,code,forme,units:capRefs(list),full:list,
-          tons:list.reduce((s,u)=>s+(+u.poids_net||0),0)/1000});
-      });
+    [...new Set(poolUnits.map(u=>u.qualite).filter(Boolean))].forEach(code=>{
+      const forme=code[0]==='S'?'Format':code[0]==='R'?'Bobine':null;
+      if(!forme)return; // UMAC & co : jamais en offre
+      // La vue client classe par _estFormat (format NULL/Palette/Feuille =
+      // carte Dimensions) : un R* au format NULL polluerait l'offre bobine
+      // → on écarte les articles dont la forme réelle ne colle pas au code.
+      const list=poolUnits.filter(u=>u.qualite===code&&(_estFormat(u)?'Format':'Bobine')===forme);
+      if(!list.length)return;
+      const tons=list.reduce((s,u)=>s+(+u.poids_net||0),0)/1000;
+      if(tons<OFFRE_MIN_TONS)return;
+      out[forme].push({label:QUALITE_LABELS[code]||code,code,forme,units:capRefs(list),full:list,tons});
     });
     // Tri par TONNAGE décroissant dans chaque pool×forme (05/08 Ethan) — fait
     // ICI pour que les index du menu restent alignés avec _offreEnvoyer(i).
