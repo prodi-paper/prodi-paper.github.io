@@ -115,26 +115,26 @@
   .apropos-texte .grand{font-size:1.25em;font-weight:700;color:var(--ink);line-height:1.4}
 
   /* ══ SERVICES ══ */
-  .services-grille{flex:1;display:flex;flex-direction:column;justify-content:center;gap:0}
-  .service{display:flex;gap:6%;align-items:center;padding:1.6em 0}
+  .services-grille{flex:1;display:flex;flex-direction:column;justify-content:center;gap:0;padding-bottom:3em}
+  .service{display:flex;gap:6%;align-items:center;padding:1.05em 0}
   .service + .service{border-top:1px solid var(--hairline)}
   .service .icone{
-    flex:none;width:4.6em;height:4.6em;border-radius:16px;background:var(--off);
+    flex:none;width:4em;height:4em;border-radius:16px;background:var(--off);
     display:flex;align-items:center;justify-content:center;color:var(--red);
   }
   .service .icone svg{width:55%;height:55%}
   .service h3{font-family:'Bebas Neue',sans-serif;font-size:1.6em;font-weight:400;margin-bottom:.25em;color:var(--ink)}
 
   /* ══ OÙ NOUS TROUVER ══ */
-  .lieux{display:flex;flex:1;gap:5%;align-items:stretch;margin-top:1.2em}
+  .lieux{display:flex;flex:1;gap:5%;align-items:flex-end;margin-top:1.2em;padding-bottom:3.2em}
   .lieu{
     flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;
-    background:var(--off);border-radius:20px;padding:3em 2.4em 2.4em;
+    background:#f1f1f3;border-radius:20px;padding:2.2em 2.4em;justify-content:center;
   }
   .lieu .pin{width:3em;height:3em;color:var(--red);margin-bottom:1em}
   .lieu h3{font-family:'Bebas Neue',sans-serif;font-size:1.9em;font-weight:400;line-height:1;color:var(--ink)}
-  .lieu .role{font-size:.89em;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--red);margin:.7em 0 1em}
-  .lieu .det{font-size:1.06em;line-height:1.65;color:#48484a;margin-top:auto}
+  .lieu .role{font-size:1.7em;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--ink);margin:.4em 0 0}
+  .lieu .det{font-size:1.27em;line-height:1.6;color:#3a3a3c;margin-top:1.2em}
 
   /* ══ PARTENAIRES ══ */
   .titre-centre{text-align:center}
@@ -237,6 +237,13 @@
   .dos .coords .site{color:var(--ink);font-weight:700}
   .dos img.panda{position:absolute;right:9%;top:8%;width:3.6em;mix-blend-mode:multiply}
 
+  /* Pli central (reliure) entre les deux pages ouvertes */
+  #pli{
+    position:absolute;top:0;bottom:0;left:50%;width:110px;
+    transform:translateX(-50%);pointer-events:none;z-index:50;
+    background:linear-gradient(90deg,rgba(0,0,0,0) 0%,rgba(0,0,0,.05) 32%,rgba(0,0,0,.16) 49%,rgba(0,0,0,.16) 51%,rgba(0,0,0,.05) 68%,rgba(0,0,0,0) 100%);
+  }
+
   /* barre de contrôle */
   #barre{
     margin-top:12px;display:flex;align-items:center;gap:18px;color:#c9cacc;font-size:13px;
@@ -255,8 +262,8 @@
 
   <!-- ═══ 1. COUVERTURE ═══ -->
   <div class="page couv" data-density="hard"><div class="page-inner">
-    <div class="cat">Catalogue</div>
-    <div class="tag">Papier · Carton · Kraft</div>
+    <div class="cat" style="font-size:3.6em;line-height:.92">Votre fournisseur<br>papier &amp; carton<br><span style="color:var(--red)">Depuis 1991</span></div>
+    <div class="tag" style="margin-top:1.2em">Lots et fabrication</div>
     <div class="bande-wrap">
       <div class="bande dessous"></div>
       <div class="bande dessus"><img src="img/logo.png" alt="Prodiconseil"></div>
@@ -266,42 +273,36 @@
 
   <!-- ═══ 2. À PROPOS ═══ -->
   <div class="page"><div class="page-inner">
-    <div class="sur-titre">Qui sommes-nous</div>
-    <h1 class="titre">À propos</h1>
-    <div class="apropos-texte" style="margin-top:1.2em">
-      <p class="grand">Depuis <span class="rouge">1991</span>, Prodiconseil fournit imprimeurs, transformateurs et négociants dans le monde entier.</p>
-      <p>Du Maghreb à toute l'Afrique, au Moyen-Orient, à l'Europe de l'Est et à l'Amérique du Sud.</p>
+    <h1 class="titre">Dépôt et stock</h1>
+    <div style="flex:1;min-height:0;display:flex;gap:2.5em;align-items:stretch;margin-top:1em;padding-bottom:3em">
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
+        <div style="padding:1.4em 0;border-top:1px solid var(--hairline)">
+          <div class="texte" style="font-size:1.5em;line-height:1.5"><b>14&nbsp;000&nbsp;m²</b> de stockage à <b>Amiens, France</b>.</div>
+        </div>
+        <div style="padding:1.4em 0;border-top:1px solid var(--hairline);border-bottom:1px solid var(--hairline)">
+          <div class="texte" style="font-size:1.5em;line-height:1.5"><b>10&nbsp;000&nbsp;T</b> en stock.</div>
+        </div>
+      </div>
+      <div style="flex:none;aspect-ratio:9/16;height:100%;position:relative;border-radius:24px;overflow:hidden;box-shadow:var(--sh-md)">
+        <video src="assets/depot-amiens.mp4" autoplay muted loop playsinline preload="metadata" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"></video>
+      </div>
     </div>
-    <div class="photo-card" style="flex:1;min-height:0;margin:1.4em 0 3em;background-image:url('img/presse_internationale.webp')"></div>
     <div class="pied"><img src="img/logo.png" alt=""><span class="num">02</span><span class="site">paper.prodi.com</span></div>
   </div></div>
 
   <!-- ═══ 3. NOS SERVICES ═══ -->
   <div class="page"><div class="page-inner">
-    <div class="sur-titre">Ce que nous faisons</div>
-    <h1 class="titre">Nos services</h1>
-    <div class="services-grille">
-      <div class="service">
-        <div class="icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 17V6H1v11h13Zm0-8h4l3 3v5h-7"/><circle cx="6" cy="18" r="1.8"/><circle cx="17.5" cy="18" r="1.8"/></svg></div>
-        <div>
-          <h3>Livraison</h3>
-          <div class="texte">Une flotte dédiée pour livrer dans les meilleurs délais — l'impression et le packaging n'attendent pas.</div>
+    <h1 class="titre">Logistique</h1>
+    <div style="flex:1;min-height:0;display:flex;gap:2.5em;align-items:stretch;margin-top:1em;padding-bottom:3em">
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
+        <div style="padding:1.4em 0;border-top:1px solid var(--hairline)">
+          <div class="texte" style="font-size:1.5em;line-height:1.5">Chargement sous <b>72&nbsp;h</b> — vers les ports de <b>France</b> et d'<b>Europe</b>.</div>
+        </div>
+        <div style="padding:1.4em 0;border-top:1px solid var(--hairline);border-bottom:1px solid var(--hairline)">
+          <div class="texte" style="font-size:1.5em;line-height:1.5">Export vers <b>Maghreb, Afrique, Moyen-Orient, Europe de l'Est</b>.</div>
         </div>
       </div>
-      <div class="service">
-        <div class="icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v9"/><path d="M9 8c0 2 1.3 4 3 4s3-2 3-4"/><path d="M12 12l-2.5 7M12 12l2.5 7"/><path d="M3 21h18"/></svg></div>
-        <div>
-          <h3>Équipements</h3>
-          <div class="texte">Découpe du papier et du carton sur des machines de dernière génération : <b>flexibilité, réactivité, qualité.</b></div>
-        </div>
-      </div>
-      <div class="service">
-        <div class="icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V9l9-5 9 5v12"/><path d="M3 21h18"/><rect x="8" y="13" width="8" height="8"/><path d="M8 17h8M12 13v8"/></svg></div>
-        <div>
-          <h3>Stockage</h3>
-          <div class="texte">Un entrepôt à <b>Saint-Ouen</b> pour les bobines et formats, un service commercial à <b>Ivry-sur-Seine</b>.</div>
-        </div>
-      </div>
+      <div style="flex:none;aspect-ratio:9/16;height:100%;border-radius:24px;overflow:hidden;box-shadow:var(--sh-md);background:url('img/carte_leadership.webp') center/cover"></div>
     </div>
     <div class="pied"><img src="img/logo.png" alt=""><span class="num">03</span><span class="site">paper.prodi.com</span></div>
   </div></div>
@@ -309,379 +310,253 @@
   <!-- ═══ 4. OÙ NOUS TROUVER ═══ -->
   <div class="page"><div class="page-inner">
     <div class="sur-titre">Deux implantations</div>
-    <h1 class="titre">Où nous trouver ?</h1>
+    <h1 class="titre">Contact et accès</h1>
     <div class="lieux">
-      <div class="lieu">
-        <svg class="pin" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z"/></svg>
-        <h3>Ivry-sur-Seine</h3>
-        <div class="role">Siège &amp; service commercial</div>
-        <div class="det">L'équipe commerciale et administrative,<br>au plus près de Paris.<br><br>Adresse &amp; horaires : prodi.com</div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:2em">
+        <div style="text-align:center">
+          <div style="display:flex;align-items:center;justify-content:center;gap:.55em;font-size:1.37em;font-weight:700;color:var(--ink)"><svg viewBox="0 0 24 24" style="width:1.15em;height:1.15em;flex:none" fill="#25D366"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.6-6.1c-.3-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.4-3c-.3-.4 0-.5.1-.7l.4-.5c.1-.1.2-.2.2-.4.1-.1 0-.3 0-.4L9.6 7.6c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.7.3-.2.3-.9.9-.9 2.1s.9 2.4 1 2.6c.1.2 1.8 2.8 4.4 3.9.6.3 1.1.4 1.5.6.6.2 1.2.2 1.6.1.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.7-.3Z"/></svg>Véronique Elbilia</div>
+          <div style="font-size:1.3em;font-weight:600;color:#48484a;margin-top:.25em">+33 6 09 46 77 48</div>
+        </div>
+        <div class="lieu">
+          <div class="role">Bureau</div>
+          <div class="det">9 Promenade Jeanne Hachette<br>94200 Ivry-sur-Seine — France</div>
+        </div>
       </div>
-      <div class="lieu">
-        <svg class="pin" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z"/></svg>
-        <h3>Saint-Ouen</h3>
-        <div class="role">Dépôt &amp; plateforme logistique</div>
-        <div class="det">Bobines et formats stockés, préparés<br>et expédiés depuis notre entrepôt.<br><br>Adresse &amp; horaires : prodi.com</div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:2em">
+        <div style="text-align:center">
+          <div style="display:flex;align-items:center;justify-content:center;gap:.55em;font-size:1.37em;font-weight:700;color:var(--ink)"><svg viewBox="0 0 24 24" style="width:1.15em;height:1.15em;flex:none" fill="#25D366"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.6-6.1c-.3-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.4-3c-.3-.4 0-.5.1-.7l.4-.5c.1-.1.2-.2.2-.4.1-.1 0-.3 0-.4L9.6 7.6c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.7.3-.2.3-.9.9-.9 2.1s.9 2.4 1 2.6c.1.2 1.8 2.8 4.4 3.9.6.3 1.1.4 1.5.6.6.2 1.2.2 1.6.1.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.7-.3Z"/></svg>Julien Caron</div>
+          <div style="font-size:1.3em;font-weight:600;color:#48484a;margin-top:.25em">+33 6 20 25 85 83</div>
+        </div>
+        <div class="lieu">
+          <div class="role">Dépôt</div>
+          <div class="det">80 rue du Général de Gaulle<br>80610 Saint-Ouen — France</div>
+        </div>
       </div>
     </div>
     <div class="pied"><img src="img/logo.png" alt=""><span class="num">04</span><span class="site">paper.prodi.com</span></div>
   </div></div>
 
-  <!-- ═══ 5. NOS PARTENAIRES ═══ -->
+  <!-- ═══ SOMMAIRE PRODUITS (ordre = tonnage réel du stock) ═══ -->
   <div class="page"><div class="page-inner">
-    <div class="sur-titre titre-centre">Ils fabriquent, nous distribuons</div>
-    <h1 class="titre titre-centre">Nos partenaires</h1>
-    <div class="logos-mur">
-      <span class="lt lt-rose" style="font-size:1.25em">Eurocalco</span>
-      <img src="img/logo-07.png" alt="The Navigator Company">
-      <img src="img/logo-06.png" alt="Metsä">
-      <span class="lt lt-rouge" style="font-size:1.1em">THERMAX</span>
-      <img src="img/logo-12.png" alt="Gruppo Eurocopy">
-      <img src="img/logo-10.png" alt="Condat">
-      <img src="img/logo-09.png" alt="grafo lit">
-      <img src="img/logo-15.png" alt="CKB Nude">
-      <img src="img/logo-05.png" alt="Lecta">
-      <span class="lt lt-bleu" style="font-size:1em;font-style:italic">TORRASPAPEL</span>
-      <img src="img/logo-14.png" alt="Arjobex">
-      <img src="img/logo-18.png" alt="Mondi Stambolijski">
-      <img src="img/logo-16.png" alt="Smurfit Kappa Group">
-      <span class="lt lt-bleu" style="font-size:.92em;letter-spacing:.16em">HEINZEL GROUP</span>
-      <img src="img/logo-04.png" alt="Central National Gottesman">
-      <img src="img/logo-20.png" alt="Nordic Paper">
-      <img src="img/logo-11.png" alt="Adestor">
-      <img src="img/logo-22.png" alt="Stora Enso">
-      <span class="lt lt-noir" style="font-size:1.05em;font-style:italic">starkraft</span>
+    <h1 class="titre">Produits</h1>
+    <div class="sommaire-corps">
+      <div class="sommaire-liste">
+        <div class="som-item"><span class="num">06</span><span class="lib">Offset</span></div>
+        <div class="som-item"><span class="num">07</span><span class="lib">Offset couleur</span></div>
+        <div class="som-item"><span class="num">08</span><span class="lib">Papier luxe</span></div>
+        <div class="som-item"><span class="num">09</span><span class="lib">Carton couché</span></div>
+        <div class="som-item"><span class="num">10</span><span class="lib">Kraft pure pâte</span></div>
+        <div class="som-item"><span class="num">11</span><span class="lib">Autocopiant</span></div>
+        <div class="som-item"><span class="num">12</span><span class="lib">Couché brillant et mat</span></div>
+        <div class="som-item"><span class="num">13</span><span class="lib">Bouffant</span></div>
+        <div class="som-item"><span class="num">14</span><span class="lib">Liner / Testliner</span></div>
+        <div class="som-item"><span class="num">15</span><span class="lib">Édition — journal &amp; LWC</span></div>
+        <div class="som-item"><span class="num">16</span><span class="lib">Adhésif</span></div>
+        <div class="som-item"><span class="num">17</span><span class="lib">Ramette</span></div>
+      </div>
+      <div class="sommaire-photo"></div>
     </div>
     <div class="pied"><img src="img/logo.png" alt=""><span class="num">05</span><span class="site">paper.prodi.com</span></div>
   </div></div>
 
-  <!-- ═══ 6. SOMMAIRE PRODUITS ═══ -->
+  <!-- ═══ PRODUIT : Offset ═══ -->
   <div class="page"><div class="page-inner">
-    <div class="sur-titre">Notre gamme</div>
-    <h1 class="titre">Produits</h1>
-    <div class="sommaire-corps">
-      <div class="sommaire-liste">
-        <div class="som-item"><span class="num">07</span><span class="lib">Couché brillant et mat</span></div>
-        <div class="som-item"><span class="num">08</span><span class="lib">Offset premium — preprint</span></div>
-        <div class="som-item"><span class="num">09</span><span class="lib">Adhésif</span></div>
-        <div class="som-item"><span class="num">10</span><span class="lib">Autocopiant</span></div>
-        <div class="som-item"><span class="num">11</span><span class="lib">Bristol</span></div>
-        <div class="som-item"><span class="num">12</span><span class="lib">Thermique</span></div>
-        <div class="som-item"><span class="num">13</span><span class="lib">Photocopie</span></div>
-        <div class="som-item"><span class="num">14-15</span><span class="lib">Carton</span></div>
-        <div class="som-item"><span class="num">16-17</span><span class="lib">Kraft pure pâte</span></div>
-        <div class="som-item"><span class="num">18</span><span class="lib">Édition <small>— offset · couché · LWC · journal</small></span></div>
-        <div class="som-item"><span class="num">19</span><span class="lib">Synthétique Polyart®</span></div>
-      </div>
-      <div class="sommaire-photo"></div>
+    <h1 class="titre" style="font-size:2.6em">Offset</h1>
+    <div class="prod-corps">
+      <div class="prod-texte"><p><b>Cahiers, enveloppes, liasses et formulaires, papeterie, édition courante</b> : le polyvalent de toutes les presses.</p><p>Surface non couchée, encrage franc — passe en <b>offset, laser et jet d'encre</b>.</p></div>
+      <div class="prod-photo"><div class="ph" style="background-image:url('img/u-ramette.jpg')"></div></div>
     </div>
+    <table class="grille">
+      <thead><tr><th class="coin">Type<span class="unite">g/m²</span></th><th>60</th><th>65</th><th>70</th><th>75</th><th>80</th><th>90</th><th>95</th><th>100</th><th>110</th><th>120</th></tr></thead>
+      <tbody>
+        <tr><td class="lab">Bobine</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td></tr>
+        <tr><td class="lab">Format</td><td class="v">✓</td><td class="x">—</td><td class="v">✓</td><td class="x">—</td><td class="v">✓</td><td class="v">✓</td><td class="x">—</td><td class="v">✓</td><td class="x">—</td><td class="v">✓</td></tr>
+      </tbody>
+    </table>
     <div class="pied"><img src="img/logo.png" alt=""><span class="num">06</span><span class="site">paper.prodi.com</span></div>
   </div></div>
 
-  <!-- ═══ 7. COUCHÉ ═══ -->
+  <!-- ═══ PRODUIT : Offset couleur ═══ -->
   <div class="page"><div class="page-inner">
-    <div class="sur-titre">Impression</div>
-    <h1 class="titre">Couché brillant et mat</h1>
+    <h1 class="titre" style="font-size:2.6em">Offset couleur</h1>
     <div class="prod-corps">
-      <div class="prod-texte">
-        <p>Une ou plusieurs <b>couches de pigments</b> uniformisent la surface du papier : toucher, aspect et qualité d'impression améliorés.</p>
-        <p><b>Brillant</b> — la lumière se réfléchit, les couleurs éclatent.</p>
-        <p><b>Mat</b> — un rendu satiné, avec un soupçon de brillance.</p>
-        <div class="prod-logos"><img src="img/logo-condat.png" alt="Condat"></div>
-      </div>
-      <div class="prod-photo"><div class="ph" style="background-image:url('img/u-couche.jpg')"></div></div>
+      <div class="prod-texte"><p><b>Chemises et sous-chemises, intercalaires, dossiers, faire-part</b> : l'offset teinté dans la masse, en dizaines de coloris.</p><p>Pour les transformateurs de papeterie et les travaux créatifs.</p></div>
+      <div class="prod-photo"><div class="ph" style="background-image:url('img/u-offsetcouleur.jpg')"></div></div>
     </div>
     <table class="grille">
-      <thead><tr><th class="coin">Type<span class="unite">g/m²</span></th><th>80</th><th>90</th><th>115</th><th>135</th><th>170</th><th>200</th><th>250</th><th>300</th><th>350</th><th>380</th></tr></thead>
+      <thead><tr><th class="coin">Type<span class="unite">g/m²</span></th><th>65</th><th>70</th><th>80</th><th>90</th><th>95</th><th>160</th><th>180</th><th>240</th><th>250</th><th>350</th></tr></thead>
       <tbody>
-        <tr><td class="lab">Brillant</td><td class="x">—</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td></tr>
-        <tr><td class="lab">Brillant 1 face</td><td class="v">✓</td><td class="v">✓</td><td class="x">—</td><td class="x">—</td><td class="x">—</td><td class="x">—</td><td class="x">—</td><td class="x">—</td><td class="x">—</td><td class="x">—</td></tr>
-        <tr><td class="lab">Mat</td><td class="x">—</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td></tr>
+        <tr><td class="lab">Bobine</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td></tr>
+        <tr><td class="lab">Format</td><td class="x">—</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="x">—</td><td class="x">—</td><td class="x">—</td><td class="x">—</td></tr>
       </tbody>
     </table>
     <div class="pied"><img src="img/logo.png" alt=""><span class="num">07</span><span class="site">paper.prodi.com</span></div>
   </div></div>
 
-  <!-- ═══ 8. OFFSET ═══ -->
+  <!-- ═══ PRODUIT : Papier luxe ═══ -->
   <div class="page"><div class="page-inner">
-    <div class="sur-titre">Impression</div>
-    <h1 class="titre">Offset premium — preprint</h1>
+    <h1 class="titre" style="font-size:2.6em">Papier luxe</h1>
     <div class="prod-corps">
-      <div class="prod-texte">
-        <p>L'offset Premium est traité pour <b>résister à la chaleur et à l'humidité</b> de l'impression — mise sous pli rapide, même sur les machines les plus exigeantes.</p>
-        <p>Sa surface légèrement <b>rugueuse</b> est idéale pour le laser, le jet d'encre, le stylo ou le tampon.</p>
-        <div class="prod-logos"><img src="img/logo-storaenso.png" alt="Stora Enso"><img src="img/logo-05.png" alt="Lecta"></div>
-      </div>
-      <div class="prod-photo"><div class="ph" style="background-image:url('img/u-offsetcouleur.jpg')"></div></div>
+      <div class="prod-texte"><p><b>Couvertures, cartes, coffrets, étiquettes de création</b> : teintes, textures et finitions haut de gamme.</p><p>Pour vos identités visuelles, le packaging premium et l'édition d'exception.</p></div>
+      <div class="prod-photo"><div class="ph" style="background-image:url('img/u-creations.jpg')"></div></div>
     </div>
     <table class="grille">
-      <thead><tr><th class="coin">Type<span class="unite">g/m²</span></th><th>60</th><th>70</th><th>80</th><th>90</th><th>110</th><th>135</th><th>170</th><th>200</th><th>250</th><th>300</th><th>350</th></tr></thead>
+      <thead><tr><th class="coin">Type<span class="unite">g/m²</span></th><th>60</th><th>70</th><th>80</th><th>90</th><th>95</th><th>100</th><th>110</th><th>120</th><th>220</th><th>350</th></tr></thead>
       <tbody>
-        <tr><td class="lab">Offset</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="x">—</td><td class="x">—</td><td class="x">—</td><td class="x">—</td><td class="x">—</td><td class="x">—</td></tr>
-        <tr><td class="lab">Offset premium</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="x">—</td><td class="x">—</td><td class="x">—</td><td class="x">—</td><td class="x">—</td><td class="x">—</td></tr>
-        <tr><td class="lab">Premium preprint</td><td class="x">—</td><td class="x">—</td><td class="v">✓</td><td class="v">✓</td><td class="x">—</td><td class="x">—</td><td class="x">—</td><td class="x">—</td><td class="x">—</td><td class="x">—</td><td class="x">—</td></tr>
+        <tr><td class="lab">Bobine</td><td class="x">—</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="x">—</td><td class="v">✓</td></tr>
+        <tr><td class="lab">Format</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="x">—</td><td class="x">—</td><td class="x">—</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td></tr>
       </tbody>
     </table>
     <div class="pied"><img src="img/logo.png" alt=""><span class="num">08</span><span class="site">paper.prodi.com</span></div>
   </div></div>
 
-  <!-- ═══ 9. ADHÉSIF ═══ -->
+  <!-- ═══ PRODUIT : Carton couché ═══ -->
   <div class="page"><div class="page-inner">
-    <div class="sur-titre">Étiquettes</div>
-    <h1 class="titre">Adhésif</h1>
+    <h1 class="titre" style="font-size:2.6em">Carton couché</h1>
     <div class="prod-corps">
-      <div class="prod-texte">
-        <p>Un support papier ou synthétique, à <b>face verso adhésive</b> temporaire ou permanente.</p>
-        <p>Il adhère aux surfaces lisses, s'imprime et se découpe à la forme souhaitée — en numérique comme en offset.</p>
-        <div class="prod-logos"><img src="img/logo-11.png" alt="Adestor" style="max-height:3em;max-width:9em"></div>
-      </div>
-      <div class="prod-photo"><div class="ph" style="background-image:url('img/u-adhesif.jpg')"></div></div>
+      <div class="prod-texte"><p><b>Étuis pharma et cosmétique, boîtes alimentaires, PLV</b> : le carton de la boîte pliante.</p><p>Rigide, découpe et rainage nets, <b>couché une ou deux faces</b> pour un imprimé impeccable.</p></div>
+      <div class="prod-photo"><div class="ph" style="background-image:url('img/u-carton.jpg')"></div></div>
     </div>
     <table class="grille">
-      <thead><tr><th class="coin">Type</th><th>Super brillant</th><th>Brillant</th><th>Mat</th><th>Fluorescent</th></tr></thead>
-      <tbody><tr><td class="lab">Papier adhésif</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td></tr></tbody>
+      <thead><tr><th class="coin">Type<span class="unite">g/m²</span></th><th>245</th><th>250</th><th>265</th><th>275</th><th>290</th><th>300</th><th>325</th><th>350</th><th>390</th><th>400</th></tr></thead>
+      <tbody>
+        <tr><td class="lab">Bobine</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="x">—</td><td class="x">—</td></tr>
+        <tr><td class="lab">Format</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td></tr>
+      </tbody>
     </table>
     <div class="pied"><img src="img/logo.png" alt=""><span class="num">09</span><span class="site">paper.prodi.com</span></div>
   </div></div>
 
-  <!-- ═══ 10. AUTOCOPIANT ═══ -->
+  <!-- ═══ PRODUIT : Kraft pure pâte ═══ -->
   <div class="page"><div class="page-inner">
-    <div class="sur-titre">Liasses</div>
-    <h1 class="titre">Autocopiant</h1>
+    <h1 class="titre" style="font-size:2.6em">Kraft pure pâte</h1>
     <div class="prod-corps">
-      <div class="prod-texte">
-        <p>Écrire une fois, <b>copier plusieurs fois</b> : chaque feuille reporte le texte sur celles du dessous.</p>
-        <p>La copie naît d'une <b>réaction chimique</b> entre les couches complémentaires des feuilles — sans carbone.</p>
-        <div class="prod-logos"><img src="img/logo-12.png" alt="Gruppo Eurocopy"><span class="lt lt-rose" style="font-size:1.4em">Eurocalco</span></div>
-      </div>
-      <div class="prod-photo"><div class="ph" style="background-image:url('img/u-autocopiant.jpg')"></div></div>
+      <div class="prod-texte"><p><b>Sacs, sachets alimentaires, papier cadeau, emballage industriel</b> : des fibres longues vierges, résistantes même en grammages légers.</p><p>Brun ou blanchi, MG alimentaire, biodégradable — le papier des transformateurs d'emballage.</p></div>
+      <div class="prod-photo"><div class="ph" style="background-image:url('img/u-kraft.jpg')"></div></div>
     </div>
     <table class="grille">
-      <thead><tr><th class="coin">Type</th><th>Copy Back (CB)</th><th>Copy Front &amp; Back (CFB)</th><th>Copy Front (CF)</th></tr></thead>
+      <thead><tr><th class="coin">Type<span class="unite">g/m²</span></th><th>25</th><th>30</th><th>35</th><th>40</th><th>45</th><th>60</th><th>65</th><th>70</th><th>80</th><th>90</th></tr></thead>
       <tbody>
-        <tr><td class="lab">Blanc</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td></tr>
-        <tr><td class="lab">Couleurs <small>· bleu, jaune, vert, rouge</small></td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td></tr>
+        <tr><td class="lab">Bobine</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td></tr>
       </tbody>
     </table>
     <div class="pied"><img src="img/logo.png" alt=""><span class="num">10</span><span class="site">paper.prodi.com</span></div>
   </div></div>
 
-  <!-- ═══ 11. BRISTOL ═══ -->
+  <!-- ═══ PRODUIT : Autocopiant ═══ -->
   <div class="page"><div class="page-inner">
-    <div class="sur-titre">Cartonné</div>
-    <h1 class="titre">Bristol</h1>
+    <h1 class="titre" style="font-size:2.6em">Autocopiant</h1>
     <div class="prod-corps">
-      <div class="prod-texte">
-        <p>Un papier <b>cartonné, non couché, épais.</b></p>
-        <p>Cartes de visite, invitations, dessin, loisirs créatifs — à l'origine, des feuilles collées entre elles pour donner de l'épaisseur.</p>
-        <div class="astuce"><div class="barre-r"></div><div class="mot">Son nom vient de la ville de Bristol en Angleterre, où il était fabriqué originellement.</div></div>
-      </div>
-      <div class="prod-photo"><div class="ph" style="background-image:url('img/u-creations.jpg')"></div></div>
+      <div class="prod-texte"><p><b>Carnets de factures, bons de livraison, liasses administratives</b> : chaque feuillet reporte l'écriture sur les suivants.</p><p>CB, CFB, CF — la liasse <b>sans carbone</b> des imprimeurs de formulaires.</p></div>
+      <div class="prod-photo"><div class="ph" style="background-image:url('img/u-autocopiant.jpg')"></div></div>
     </div>
     <table class="grille">
-      <thead><tr><th class="coin">Type<span class="unite">g/m²</span></th><th>80</th><th>90</th><th>115</th><th>135</th><th>170</th><th>180</th><th>250</th><th>320</th><th>350</th><th>380</th></tr></thead>
+      <thead><tr><th class="coin">Type<span class="unite">g/m²</span></th><th>50</th><th>55</th><th>60</th><th>70</th><th>75</th><th>80</th><th>90</th></tr></thead>
       <tbody>
-        <tr><td class="lab">Blanc</td><td class="x">—</td><td class="x">—</td><td class="x">—</td><td class="x">—</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="x">—</td></tr>
-        <tr><td class="lab">Couleurs</td><td class="x">—</td><td class="x">—</td><td class="x">—</td><td class="x">—</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="x">—</td></tr>
+        <tr><td class="lab">Bobine</td><td class="v">✓</td><td class="v">✓</td><td class="x">—</td><td class="v">✓</td><td class="x">—</td><td class="v">✓</td><td class="v">✓</td></tr>
+        <tr><td class="lab">Format</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="x">—</td><td class="v">✓</td><td class="v">✓</td><td class="x">—</td></tr>
       </tbody>
     </table>
     <div class="pied"><img src="img/logo.png" alt=""><span class="num">11</span><span class="site">paper.prodi.com</span></div>
   </div></div>
 
-  <!-- ═══ 12. THERMIQUE ═══ -->
+  <!-- ═══ PRODUIT : Couché brillant et mat ═══ -->
   <div class="page"><div class="page-inner">
-    <div class="sur-titre">Tickets &amp; codes-barres</div>
-    <h1 class="titre">Thermique</h1>
+    <h1 class="titre" style="font-size:2.6em">Couché brillant et mat</h1>
     <div class="prod-corps">
-      <div class="prod-texte">
-        <p>Un papier imprégné de <b>composants thermosensibles</b> : la chaleur de la tête d'impression révèle le colorant. Sans encre, sans ruban.</p>
-        <p>Le papier des <b>tickets de caisse</b>, des étiquettes code-barres et des fax.</p>
-        <div class="chips-vert">
-          <div class="chip">Grammage thermique</div>
-          <div class="chip gris">De 48 g/m² à 110 g/m²</div>
-        </div>
-        <div class="astuce"><div class="barre-r"></div><div class="mot">Le papier thermique se colore par chauffage à la flamme.</div></div>
-      </div>
-      <div class="prod-photo">
-        <div class="ph" style="background-image:url('img/u-thermique.jpg')"></div>
-        <div class="prod-logos" style="justify-content:flex-end"><span class="lt lt-rouge" style="font-size:1.35em">THERMAX</span></div>
-      </div>
+      <div class="prod-texte"><p><b>Brochures, catalogues, affiches, flyers</b> : la surface couchée qui fait éclater la quadri.</p><p><b>Brillant</b> pour l'image qui claque, <b>mat</b> pour l'élégance satinée.</p></div>
+      <div class="prod-photo"><div class="ph" style="background-image:url('img/u-couche.jpg')"></div></div>
     </div>
+    <table class="grille">
+      <thead><tr><th class="coin">Type<span class="unite">g/m²</span></th><th>70</th><th>80</th><th>90</th><th>115</th><th>120</th><th>170</th><th>190</th><th>250</th><th>275</th><th>300</th></tr></thead>
+      <tbody>
+        <tr><td class="lab">Bobine</td><td class="x">—</td><td class="v">✓</td><td class="x">—</td><td class="v">✓</td><td class="x">—</td><td class="x">—</td><td class="x">—</td><td class="x">—</td><td class="x">—</td><td class="x">—</td></tr>
+        <tr><td class="lab">Format</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td></tr>
+      </tbody>
+    </table>
     <div class="pied"><img src="img/logo.png" alt=""><span class="num">12</span><span class="site">paper.prodi.com</span></div>
   </div></div>
 
-  <!-- ═══ 13. PHOTOCOPIE ═══ -->
+  <!-- ═══ PRODUIT : Bouffant ═══ -->
   <div class="page"><div class="page-inner">
-    <div class="sur-titre">Bureau</div>
-    <h1 class="titre">Photocopie</h1>
+    <h1 class="titre" style="font-size:2.6em">Bouffant</h1>
     <div class="prod-corps">
-      <div class="prod-texte">
-        <p><b>Blancheur éclatante · très bonne opacité · excellent passage machine.</b></p>
-        <p>Garanti pour laser, jet d'encre et copieurs à grande vitesse — le bon rapport qualité-prix du bureau.</p>
-        <div class="astuce"><div class="barre-r"></div><div class="mot">Papier valorisant la communication de votre entreprise.</div></div>
-      </div>
-      <div class="prod-photo"><div class="ph" style="background-image:url('img/u-ramette.jpg')"></div></div>
+      <div class="prod-texte"><p><b>Romans, livres de poche, ouvrages épais</b> : sa main élevée donne du volume au livre sans l'alourdir.</p><p>Toucher doux, belle opacité, encrage au noir parfait — le papier des éditeurs.</p></div>
+      <div class="prod-photo"><div class="ph" style="background-image:url('img/u-bouffant.jpg')"></div></div>
     </div>
     <table class="grille">
-      <thead><tr><th class="coin">Type</th><th>A0</th><th>A1</th><th>A2</th><th>A3</th><th>A4</th><th>A5</th></tr></thead>
+      <thead><tr><th class="coin">Type<span class="unite">g/m²</span></th><th>60</th><th>65</th><th>70</th><th>80</th><th>90</th><th>100</th><th>120</th></tr></thead>
       <tbody>
-        <tr><td class="lab">Grade A <small>· 75 – 80 – 90 g/m²</small></td><td class="x">—</td><td class="x">—</td><td class="x">—</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td></tr>
-        <tr><td class="lab">Grade B <small>· 80 g/m²</small></td><td class="x">—</td><td class="x">—</td><td class="x">—</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td></tr>
+        <tr><td class="lab">Bobine</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td></tr>
+        <tr><td class="lab">Format</td><td class="x">—</td><td class="x">—</td><td class="x">—</td><td class="v">✓</td><td class="x">—</td><td class="x">—</td><td class="x">—</td></tr>
       </tbody>
     </table>
     <div class="pied"><img src="img/logo.png" alt=""><span class="num">13</span><span class="site">paper.prodi.com</span></div>
   </div></div>
 
-  <!-- ═══ 14. CARTON (intro) ═══ -->
+  <!-- ═══ PRODUIT : Liner / Testliner ═══ -->
   <div class="page"><div class="page-inner">
-    <div class="sur-titre">Packaging</div>
-    <h1 class="titre">Carton</h1>
-    <div class="texte" style="margin-bottom:1.2em"><b>Léger, rigide, résistant.</b> Le carton est fait de fibres de cellulose, comme le papier — en plus épais et plus solide. La matière du packaging et de la belle boîte.</div>
+    <h1 class="titre" style="font-size:2.6em">Liner / Testliner</h1>
     <div class="prod-corps">
-      <div class="prod-photo" style="flex:1.5"><div class="ph" style="background-image:url('img/u-carton.jpg')"></div></div>
-      <div style="flex:.55;display:flex;flex-direction:column;justify-content:center;gap:2.2em;align-items:center;filter:grayscale(1) contrast(1.15);opacity:.92">
-        <span class="lt lt-noir" style="font-size:1.05em">GRAFOPACK</span>
-        <img src="img/logo-c2.png" style="max-height:2.6em;max-width:100%;object-fit:contain" alt="Metsä">
-        <img src="img/logo-c4.png" style="max-height:2.2em;max-width:100%;object-fit:contain" alt="CKB Nude">
-      </div>
+      <div class="prod-texte"><p><b>Caisses américaines, plateaux, carton ondulé</b> : couvertures et cannelures pour cartonniers et onduleurs.</p><p>La résistance au service de l'emballage et du transport.</p></div>
+      <div class="prod-photo"><div class="ph" style="background-image:url('img/couleur.jpg')"></div></div>
     </div>
+    <table class="grille">
+      <thead><tr><th class="coin">Type<span class="unite">g/m²</span></th><th>90</th><th>110</th><th>125</th><th>180</th><th>190</th><th>200</th><th>300</th></tr></thead>
+      <tbody>
+        <tr><td class="lab">Bobine</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td></tr>
+      </tbody>
+    </table>
     <div class="pied"><img src="img/logo.png" alt=""><span class="num">14</span><span class="site">paper.prodi.com</span></div>
   </div></div>
 
-  <!-- ═══ 15. CARTON (structures) ═══ -->
+  <!-- ═══ PRODUIT : Édition — journal &amp; LWC ═══ -->
   <div class="page"><div class="page-inner">
-    <div class="sur-titre">Les structures</div>
-    <h1 class="titre">Carton</h1>
-    <div class="structures">
-      <div class="structure"><h4>GD2</h4><div class="couches">
-        <div class="couche"><span class="barre r" style="width:38%"></span><span class="lib">Double couche</span></div>
-        <div class="couche"><span class="barre g" style="width:34%"></span><span class="lib">Papier de récupération blanc sélectionné</span></div>
-        <div class="couche"><span class="barre g" style="width:30%"></span><span class="lib">Papier de récupération sélectionné</span></div>
-        <div class="couche"><span class="barre g" style="width:26%"></span><span class="lib">Papier de récupération sélectionné</span></div>
-        <div class="couche"><span class="barre r" style="width:22%"></span><span class="lib">« Pigmentation »</span></div>
-      </div></div>
-      <div class="structure"><h4>GT2</h4><div class="couches">
-        <div class="couche"><span class="barre r" style="width:38%"></span><span class="lib">Triple couche pigmentée</span></div>
-        <div class="couche"><span class="barre g" style="width:34%"></span><span class="lib">Pâte chimique « unprinted PIW »</span></div>
-        <div class="couche"><span class="barre g" style="width:30%"></span><span class="lib">Pâte mécanique</span></div>
-        <div class="couche"><span class="barre g" style="width:26%"></span><span class="lib">Pâte chimique « unprinted PIW »</span></div>
-        <div class="couche"><span class="barre r" style="width:22%"></span><span class="lib">« Pigmentation »</span></div>
-      </div></div>
-      <div class="structure"><h4>GC2</h4><div class="couches">
-        <div class="couche"><span class="barre r" style="width:38%"></span><span class="lib">Double couche pigmentée</span></div>
-        <div class="couche"><span class="barre g" style="width:34%"></span><span class="lib">Pâte chimique blanchie</span></div>
-        <div class="couche"><span class="barre g" style="width:30%"></span><span class="lib">Pâte mécanique</span></div>
-        <div class="couche"><span class="barre g" style="width:26%"></span><span class="lib">Pâte chimique blanchie</span></div>
-        <div class="couche"><span class="barre r" style="width:22%"></span><span class="lib">Pigmentation</span></div>
-      </div></div>
-      <div class="structure"><h4>GC1</h4><div class="couches">
-        <div class="couche"><span class="barre r" style="width:38%"></span><span class="lib">Double couche · Pâte chimique blanchie</span></div>
-        <div class="couche"><span class="barre g" style="width:34%"></span><span class="lib">Pâte mécanique</span></div>
-        <div class="couche"><span class="barre g" style="width:30%"></span><span class="lib">Pâte chimique blanchie</span></div>
-        <div class="couche"><span class="barre g" style="width:26%"></span><span class="lib">Simple couche</span></div>
-      </div></div>
-      <div class="structure"><h4>GZ</h4><div class="couches">
-        <div class="couche"><span class="barre g" style="width:38%"></span><span class="lib">Double ou triple couche</span></div>
-        <div class="couche"><span class="barre g" style="width:32%"></span><span class="lib">Pâte chimique blanchie</span></div>
-        <div class="couche"><span class="barre g" style="width:26%"></span><span class="lib">Simple ou double couche</span></div>
-      </div></div>
+    <h1 class="titre" style="font-size:2.6em">Édition — journal &amp; LWC</h1>
+    <div class="prod-corps">
+      <div class="prod-texte"><p><b>Quotidiens, prospectus, presse gratuite</b> : le journal, très opaque, sèche vite sur rotative.</p><p><b>Magazines et catalogues VPC</b> : le LWC, léger et couché, pour la quadri à grande vitesse.</p></div>
+      <div class="prod-photo"><div class="ph" style="background-image:url('img/presse_internationale.webp')"></div></div>
     </div>
-    <table class="grille" style="font-size:.67em">
-      <thead><tr><th class="coin">Type<span class="unite">g/m²</span></th><th>140</th><th>160</th><th>180</th><th>200</th><th>220</th><th>250</th><th>265</th><th>280</th><th>300</th><th>310</th><th>325</th><th>350</th><th>375</th><th>400</th><th>425</th><th>475</th></tr></thead>
-      <tbody><tr><td class="lab">Carton</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td></tr></tbody>
+    <table class="grille">
+      <thead><tr><th class="coin">Type<span class="unite">g/m²</span></th><th>50</th><th>55</th><th>60</th><th>65</th><th>70</th><th>75</th><th>80</th></tr></thead>
+      <tbody>
+        <tr><td class="lab">Bobine</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td></tr>
+      </tbody>
     </table>
     <div class="pied"><img src="img/logo.png" alt=""><span class="num">15</span><span class="site">paper.prodi.com</span></div>
   </div></div>
 
-  <!-- ═══ 16. KRAFT (intro) ═══ -->
+  <!-- ═══ PRODUIT : Adhésif ═══ -->
   <div class="page"><div class="page-inner">
-    <div class="sur-titre">Emballage</div>
-    <h1 class="titre">Kraft pure pâte</h1>
-    <div class="texte" style="margin-bottom:1.2em">
-      <p>Des <b>fibres longues vierges</b>, une résistance élevée même dans les grammages légers.</p>
-      <p>Écru ou blanchi, biodégradable et compostable : <b>l'un des meilleurs papiers d'emballage.</b></p>
-    </div>
+    <h1 class="titre" style="font-size:2.6em">Adhésif</h1>
     <div class="prod-corps">
-      <div class="prod-photo" style="flex:1.5"><div class="ph" style="background-image:url('img/u-kraft.jpg')"></div></div>
-      <div style="flex:.55;display:flex;flex-direction:column;justify-content:center;gap:2em;align-items:center;filter:grayscale(1) contrast(1.15);opacity:.92">
-        <span class="lt lt-noir" style="font-size:1.05em;font-style:italic">starkraft</span>
-        <img src="img/logo-k1.png" style="max-height:2em;max-width:100%;object-fit:contain" alt="Smurfit Kappa">
-        <img src="img/logo-k3.png" style="max-height:2.4em;max-width:100%;object-fit:contain" alt="Mondi">
-        <img src="img/logo-k5.png" style="max-height:2em;max-width:100%;object-fit:contain" alt="Nordic Paper">
-      </div>
+      <div class="prod-texte"><p><b>Étiquettes vin et alimentaire, logistique, stickers</b> : le support à face adhésive, temporaire ou permanente.</p><p>S'imprime et se découpe à la forme, en numérique comme en offset.</p></div>
+      <div class="prod-photo"><div class="ph" style="background-image:url('img/u-adhesif.jpg')"></div></div>
     </div>
+    <table class="grille">
+      <thead><tr><th class="coin">Type<span class="unite">g/m²</span></th><th>50</th><th>80</th><th>90</th><th>100</th><th>125</th></tr></thead>
+      <tbody>
+        <tr><td class="lab">Bobine</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="x">—</td></tr>
+        <tr><td class="lab">Format</td><td class="x">—</td><td class="v">✓</td><td class="x">—</td><td class="x">—</td><td class="v">✓</td></tr>
+      </tbody>
+    </table>
     <div class="pied"><img src="img/logo.png" alt=""><span class="num">16</span><span class="site">paper.prodi.com</span></div>
   </div></div>
 
-  <!-- ═══ 17. KRAFT (grilles) ═══ -->
+  <!-- ═══ PRODUIT : Ramette ═══ -->
   <div class="page"><div class="page-inner">
-    <div class="sur-titre">Emballage</div>
-    <h1 class="titre">Kraft pure pâte</h1>
-    <div class="prod-corps" style="align-items:center">
-      <div class="prod-texte">
-        <div class="astuce" style="margin-top:0"><div class="barre-r"></div><div class="mot" style="font-size:1.25em">Saviez-vous que le mot kraft signifie « force » en suédois ?</div></div>
-      </div>
-      <div class="prod-photo" style="flex:.7;align-self:center"><img src="img/panda.png" alt="" style="width:38%;margin:0 auto;mix-blend-mode:multiply"></div>
+    <h1 class="titre" style="font-size:2.6em">Ramette</h1>
+    <div class="prod-corps">
+      <div class="prod-texte"><p><b>Reprographie, bureautique, mailing</b> : la ramette prête à l'emploi.</p><p>Blancheur, opacité, passage machine irréprochable — laser et jet d'encre.</p></div>
+      <div class="prod-photo"><div class="ph" style="background-image:url('img/u-creme.jpg')"></div></div>
     </div>
     <table class="grille">
-      <thead><tr><th class="coin">Type</th><th>Brun vergé <small>· MG alimentaire</small></th><th>Blanchi <small>· MG alimentaire</small></th><th>Blanchi MF</th><th>Brun MF</th></tr></thead>
-      <tbody><tr><td class="lab">Kraft</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td></tr></tbody>
-    </table>
-    <table class="grille" style="font-size:.65em;margin-top:.6em">
-      <thead><tr><th class="coin">Type<span class="unite">g/m²</span></th><th>30</th><th>32</th><th>35</th><th>38</th><th>40</th><th>45</th><th>50</th><th>60</th><th>70</th><th>80</th><th>90</th><th>100</th><th>110</th><th>120</th><th>130</th><th>140</th><th>160</th></tr></thead>
-      <tbody><tr><td class="lab">Kraft</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td></tr></tbody>
+      <thead><tr><th class="coin">Type<span class="unite">g/m²</span></th><th>80</th><th>160</th></tr></thead>
+      <tbody>
+        <tr><td class="lab">Format</td><td class="v">✓</td><td class="v">✓</td></tr>
+      </tbody>
     </table>
     <div class="pied"><img src="img/logo.png" alt=""><span class="num">17</span><span class="site">paper.prodi.com</span></div>
-  </div></div>
-
-  <!-- ═══ 18. ÉDITION ═══ -->
-  <div class="page"><div class="page-inner">
-    <div class="sur-titre">Presse &amp; livres</div>
-    <h1 class="titre">Papier d'édition</h1>
-    <div class="colonnes">
-      <div class="colonne">
-        <h3>Offset</h3>
-        <p>Le papier classique du texte, noir et blanc ou couleur. Polyvalent, c'est celui des livres de poche, romans et ouvrages épais.</p>
-        <h3>Couché</h3>
-        <p>Lisse et blanc, il absorbe moins l'encre et offre un meilleur rendu des couleurs. Généralement à partir de 115 g/m².</p>
-      </div>
-      <div class="colonne">
-        <h3>Journal</h3>
-        <div class="ph"></div>
-        <p>Fabriqué à grande vitesse — <b>80 % de pâte mécanique, 20 % de pâte chimique.</b></p>
-        <p>Très opaque, il absorbe l'encre et sèche vite. Le papier des quotidiens.</p>
-        <div class="chips-vert">
-          <div class="chip gris">45 g/m² <i>standard</i></div>
-          <div class="chip gris">48.8 g/m² <i>standard</i></div>
-          <div class="chip gris">55 g/m² <i>amélioré</i></div>
-        </div>
-      </div>
-      <div class="colonne">
-        <h3>LWC</h3>
-        <p><b>Light-weight coated</b> : moins de 80 g/m², couché en ligne, une fine couche en surface.</p>
-        <div class="astuce"><div class="barre-r"></div><div class="mot">Le papier léger des magazines, catalogues et publicités de qualité.</div></div>
-      </div>
-    </div>
-    <div class="pied"><img src="img/logo.png" alt=""><span class="num">18</span><span class="site">paper.prodi.com</span></div>
-  </div></div>
-
-  <!-- ═══ 19. POLYART ═══ -->
-  <div class="page"><div class="page-inner">
-    <div class="sur-titre">Technique</div>
-    <h1 class="titre">Synthétique Polyart®</h1>
-    <div class="prod-corps">
-      <div class="prod-texte">
-        <p>Un film de polyéthylène haute densité, <b>couché deux faces.</b></p>
-        <p><b>L'aspect du papier, la résistance du plastique</b> : il s'imprime comme un couché mat haut de gamme et supporte les conditions les plus difficiles.</p>
-        <div class="prod-logos"><img src="img/logo-arjobex.png" alt="Arjobex"></div>
-      </div>
-      <div class="prod-photo"><div class="ph" style="background-image:url('img/u-polyart.jpg')"></div></div>
-    </div>
-    <table class="grille">
-      <thead><tr><th class="coin">Type<span class="unite">g/m²</span></th><th>75</th><th>90</th><th>140</th><th>170</th><th>285</th></tr></thead>
-      <tbody><tr><td class="lab">Polyart®</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td><td class="v">✓</td></tr></tbody>
-    </table>
-    <div class="pied"><img src="img/logo.png" alt=""><span class="num">19</span><span class="site">paper.prodi.com</span></div>
   </div></div>
 
   <!-- ═══ 20. DOS ═══ -->
@@ -692,7 +567,7 @@
     <div class="coords">
       <div>
         Siège &amp; service commercial — Ivry-sur-Seine<br>
-        Dépôt &amp; plateforme logistique — Saint-Ouen
+        Dépôt &amp; plateforme logistique — Amiens
       </div>
       <div style="text-align:right">
         contact@prodi.com<br>
@@ -733,11 +608,15 @@
   // du gabarit → on décale le bloc pour que la page visible soit CENTRÉE.
   const bookEl = document.getElementById("book");
   bookEl.style.transition = "transform .7s ease";
+  const pli = document.createElement("div");
+  pli.id = "pli";
+  bookEl.appendChild(pli);
   function centrer(idx) {
     let tx = 0;
     if (idx === 0) tx = -25;
     else if (idx >= total - 1) tx = 25;
     bookEl.style.transform = `translateX(${tx}%)`;
+    pli.style.display = (idx === 0 || idx >= total - 1) ? "none" : "block";
   }
   centrer(0);
   flip.on("flip", (e) => {
