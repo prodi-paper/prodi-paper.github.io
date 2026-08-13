@@ -998,3 +998,15 @@ en « format » (à corriger à la source Sage).
   `recap-card` — icône Excel + « Votre liste est prête » + bouton « Télécharger
   le Excel » (ferme après download), ✕/clic dehors pour passer. Traqueur
   `shared_excel_popup`. catalogue.css v731, catalogue.js v733.
+
+## Plaquette flipbook /plaquette/ (13/08/2026)
+
+Page autonome `plaquette/index.html` (+ `plaquette/img/`, 36 images ~4 Mo) :
+plaquette commerciale 20 pages effet tourne-page (lib StPageFlip CDN),
+inspirée du catalogue Pack N Pap mais rebrandée charte site (rouge #FE0000,
+Bebas + DM Sans, épuré Apple). Couverture crème + texture papier
+(feDiffuseLighting) + logo sortant d'une bande déchirée (clip-path), pages
+intérieures blanches, grilles hairline, photos = tuiles Unsplash du site +
+presse_internationale. Livre fermé recentré (translateX ±25% sur cover/dos).
+Source de travail : ~/Code/prodi_plaquette (copie synchronisée à la main).
+Reste à faire : vraies adresses/tél au dos, bouton Télécharger PDF.
