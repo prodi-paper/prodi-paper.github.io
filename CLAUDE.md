@@ -1021,3 +1021,16 @@ sous 5 t la qualité n'apparaît pas (queues de stock RTIS/SENV/SPLA…).
 Motif : ~670 t étaient invisibles (RLINER 125 t, RFLEX, RNEW, RLWC, SCUT,
 RSIL, SSBS…). Toute nouvelle qualité entrant en stock apparaît seule.
 Test : /tmp/cdp_offre_dyn.mjs (dump `_offresData()` headless). v734.
+
+## Header catalogue ÉPURÉ — menu Outils (13/08/2026)
+
+`catalogue/index.html` (bloc <style>+<script> inline après </header>) : Album
+photo / Usine / Offre / Réf article-Max sont REPARENTÉS au chargement dans un
+panneau déroulant unique ouvert par un bouton ICÔNE rond (lignes+chevron,
+`#outils-btn`) à droite du header — il ne reste que le logo (+ Partager quand
+une liste existe). Lignes plates avec filets, ids/handlers d'origine intacts
+(toggleOffreMenu etc. marchent dans le panneau). TOUTES largeurs (mobile
+compris) sauf vue client ?s=/share= (early return). Pièges réglés à coups de
+!important ciblés : margin-left 32px de .header-search-group (css:832),
+min-width intrinsèque des input number, pilules du bloc media mobile sur
+#fab-btn/#offre-btn.
