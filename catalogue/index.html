@@ -225,6 +225,76 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
   </div>
 </header>
 
+<!-- Header ÉPURÉ desktop (13/08) : Album photo / Usine / Offre / Réf article-Max
+     regroupés dans UN menu « Outils » (reparentage JS → tous les ids et
+     handlers existants continuent de marcher). Mobile et vue client ?s=
+     gardent le header d'origine. -->
+<style>
+  .outils-wrap{position:relative}
+  #outils-btn{
+    width:38px;height:38px;padding:0 !important;border-radius:999px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  #outils-btn svg{transition:transform .2s}
+  .outils-wrap.open #outils-btn svg{transform:rotate(180deg)}
+  #outils-panel{
+    display:none;position:absolute;top:calc(100% + 10px);right:0;z-index:1200;
+    background:#fff;border-radius:20px;box-shadow:0 12px 40px rgba(0,0,0,.18);
+    padding:8px;width:300px;flex-direction:column;
+  }
+  .outils-wrap.open #outils-panel{display:flex}
+  /* Réf article / Max en tête du menu */
+  #outils-panel .header-search-group{position:static !important;left:auto !important;display:block !important;width:100%;box-sizing:border-box;margin:0 !important;padding:8px 8px 12px;border-bottom:1px solid #e8e8e4}
+  #outils-panel .header-search-group *{box-sizing:border-box}
+  #outils-panel .header-search{display:flex;gap:8px;width:100% !important;max-width:100% !important;flex:none !important;margin:0 !important}
+  #outils-panel .header-search input{flex:1 1 50% !important;width:auto !important;min-width:0 !important}
+  /* Album photo / Usine / Offre = lignes plates de menu, plus de pilules */
+  #outils-panel .offre-wrap{display:block;width:100%;position:relative}
+  #outils-panel .offre-wrap + .offre-wrap{border-top:1px solid #e8e8e4}
+  #outils-panel .btn-head,
+  #outils-panel #album-btn, #outils-panel #fab-btn, #outils-panel #offre-btn{
+    width:100% !important;display:flex !important;align-items:center !important;
+    justify-content:space-between !important;
+    background:none !important;border:none !important;box-shadow:none !important;
+    border-radius:12px !important;height:auto !important;padding:13px 12px !important;
+    margin:0 !important;cursor:pointer;
+  }
+  #outils-panel .btn-head:hover{background:#f5f5f3 !important}
+  #outils-panel .btn-head .offre-txt{font-size:15.5px !important;font-weight:600 !important;color:#1d1d1f !important}
+  #outils-panel .offre-arrow{color:#86868b !important}
+  #outils-panel .offre-wrap{margin:0 !important;width:100% !important}
+</style>
+<script>
+(function(){
+  if (/[?&](s|share)=/.test(location.search)) return; // vue client : header déjà épuré
+  var hr = document.querySelector('.hright');
+  var cart = hr && hr.querySelector('.cart-wrap');
+  var sg = document.querySelector('.header-search-group');
+  if (!hr || !cart || !sg) return;
+  var wrap = document.createElement('div');
+  wrap.className = 'outils-wrap';
+  wrap.id = 'outils-wrap';
+  wrap.innerHTML = '<button class="btn-head" id="outils-btn" title="Recherche par réf, album photo, offres usine et stock" aria-label="Menu outils">' +
+    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="13" y2="17"/><path d="m16 15 3 3 3-3" transform="translate(-2 -1)"/></svg>' +
+    '</button><div id="outils-panel"></div>';
+  hr.insertBefore(wrap, cart);
+  var panel = wrap.querySelector('#outils-panel');
+  sg.removeAttribute('style');
+  panel.appendChild(sg);
+  ['album-wrap', 'fab-wrap', 'offre-wrap'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) panel.appendChild(el);
+  });
+  document.getElementById('outils-btn').onclick = function(e){
+    e.stopPropagation();
+    wrap.classList.toggle('open');
+  };
+  document.addEventListener('click', function(e){
+    if (!wrap.contains(e.target)) wrap.classList.remove('open');
+  });
+})();
+</script>
+
 <h1 style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;">Catalogue stock papier &amp; carton — Prodiconseil</h1>
 
 <!-- ── FILTER BAR ── -->
