@@ -33,11 +33,11 @@
     #barre{margin-top:6px;font-size:13px;gap:22px}
     #barre button{width:56px;height:56px;font-size:26px}
   }
-  /* Pages portrait (mobile) : la page Contact remplit la hauteur */
+  /* Pages portrait (mobile) : contenus répartis dans la hauteur, cartes normales */
   @media (max-width:768px){
     .lieux{align-items:stretch !important}
-    .lieux > div{justify-content:center !important;gap:2.6em !important}
-    .lieu{flex:1 !important}
+    .lieux > div{justify-content:space-evenly !important;gap:0 !important}
+    .lieu{flex:0 0 auto !important;padding:3.2em 2.4em !important}
   }
   #book{width:100%;height:100%}
 
