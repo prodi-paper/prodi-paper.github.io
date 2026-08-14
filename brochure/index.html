@@ -27,7 +27,7 @@
     overflow:hidden;
     display:flex;flex-direction:column;align-items:center;justify-content:center;
   }
-  #book-wrap{width:min(96vw,1725px);height:min(90vh,900px);display:flex;align-items:center;justify-content:center}
+  #book-wrap{width:min(97vw,1810px);height:min(92vh,945px);display:flex;align-items:center;justify-content:center}
   @media (max-width:768px){
     #book-wrap{width:calc(100vw - 24px);height:86vh}
     #barre{margin-top:6px;font-size:13px;gap:22px}
@@ -604,8 +604,8 @@
   const flip = new St.PageFlip(document.getElementById("book"), {
     width: 780, height: PAGE_H,
     size: "stretch",
-    minWidth: 300, maxWidth: 900,
-    minHeight: 300, maxHeight: MOBILE ? PAGE_H : 900,
+    minWidth: 300, maxWidth: 945,
+    minHeight: 300, maxHeight: MOBILE ? PAGE_H : 945,
     showCover: true,
     maxShadowOpacity: 0.3,
     flippingTime: 800,
