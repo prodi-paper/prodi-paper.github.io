@@ -1056,3 +1056,11 @@ pages) autorisent googletagmanager.com (script), googleads.g.doubleclick.net,
 google.com/google.fr, stats.g.doubleclick.net (img+connect). Sert au suivi
 des conversions des campagnes (campagne « Maghreb » PMax). Actions de
 conversion pas encore définies — le tag de base collecte déjà.
+
+## Page /confidentialite/ (16/08/2026)
+
+Politique de confidentialité RGPD-lite (gabarit souspage, styles scoped
+.leg-*) créée comme prérequis du FORMULAIRE DE LEAD Google Ads (URL de
+politique obligatoire). Lien « Confidentialité » ajouté au ft2-bottom de
+44 pages + sitemap (priority 0.3). Contenu : formulaires site + lead forms
+Google, analytics maison, balise Google Ads, droits RGPD → contact@prodi.com.
