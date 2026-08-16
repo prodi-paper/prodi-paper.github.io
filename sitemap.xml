@@ -264,4 +264,9 @@
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
+  <url>
+    <loc>https://paper.prodi.com/confidentialite/</loc>
+    <lastmod>2026-08-16</lastmod>
+    <priority>0.3</priority>
+  </url>
 </urlset>
