@@ -795,7 +795,10 @@ html,body{overflow-x:clip;}
 
 /* ── MOBILE FILTER DRAWER ── */
 #filter-drawer{position:fixed;bottom:0;left:0;right:0;height:90vh;background:var(--white);z-index:var(--z-drawer);border-radius:16px 16px 0 0;box-shadow:0 -8px 40px rgba(0,0,0,.2);transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;}
-#filter-drawer.open{transform:translateY(0);}
+/* .open = transform:none (PAS translateY(0)) : tout transform ≠ none fait du
+   tiroir le containing block des .msd-panel position:fixed → panneaux décalés
+   sous la page et rognés par .fd-body (bug listes déroulantes mobile, 16/08). */
+#filter-drawer.open{transform:none;}
 .fd-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:10px auto 6px;}
 .fd-head{padding:10px 16px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 .fd-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;}
