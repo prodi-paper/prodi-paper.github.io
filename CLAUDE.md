@@ -1034,3 +1034,25 @@ compris) sauf vue client ?s=/share= (early return). Pièges réglés à coups de
 !important ciblés : margin-left 32px de .header-search-group (css:832),
 min-width intrinsèque des input number, pilules du bloc media mobile sur
 #fab-btn/#offre-btn.
+
+## Fix listes déroulantes filtres MOBILE (16/08/2026, poussé 6b9298d1)
+
+Les `.msd-panel` (position:fixed, z 2000) du tiroir filtres téléphone
+s'affichaient sous la page, invisibles : `#filter-drawer.open` gardait
+`transform:translateY(0)`, et tout transform ≠ none fait du tiroir le
+**containing block** des fixed à l'intérieur (coordonnées viewport de
+toggleMsd appliquées relatives au tiroir + rognage par `.fd-body`
+overflow-y:auto). Fix : `.open{transform:none}` (catalogue.css:801) — la
+transition none⇄translateY(100%) s'anime toujours (none = identité).
+Desktop jamais touché (msd dans la sidebar, pas d'ancêtre transformé).
+catalogue.css?v=731→732. ⚠️ Ne jamais remettre un transform « au repos »
+sur un conteneur de .msd-panel.
+
+## Tag Google Ads (16/08/2026)
+
+Balise gtag AW-18393110999 (compte Google Ads Prodi 574-605-3998, balise
+GT-MKPCGLK9) posée en tête de `<head>` des 48 pages HTML. Les CSP (45
+pages) autorisent googletagmanager.com (script), googleads.g.doubleclick.net,
+google.com/google.fr, stats.g.doubleclick.net (img+connect). Sert au suivi
+des conversions des campagnes (campagne « Maghreb » PMax). Actions de
+conversion pas encore définies — le tag de base collecte déjà.
