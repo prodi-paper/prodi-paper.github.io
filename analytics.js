@@ -59,7 +59,16 @@
       .filter(Boolean).join('/').slice(0, 200);
   }
 
+  // Événements métier reflétés vers Google Ads (balise AW du <head>) pour les
+  // conversions des campagnes. Jamais pour l'équipe interne.
+  var ADS_EVENTS = { devis_envoye: 1, contact_envoye: 1, whatsapp_click: 1, tel_click: 1, email_click: 1 };
+
   function send(event, props) {
+    try {
+      if (!interne && ADS_EVENTS[event] && typeof window.gtag === 'function') {
+        window.gtag('event', event, { send_to: 'AW-18393110999' });
+      }
+    } catch (e) { /* jamais bloquant */ }
     try {
       var body = JSON.stringify({
         visitor_id: visitorId,
