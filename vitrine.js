@@ -249,7 +249,10 @@ window._tsInit=function(){
     const btn=form.querySelector('button[type="submit"]')||form.lastElementChild;
     btn.parentNode.insertBefore(div,btn);
     _tsIds[fid]=turnstile.render(div,{sitekey:TS_KEY,size:'flexible',appearance:'interaction-only',language:'fr',
-      'error-callback':()=>{try{turnstile.reset(_tsIds[fid]);}catch(_){}},
+      theme:'light', // jamais le pavé sombre (suivait le dark mode du navigateur)
+      callback:()=>{div.style.display='none';}, // succès → on redevient invisible
+      'expired-callback':()=>{div.style.display='';},
+      'error-callback':()=>{div.style.display='';try{turnstile.reset(_tsIds[fid]);}catch(_){}},
       'timeout-callback':()=>{try{turnstile.reset(_tsIds[fid]);}catch(_){}}});
   });
 };
