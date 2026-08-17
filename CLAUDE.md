@@ -1135,7 +1135,20 @@ politique obligatoire). Lien « Confidentialité » ajouté au ft2-bottom de
 44 pages + sitemap (priority 0.3). Contenu : formulaires site + lead forms
 Google, analytics maison, balise Google Ads, droits RGPD → contact@prodi.com.
 
-## 17/08/2026 — formats resserrés + partage sobre (3637bdff, v735)
+## 17/08/2026 soir — header desktop direct + retouches barre (css v735)
+
+- **Menu « Outils » réservé au TÉLÉPHONE** (≤768px, early return sur innerWidth
+  dans le bloc inline de catalogue/index.html) : sur ordinateur Album photo /
+  Usine / Offre / Réf article-Max sont redevenus des boutons DIRECTS du header
+  (demande Ethan : « c'était juste pour le téléphone »).
+- **« Album photo » en noir** #1d1d1f comme Usine/Offre (il héritait du gris
+  .btn-head → paraissait « pas gras »). ⚠️ règle posée dans le bloc DESKTOP
+  @media(min-width:769px) ~l.2327 — premier essai dans le bloc mobile = piège
+  classique des deux blocs dupliqués.
+- Boutons **+ / tri** de la barre produits abaissés de 8px (translate -5px → 3px,
+  #add-page-btn, #tb-sort .tb-sort-btn, #tb-tons).
+
+## 17/08/2026 — formats resserrés + partage sobre (3637bdff, v735 ancien)
 
 - `FORMAT_TOL` 50 → 20 mm (catalogue.js) : à ±50, la famille « 520 × 720 » avalait
   du 480×765 et du 555×750. Ne pas ré-élargir sans regarder les regroupements réels.
