@@ -877,8 +877,8 @@ function rowToUi(r){
   })();
   // Split Couleur (RCOL/SCOL) into Offset vs Dossier per COULEUR_SPLIT.threshold
   const _typeLabel=(()=>{
-    if(COULEUR_SPLIT.codes.includes(quality)&&gsm!=null)
-      return gsm<COULEUR_SPLIT.threshold?COULEUR_SPLIT.offsetLabel:COULEUR_SPLIT.dossierLabel;
+    if(COULEUR_SPLIT.codes.includes(quality))
+      return COULEUR_SPLIT.offsetLabel; // RCOL unifié 17/08 : plus de scission par grammage
     return Object.entries(TYPE_MAP).find(([,v])=>v.includes(quality))?.[0]||'';
   })();
   const name=_detMain||[_typeLabel,simplCouleur(color)].filter(Boolean).join(' — ')||(ref&&!ref.startsWith('Photo_')?ref:'Produit');
@@ -946,7 +946,7 @@ async function init(){
   // Hardcoded filter options — Couleur replaced by Offset Couleur + Dossier Couleur
   const couleurVals=['Blanc','Très blanc','Blanc nature','Brun','Crème','Ivoire','Gris','Noir','Transparent','Vert','Rouge','Bleu','Jaune','Orange','Argent','Rose','Or','Violet','Autres'];
   // Format « CODE — Famille » (validé Ethan 21/07, retour à l'original).
-  const _typeLabel=v=>v===COULEUR_SPLIT.offsetLabel?`RCOL — ${QUALITE_LABELS[v]} <span class="msd-hint">&lt;&nbsp;${COULEUR_SPLIT.threshold}&nbsp;g/m²</span>`:v===COULEUR_SPLIT.dossierLabel?`RCOL — ${QUALITE_LABELS[v]} <span class="msd-hint">≥&nbsp;${COULEUR_SPLIT.threshold}&nbsp;g/m²</span>`:`${v} — ${QUALITE_LABELS[v]||v}`;
+  const _typeLabel=v=>`${v} — ${QUALITE_LABELS[v]||v}`; // RCOL unifié 17/08 (plus de scission Offset/Dossier)
   const _typeOrd=v=>{const i=_TYPE_ORDRE_USUEL.indexOf(v);return i===-1?999:i;};
   const _typesTries=[...QUALITE_CODES].sort((a,b)=>(_typeOrd(a)-_typeOrd(b))||String(a).localeCompare(String(b)));
   buildMsdOptions('msd-type',_typesTries,'Tous',_typeLabel);
@@ -959,8 +959,14 @@ async function init(){
   buildMsdOptions('sb-msd-format',FORMAT_OPTIONS,'Dimensions',v=>v===FORMAT_AUTRES?'Autres dimensions':v,'msd-format');
   buildMsdOptions('sb-msd-grammage',GRAMMAGE_OPTIONS,'Grammages',v=>v===GRAMMAGE_AUTRES?'Autres grammages':v,'msd-grammage');
   _buildGrammageSlider('sb-msd-grammage');
+  // Accordéon Grammages (17/08) : le bouton déplie/replie le curseur dans la carte
+  (function(){
+    const g=document.getElementById('sb-msd-grammage');
+    const btn=g&&g.querySelector('.msd-btn');
+    if(btn){btn.setAttribute('onclick','');btn.onclick=e=>{e.stopPropagation();g.classList.toggle('gsl-open');};}
+  })();
   buildMsdOptions('sb-msd-laize',LAIZE_OPTIONS,'Laizes',v=>v===LAIZE_AUTRES?'Autres laizes':v,'msd-laize');
-  buildMsdOptions('sb-msd-diametre',DIAM_OPTIONS,'Diamètre (Ø)',v=>v===DIAM_AUTRES?'Autres Ø':v,'msd-diametre');
+  buildMsdOptions('sb-msd-diametre',DIAM_OPTIONS,'Diamètre',v=>v===DIAM_AUTRES?'Autres Ø':v,'msd-diametre');
   buildMsdOptions('sb-msd-poids',POIDS_OPTIONS,'Poids','msd-poids'===''?null:undefined,'msd-poids');
 
   // Also build mobile msd panels (msd-type-mob, msd-mandrin-mob, msd-couleur-mob)
@@ -971,7 +977,7 @@ async function init(){
   buildMsdOptions('msd-grammage-mob',GRAMMAGE_OPTIONS,'Grammages',v=>v===GRAMMAGE_AUTRES?'Autres grammages':v,'msd-grammage');
   _buildGrammageSlider('msd-grammage-mob');
   buildMsdOptions('msd-laize-mob',LAIZE_OPTIONS,'Laizes',v=>v===LAIZE_AUTRES?'Autres laizes':v,'msd-laize');
-  buildMsdOptions('msd-diametre-mob',DIAM_OPTIONS,'Diamètre (Ø)',v=>v===DIAM_AUTRES?'Autres Ø':v,'msd-diametre');
+  buildMsdOptions('msd-diametre-mob',DIAM_OPTIONS,'Diamètre',v=>v===DIAM_AUTRES?'Autres Ø':v,'msd-diametre');
   buildMsdOptions('msd-poids-mob',POIDS_OPTIONS,'Poids',undefined,'msd-poids');
 
   // Pre-fill from URL params (coming from vitrine)
@@ -1050,7 +1056,7 @@ const msdLabels = {
   'msd-grammage': 'Grammages',
   'msd-laize': 'Laizes',
   'msd-usine': 'Réf usine',
-  'msd-diametre': 'Diamètre (Ø)',
+  'msd-diametre': 'Diamètre',
   'msd-poids': 'Poids',
 };
 // ── FAMILLES DE FORMATS (16/07) : dimensions feuilles regroupées à ±20 mm,
@@ -1299,8 +1305,8 @@ function _poidsPg(t){
 // Ordre usuel du stock (volumes réels ~20/07) : le menu Type s'affiche trié
 // par volume DÈS la construction, avant même l'arrivée des données de comptage
 // (nav privée = pas de cache local → sinon alphabétique à la 1re ouverture).
-const _TYPE_ORDRE_USUEL=['ROFF','RLUX','SBOA','Offset Couleur','SLUX','SOFF','RKRABRUN','SCAR','RBOU','RKRA','RCAR','S2SC','RADH','SCOL','SCUT','Dossier Couleur','SADH','RBOA','RLINER','RFLEX'];
-const QUALITE_CODES=['R1SC','R2SC','RADH','RAFF','RBOA','RBON','RBOU','RCAR','ROFF','Offset Couleur','Dossier Couleur','RCUI','RDIV','RFLEX','RKDO','RKRA','RKRABRUN','RKRG','RKRR','RLINER','RLUX','RLWC','RNEW','RPAC','RPLA','RSIL','RTHERM','RTIS','S1SC','S2SC','SADH','SAFF','SBOA','SBON','SBOU','SCAR','SCOL','SCUT','SDIV','SENV','SKDO','SKRA','SLUX','SLWC','SNEW','SOFF','SPAC','SPLA','SSBS','SSPE','SINK','UMAC','AUTRES'];
+const _TYPE_ORDRE_USUEL=['ROFF','RLUX','SBOA','RCOL','SLUX','SOFF','RKRABRUN','SCAR','RBOU','RKRA','RCAR','S2SC','RADH','SCOL','SCUT','SADH','RBOA','RLINER','RFLEX'];
+const QUALITE_CODES=['R1SC','R2SC','RADH','RAFF','RBOA','RBON','RBOU','RCAR','ROFF','RCOL','RCUI','RDIV','RFLEX','RKDO','RKRA','RKRABRUN','RKRG','RKRR','RLINER','RLUX','RLWC','RNEW','RPAC','RPLA','RSIL','RTHERM','RTIS','S1SC','S2SC','SADH','SAFF','SBOA','SBON','SBOU','SCAR','SCOL','SCUT','SDIV','SENV','SKDO','SKRA','SLUX','SLWC','SNEW','SOFF','SPAC','SPLA','SSBS','SSPE','SINK','UMAC','AUTRES'];
 // Real DB quality codes: strip the 'AUTRES' sentinel and expand the
 // Offset/Dossier Couleur pseudo-codes back to the actual 'RCOL' DB value.
 const QUALITE_KNOWN_DB=[...new Set(QUALITE_CODES.flatMap(c=>c==='AUTRES'?[]:_isCouleurPseudo(c)?['RCOL']:[c]))];
@@ -1313,8 +1319,7 @@ const QUALITE_LABELS={
   'RBON':'Carton non couché',
   'RBOU':'Bouffant',
   'RCAR':'Autocopiant',
-  'Offset Couleur':'Offset couleur',
-  'Dossier Couleur':'Dossier couleur',
+  'RCOL':'Offset couleur',
   'RCOL':'Offset couleur',
   'RCUI':'Papier cuisson',
   'RDIV':'Divers / Alu',
@@ -1886,8 +1891,6 @@ function _matchesActiveFilters(row, excludeKey){
     } else if(hasAutres){
       if(!sideCodes.includes(q) && QUALITE_KNOWN_DB.includes(q)) return false;
     } else if(!sideCodes.includes(q)) return false;
-    if(types.has(COULEUR_SPLIT.offsetLabel)&&!types.has(COULEUR_SPLIT.dossierLabel)&&+row.gsm>=COULEUR_SPLIT.threshold) return false;
-    if(types.has(COULEUR_SPLIT.dossierLabel)&&!types.has(COULEUR_SPLIT.offsetLabel)&&+row.gsm<COULEUR_SPLIT.threshold) return false;
   }
   // Détails : manquait ici (18/07) → les compteurs des autres menus
   // annonçaient des produits incompatibles avec le détail coché (« 120 » → 0).
@@ -1999,7 +2002,6 @@ function _countFacet(baseRows,msdId){
     for(const r of baseRows){
       const q=r.quality||''; let v;
       if(!QUALITE_KNOWN_DB.includes(q)) v='AUTRES';
-      else if(q==='RCOL') v=(+r.gsm<th)?off:dos;
       else v=q;
       counts[v]=(counts[v]||0)+1;
     }
@@ -3287,10 +3289,7 @@ async function _fetchAndRender(token){
   const typeCodes=[..._sideCodes,..._pCodes];
 
   // GSM constraint from Couleur split filter
-  const _couleurOffsetSel=types.has(COULEUR_SPLIT.offsetLabel)&&!types.has(COULEUR_SPLIT.dossierLabel);
-  const _couleurDossierSel=types.has(COULEUR_SPLIT.dossierLabel)&&!types.has(COULEUR_SPLIT.offsetLabel);
-  const _couleurGsmMax=_couleurOffsetSel&&!gn&&!gx?COULEUR_SPLIT.threshold-1:0;
-  const _couleurGsmMin=_couleurDossierSel&&!gn&&!gx?COULEUR_SPLIT.threshold:0;
+  const _couleurGsmMax=0,_couleurGsmMin=0; // RCOL unifié 17/08 : plus de bornes gsm implicites
 
   // Build RPC params for sum_weight_filtered
   const rpcParams={};
@@ -4031,7 +4030,9 @@ function _renderCatalogueCard(p){
       const _wv=_isGroup?_grpTotal:p.poids_net;
       cells+=cell(_isGroup?'POIDS TOTAL':'POIDS NET',_wv?esc(Math.round(_wv).toLocaleString('fr-FR'))+' <small>kgs</small>':'—',2);
       // (08/08 Ethan) DÉTAIL juste SOUS LE TITRE (sans le +) ; le + s'incruste sur la ligne PRIX.
-      const _addBtn=_isGroup
+      const _addBtn=_sharedMode
+        ?(window._sharedEdit?`<button class="sc-add sc-moins added" title="${'Retirer de la liste'}" onclick="event.stopPropagation();_sharedRemove(${numId(p.id)})"></button>`:'')
+        :_isGroup
         ?`<button class="sc-add${_isInCart?' added':''}" title="${_isInCart?'Retirer le lot':'Ajouter le lot ('+p._grpCount+')'}" onclick="event.stopPropagation();_grpRound(${attrJs(p._grpKey)})">+</button>`
         :`<button class="sc-add${_isInCart?' added':''}" ${_btnAttrs}>+</button>`;
       const detRow=`<div class="sc-cell sc-wrap sc-det-only" style="grid-column:span 4;"><div class="sc-val">${_detClean?esc(_detClean):'—'}</div></div>`;
@@ -4239,46 +4240,16 @@ function render(list){
 // Vue client, mode fiches : corps de carte structuré comme l'étiquette
 // imprimée par prodi_arrivages (désignation + cases légendées), sans Retirer.
 function renderSharedCards(list){
+  // (18/08) Vue client = EXACTEMENT les cartes du catalogue (_renderCatalogueCard) :
+  // mêmes badges photo, DÉTAIL sous le titre, rangée USINE | PRIX. Seule
+  // différence : le bouton de la ligne PRIX = − retrait (_sharedRemove).
   const g=document.getElementById('pgrid');
   if(!g)return;
   g.className='pgrid';
-  const cell=(cap,val,span,cls)=>`<div class="sc-cell${cls?' '+cls:''}"${span?' style="grid-column:span '+span+';"':''}><div class="sc-cap">${cap}</div><div class="sc-val">${val}</div></div>`;
-  const card=p=>{
-    const title=formatProductTitle(p.qualite,p.type);
-    const _isSiderun=p.ref&&/^Photo_DU/i.test(String(p.ref));
-    const fallback=_isSiderun?'/img/siderun-sur-demande.png':'/img/no-photo.png';
-    const img=p.image_url
-      ?`<img src="${imgThumb(p.image_url,560)}" alt="${esc(title)}" width="300" height="279" loading="lazy" onload="_fitCardImg(this)" onerror="if(!this._o){this._o=1;this.src='${safeUrl(p.image_url)}';}else{this.src='${esc(fallback)}';}">`
-      :`<img src="${esc(fallback)}" alt="" width="300" height="279">`;
-    const isPal=_estFormat(p);
-    const _det=p.details?p.details.replace(/[-–—\s]+/g,' ').trim():'';
-    let cells='';
-    cells+=cell('GRAMMAGE',p.grammage?esc(p.grammage)+' <small>g/m²</small>':'—',2);
-    if(isPal){
-      cells+=cell('DIMENSIONS',p.largeur&&p.longueur?esc(mmToCm(Math.min(p.largeur,p.longueur))+' × '+mmToCm(Math.max(p.largeur,p.longueur)))+' <small>mm</small>':(p.largeur?esc(mmToCm(p.largeur))+' <small>mm</small>':'—'),2);
-    }else{
-      cells+=cell('LAIZE',p.largeur?esc(mmToCm(p.largeur))+' <small>mm</small>':'—',2);
-    }
-    cells+=cell('COULEUR',esc(p.couleur||'—'),2);
-    const _w=p._grpTotalWeight||p.poids_net;
-    cells+=cell(p._grpCount>1?'POIDS TOTAL':'POIDS NET',_w?esc(Math.round(_w).toLocaleString('fr-FR'))+' <small>kgs</small>':'—',2);
-    cells+=cell('DÉTAIL',_det?esc(_det):'—',4,'sc-wrap');
-    const prix=_priceMode&&p.price?cell('PRIX',esc(Math.round(p.price*1000).toLocaleString('fr-FR'))+' <small>€/T</small>',4):'';
-    return`<div class="pcard sc-card" onclick="openDetail(${numId(p.id)})">
-      <div class="pcard-img">${img}
-        ${p._grpCount>1?`<span class="sc-count">× ${numId(p._grpCount)}</span>`:''}
-      </div>
-      ${window._sharedEdit?`<button class="sc-add sc-moins added" title="Retirer de la liste" onclick="event.stopPropagation();_sharedRemove(${numId(p.id)})"></button>`:''}
-      <div class="sc-body">
-        <div class="sc-grid${prix?' has-prix':''}">
-          <div class="sc-cell sc-title" style="grid-column:span 4;">${esc(title)}</div>
-          ${cells}${prix}
-        </div>
-      </div>
-    </div>`;
-  };
+  _rcCartIds=new Set(cart.map(x=>+x.id));
+  _rcGrpByGid=new Map((_groupsList||[]).map(gr=>[gr.gid,gr]));
   const sorted=[...list].sort((a,b)=>(_estFormat(a)?1:0)-(_estFormat(b)?1:0));
-  g.innerHTML=sorted.map(card).join('');
+  g.innerHTML=sorted.map(_renderCatalogueCard).join('');
   _updatePager();
 }
 // ── RETRAIT direct en vue client (04/08, appareils ÉQUIPE seulement — flag
@@ -4460,10 +4431,10 @@ async function openDetail(id){
     et.push({lbl:'Couleur',val:esc(p.couleur||'—'),span:2});
     et.push({lbl:'Poids net',val:p.poids_net?esc(Math.round(p.poids_net).toLocaleString('fr-FR'))+' <small>kgs</small>':'—',span:2});
     const reste=specDefs.filter(s=>['Zone','Code douanier'].includes(s.lbl));
-    // Ligne USINE | PRIX (+) en bas comme la carte — catalogue seul (jamais
-    // de prix ni de + sur la vue client ?s=). En vue client, USINE reste en
-    // ligne grise discrète.
-    if(!_sharedMode){
+    // Ligne USINE | PRIX (+) en bas comme la carte. Vue client ?s= : la rangée
+    // n'apparaît QUE sur un lien prix (?p=1) — cartes et fiche harmonisées 18/08 ;
+    // sans prix, USINE reste en ligne grise discrète. Le + reste catalogue seul.
+    if(!_sharedMode||_priceMode){
       const _prixV=(_priceMode&&p.price)?esc(Math.round(p.price*1000).toLocaleString('fr-FR'))+' <small>€/T</small>':'—';
       et.push({lbl:'Usine',val:_uR?esc(_uR):'—',span:2});
       et.push({val:_prixV,span:2,prix:true});
@@ -4678,19 +4649,15 @@ function updateCartBadge(){
   // par loadSharedQuote → on n'y touche pas.
   const btn=document.getElementById('cart-btn');
   if(btn&&!(typeof _sharedMode!=='undefined'&&_sharedMode)){
+    // 17/08 (Ethan) : « Ma Liste » TOUJOURS visible dans le header, clic = tiroir
+    // (le Partager vit dans le tiroir ; l'ancien partage direct est annulé).
     const txt=btn.querySelector('.btn-panier-txt');
-    let ico=btn.querySelector('.cart-share-ico');
-    if(cart.length>0){
-      if(!ico&&badge){badge.insertAdjacentHTML('beforebegin','<svg class="cart-share-ico" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M12 15V4"/><path d="M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>');ico=btn.querySelector('.cart-share-ico');}
-      if(txt)txt.style.display='none';
-      if(ico)ico.style.display='';
-      btn.style.removeProperty('display'); // relâche le none (mobile a un flex !important)
-      btn.title='Ouvrir le lien client de la sélection';
-      btn.onclick=()=>openClientLink(btn);
-    }else{
-      btn.style.setProperty('display','none','important'); // gagne sur le flex !important mobile
-      btn.onclick=()=>openCartDrawer();
-    }
+    const ico=btn.querySelector('.cart-share-ico');
+    if(ico)ico.style.display='none';
+    if(txt){txt.style.display='';txt.textContent='Ma Liste';}
+    btn.style.removeProperty('display');
+    btn.title='Ma Liste';
+    btn.onclick=()=>openCartDrawer();
     const clr=document.getElementById('cart-clear-btn');
     if(clr)clr.style.display=cart.length>0?'inline-flex':'none';
   }
@@ -5739,7 +5706,7 @@ if(_sharedMode)_sharedViewUI(true);
           ...(window._dimsInAdv?[{id:'format',t:'Dimensions',n:msdState['msd-format'].size,rows:()=>formats.length?formats.map(v=>row('format',v,v===FORMAT_AUTRES?'Autres dimensions':v,msdState['msd-format'].has(v))).join(''):'<div class="msd-option" style="opacity:.5;cursor:default;">Aucun format dans la sélection en cours</div>'}]:[]),
           {id:'mandrin',t:'Mandrin',n:msdState['msd-mandrin'].size,rows:()=>mandrins.length?mandrins.map(m=>row('mandrin',m,m+' mm',msdState['msd-mandrin'].has(m))).join(''):'<div class="msd-option" style="opacity:.5;cursor:default;">Aucun mandrin dans la sélection en cours</div>'},
           {id:'laize',t:'Laizes',n:msdState['msd-laize'].size,rows:()=>laizes.length?laizes.map(v=>row('laize',v,v===LAIZE_AUTRES?'Autres laizes':v,msdState['msd-laize'].has(v))).join(''):'<div class="msd-option" style="opacity:.5;cursor:default;">Choisis d\'abord un type bobine</div>'},
-          {id:'diametre',t:'Diamètre (Ø)',n:msdState['msd-diametre'].size,rows:()=>diams.length?diams.map(v=>row('diametre',v,v===DIAM_AUTRES?'Autres Ø':v,msdState['msd-diametre'].has(v))).join(''):'<div class="msd-option" style="opacity:.5;cursor:default;">Choisis d\'abord un type bobine</div>'},
+          {id:'diametre',t:'Diamètre',n:msdState['msd-diametre'].size,rows:()=>diams.length?diams.map(v=>row('diametre',v,v===DIAM_AUTRES?'Autres Ø':v,msdState['msd-diametre'].has(v))).join(''):'<div class="msd-option" style="opacity:.5;cursor:default;">Choisis d\'abord un type bobine</div>'},
           {id:'poids',t:'Poids',n:msdState['msd-poids'].size,rows:()=>POIDS_OPTIONS.map(o=>row('poids',o,o,msdState['msd-poids'].has(o))).join('')},
           {id:'photo',t:'Photo',n:_photoFilter?1:0,rows:()=>row('photo','with','Avec photo',_photoFilter==='with')+row('photo','without','Sans photo',_photoFilter==='without')},
           {id:'resa',t:'Réservation',n:_resaFilter?1:0,rows:()=>row('resa','with','Réservés',_resaFilter==='with')+row('resa','without','Dispo',_resaFilter==='without')},
@@ -5747,7 +5714,7 @@ if(_sharedMode)_sharedViewUI(true);
         ];
         _faPn.innerHTML=secs.map(s=>{
           const open=window._advOpenSec===s.id;
-          return `<div class="msd-group-row${open?' open':''}" data-sec="${s.id}"><span>${s.t}</span><span class="mgr-right">${s.n?`<span class="mgr-nsel">${s.n}</span>`:''}<span class="mgr-arrow">${open?'▾':'›'}</span></span></div>`+(open?`<div class="adv-pop">${s.rows()}</div>`:'');
+          return `<div class="msd-group-row${open?' open':''}" data-sec="${s.id}"><span>${s.t}</span><span class="mgr-right">${s.n?`<span class="mgr-nsel">${s.n}</span>`:''}<span class="mgr-arrow">›</span></span></div>`+(open?`<div class="adv-pop">${s.rows()}</div>`:'');
         }).join('');
         // Dropdown FLOTTANT (comme Type/Détails, 08/08) : le popup des options
         // s'ancre SOUS sa ligne en position absolue (#tb-adv = .msd position:relative),
@@ -6375,7 +6342,7 @@ async function loadSharedQuote(idsOverride){
   if(_cb){
     _cb.onclick=function(){exportListExcelTest(this).catch(()=>toast('Erreur export'));};
     _cb.title='Télécharger la liste Excel';
-    const _cbSvg=_cb.querySelector('svg');
+    const _cbSvg=_cb.querySelector('svg,img');
     if(_cbSvg)_cbSvg.outerHTML='<svg width="30" height="30" viewBox="0 0 32 32" style="flex-shrink:0;"><rect x="9" y="2" width="21" height="14" rx="3.5" fill="#8bd47e"/><rect x="20" y="2" width="10" height="14" rx="3.5" fill="#b9e695"/><path d="M9 9h17.5A3.5 3.5 0 0 1 30 12.5V26.5a3.5 3.5 0 0 1-3.5 3.5H12.5A3.5 3.5 0 0 1 9 26.5Z" fill="#2f9e55"/><rect x="2" y="12" width="16" height="16" rx="3.5" fill="#185c37"/><path d="M6.4 16.5h2.7l1.8 3.2 1.8-3.2h2.7l-3.1 4.7 3.2 4.8h-2.8l-1.8-3.3-1.9 3.3H6.2l3.2-4.8z" fill="#fff"/></svg>';
     const _cbTxt=_cb.querySelector('.btn-panier-txt');
     if(_cbTxt){_cbTxt.textContent='Télécharger liste';_cbTxt.style.fontSize='16px';_cbTxt.style.whiteSpace='nowrap';}
@@ -6469,17 +6436,7 @@ function renderDrawer(){
     return`<div class="ci" id="ci-${numId(p.id)}" onclick="_ciOpenDetail(${numId(p.id)})" style="cursor:pointer">
       <div class="ci-img">${imgHtml}</div>
       <div class="ci-body">
-        <div class="ci-row1">
-          <span class="ci-laize">${esc(ciTitle)}</span>
-          ${p.grammage?`<span class="ci-gsm">${esc(p.grammage+' g/m²')}</span>`:''}
-        </div>
-        ${_ciSum?`<div class="ci-name">${esc(_ciSum)}</div>`:''}
-        <div class="ci-foot">
-          <button class="ci-rm" onclick="event.stopPropagation();removeFromCart(${numId(p.id)})" aria-label="${'Retirer'}">${_trashSvg}</button>
-          ${lot?`<span class="ci-lot" onclick="event.stopPropagation();navigator.clipboard.writeText(${attrJs(lot)}).then(()=>toast('📋 Réf. copiée'))">${esc(lot)}<svg width="11" height="11" viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.6"/><path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>`:'<span></span>'}
-          ${_priceMode&&_pFull.price?`<span class="ci-price" style="color:var(--red);font-weight:700;font-size:13px">${esc(Math.round(_pFull.price*1000).toLocaleString('fr-FR')+' €/T')}</span>`:''}
-          <span class="ci-kgs">${esc(fmt(Math.round(qkg)))}</span>
-        </div>
+        ${(()=>{const _fmtQ=_estFormat(_pFull);const _dimv=_fmtQ?(_pFull.largeur&&_pFull.longueur?mmToCm(Math.min(_pFull.largeur,_pFull.longueur))+' × '+mmToCm(Math.max(_pFull.largeur,_pFull.longueur))+' <small>mm</small>':(_pFull.largeur?mmToCm(_pFull.largeur)+' <small>mm</small>':'—')):(_pFull.largeur?mmToCm(_pFull.largeur)+' <small>mm</small>':'—');const _c=(cap,val)=>`<div class="cie-cell"><div class="cie-cap">${cap}</div><div class="cie-val">${val}</div></div>`;const _prix=_priceMode&&_pFull.price?Math.round(_pFull.price*1000).toLocaleString('fr-FR')+' €/T':null;const _cpSvg='<svg width="10" height="10" viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.6"/><path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';const _refCell=`<div class="cie-cell cie-ref"${_prix?'':' style="grid-column:span 2"'}${lot?` onclick="event.stopPropagation();navigator.clipboard.writeText(${attrJs(lot)}).then(()=>toast('📋 Réf. copiée'))"`:''}><div class="cie-cap">${'RÉFÉRENCE'}</div><div class="cie-val">${lot?esc(lot)+_cpSvg:'—'}</div></div>`;const _prixCell=_prix?`<div class="cie-cell cie-prix"><div class="cie-cap">PRIX</div><div class="cie-val">${esc(_prix)}</div></div>`:'';return `<div class="cie-grid cie-g4"><div class="cie-cell cie-title"><span class="cie-title-txt">${esc(ciTitle)}</span><button class="ci-rm cie-rm" onclick="event.stopPropagation();removeFromCart(${numId(p.id)})" aria-label="${'Retirer'}">${_trashSvg}</button></div>${_c('GRAMMAGE',p.grammage?esc(p.grammage)+' <small>g/m²</small>':'—')+_c(_fmtQ?'DIMENSIONS':'LAIZE',_dimv)+_c('COULEUR',esc(_pFull.couleur||p.couleur||'—'))+_c('POIDS',qkg?esc(Math.round(qkg).toLocaleString('fr-FR'))+' <small>kgs</small>':'—')}${_refCell}${_prixCell}</div>`;})()}
       </div>
       <div class="ci-confirm" id="ci-confirm-${numId(p.id)}" onclick="event.stopPropagation()">
         <span>${'Retirer cet article\u00a0?'}</span>
@@ -6697,7 +6654,7 @@ function updateFilterVisibility(){
   // familles couleur (RCOL offset/dossier, SCOL) — sinon il vit dans Filtres
   // avancés (colorer un offset blanc = cas rare, la barre respire).
   // 31/07 (Ethan) : caché aussi À L'ARRIVÉE (aucun type choisi).
-  const _isCoul=v=>v==='Offset Couleur'||v==='Dossier Couleur'||v==='SCOL';
+  const _isCoul=v=>v==='RCOL'||v==='SCOL'||_isCouleurPseudo(v);
   const _coulBefore=!!window._coulInAdv;
   window._coulInAdv=!_selTypes.some(_isCoul);
   const _coulWrap=document.getElementById('sb-msd-couleur')?.parentElement;

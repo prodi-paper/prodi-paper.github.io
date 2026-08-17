@@ -1182,3 +1182,29 @@ celle du catalogue, MÊME clé `prodi_cat_ok`** (déverrouillé une fois =
 partout) — PWD `PRODI2026`, désormais 3 constantes à changer ensemble
 (vitrine.js, catalogue/index.html, invitation/index.html). `noindex` +
 Disallow robots.txt (outil interne, hors sitemap).
+
+## 18/08/2026 nuit — liste 3×3 + vue client harmonisée (js v747, css v805)
+
+- **Carte du tiroir Ma Liste** (`renderDrawer`, `.ci`) : une SEULE grille
+  `cie-g4` (3 colonnes, filets cie-grid) — titre pleine largeur + poubelle
+  ROUGE intégrée à droite, GRAMMAGE|LAIZE (ou DIMENSIONS)|COULEUR, puis
+  POIDS|RÉFÉRENCE (clic = copie)|PRIX (noir — seule la poubelle est rouge,
+  badge gsm du titre supprimé). Cases 3×7 px, valeurs 14 px / caps 9,5 px,
+  photo 86 px `align-self:center`, marge entre cartes 5 px (apple-view).
+- **Tiroir : bouton noir = « Excel »** (`#btn-excel-list`, logo Excel vert,
+  `exportListExcelTest`) à la place de « Partager » — le lien client reste via
+  l'icône Partager du header + « Copier le lien ».
+- **Vue client ?s= harmonisée au catalogue** :
+  - Header : mêmes logo 38,5 px / hauteur / bouton pilule 42 px (les règles
+    « +10 % » étaient scoped `topbar-view` → dupliquées `body.shared-view`).
+  - Cartes = EXACTEMENT `_renderCatalogueCard` (`renderSharedCards` délègue,
+    pose `_rcCartIds`/`_rcGrpByGid`) : pastilles réf/usine photo, DÉTAIL sous
+    le titre, rangée USINE|PRIX, hauteurs 45/35 px. Bouton ligne prix = − de
+    retrait rouge (`sc-add sc-moins added`, plus d'ancrage absolu). Les 17
+    règles cartes `body.topbar-view .pgrid .sc-card` re-scopées
+    `body.apple-view .pgrid .sc-card` ; les 3 strates d'overrides shared
+    (fond transparent, gap 26 px, typo sc-*, pastilles pbig) SUPPRIMÉES.
+  - Fiche : rangée USINE|PRIX aussi en vue client sur lien prix `?p=1` (le +
+    d'ajout reste catalogue seul) ; sans prix, USINE reste en ligne grise.
+  - ⚠️ lien SANS prix : cartes avec USINE + PRIX « — » (règle catalogue
+    littérale) — à conditionner si on ne veut pas montrer l'usine au client.

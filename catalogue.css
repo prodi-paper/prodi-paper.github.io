@@ -409,9 +409,9 @@ body.drawer-open{margin-right:420px;overflow-x:hidden;}
 .btn-drawer-browse{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:var(--off);color:var(--ink);border:1.5px solid var(--border);border-radius:var(--r);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;}
 .btn-drawer-browse:hover{border-color:var(--red);color:var(--red);}
 /* ── CartItem redesign ── */
-.ci{background:var(--white);border:1.5px solid var(--border);border-radius:var(--rl);padding:8px 10px;display:flex;gap:9px;margin-bottom:7px;position:relative;overflow:hidden;}
+.ci{background:var(--white);border:1.5px solid var(--border);border-radius:var(--rl);padding:6px 8px;display:flex;gap:7px;margin-bottom:6px;position:relative;overflow:hidden;}
 .ci:last-child{margin-bottom:0;}
-.ci-img{width:72px;height:72px;border-radius:6px;background:#F0EFE8;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;font-family:monospace;font-size:10px;color:var(--gray);text-align:center;line-height:1.3;}
+.ci-img{width:86px;height:86px;align-self:center;border-radius:6px;background:#F0EFE8;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;font-family:monospace;font-size:10px;color:var(--gray);text-align:center;line-height:1.3;}
 .ci-img img{width:100%;height:100%;object-fit:cover;border-radius:6px;}
 .ci-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;}
 .ci-row1{display:flex;align-items:flex-start;justify-content:space-between;gap:6px;min-width:0;}
@@ -1410,19 +1410,12 @@ body.shared-view #results-bar,body.shared-view .rbar-inner{background:#fff;}
       grise ni ombre autour. 2. Valeurs recalibrées (tabulaires, plus de «1000…»).
    3. Détail à hauteur fixe 2 lignes → cadres alignés d'une carte à l'autre.
    4. Respiration verticale + tri discret. */
-body.shared-view .sc-card,body.shared-view .sc-card:hover{border:none;box-shadow:none;background:transparent;transform:none;}
-body.shared-view .pgrid{gap:26px 18px;}
+/* (18/08) Cartes ?s= = EXACTEMENT les cartes catalogue : chrome, gap, typo et
+   badges hérités des règles body.apple-view .pgrid .sc-card — overrides shared
+   (fond transparent, gap 26px, tailles sc-*, pastilles pbig) SUPPRIMÉS. */
 /* Header vue client calé sur la largeur de la grille (05/08) */
 body.shared-view .header-inner{max-width:var(--gab-head);margin-left:auto;margin-right:auto;}
-body.shared-view .sc-cell{padding:6px 6px;}
-body.shared-view .sc-cap{font-size:8.5px;letter-spacing:.3px;}
-body.shared-view .sc-val{font-size:14px;letter-spacing:-.2px;font-variant-numeric:tabular-nums;}
-body.shared-view .sc-val small{font-size:9.5px;}
-body.shared-view .sc-title{font-size:20px;padding:7px 9px 5px;}
-body.shared-view .sc-wrap .sc-val{min-height:2.55em;font-size:11.5px;}
 body.shared-view .rbar-sel{background:#fff;border:1.5px solid #e4e4e4;border-radius:9px;font-size:13px;color:#555;}
-body.shared-view .pbig-ref{font-size:17px;padding:4px 10px;background:rgba(0,0,0,.82);}
-body.shared-view .pbig-usine{background:rgba(0,0,0,.55);}
 body.shared-view .dnav-inline,body.apple-view .dnav-inline{display:none !important;}
 body.shared-view .modal-bg.show .dmod-nav,body.apple-view .modal-bg.show .dmod-nav{display:flex !important;background:rgba(255,255,255,.92);color:#111;box-shadow:0 4px 14px rgba(0,0,0,.2);}
 body.shared-view .dmod-prev,body.apple-view .dmod-prev{left:calc(50% - 400px);}
@@ -1434,14 +1427,7 @@ body.shared-view .dmodal .d-actions,body.apple-view .dmodal .d-actions{display:n
 body.shared-view .det-reste,body.apple-view .det-reste{padding:2px 16px 3px;line-height:1.1;}
 body.shared-view .pgrid{grid-template-columns:repeat(4,1fr);max-width:var(--gab);margin-left:auto;margin-right:auto;}
 /* Écrans très larges : 5-6 colonnes plutôt que des cartes étirées (05/08) */
-body.shared-view .sc-val{font-size:15.5px;}
-body.shared-view .sc-cap{font-size:9.5px;}
-body.shared-view .sc-title{font-size:23px;}
-body.shared-view .sc-wrap .sc-val{font-size:12.5px;}
 @media(max-width:900px){body.shared-view .pgrid{grid-template-columns:repeat(2,1fr);}}
-body.shared-view .sc-val{font-size:19px;}
-body.shared-view .sc-val small{font-size:11px;}
-body.shared-view .sc-wrap .sc-val{font-size:14px;}
 body.shared-view #lang-fr,body.shared-view #lang-fr-m{display:none !important;}
 
 /* ── Thème APPLE (essai, &apple=1 sur lien client) — palette apple.com :
@@ -1685,9 +1671,9 @@ body.topbar-view .msd-panel{width:auto !important;min-width:230px;max-width:340p
 body.topbar-view .body-wrap>div:last-child{padding:12px 0 0;}
 }
 @media(min-width:769px){
-body.topbar-view .pgrid{grid-template-columns:repeat(4,1fr);max-width:var(--gab);margin-left:auto;margin-right:auto;gap:8px;}
-/* Grand écran : 5 cartes (photos cohérentes) — le zoom global fait le reste */
-@media(min-width:2100px){body.topbar-view .pgrid,body.shared-view .pgrid{grid-template-columns:repeat(5,1fr);}}
+body.topbar-view .pgrid{grid-template-columns:repeat(5,1fr);max-width:var(--gab);margin-left:auto;margin-right:auto;gap:8px;} /* 4→5 (17/08, rail réduit à 270px) */
+/* Grand écran : 6 cartes — le zoom global fait le reste */
+@media(min-width:2100px){body.topbar-view .pgrid{grid-template-columns:repeat(6,1fr);}body.shared-view .pgrid{grid-template-columns:repeat(5,1fr);}}
 /* Perf CLS desktop : quand on quitte le hero pour la grille, la bascule est
    synchrone mais la grille reste VIDE le temps du fetch (debounce 200ms) → le
    contenu s'effondre puis resaute quand les cartes arrivent (CLS ~0,58). On
@@ -1706,7 +1692,7 @@ body.apple-view .dh-clear-btn{background:#e8e8ed;border:none;color:#1d1d1f;font-
 body.apple-view .dh-clear-btn:hover{background:#dededf;color:#1d1d1f;}
 body.apple-view .dh-close-btn{background:#e8e8ed;border:none;color:var(--g2);}
 body.apple-view .dh-close-btn:hover{background:#dededf;color:#48484a;}
-body.apple-view .ci{border:none;border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.05);margin-bottom:10px;}
+body.apple-view .ci{border:none;border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.05);margin-bottom:5px;}
 body.apple-view .ci-kgs{color:#000;font-weight:800;}
 body.apple-view .ci-qty-btn{border:none;background:#e8e8ed;}
 body.apple-view .ci-qty-btn:hover{background:#dededf;}
@@ -1729,13 +1715,13 @@ body.topbar-view .fpill-photo,body.topbar-view .fpill-resa{font-size:13px !impor
 
 /* + rond dans la ligne DETAIL des cartes catalogue (18/07) */
 body.apple-view .sc-det-row{display:flex;align-items:center;gap:8px;}
-body.apple-view .sc-add{flex-shrink:0;width:34px;height:34px;border-radius:999px;border:1.5px solid #d2d2d7;background:#fff;cursor:pointer;font-size:0 !important;display:flex;align-items:center;justify-content:center;padding:0;transition:border-color .15s,background .15s;}
+body.apple-view .sc-add{flex-shrink:0;width:34px;height:34px;border-radius:999px;border:1.5px solid #1d1d1f;background:#1d1d1f;cursor:pointer;font-size:0 !important;display:flex;align-items:center;justify-content:center;padding:0;transition:border-color .15s,background .15s;}
 body.apple-view .sc-add svg{display:none;}
-body.apple-view .sc-add::before{content:'+';font-size:21px;font-weight:500;color:#1d1d1f;font-family:'DM Sans',sans-serif;line-height:1;}
-body.apple-view .sc-add:hover{border-color:#1d1d1f;}
-body.apple-view .sc-add.added{background:#fff;border-color:#1d1d1f;}
-/* 21/07 (Ethan) : + devient − quand l'article est dans la liste (re-clic = retire). */
-body.apple-view .sc-add.added::before{content:'\2212';color:#1d1d1f;font-size:21px;font-weight:600;}
+body.apple-view .sc-add::before{content:'+';font-size:21px;font-weight:500;color:#fff;font-family:'DM Sans',sans-serif;line-height:1;}
+body.apple-view .sc-add:hover{background:#000;border-color:#000;}
+body.apple-view .sc-add.added{background:#FE0000;border-color:#FE0000;}
+/* 17/08 (Ethan) : + devient POUBELLE quand l'article est dans la liste (re-clic = retire). */
+body.apple-view .sc-add.added::before{content:'';width:17px;height:17px;background:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23fff'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpolyline%20points='3%206%205%206%2021%206'/%3E%3Cpath%20d='M19%206v14a2%202%200%200%201-2%202H7a2%202%200%200%201-2-2V6m3%200V4a2%202%200%200%201%202-2h4a2%202%200%200%201%202%202v2'/%3E%3Cline%20x1='10'%20y1='11'%20x2='10'%20y2='17'/%3E%3Cline%20x1='14'%20y1='11'%20x2='14'%20y2='17'/%3E%3C/svg%3E") center/contain no-repeat;}
 
 /* topbar UNE ligne (v2, 18/07) : tri = pastille avec menu, + page et pager en bout de barre, tout compacte */
 body.topbar-view .filters-panel{gap:6px;}
@@ -1750,7 +1736,7 @@ body.topbar-view .filters-panel #add-page-btn{order:-1;border:none;background:#f
 body.topbar-view .filters-panel .pager-top{order:-1;margin:0;}
 
 /* Panneau Details a deux niveaux : familles puis options (18/07) */
-.msd-group-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:var(--ink);border-top:1px solid var(--hairline);}
+.msd-group-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:var(--ink);border-top:1.5px solid #222;}
 .msd-group-row:first-child{border-top:none;}
 .msd-group-row:hover{background:#f5f5f7;}
 .mgr-right{display:flex;align-items:center;gap:7px;}
@@ -1856,7 +1842,8 @@ body.shared-view #offre-wrap,body.shared-view #fab-wrap{display:none !important;
 /* ── Bouton − de retrait en vue client (équipe seulement) : même gabarit que
    le + des cartes catalogue, calé en bas à droite de la carte ── */
 body.apple-view .sc-card{position:relative;}
-body.apple-view .sc-moins{position:absolute;right:10px;bottom:10px;z-index:3;}
+/* (18/08) sc-moins (− retrait vue client) : plus d'ancrage absolu — il vit dans
+   la ligne PRIX comme le + du catalogue (styles .sc-price-main .sc-add). */
 .offre-offer{padding:9px 14px;}
 .offre-offer .offre-lbl small{font-size:11px;font-weight:700;letter-spacing:.3px;color:#a1a1a6;margin-left:4px;}
 /* + page (2e ligne) : rond BLEU Apple assorti au bouton Liste */
@@ -1891,7 +1878,7 @@ body.apple-view:not(.shared-view) #cart-btn svg{display:none;}
 /* …sauf l'icône PARTAGER qui remplace le texte « Liste » quand la sélection
    est non vide (spécificité > les deux règles display:none ci-dessus/mobile). */
 body.apple-view:not(.shared-view) #cart-btn svg.cart-share-ico,body.topbar-view #cart-btn svg.cart-share-ico{display:block;}
-body.apple-view:not(.shared-view) #cart-btn .btn-panier-txt{font-size:14px !important;font-weight:400 !important;}
+body.apple-view:not(.shared-view) #cart-btn .btn-panier-txt{font-size:18.5px !important;font-weight:700 !important;} /* 18/08 : alignée sur Offre (l'ancienne 14px/400 écrasait tout) */
 body.apple-view:not(.shared-view) #album-photo-btn,body.apple-view:not(.shared-view) #cart-btn{border-radius:999px;}
 /* + des cartes : survol BLEU */
 body.apple-view .sc-add:hover{border-color:#1d1d1f;background:#1d1d1f;}
@@ -2307,12 +2294,12 @@ body.saisie-basse .pxdot.on.still::after{animation:none;}
   body.topbar-view .body-wrap{
     position:relative;
     display:grid;
-    grid-template-columns:300px minmax(0,1fr);
-    gap:10px;
+    grid-template-columns:270px minmax(0,1fr); /* 300→270 (−10 %, 17/08) */
+    gap:0; /* 17/08 : plus d'écart entre rail et tuiles */
     align-items:start;
     max-width:none;
     margin:0;
-    padding:0 26px 48px 0;
+    padding:0 0 48px 0; /* 17/08 : ZÉRO gouttière à droite, le fond produits va au bord */
   }
   body.topbar-view .mob-filter-btn{display:none !important;}
   /* Ancienne ligne titre FILTRES (#topbar-row2) masquée → le rail démarre flush sous le header */
@@ -2320,14 +2307,23 @@ body.saisie-basse .pxdot.on.still::after{animation:none;}
   /* Header : collé en haut, PLEINE LARGEUR, logo à gauche, hauteur réduite (demande Ethan) */
   body.apple-view header{top:0 !important;padding:0 !important;border-bottom:1px solid var(--border) !important;}
   body.apple-view .header-inner{max-width:none !important;margin:0 !important;border-radius:0 !important;box-shadow:none !important;background:#fff !important;padding:0 24px !important;height:50px !important;}
-  body.apple-view .header-inner .logo-link{margin-left:20px;}
+  body.apple-view .header-inner .logo-link{margin-left:0;} /* 20→10→0 (17/08, logo −10px ×2) */
   /* Boutons header (Album photo · Usine · Offre · Liste) réduits ~ à la taille des
      champs Réf article/Max (08/08 Ethan) : h 38px, texte 14.5px, padding resserré */
-  body.topbar-view .hright .btn-head{height:38px !important;min-height:0 !important;padding:0 16px !important;}
-  body.topbar-view .hright .btn-head .offre-txt,body.topbar-view .hright .btn-head .btn-panier-txt{font-size:14.5px !important;font-weight:700 !important;}
+  body.topbar-view .hright .btn-head{height:42px !important;min-height:0 !important;padding:0 18px !important;border:1px solid rgba(0,0,0,.07) !important;background:#fff !important;box-shadow:0 2px 10px rgba(0,0,0,.16) !important;} /* 17/08 : design pilule d'avant, juste plus démarqué (ombre portée) */
+  body.topbar-view .hright .btn-head .offre-txt,body.topbar-view .hright .btn-head .btn-panier-txt{font-size:16px !important;font-weight:700 !important;}
   /* Album photo : même encre noire que Usine/Offre (héritait du gris .btn-head, 17/08) */
   body.topbar-view #album-btn .offre-txt{color:#1d1d1f !important;}
-  body.topbar-view .hright .btn-head .btn-panier-txt+*,body.topbar-view .hright #cart-btn svg{width:16px !important;height:16px !important;}
+  body.topbar-view .hright .btn-head .btn-panier-txt+*,body.topbar-view .hright #cart-btn svg{width:18px !important;height:18px !important;}
+  /* Header +10 % (17/08 Ethan) : barre, logo, champs Réf */
+  body.topbar-view .header-inner{height:63px;}
+  body.topbar-view .logo-full{height:38.5px;}
+  /* Vue client (?s=) : header harmonisé au catalogue (18/08) — même logo, même hauteur, bouton Excel en pilule */
+  body.shared-view .header-inner{height:63px;}
+  body.shared-view .logo-full{height:38.5px;}
+  body.shared-view .hright .btn-head{height:42px !important;min-height:0 !important;padding:0 14px !important;border:1px solid rgba(0,0,0,.07) !important;background:#fff !important;box-shadow:0 2px 10px rgba(0,0,0,.16) !important;}
+  body.shared-view .hright #cart-btn svg{width:18px !important;height:18px !important;}
+  body.topbar-view #f-refmin-top,body.topbar-view #f-refmax-top{height:42px !important;font-size:15.5px !important;width:139px !important;}
   /* Pas de trait au-dessus du footer (demande Ethan) */
   body.topbar-view footer{border-top:none !important;}
   /* Barre du haut de la colonne produits (déplacée en JS) : + à GAUCHE, tri à DROITE */
@@ -2380,17 +2376,17 @@ body.saisie-basse .pxdot.on.still::after{animation:none;}
   body.topbar-view #sb-msd-mandrin .msd-btn,
   body.topbar-view #sb-msd-diametre .msd-btn,
   body.topbar-view #sb-msd-poids .msd-btn,
-  body.topbar-view #tb-adv .msd-btn{width:100% !important;justify-content:space-between !important;padding:11px 14px !important;box-sizing:border-box;font-size:17px !important;font-weight:700 !important;color:#1d1d1f !important;}
+  body.topbar-view #tb-adv .msd-btn{width:100% !important;justify-content:space-between !important;padding:11px 14px !important;box-sizing:border-box;font-size:18.5px !important;font-weight:700 !important;color:#1d1d1f !important;}
 
   /* Polices du rail +15% + plus noires/grasses (demande Ethan) */
   body.topbar-view .filters-panel .format-pills .fpill{font-size:16.5px !important;font-weight:800 !important;}
-  body.topbar-view .filters-panel .fp-title{font-size:15px !important;font-weight:800 !important;color:#1d1d1f !important;}
-  body.topbar-view .filters-panel .gsl-val{font-size:16px !important;font-weight:800 !important;color:#1d1d1f !important;}
-  body.topbar-view .filters-panel .gsl-bornes span{font-size:15px !important;font-weight:700 !important;color:#48484a !important;}
+  body.topbar-view .filters-panel .fp-title{font-size:16.5px !important;font-weight:800 !important;color:#1d1d1f !important;}
+  body.topbar-view .filters-panel .gsl-val{font-size:17.5px !important;font-weight:800 !important;color:#1d1d1f !important;}
+  body.topbar-view .filters-panel .gsl-bornes span{font-size:16.5px !important;font-weight:700 !important;color:#48484a !important;}
   body.topbar-view .filters-panel .msd-option,
-  body.topbar-view .filters-panel .msd-label{font-size:16px !important;font-weight:600 !important;color:#1d1d1f !important;}
-  body.topbar-view .filters-panel .msd-group-row{font-size:16px !important;font-weight:700 !important;color:#1d1d1f !important;}
-  body.topbar-view .filters-panel .msd-search-inp{font-size:16px !important;}
+  body.topbar-view .filters-panel .msd-label{font-size:17.5px !important;font-weight:600 !important;color:#1d1d1f !important;}
+  body.topbar-view .filters-panel .msd-group-row{font-size:18.5px !important;font-weight:700 !important;color:#1d1d1f !important;}
+  body.topbar-view .filters-panel .msd-search-inp{font-size:17.5px !important;}
 
   /* Flèche ▾ des boutons filtres remplacée par l'icône FILTRE (sliders) */
   body.topbar-view .filters-panel .msd-btn .msd-arrow{font-size:0 !important;width:20px;height:20px;flex:0 0 20px;opacity:.9;background:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%231d1d1f'%20stroke-width='2.2'%20stroke-linecap='round'%3E%3Cline%20x1='4'%20y1='9'%20x2='20'%20y2='9'/%3E%3Cline%20x1='4'%20y1='15'%20x2='20'%20y2='15'/%3E%3Ccircle%20cx='10'%20cy='9'%20r='2.4'%20fill='%23fff'/%3E%3Ccircle%20cx='15'%20cy='15'%20r='2.4'%20fill='%23fff'/%3E%3C/svg%3E")%20center/19px%20no-repeat;}
@@ -2398,7 +2394,7 @@ body.saisie-basse .pxdot.on.still::after{animation:none;}
 
   /* FILTRES AVANCÉS dépliés DIRECTEMENT dans le rail (08/08 Ethan) — plus de clic */
   body.topbar-view .filters-panel #tb-adv .msd-panel{display:block !important;margin-top:2px !important;}
-  body.topbar-view .filters-panel #tb-adv .msd-btn{pointer-events:none;border:none !important;background:transparent !important;box-shadow:none !important;padding:8px 4px 1px !important;font-size:13px !important;font-weight:800 !important;color:var(--g2) !important;text-transform:uppercase;letter-spacing:.5px;}
+  body.topbar-view .filters-panel #tb-adv .msd-btn{pointer-events:none;border:none !important;background:transparent !important;box-shadow:none !important;padding:8px 4px 1px !important;font-size:14.5px !important;font-weight:800 !important;color:var(--g2) !important;text-transform:uppercase;letter-spacing:.5px;}
   body.topbar-view .filters-panel #tb-adv .msd-btn .msd-arrow{display:none !important;}
   /* Compactage général du rail (08/08) : lignes avancées + slider plus serrés */
   body.topbar-view .filters-panel .msd-group-row{padding-top:8px !important;padding-bottom:8px !important;}
@@ -2411,9 +2407,9 @@ body.saisie-basse .pxdot.on.still::after{animation:none;}
   body.topbar-view .filters-panel #sb-msd-couleur .msd-btn,
   body.topbar-view .filters-panel #sb-msd-format .msd-btn{
     width:100% !important;height:auto !important;min-height:0 !important;
-    border:none !important;border-bottom:1px solid var(--hairline) !important;
+    border:none !important;border-bottom:1.5px solid #222 !important;
     background:transparent !important;box-shadow:none !important;border-radius:0 !important;
-    padding:9px 12px !important;font-size:16px !important;font-weight:700 !important;
+    padding:9px 12px !important;font-size:18.5px !important;font-weight:700 !important;
     color:#1d1d1f !important;justify-content:space-between !important;}
   /* chevron › à droite (on masque le ▾ / l'icône filtre et on pose un › en ::after) */
   body.topbar-view .filters-panel #sb-msd-type .msd-arrow,
@@ -2426,7 +2422,8 @@ body.saisie-basse .pxdot.on.still::after{animation:none;}
   body.topbar-view .filters-panel #sb-msd-details .msd-arrow::after,
   body.topbar-view .filters-panel #sb-msd-couleur .msd-arrow::after,
   body.topbar-view .filters-panel #sb-msd-format .msd-arrow::after{
-    content:'\203A';font-size:19px;line-height:1;color:#a1a1a6;font-weight:400;}
+    content:'\203A';font-size:19px;line-height:1;color:#a1a1a6;font-weight:400;
+    display:inline-block;transform:rotate(90deg);} /* › tourné = ˅ (17/08) */
 
   /* Rangée haute du rail : FILTRES + tri (⤓) + ajout (+) + chips — compacte */
   body.topbar-view #topbar-row2{
@@ -2457,26 +2454,29 @@ body.saisie-basse .pxdot.on.still::after{animation:none;}
   /* Grille articles = remplit toute la colonne (plus de centrage max-width qui laissait un vide à gauche) */
   body.topbar-view .pgrid{max-width:none !important;margin:0 !important;}
   /* Hauteur UNIFORME des lignes de carte : 55px, titre 45px (demande Ethan) */
-  body.topbar-view .pgrid .sc-card .sc-grid{grid-template-rows:none !important;}
-  body.topbar-view .pgrid .sc-card .sc-cell{height:45px !important;min-height:0 !important;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;}
+  body.apple-view .pgrid .sc-card .sc-grid{grid-template-rows:none !important;}
+  body.apple-view .pgrid .sc-card .sc-cell{height:45px !important;min-height:0 !important;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;}
   /* Valeurs de carte : line-height assez ample pour ne pas rogner le haut des
      glyphes (ex. « Argent ») malgré overflow:hidden (ellipsis) — 08/08 Ethan */
-  body.topbar-view .pgrid .sc-card .sc-cell:not(.sc-det-only):not(.sc-price-main) .sc-val{line-height:1.25 !important;flex-shrink:0 !important;}
-  body.topbar-view .pgrid .sc-card .sc-cell:not(.sc-det-only):not(.sc-price-main) .sc-cap{flex-shrink:0 !important;}
-  body.topbar-view .pgrid .sc-card .sc-cell.sc-title{height:35px !important;display:block !important;line-height:35px !important;padding-top:0 !important;padding-bottom:0 !important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  body.topbar-view .pgrid .sc-card .sc-cell.sc-det-only{height:35px !important;display:flex !important;flex-direction:row !important;align-items:center;min-width:0 !important;overflow:hidden;}
-  body.topbar-view .pgrid .sc-card .sc-cell.sc-det-only .sc-val{min-width:0;flex:1;display:block !important;-webkit-line-clamp:unset !important;white-space:nowrap !important;overflow:hidden;text-overflow:ellipsis;}
+  body.apple-view .pgrid .sc-card .sc-cell:not(.sc-det-only):not(.sc-price-main) .sc-val{line-height:1.25 !important;flex-shrink:0 !important;}
+  body.apple-view .pgrid .sc-card .sc-cell:not(.sc-det-only):not(.sc-price-main) .sc-cap{flex-shrink:0 !important;}
+  body.apple-view .pgrid .sc-card .sc-cell.sc-title{height:35px !important;display:block !important;line-height:35px !important;padding-top:0 !important;padding-bottom:0 !important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  body.apple-view .pgrid .sc-card .sc-cell.sc-det-only{height:35px !important;display:flex !important;flex-direction:row !important;align-items:center;min-width:0 !important;overflow:hidden;}
+  body.apple-view .pgrid .sc-card .sc-cell.sc-det-only .sc-val{min-width:0;flex:1;display:block !important;-webkit-line-clamp:unset !important;white-space:nowrap !important;overflow:hidden;text-overflow:ellipsis;}
   /* Ligne PRIX en CELLULES GRID (span 2) : USINE (gauche) | PRIX + bouton (droite),
      alignées PILE sur les colonnes du dessus (COULEUR/POIDS) grâce au grid. */
-  body.topbar-view .pgrid .sc-card .sc-cell.sc-price-usine{height:35px !important;padding:2px 5px 2px 8px !important;display:flex !important;flex-direction:row !important;align-items:center !important;justify-content:flex-start;gap:7px;overflow:hidden;}
-  body.topbar-view .pgrid .sc-card .sc-cell.sc-price-main{height:35px !important;padding:2px 3px 2px 8px !important;display:flex !important;flex-direction:row !important;align-items:center !important;justify-content:flex-start;gap:12px;}
-  body.topbar-view .pgrid .sc-card .sc-price-val{font-size:20px !important;font-weight:800 !important;line-height:1 !important;}
+  body.apple-view .pgrid .sc-card .sc-cell.sc-price-usine{height:35px !important;padding:2px 5px 2px 8px !important;display:flex !important;flex-direction:row !important;align-items:center !important;justify-content:flex-start;gap:7px;overflow:hidden;}
+  body.apple-view .pgrid .sc-card .sc-cell.sc-price-main{height:35px !important;padding:2px 3px 2px 8px !important;display:flex !important;flex-direction:row !important;align-items:center !important;justify-content:flex-start;gap:12px;}
+  body.apple-view .pgrid .sc-card .sc-price-val{font-size:20px !important;font-weight:800 !important;line-height:1 !important;}
   /* + de carte = MÊME design que le + de la barre outils (#add-page-btn) :
      cercle blanc, pas de bordure, ombre var(--sh-md), + gras noir (08/08 Ethan). */
-  body.topbar-view .pgrid .sc-card .sc-price-main .sc-add{width:28px !important;height:28px !important;flex:0 0 auto;margin-left:auto !important;border:none !important;background:#fff !important;box-shadow:0 2px 9px rgba(0,0,0,.19) !important;}
-  body.topbar-view .pgrid .sc-card .sc-price-main .sc-add::before{font-size:18px !important;font-weight:700 !important;color:#1d1d1f !important;}
-  body.topbar-view .pgrid .sc-card .sc-price-main .sc-add:hover{border:none !important;background:#1d1d1f !important;box-shadow:var(--sh-md) !important;}
-  body.topbar-view .pgrid .sc-card .sc-price-main .sc-add:hover::before{color:#fff !important;}
+  /* + INVERSÉ (17/08 Ethan) : fond noir, signe blanc ; en liste = rouge + poubelle */
+  body.apple-view .pgrid .sc-card .sc-price-main .sc-add{width:28px !important;height:28px !important;flex:0 0 auto;margin-left:auto !important;border:none !important;background:#fff !important;box-shadow:0 2px 9px rgba(0,0,0,.19) !important;}
+  body.apple-view .pgrid .sc-card .sc-price-main .sc-add::before{font-size:18px !important;font-weight:700 !important;color:#1d1d1f !important;}
+  body.apple-view .pgrid .sc-card .sc-price-main .sc-add:hover{border:none !important;background:#1d1d1f !important;box-shadow:var(--sh-md) !important;}
+  body.apple-view .pgrid .sc-card .sc-price-main .sc-add.added{background:#FE0000 !important;}
+  body.apple-view .pgrid .sc-card .sc-price-main .sc-add.added:hover{background:#cc0000 !important;}
+  body.apple-view .pgrid .sc-card .sc-price-main .sc-add.added::before{content:'';width:15px;height:15px;}
   /* Barre PRODIX du bas masquée POUR LE MOMENT (desktop) — réactivable en retirant cette ligne */
   body.saisie-basse #px-dock{display:none !important;}
   /* + et tri ⤓ (barre) masqués sur le LANDING (inutiles avant d'avoir filtré) */
@@ -2484,15 +2484,12 @@ body.saisie-basse .pxdot.on.still::after{animation:none;}
   /* Boutons « Voir le stock » retirés (le clic sur la tuile entre déjà dans le stock) */
   body.saisie-basse .px-qcard-btn,body.saisie-basse .px-tuile-cta{display:none !important;}
 
-  /* Segment Bobine/Format = COPIE EXACTE du segment des tuiles (.px-tuile-seg) */
-  body.topbar-view .filters-panel .format-pills{display:flex !important;width:100% !important;margin:0 !important;position:relative;grid-template-columns:none !important;gap:2px;background:#ececed;border-radius:999px;padding:4px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.03);}
-  /* séparateur central pour bien distinguer les 2 options */
-  body.topbar-view .filters-panel .format-pills::before{content:'';position:absolute;left:50%;top:26%;bottom:26%;width:1.5px;border-radius:2px;background:#d3d3d8;transform:translateX(-50%);z-index:0;}
-  /* séparateur caché quand une option est active (la pilule foncée suffit) */
-  body.topbar-view .filters-panel .format-pills:has(.fpill.active)::before{display:none;}
-  body.topbar-view .filters-panel .format-pills .fpill{flex:1 1 0 !important;position:relative;z-index:1;border:none !important;background:transparent !important;outline:none;border-radius:999px !important;padding:9px 0 !important;width:auto !important;font-family:'DM Sans',sans-serif;font-weight:800;font-size:14.5px !important;letter-spacing:.3px;color:var(--g2) !important;box-shadow:none !important;}
-  body.topbar-view .filters-panel .format-pills .fpill:not(.active):hover{color:#1d1d1f !important;}
-  body.topbar-view .filters-panel .format-pills .fpill.active{background:#fff !important;color:#1d1d1f !important;box-shadow:0 2px 9px rgba(0,0,0,.19) !important;}
+  /* Segment Bobine/Format = MÊME style que les cartes du rail (17/08) :
+     blanc flottant, ombre douce, sans bordure — actif = fond noir. */
+  body.topbar-view .filters-panel .format-pills{display:flex !important;width:100% !important;margin:0 !important;position:relative;grid-template-columns:none !important;gap:4px;background:transparent;border-radius:0;padding:0;box-shadow:none;}
+  body.topbar-view .filters-panel .format-pills .fpill{flex:1 1 0 !important;position:relative;z-index:1;border:none !important;background:#fff !important;border:1px solid rgba(0,0,0,.05) !important;outline:none;border-radius:12px !important;box-shadow:0 2px 8px rgba(0,0,0,.10) !important;padding:9px 0 !important;width:auto !important;font-family:'DM Sans',sans-serif;font-weight:700;color:#1d1d1f !important;box-shadow:none !important;}
+  body.topbar-view .filters-panel .format-pills .fpill:not(.active):hover{background:#fafafa !important;}
+  body.topbar-view .filters-panel .format-pills .fpill.active{background:#222 !important;color:#fff !important;}
   /* Bouton « Offre » en HAUT du rail (déplacé du header en JS), pleine largeur */
   body.topbar-view .filters-panel #offre-wrap{order:-2;width:100%;position:relative;margin-bottom:2px;}
   body.topbar-view .filters-panel #offre-wrap .btn-head{width:100% !important;justify-content:space-between !important;}
@@ -2504,17 +2501,187 @@ body.saisie-basse .pxdot.on.still::after{animation:none;}
      rallongent pas), largeur du rail, ~6 items visibles puis SCROLL. */
   body.topbar-view #sb-msd-type .msd-panel,
   body.topbar-view #sb-msd-details .msd-panel{position:absolute !important;top:calc(100% + 4px) !important;left:0 !important;right:auto !important;inset-inline:0 auto !important;transform:none !important;width:100% !important;min-width:0 !important;max-width:none !important;max-height:344px !important;overflow-y:auto !important;overflow-x:hidden;box-sizing:border-box;}
-  /* Rail = largeur FIXE 300px, RIEN ne la bouge (ni menu ouvert, ni contenu long) */
-  body.topbar-view .sidebar-col{width:300px !important;min-width:300px !important;max-width:300px !important;box-sizing:border-box;position:sticky;top:52px;align-self:start;}
+  /* Rail = largeur FIXE 270px (300→270 le 17/08, −10 %), RIEN ne la bouge —
+     garder cette valeur ET grid-template-columns du .body-wrap SYNCHRO */
+  body.topbar-view .sidebar-col{width:270px !important;min-width:270px !important;max-width:270px !important;box-sizing:border-box;position:sticky;top:52px;align-self:start;}
   body.topbar-view .filters-panel{box-sizing:border-box;max-width:100%;}
   body.topbar-view .filters-panel .msd-option{white-space:normal !important;}
   body.topbar-view .filters-panel .msd-label{white-space:normal !important;overflow-wrap:anywhere;min-width:0;}
 
-  /* GRAMMAGES : curseur affiché DIRECTEMENT (plus de menu déroulant) */
-  body.topbar-view #sb-msd-grammage .msd-btn{pointer-events:none;background:transparent !important;box-shadow:none !important;border:none !important;padding:2px 12px 0 !important;font-weight:700;}
-  body.topbar-view #sb-msd-grammage .gsl-btnval{padding-right:0 !important;}
-  body.topbar-view #sb-msd-grammage .msd-btn .msd-arrow{display:none;}
+  /* GRAMMAGES : ACCORDÉON (17/08) — fermé = juste « Grammages » + flèche,
+     clic = le curseur se déplie dans la carte (classe .gsl-open posée en JS) */
+  body.topbar-view #sb-msd-grammage .msd-btn{pointer-events:auto;background:transparent !important;box-shadow:none !important;border:none !important;font-weight:700;cursor:pointer;}
+  body.topbar-view #sb-msd-grammage .gsl-btnval{display:none !important;}
+  body.topbar-view #sb-msd-grammage.gsl-open .gsl-btnval{display:inline !important;margin-left:auto;padding-right:8px !important;font-size:15.5px;font-weight:700;color:#48484a;white-space:nowrap;}
+  body.topbar-view #sb-msd-grammage .msd-btn .msd-arrow{display:inline-block;background:none !important;width:auto !important;height:auto !important;flex:none !important;font-size:0 !important;transform:none !important;}
+  body.topbar-view #sb-msd-grammage .msd-btn .msd-arrow::after{content:'\203A';font-size:19px;line-height:1;color:#a1a1a6;font-weight:400;display:inline-block;transform:rotate(90deg);transition:transform .15s;}
+  body.topbar-view #sb-msd-grammage.gsl-open .msd-btn .msd-arrow::after{transform:rotate(-90deg);}
   body.topbar-view #sb-msd-grammage .gsl-val{display:none;}
   body.topbar-view #sb-msd-grammage .gsl-bornes{display:none !important;}
-  body.topbar-view #sb-msd-grammage .msd-panel{position:static !important;inset:auto !important;display:block !important;width:100% !important;min-width:0 !important;max-width:none !important;transform:none !important;box-shadow:none !important;border:none !important;padding:4px 2px 0 !important;margin:0 !important;background:transparent !important;}
+  body.topbar-view #sb-msd-grammage .msd-panel{position:static !important;inset:auto !important;display:none !important;width:100% !important;min-width:0 !important;max-width:none !important;transform:none !important;box-shadow:none !important;border:none !important;padding:4px 2px 0 !important;margin:0 !important;background:transparent !important;}
+  body.topbar-view #sb-msd-grammage.gsl-open .msd-panel{display:block !important;}
 }
+
+/* ── Segment BOBINE|FORMAT harmonisé partout sur le dessin « contour noir »
+   (17/08 Ethan) : menu Offre + tuiles landing = même style que le rail. ── */
+.offre-seg-forme{background:transparent !important;border-radius:0 !important;padding:0 6px !important;gap:8px !important;box-shadow:none !important;}
+.offre-seg-forme .offre-seg-btn{border:1.5px solid #222 !important;border-radius:7px !important;background:#fff !important;color:#222 !important;font-size:12px !important;font-weight:700 !important;letter-spacing:.8px;text-transform:uppercase;padding:8px 0 !important;box-shadow:none !important;}
+.offre-seg-forme .offre-seg-btn:not(.on):not(:disabled):hover{background:#f5f5f3 !important;}
+.offre-seg-forme .offre-seg-btn.on{background:#222 !important;border-color:#222 !important;color:#fff !important;}
+body.saisie-basse .px-tuile-seg{background:transparent !important;border-radius:0 !important;padding:0 !important;gap:8px !important;box-shadow:none !important;}
+body.saisie-basse .px-tuile-seg button{border:1.5px solid #222 !important;border-radius:7px !important;background:#fff !important;color:#222 !important;font-weight:700 !important;letter-spacing:.8px;text-transform:uppercase;box-shadow:none !important;}
+body.saisie-basse .px-tuile-seg button:not(.on):hover{background:#f5f5f3 !important;}
+body.saisie-basse .px-tuile-seg button.on{background:#222 !important;border-color:#222 !important;color:#fff !important;}
+
+/* Chevrons du rail vers le BAS (17/08 Ethan) : › tourné 90°, ouvert = vers le haut */
+body.topbar-view .filters-panel .mgr-arrow{display:inline-block;transform:rotate(90deg);transition:transform .15s;}
+body.topbar-view .filters-panel .msd-group-row.open .mgr-arrow{transform:rotate(-90deg);}
+/* BOBINE/FORMAT à la même taille que Type de papier (18.5px, 17/08) */
+body.topbar-view .filters-panel .format-pills .fpill{font-size:18.5px !important;padding:9px 0 !important;}
+
+/* ── Rail 17/08 v3 : style APPLE « réglages » — une rangée par filtre,
+   cartes blanches flottantes (ombre, sans bordure), UNE colonne, compact. ── */
+@media(min-width:769px){
+  /* le panneau devient un fond discret, les rangées portent le blanc */
+  body.topbar-view .filters-panel{background:transparent !important;box-shadow:none !important;padding:10px 4px 20px !important;gap:4px !important;}
+
+  body.topbar-view .filters-panel #sb-msd-type .msd-btn,
+  body.topbar-view .filters-panel #sb-msd-details .msd-btn,
+  body.topbar-view .filters-panel #sb-msd-couleur .msd-btn,
+  body.topbar-view .filters-panel #sb-msd-format .msd-btn{
+    border:1px solid rgba(0,0,0,.05) !important;border-radius:12px !important;
+    background:#fff !important;box-shadow:0 2px 8px rgba(0,0,0,.10) !important;
+    padding:9px 14px !important;margin:0 !important;}
+  body.topbar-view .filters-panel .msd-btn:hover{background:#fafafa !important;}
+
+  /* Grammages : une carte avec le curseur dedans */
+  body.topbar-view .filters-panel #sb-msd-grammage{border:1px solid rgba(0,0,0,.05);border-radius:12px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.10);margin:0;}
+  body.topbar-view .filters-panel #sb-msd-grammage .msd-btn{border:none !important;background:transparent !important;box-shadow:none !important;border-radius:11px !important;padding:9px 14px !important;margin:0 !important;width:100% !important;}
+  body.topbar-view .filters-panel #sb-msd-grammage .msd-panel{margin:0 !important;padding:0 5px 6px !important;background:transparent !important;}
+
+  /* Avancés : mêmes cartes, UNE colonne */
+  body.topbar-view .filters-panel #tb-adv .msd-panel{display:block !important;}
+  body.topbar-view .filters-panel .msd-group-row{
+    border:1px solid rgba(0,0,0,.05) !important;border-radius:12px !important;
+    background:#fff !important;box-shadow:0 2px 8px rgba(0,0,0,.10) !important;
+    padding:9px 14px !important;margin:0 0 4px !important;font-size:18.5px !important;}
+  body.topbar-view .filters-panel .msd-group-row:hover{background:#fafafa !important;}
+
+  /* Titre FILTRES AVANCÉS : petites capitales grises, aéré */
+  body.topbar-view .filters-panel #tb-adv .msd-btn{border:none !important;background:transparent !important;box-shadow:none !important;margin:4px 0 2px !important;}
+}
+
+/* ── Démarcation rail / produits (17/08, ESSAI) : la zone des tuiles a son
+   propre fond plus soutenu — les cartes blanches ressortent. ── */
+@media(min-width:769px){
+  body.topbar-view .body-wrap>div:not(.sidebar-col){background:#e4e4ea;border-radius:16px 0 0 16px;padding:10px 12px 16px;min-height:70vh;}
+  /* rail : fond légèrement teinté distinct (17/08 ESSAI) */
+  body.topbar-view .body-wrap>.sidebar-col{background:transparent;border-radius:0;box-shadow:none;}
+  /* toute la colonne gauche est blanche jusqu'en bas (pas que le panneau sticky) */
+  body.topbar-view .body-wrap{background:linear-gradient(90deg,#fff 270px,transparent 270px);}
+  body.topbar-view .filters-panel{padding:10px 8px 20px !important;}
+}
+
+/* Colonne gauche BLANCHE toute hauteur (17/08) — posé en fin de fichier car
+   une règle background .body-wrap plus spécifique l'écrasait plus haut. */
+@media(min-width:769px){
+  body.topbar-view .body-wrap{background:linear-gradient(90deg,#f0f0f4 270px,#f5f5f7 270px) !important;}
+}
+
+/* Rail v4 (17/08) : titre de section aéré, chevrons gris doux */
+@media(min-width:769px){
+  body.topbar-view .filters-panel #tb-adv .msd-btn{margin:10px 0 2px !important;color:#1d1d1f !important;}
+}
+
+@media(min-width:769px){
+  body.apple-view .pgrid .sc-card .sc-price-main .sc-add:hover::before{color:#fff !important;}
+}
+
+/* Ma Liste = même pilule que Album photo/Usine/Offre (17/08) */
+@media(min-width:769px){
+  body.topbar-view #cart-btn{height:42px !important;padding:0 18px !important;border:1px solid rgba(0,0,0,.07) !important;background:#fff !important;box-shadow:0 2px 10px rgba(0,0,0,.16) !important;border-radius:999px !important;}
+  body.topbar-view #cart-btn .btn-panier-txt{font-size:16px !important;font-weight:700 !important;color:#1d1d1f !important;}
+}
+
+/* 17/08 (Ethan) : bouton scanner QR du header masqué — « inutile » */
+body.topbar-view .dh-scan-btn{display:none !important;}
+
+/* 17-18/08 (Ethan) : poubelle « Vider la liste » retirée du header
+   (on gère la liste dans le tiroir Ma Liste) */
+body.topbar-view #cart-clear-btn{display:none !important;}
+
+/* Ma Liste : camion visible + même graisse que les autres boutons (17-18/08) */
+@media(min-width:769px){
+  body.topbar-view #cart-btn svg{display:inline-block !important;}
+  body.topbar-view #cart-btn .btn-panier-txt{font-size:16px !important;font-weight:700 !important;}
+}
+
+/* 18/08 (Ethan) : boutons du header = EXACTEMENT la forme des cartes du rail
+   (arrondi 12px, liseré + ombre douce identiques, police 18.5px/700) */
+@media(min-width:769px){
+  body.topbar-view .hright .btn-head,
+  body.topbar-view #cart-btn{
+    height:auto !important;padding:9px 14px !important;
+    border:1px solid rgba(0,0,0,.05) !important;border-radius:12px !important;
+    background:#fff !important;box-shadow:0 2px 8px rgba(0,0,0,.10) !important;}
+  body.topbar-view .hright .btn-head .offre-txt,
+  body.topbar-view .hright .btn-head .btn-panier-txt,
+  body.topbar-view #cart-btn .btn-panier-txt{
+    font-size:18.5px !important;font-weight:700 !important;color:#1d1d1f !important;}
+  body.topbar-view .hright .btn-head:hover,
+  body.topbar-view #cart-btn:hover{background:#fafafa !important;}
+}
+@media(min-width:769px){
+  body.topbar-view #cart-btn img{height:23px !important;width:auto;} /* camion calé sur la hauteur texte */
+}
+
+/* ── CARTE v2 (18/08, inspirée ligne liste ethanelb) ── */
+.nc2{display:flex;flex-direction:column;}
+.nc2 .nc-body{display:flex;flex-direction:column;flex:1;background:#fff;}
+.nc2 .nc-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:11px 13px 0;}
+.nc2 .nc-title{font-family:'Bebas Neue',sans-serif;font-size:21px;letter-spacing:.4px;line-height:1;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.nc2 .nc-gsm{font-family:'Bebas Neue',sans-serif;font-size:17px;color:#111;flex-shrink:0;line-height:1;}
+.nc2 .nc-sub{padding:5px 13px 0;font-size:13.5px;color:#6e6e73;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.nc2 .nc-foot{display:flex;align-items:center;gap:8px;padding:10px 11px 11px 13px;margin-top:auto;}
+.nc2 .nc-ref{font-size:12.5px;font-weight:600;color:#48484a;background:#f2f2f6;border-radius:6px;padding:4px 8px;display:inline-flex;align-items:center;gap:5px;cursor:pointer;white-space:nowrap;}
+.nc2 .nc-ref:hover{background:#e8e8ee;}
+.nc2 .nc-price{color:#FE0000;font-weight:800;font-size:16px;margin-left:auto;white-space:nowrap;}
+.nc2 .nc-kgs{font-weight:800;font-size:16px;color:#111;white-space:nowrap;}
+.nc2 .nc-kgs small{font-size:11.5px;font-weight:700;}
+/* + de la carte v2 : blanc/noir, en liste = rouge poubelle (mêmes codes qu'avant) */
+body.topbar-view .nc2 .sc-add{width:28px !important;height:28px !important;flex:0 0 auto;border:none !important;background:#fff !important;box-shadow:0 2px 9px rgba(0,0,0,.19) !important;}
+body.topbar-view .nc2 .sc-add::before{font-size:18px !important;font-weight:700 !important;color:#1d1d1f !important;}
+body.topbar-view .nc2 .sc-add:hover{background:#1d1d1f !important;}
+body.topbar-view .nc2 .sc-add:hover::before{color:#fff !important;}
+body.topbar-view .nc2 .sc-add.added{background:#FE0000 !important;}
+body.topbar-view .nc2 .sc-add.added:hover{background:#cc0000 !important;}
+body.topbar-view .nc2 .sc-add.added::before{content:'';width:15px;height:15px;}
+
+/* ── Tiroir Ma Liste calé sur le modèle ethanelb (18/08) ── */
+body.apple-view .ci-laize{text-transform:uppercase;font-size:14.5px;font-weight:800;letter-spacing:.3px;}
+body.apple-view .ci-name{color:#6e6e73;font-size:13px;}
+body.apple-view .ci-gsm{font-size:17px;}
+body.apple-view .ci-price{font-size:14px !important;font-weight:800 !important;}
+body.apple-view .ci-kgs{font-size:15px;}
+
+/* ── Tiroir Ma Liste : MINI-ÉTIQUETTE façon carte catalogue (18/08 v2) ── */
+body.apple-view .cie-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#e8e8e4;border:1px solid #e8e8e4;border-radius:6px;overflow:hidden;margin-top:5px;}
+body.apple-view .cie-cell{background:#fff;padding:4px 8px;}
+body.apple-view .cie-cap{font-size:8.5px;font-weight:700;letter-spacing:.7px;color:#86868b;}
+body.apple-view .cie-val{font-size:13.5px;font-weight:700;color:#111;line-height:1.15;}
+body.apple-view .cie-val small{font-size:10px;font-weight:600;}
+/* Carte liste 3 col (18/08) : titre+poubelle / grammage-laize-couleur / poids-réf-prix, photo seule dehors */
+body.apple-view .cie-grid.cie-g4{grid-template-columns:repeat(3,minmax(0,1fr));margin-top:0;}
+body.apple-view .cie-g4 .cie-cell{padding:3px 7px;}
+body.apple-view .cie-g4 .cie-cap{font-size:9.5px;}
+body.apple-view .cie-g4 .cie-val{font-size:14px;}
+body.apple-view .cie-g4 .cie-title{grid-column:1/-1;font-size:14.5px;font-weight:800;color:#111;letter-spacing:.2px;line-height:1.2;display:flex;align-items:center;gap:6px;min-width:0;padding:4px 7px;}
+body.apple-view .cie-g4 .cie-title-txt{flex:1;min-width:0;}
+body.apple-view .cie-g4 .cie-rm{min-width:0;min-height:0;width:auto;height:auto;margin:0;padding:0;flex-shrink:0;color:var(--red);}
+body.apple-view .cie-g4 .cie-rm:hover{color:#cc0000;}
+body.apple-view .cie-g4 .cie-ref{cursor:pointer;}
+body.apple-view .cie-g4 .cie-ref:hover{background:#f6f6f4;}
+body.apple-view .cie-g4 .cie-ref .cie-val{font-family:monospace;display:flex;align-items:center;gap:4px;}
+body.apple-view .ci-laize{text-transform:uppercase;font-family:'Bebas Neue',sans-serif;font-size:17px;font-weight:400;letter-spacing:.5px;}
+body.apple-view .ci-gsm{display:none;} /* le grammage vit dans la grille */
+body.apple-view .ci-foot{margin-top:6px;}
