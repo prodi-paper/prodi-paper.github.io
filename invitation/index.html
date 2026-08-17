@@ -83,15 +83,15 @@
   .histo-item .quand { color: var(--gris); font-size: 13px; }
   .histo-vide { color: var(--gris); font-size: 15px; padding: 12px 0; }
 
-  #ocr-zone {
-    display: flex; align-items: center; justify-content: center; gap: 10px;
-    border: 2px dashed var(--ligne); border-radius: 10px; padding: 14px 16px;
-    color: var(--gris); font-size: 15px; cursor: pointer; margin-bottom: 14px;
-    text-align: center; transition: border-color .15s, background .15s;
+  .sugg {
+    position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; z-index: 6;
+    background: #fff; border: 1px solid var(--ligne); border-radius: 9px;
+    box-shadow: 0 10px 28px rgba(0,0,0,.1); overflow: hidden;
   }
-  #ocr-zone:hover, #ocr-zone.survol { border-color: var(--rouge); background: #fff8f8; }
-  #ocr-zone.lecture { border-color: var(--rouge); color: var(--encre); pointer-events: none; }
-  #ocr-zone svg { flex: none; }
+  .sugg:empty { display: none; }
+  .sugg div { padding: 11px 14px; cursor: pointer; font-size: 16px; }
+  .sugg div:hover { background: var(--fond); }
+  .sugg small { color: var(--gris); }
 
   .champ-date { cursor: pointer; }
   #cal-fond {
@@ -197,16 +197,17 @@ html.cat-unlocked #cat-gate{display:none !important;}
 
 <main>
   <section class="card">
-    <div id="ocr-zone" onclick="$('ocr-fichier').click()">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-      <span id="ocr-texte">Importer ou déposer un document — passeport, billet d'avion… les champs se remplissent tout seuls</span>
-    </div>
-    <input type="file" id="ocr-fichier" accept="image/*,application/pdf" hidden onchange="importerDocument(this.files[0]); this.value=''">
     <div class="grid">
       <div class="full" style="display:flex;gap:12px">
         <select id="civilite" style="width:110px;flex:none"><option>M.</option><option>Mme</option></select>
-        <input id="prenom" placeholder="Prénom" autocomplete="off" style="flex:1;min-width:0">
-        <input id="nom" placeholder="Nom" autocomplete="off" style="flex:1;min-width:0;text-transform:uppercase">
+        <div style="flex:1;min-width:0;position:relative">
+          <input id="prenom" placeholder="Prénom" autocomplete="off">
+          <div class="sugg" id="sugg-prenom"></div>
+        </div>
+        <div style="flex:1;min-width:0;position:relative">
+          <input id="nom" placeholder="Nom" autocomplete="off" style="text-transform:uppercase">
+          <div class="sugg" id="sugg-nom"></div>
+        </div>
       </div>
       <div class="full">
         <input id="passeport" placeholder="N° de passeport" autocomplete="off" style="text-transform:uppercase">
@@ -380,6 +381,7 @@ function enregistrerHisto(type) {
     date_courrier: $("date_courrier").dataset.iso,
     type,
   };
+  enregistrerClient();
   const histo = JSON.parse(localStorage.getItem(HISTO_CLE) || "[]");
   histo.unshift({ ...entree, quand: Date.now() });
   localStorage.setItem(HISTO_CLE, JSON.stringify(histo.slice(0, 30)));
@@ -436,82 +438,71 @@ function reprendreHisto(i) {
   fermerHisto();
 }
 
-// ===== Import de document (OCR vision via l'API arrivages) =====
-const OCR_URL = "https://prodi-arrivages.vercel.app/api/invitation-ocr";
-const OCR_LIBELLES = { civilite: "civilité", prenom: "prénom", nom: "nom",
-  passeport: "passeport", societe: "société", date_debut: "début du séjour", date_fin: "fin du séjour" };
+// ===== Mémoire clients (table invitations_clients, anti-doublon par passeport) =====
+const CLIENTS_URL = "https://bvcgpdoukhcatjibmvnb.supabase.co/rest/v1/invitations_clients";
+let _clients = null, _suggMatchs = [];
 
-function ocrMessage(txt, fini) {
-  $("ocr-texte").textContent = txt;
-  const z = $("ocr-zone");
-  z.classList.toggle("lecture", !fini);
-  if (fini) setTimeout(() => {
-    $("ocr-texte").textContent = "Importer ou déposer un document — passeport, billet d'avion… les champs se remplissent tout seuls";
-  }, 6000);
-}
-
-function redimensionner(file) {
-  return new Promise((res, rej) => {
-    const img = new Image();
-    img.onload = () => {
-      const max = 1600;
-      const k = Math.min(1, max / Math.max(img.width, img.height));
-      const c = document.createElement("canvas");
-      c.width = Math.round(img.width * k);
-      c.height = Math.round(img.height * k);
-      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
-      res(c.toDataURL("image/jpeg", 0.85).split(",")[1]);
-      URL.revokeObjectURL(img.src);
-    };
-    img.onerror = rej;
-    img.src = URL.createObjectURL(file);
-  });
-}
-
-async function importerDocument(file) {
-  if (!file) return;
-  ocrMessage("Lecture du document…", false);
+async function chargerClients() {
+  if (_clients) return _clients;
   try {
-    let corps;
-    if (file.type === "application/pdf") {
-      const b64 = await new Promise((res, rej) => {
-        const r = new FileReader();
-        r.onload = () => res(r.result.split(",")[1]);
-        r.onerror = rej;
-        r.readAsDataURL(file);
-      });
-      corps = { kind: "pdf", base64: b64 };
-    } else {
-      corps = { kind: "image", base64: await redimensionner(file), mediaType: "image/jpeg" };
-    }
-    const r = await fetch(OCR_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(corps),
-    });
-    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || "Lecture impossible");
-    const d = await r.json();
-    const remplis = [];
-    if (d.civilite) { $("civilite").value = d.civilite; remplis.push(OCR_LIBELLES.civilite); }
-    for (const c of ["prenom", "nom", "societe", "passeport"]) {
-      if (d[c]) { $(c).value = d[c]; $(c).classList.remove("err"); remplis.push(OCR_LIBELLES[c]); }
-    }
-    for (const c of ["date_debut", "date_fin"]) {
-      if (d[c]) { poserDate(c, d[c]); $(c).classList.remove("err"); remplis.push(OCR_LIBELLES[c]); }
-    }
-    ocrMessage(remplis.length ? `✓ Rempli : ${remplis.join(", ")}` : "Rien de lisible sur ce document — réessaie avec une photo plus nette.", true);
-  } catch (e) {
-    ocrMessage(String(e.message || "Lecture impossible — réessaie."), true);
-  }
+    const r = await fetch(`${CLIENTS_URL}?select=*&order=updated_at.desc&limit=500`, { headers: HISTO_HDR });
+    _clients = r.ok ? await r.json() : [];
+  } catch { _clients = []; }
+  return _clients;
 }
 
-// glisser-déposer sur la zone
-{
-  const z = $("ocr-zone");
-  ["dragover", "dragenter"].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.add("survol"); }));
-  ["dragleave", "drop"].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.remove("survol"); }));
-  z.addEventListener("drop", e => importerDocument(e.dataTransfer.files[0]));
+function enregistrerClient() {
+  const d = donnees();
+  if (!d.passeport) return;
+  _clients = null; // rechargé à la prochaine frappe
+  fetch(`${CLIENTS_URL}?on_conflict=passeport`, {
+    method: "POST",
+    headers: { ...HISTO_HDR, Prefer: "resolution=merge-duplicates,return=minimal" },
+    body: JSON.stringify({ passeport: d.passeport, civilite: d.civilite, prenom: d.prenom,
+      nom: d.nom, societe: d.societe, updated_at: new Date().toISOString() }),
+  }).catch(() => {});
 }
+
+function normalise(s) {
+  return String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+async function suggerer(champ) {
+  const boite = $("sugg-" + champ);
+  const q = normalise($(champ).value.trim());
+  if (q.length < 2) { boite.innerHTML = ""; return; }
+  const clients = await chargerClients();
+  if (normalise($(champ).value.trim()) !== q) return; // frappe entre-temps
+  const vus = new Set();
+  _suggMatchs = clients.filter(c => {
+    const cle = normalise(c.prenom + "|" + c.nom);
+    if (vus.has(cle)) return false;
+    const ok = normalise(c.prenom).startsWith(q) || normalise(c.nom).startsWith(q);
+    if (ok) vus.add(cle);
+    return ok;
+  }).slice(0, 6);
+  boite.innerHTML = _suggMatchs.map((c, i) =>
+    `<div onclick="choisirClient(${i})"><b>${esc(c.civilite || "")} ${esc(c.prenom || "")} ${esc((c.nom || "").toUpperCase())}</b>` +
+    (c.societe ? ` <small>— ${esc(c.societe.toUpperCase())}</small>` : "") + `</div>`).join("");
+}
+
+function choisirClient(i) {
+  const c = _suggMatchs[i];
+  if (!c) return;
+  $("civilite").value = c.civilite === "Mme" ? "Mme" : "M.";
+  $("prenom").value = c.prenom || "";
+  $("nom").value = c.nom || "";
+  $("societe").value = c.societe || "";
+  $("passeport").value = c.passeport || "";
+  ["prenom", "nom", "societe", "passeport"].forEach(id => $(id).classList.remove("err"));
+  $("sugg-prenom").innerHTML = "";
+  $("sugg-nom").innerHTML = "";
+}
+
+["prenom", "nom"].forEach(id => {
+  $(id).addEventListener("input", () => suggerer(id));
+  $(id).addEventListener("blur", () => setTimeout(() => { $("sugg-" + id).innerHTML = ""; }, 250));
+});
 
 async function telechargerWord() {
   if (!valide()) return;
