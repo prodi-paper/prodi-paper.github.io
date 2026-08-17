@@ -1340,3 +1340,19 @@ footer{background:#f5f5f7;border-top:1px solid var(--border);padding:52px 0 30px
 .qtile-more .qm-full{display:inline;}
 @media(max-width:768px){.qtile-more .qm-full{display:none;}
 .qtile-more .qm-dots{display:inline;letter-spacing:2px;font-weight:700;}}
+
+/* ── FOOTER « NOS MARCHÉS » (maillage interne SEO pages pays, 16/08) ── */
+.ft2-markets{max-width:var(--max);margin:34px auto 0;padding:18px var(--pad) 0;border-top:1px solid #e3e3e6;display:flex;flex-wrap:wrap;gap:7px 16px;align-items:baseline;}
+.ft2-mk-h{font-family:'DM Sans',sans-serif;font-size:12.5px;font-weight:700;color:var(--ink);}
+.ft2-markets a{font-size:12.5px;color:var(--g2);text-decoration:none;transition:color .2s;}
+.ft2-markets a:hover{color:var(--ink);}
+/* ── FOOTER RÉSEAUX SOCIAUX (16/08) ── */
+.ft2-social{display:flex;gap:10px;margin-top:14px;}
+.ft2-social a{width:32px;height:32px;border:1.5px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--g2);transition:color .2s,border-color .2s;}
+.ft2-social a:hover{color:var(--ink);border-color:var(--ink);}
+.ft2-social svg{display:block;}
+
+/* ─── Bouton popup en mode portail WhatsApp (17/08) ─── */
+#l-submit.btn-wa{background:#25D366;}
+#l-submit.btn-wa:hover{background:#1da851;}
+#l-submit.btn-wa svg{vertical-align:-3px;margin-right:6px;}

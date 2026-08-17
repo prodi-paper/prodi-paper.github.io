@@ -12,7 +12,7 @@ gtag('config', 'AW-18393110999');
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.googletagmanager.com https://googleads.g.doubleclick.net https://www.googleadservices.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://stock.prodi.net https://paper.prodi.com https://prodi-paper.github.io https://images.unsplash.com https://www.googletagmanager.com https://googleads.g.doubleclick.net https://www.google.com https://www.google.fr; connect-src 'self' https://bvcgpdoukhcatjibmvnb.supabase.co https://api.emailjs.com https://cdn.jsdelivr.net https://www.googletagmanager.com https://googleads.g.doubleclick.net https://www.google.com https://stats.g.doubleclick.net https://www.googleadservices.com https://ad.doubleclick.net; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.googletagmanager.com https://googleads.g.doubleclick.net https://www.googleadservices.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://stock.prodi.net https://paper.prodi.com https://prodi-paper.github.io https://images.unsplash.com https://www.googletagmanager.com https://googleads.g.doubleclick.net https://www.google.com https://www.google.fr; connect-src 'self' https://bvcgpdoukhcatjibmvnb.supabase.co https://api.emailjs.com https://cdn.jsdelivr.net https://www.googletagmanager.com https://googleads.g.doubleclick.net https://www.google.com https://stats.g.doubleclick.net https://www.googleadservices.com https://ad.doubleclick.net; frame-src https://challenges.cloudflare.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <link rel="icon" type="image/png" href="/img/panda.png">
@@ -29,7 +29,7 @@ gtag('config', 'AW-18393110999');
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@600;700&family=DM+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/vitrine.css?v=309">
+<link rel="stylesheet" href="/vitrine.css?v=312">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -55,6 +55,7 @@ gtag('config', 'AW-18393110999');
   <div class="hd-inner">
     <div class="hd-logo" onclick="location.href='/'"><img src="/img/logo.png" alt="Prodiconseil" width="196" height="32"></div>
     <nav class="hd-nav">
+      <a href="/catalogue/" id="nav-catalogue" onclick="openCatalogue();return false;">Catalogue</a>
       <a href="/produits/">Produits</a>
       <a href="/histoire/">Histoire</a>
     </nav>
@@ -73,7 +74,7 @@ gtag('config', 'AW-18393110999');
     <p class="leg-maj">Dernière mise à jour : 16 août 2026</p>
 
     <h2>1. Qui sommes-nous</h2>
-    <p>Prodiconseil est un négociant international en papier et carton établi en France (dépôt à Amiens). Le présent site, paper.prodi.com, présente nos produits et permet de nous adresser des demandes de contact et d'offres de prix. Pour toute question relative à vos données : <a href="mailto:contact@prodi.com">contact@prodi.com</a>.</p>
+    <p>Prodiconseil est un négociant international en papier et carton établi en France (dépôt à Amiens). Le présent site, paper.prodi.com, présente nos produits et permet de nous adresser des demandes de contact et d'offres de prix. Pour toute question relative à vos données : <a href="mailto:ethan@prodi.com">ethan@prodi.com</a>.</p>
 
     <h2>2. Données que nous collectons</h2>
     <ul>
@@ -93,7 +94,7 @@ gtag('config', 'AW-18393110999');
     <p>Les demandes commerciales sont conservées le temps nécessaire à leur traitement et au suivi de la relation commerciale, puis supprimées. Les données de mesure d'audience sont conservées sous forme agrégée.</p>
 
     <h2>5. Vos droits</h2>
-    <p>Conformément au RGPD, vous disposez d'un droit d'accès, de rectification, d'effacement et d'opposition sur vos données. Pour l'exercer, écrivez-nous à <a href="mailto:contact@prodi.com">contact@prodi.com</a> — nous répondons sous 30 jours. Vous pouvez également saisir la CNIL (cnil.fr).</p>
+    <p>Conformément au RGPD, vous disposez d'un droit d'accès, de rectification, d'effacement et d'opposition sur vos données. Pour l'exercer, écrivez-nous à <a href="mailto:ethan@prodi.com">ethan@prodi.com</a> — nous répondons sous 30 jours. Vous pouvez également saisir la CNIL (cnil.fr).</p>
 
     <h2>6. Cookies et traceurs</h2>
     <p>Le site utilise un stockage local technique (préférences, liste de sélection) et la balise Google mentionnée ci-dessus. Vous pouvez bloquer les cookies publicitaires dans les réglages de votre navigateur ou via <a href="https://adssettings.google.com/" target="_blank" rel="noopener noreferrer">adssettings.google.com</a> sans perdre l'accès au site.</p>
@@ -105,6 +106,13 @@ gtag('config', 'AW-18393110999');
     <div class="ft2-brand">
       <a href="/"><img src="/img/logo.png" alt="Prodiconseil" width="170" height="28"></a>
       <p class="ft2-tag">Négociant international en papier &amp; carton depuis 1991.</p>
+      <div class="ft2-social">
+        <a href="https://www.youtube.com/channel/UCKYWPjnXzOUMx6zT2KyEJdw" target="_blank" rel="noopener noreferrer" aria-label="YouTube" title="YouTube" onclick="window.prodiTrack?.('social_click',{r:'youtube'})"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5.5" width="20" height="13" rx="3.5"/><path d="M10 9.2l5 2.8-5 2.8z" fill="currentColor" stroke="none"/></svg></a>
+        <a href="https://www.tiktok.com/@prodiconseil" target="_blank" rel="noopener noreferrer" aria-label="TikTok" title="TikTok" onclick="window.prodiTrack?.('social_click',{r:'tiktok'})"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 2h-3.1v13.4a2.9 2.9 0 1 1-2.9-2.9c.3 0 .6 0 .9.1V9.4a6.2 6.2 0 0 0-.9-.06 6.06 6.06 0 1 0 6.06 6.06V8.9A7.6 7.6 0 0 0 21 10.2V7.1a4.8 4.8 0 0 1-4.4-5.1z"/></svg></a>
+        <a href="https://www.facebook.com/profile.php?id=61590755904742" target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook" onclick="window.prodiTrack?.('social_click',{r:'facebook'})"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 21v-7.4h2.5l.4-2.9h-2.9V8.8c0-.84.23-1.4 1.44-1.4h1.54V4.8c-.27-.04-1.18-.11-2.24-.11-2.22 0-3.74 1.35-3.74 3.84v2.14H8v2.9h2.5V21z"/></svg></a>
+        <a href="https://www.instagram.com/prodiconseil.paper" target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram" onclick="window.prodiTrack?.('social_click',{r:'instagram'})"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="0.6" fill="currentColor" stroke="none"/></svg></a>
+        <a href="https://www.linkedin.com/company/prodiconseil-paper/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" title="LinkedIn" onclick="window.prodiTrack?.('social_click',{r:'linkedin'})"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5a2.1 2.1 0 1 1 0 4.2 2.1 2.1 0 0 1 0-4.2zM3.2 9.2h3.6V21H3.2zM9.1 9.2h3.4v1.6h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.26 2.37 4.26 5.45V21h-3.6v-5.9c0-1.4-.02-3.2-1.95-3.2-1.96 0-2.26 1.53-2.26 3.1V21H9.1z"/></svg></a>
+      </div>
     </div>
     <div class="ft2-col">
       <div class="ft2-h">Navigation</div>
@@ -129,14 +137,45 @@ gtag('config', 'AW-18393110999');
     <div class="ft2-col">
       <div class="ft2-h">Nous joindre</div>
       <a href="https://wa.me/33649754915" target="_blank" rel="noopener noreferrer">WhatsApp</a>
-      <a href="tel:+33609997407">+33 6 09 99 74 07</a>
-      <a href="mailto:contact@prodi.com">contact@prodi.com</a>
+      <a href="tel:+33649754915">+33 6 49 75 49 15</a>
+      <a href="mailto:ethan@prodi.com">ethan@prodi.com</a>
     </div>
+  </div>
+  <div class="ft2-markets">
+    <span class="ft2-mk-h">Nos marchés :</span>
+    <a href="/algerie/">Algérie</a>
+    <a href="/maroc/">Maroc</a>
+    <a href="/tunisie/">Tunisie</a>
+    <a href="/libye/">Libye</a>
+    <a href="/mauritanie/">Mauritanie</a>
+    <a href="/egypte/">Égypte</a>
+    <a href="/senegal/">Sénégal</a>
+    <a href="/cote-d-ivoire/">Côte d'Ivoire</a>
+    <a href="/mali/">Mali</a>
+    <a href="/burkina-faso/">Burkina Faso</a>
+    <a href="/guinee/">Guinée</a>
+    <a href="/benin/">Bénin</a>
+    <a href="/togo/">Togo</a>
+    <a href="/cameroun/">Cameroun</a>
+    <a href="/gabon/">Gabon</a>
+    <a href="/congo/">Congo</a>
+    <a href="/rd-congo/">RD Congo</a>
+    <a href="/tchad/">Tchad</a>
+    <a href="/djibouti/">Djibouti</a>
+    <a href="/kenya/">Kenya</a>
+    <a href="/madagascar/">Madagascar</a>
+    <a href="/liban/">Liban</a>
+    <a href="/turquie/">Turquie</a>
+    <a href="/pologne/">Pologne</a>
+    <a href="/hongrie/">Hongrie</a>
+    <a href="/roumanie/">Roumanie</a>
+    <a href="/bulgarie/">Bulgarie</a>
+    <a href="/serbie/">Serbie</a>
   </div>
   <div class="ft2-bottom">© 2026 Prodiconseil · Stock papier &amp; carton · Dépôt Amiens — 14 000 m² · <a href="/confidentialite/" style="color:inherit">Confidentialité</a></div>
 </footer>
 
 <script src="/analytics.js?v=2"></script>
-<script src="/vitrine.js?v=155"></script>
+<script src="/vitrine.js?v=162"></script>
 </body>
 </html>
