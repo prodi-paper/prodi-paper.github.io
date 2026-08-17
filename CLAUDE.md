@@ -1051,11 +1051,81 @@ sur un conteneur de .msd-panel.
 ## Tag Google Ads (16/08/2026)
 
 Balise gtag AW-18393110999 (compte Google Ads Prodi 574-605-3998, balise
-GT-MKPCGLK9) posée en tête de `<head>` des 48 pages HTML. Les CSP (45
-pages) autorisent googletagmanager.com (script), googleads.g.doubleclick.net,
-google.com/google.fr, stats.g.doubleclick.net (img+connect). Sert au suivi
-des conversions des campagnes (campagne « Maghreb » PMax). Actions de
-conversion pas encore définies — le tag de base collecte déjà.
+GT-MKPCGLK9) posée en tête de `<head>` des 48 pages HTML. Les CSP (46
+pages) autorisent googletagmanager.com + googleads.g.doubleclick.net +
+googleadservices.com (script), googleads.g.doubleclick.net, google.com/
+google.fr (img), stats.g.doubleclick.net + googleadservices.com +
+ad.doubleclick.net (connect). ⚠️ 17/08 (commit 28fd9348) : la CSP initiale
+BLOQUAIT googleadservices.com/ad.doubleclick.net (connect) et
+googleads.g.doubleclick.net (script) → AUCUNE conversion ne remontait dans
+Ads (diagnostic balise « Urgent » dans Gestionnaire de données) alors que
+les événements partaient bien (site_events les traçait). Si on retouche la
+CSP un jour, repasser par Outils → Gestionnaire de données → balise Prodi →
+Qualité de la balise pour vérifier qu'aucune ressource n'est bloquée.
+
+## Anti-bot formulaires vitrine (17/08/2026)
+
+Réponse aux faux leads de la campagne Ads du 16/08 (humains pressés sur trafic
+display + bots potentiels) :
+- **`_leadValide(form,nom,tel)`** (vitrine.js) : ≥3 lettres Unicode au nom
+  (l'arabe passe), tél 8-15 chiffres, rejet si un même chiffre fait >70 % du
+  numéro (« 7788888 ») — erreur affichée en rouge `.lead-err` au-dessus du
+  bouton (plus de rejet silencieux). Branchée sur submitContact/submitLead/
+  submitRappel.
+- **Indicatif par défaut `_ccDef`** = locale du navigateur (fr-DZ → +213,
+  ar-MA → +212…), repli +33 — les numéros Maghreb ne ressortent plus en faux
+  « +33 06… ».
+- **Cloudflare Turnstile** version légère : widget `prodi-paper-forms`
+  (sitekey `0x4AAAAAAESDAT4K4lA2WBBC`, publique par design ; domaines
+  paper.prodi.com + localhost ; mode managed, appearance interaction-only =
+  invisible sauf défi). vitrine.js injecte le script seulement si `TS_KEY`
+  renseignée ET un formulaire présent ; `_tsOk(fid)` (async) ATTEND le jeton
+  jusqu'à 6 s (« Vérification anti-robot… ») avant de refuser — un client qui
+  soumet 1 s après le chargement patiente ~2 s puis part (testé), il n'est
+  plus rejeté. ⚠️ PAS de vérif serveur : le jeton n'est contrôlé que côté
+  navigateur — un POST direct sur Supabase passe encore. Le blindage complet
+  = Edge Function Supabase qui vérifie le jeton (secret du widget HORS repo,
+  voir mémoire privée) avant insert, à faire si le spam persiste.
+- CSP des 46 pages : `script-src` + `frame-src https://challenges.cloudflare.com`.
+- **Message obligatoire ≥15 caractères sur TOUS les formulaires** (17/08) :
+  champs `l-msg` (popup, aussi sur /produits/) et `r-msg` (bandeau) ajoutés
+  (`required minlength="15"` natif + garde `_leadValide` 4e arg) ; `f-msg`
+  l'avait déjà. Les messages en base sont préfixés par l'origine : « Demande
+  de rappel (popup) — … », « (bandeau) — … », « Demande WhatsApp — … ».
+- **PORTE STOCK = POPUP LEAD, CAPTURE SEULE** (17/08) : `openStock()`
+  (« Voir le stock », tuiles, nav) ouvre le popup lead au lieu de la porte à
+  code — envoi = « Bien reçu, on vous rappelle », **PAS de redirection ni
+  d'accès au catalogue** (correction Ethan : seul le code PRODI2026 fait
+  entrer, via #stock-gate des autres pages ou la porte PWD du catalogue).
+  Message en base « Demande stock — … », traqueurs `stock_gate_vue` +
+  `contact_envoye {via:'stock'}`. Déjà envoyé cette session → le popup rouvre
+  sur le « Bien reçu ». Pages SANS #lead-modal (pays, contact…) : repli
+  ancienne porte à code #stock-gate, sinon navigation directe.
+- **Nav « Catalogue »** (17/08) : 1er lien du hd-nav des 45 pages + menu
+  mobile accueil (`id="nav-catalogue"`) → **`openCatalogue()` = porte à CODE
+  historique** (#stock-gate : Code d'accès/Confirmer/« Pas encore client ? »)
+  pour les clients qui ont PRODI2026 ; pages sans #stock-gate → /catalogue/
+  direct (porte PWD). NE PAS confondre avec openStock (= porte LEAD des
+  boutons « Voir le stock »/tuiles) — séparation voulue par Ethan.
+- **Popup auto retardé 5 s → 20 s** (17/08, accueil après-hero et /produits/).
+- **PORTAIL WHATSAPP** (17/08) : tout clic sur un lien wa.me ouvre le popup
+  lead (listener délégué capture, `_waUrl` mémorise le lien, traqueur
+  `wa_gate_vue`) ; la redirection WhatsApp part 1,1 s APRÈS l'envoi réussi.
+  `sessionStorage lead_done` (posé par les 3 formulaires au succès) = accès
+  WhatsApp DIRECT le reste de la session ; fermer le popup sans envoyer
+  annule (`leadClose` remet `_waUrl=null`). Motif : 43 cliqueurs WP le 16/08,
+  8 réellement engagés — taps réflexes transformés en vrais leads qualifiés.
+
+## Page /merci/ (17/08/2026)
+
+Page de remerciement autonome (HTML standalone, styles inline, DM Sans,
+coche verte animée, logo, « Retour à l'accueil ») : TOUS les envois de
+formulaires y redirigent ~1,2 s après le « Bien reçu » inline — popup
+(modes stock/auto), bandeau, contact — SAUF le portail WhatsApp qui part
+vers la conversation. `noindex,nofollow`, PAS dans le sitemap, gtag + CSP
+standard + analytics.js (pageview). **But : conversion Google Ads par
+visite de page** (à créer dans Ads : action « page vue /merci/ » — le
+tracking le plus fiable, indépendant des événements JS).
 
 ## Page /confidentialite/ (16/08/2026)
 

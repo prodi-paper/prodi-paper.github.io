@@ -9,16 +9,43 @@ const safeUrl = u => {
 
 // ─── STOCK ACCESS GATE ───
 const STOCK_CODE = 'prodi2026';
+// ─── NAV « Catalogue » = porte à CODE historique (clients : PRODI2026,
+// « Pas encore client ? » → contact). « Voir le stock »/tuiles = porte LEAD
+// (openStock ci-dessous). Séparation demandée par Ethan le 17/08. ───
+function openCatalogue(){
+  window.prodiTrack?.('cta_catalogue');
+  try{
+    if(sessionStorage.getItem('stock_unlocked')==='1'){ window.location.href='/catalogue/'; return; }
+  }catch(_){}
+  const g=document.getElementById('stock-gate');
+  if(!g){ window.location.href='/catalogue/'; return; } // porte PWD du catalogue en relais
+  window.prodiTrack?.('gate_vue');
+  g.style.display='flex';
+  document.body.style.overflow='hidden';
+  setTimeout(()=>document.getElementById('stock-gate-code')?.focus(),60);
+}
 function openStock(){
   window.prodiTrack?.('cta_catalogue');
   try{
     if(sessionStorage.getItem('stock_unlocked')==='1'){ window.location.href='/catalogue/'; return; }
   }catch(_){}
-  const g=document.getElementById('stock-gate'); if(!g)return;
-  window.prodiTrack?.('gate_vue');
-  g.style.display='flex';
-  document.body.style.overflow='hidden';
-  setTimeout(()=>document.getElementById('stock-gate-code')?.focus(),60);
+  // PORTE LEAD (17/08, remplace le code d'accès sur accueil + /produits/) :
+  // « Voir le stock » ouvre le POPUP lead = CAPTURE SEULE — « Bien reçu, on
+  // vous rappelle », PAS d'accès au catalogue (correction Ethan 17/08 : seul
+  // le code PRODI2026 fait entrer). Déjà envoyé → le popup montre « Bien reçu ».
+  const modal=document.getElementById('lead-modal');
+  if(modal){
+    _stockGate=true;
+    _leadBtnMode(false);
+    modal.classList.add('open');document.body.style.overflow='hidden';
+    window.prodiTrack?.('stock_gate_vue');
+    return;
+  }
+  // pages sans popup lead (pays, contact, histoire…) : on renvoie vers
+  // l'accueil qui ouvre le popup — l'ancienne porte à code ne se montre
+  // PLUS jamais via les boutons (le code PRODI2026 reste saisissable sur
+  // la porte PWD de /catalogue/ en accès direct).
+  window.location.href='/?stock=1';
 }
 function closeStockGate(){
   const g=document.getElementById('stock-gate'); if(!g)return;
@@ -51,6 +78,25 @@ document.addEventListener('keydown',e=>{
 // ─── TRACKING CONTACTS : un listener délégué couvre TOUS les liens WhatsApp/
 // tél/mailto (sticky, section contact, footer, futurs). Capture = l'événement
 // part avant l'ouverture du lien.
+// PORTAIL WHATSAPP (17/08) : le clic wa.me ouvre d'abord le popup lead (mêmes
+// champs) et la redirection vers WhatsApp part APRÈS l'envoi — coupe les taps
+// réflexes (43 cliqueurs le 16/08, 8 réellement engagés). Un visiteur qui a
+// déjà envoyé un formulaire cette session (lead_done) passe en direct.
+let _waUrl=null;
+let _stockGate=false; // « Voir le stock » gardé par le popup lead (17/08)
+// Bouton d'envoi du popup : vert « WhatsApp maintenant » en mode portail
+// WhatsApp, rouge « On vous rappelle » partout ailleurs (17/08)
+function _leadBtnMode(wa){
+  const b=document.getElementById('l-submit');
+  if(!b) return;
+  if(wa){
+    b.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.5 15.3L2 22l4.9-1.4A10 10 0 1 0 12 2zm5.4 14.1c-.23.65-1.33 1.24-1.86 1.28-.5.05-1.12.07-1.8-.11-.42-.13-.95-.3-1.63-.6-2.87-1.24-4.74-4.13-4.88-4.32-.14-.19-1.17-1.55-1.17-2.97 0-1.4.74-2.1 1-2.38.26-.29.57-.36.76-.36h.55c.18 0 .41-.06.64.5.23.55.8 1.95.86 2.09.07.14.12.31.02.5-.09.19-.14.3-.28.47-.14.17-.3.37-.42.5-.14.14-.29.29-.13.57.17.28.74 1.22 1.58 1.97 1.09.97 2 1.27 2.28 1.41.28.14.45.12.61-.07.17-.19.7-.82.89-1.1.19-.28.38-.23.64-.14.26.1 1.66.78 1.94.93.28.14.47.21.54.33.07.12.07.68-.16 1.33z"/></svg> WhatsApp maintenant';
+    b.classList.add('btn-wa');
+  } else {
+    b.textContent='On vous rappelle';
+    b.classList.remove('btn-wa');
+  }
+}
 document.addEventListener('click',e=>{
   const a=e.target.closest&&e.target.closest('a[href]');if(!a)return;
   const h=a.getAttribute('href')||'';
@@ -63,6 +109,17 @@ document.addEventListener('click',e=>{
     :a.closest('#contact-section')?'contact'
     :a.closest('footer')?'footer':'page';
   window.prodiTrack?.(ev,{via:via});
+  if(ev==='whatsapp_click'){
+    let done=false;try{done=sessionStorage.getItem('lead_done')==='1';}catch(_){}
+    const modal=document.getElementById('lead-modal');
+    if(!done&&modal&&document.getElementById('lead-form')){
+      e.preventDefault();
+      _waUrl=a.href;
+      _leadBtnMode(true);
+      modal.classList.add('open');document.body.style.overflow='hidden';
+      window.prodiTrack?.('wa_gate_vue',{via:via});
+    }
+  }
 },true);
 
 // ─── PAGE NAVIGATION ───
@@ -131,6 +188,11 @@ async function submitContact(e) {
     return;
   }
   if (typeof window._contactAllValid === 'function' && !window._contactAllValid()) return;
+  if(!_leadValide(document.getElementById('contact-form'),
+    document.getElementById('f-nom').value.trim(),
+    document.getElementById('f-tel').value.trim(),
+    document.getElementById('f-msg').value.trim())) return;
+  if(!await _tsOk('contact-form')) return;
   const btn = document.getElementById('f-submit');
   btn.disabled = true;
   btn.textContent = '...';
@@ -154,21 +216,88 @@ async function submitContact(e) {
     // Un 4xx (RLS, message trop long…) affichait quand même « envoyé » et le
     // lead était perdu en silence.
     if(!r.ok) throw new Error('HTTP '+r.status);
+    try{sessionStorage.setItem('lead_done','1');}catch(_){}
     window.prodiTrack?.('contact_envoye');
     // Le push vers Bitrix24 se fait CÔTÉ SERVEUR (trigger Postgres pg_net sur
     // proforma_requests, statut vitrine_contact) : le webhook CRM n'apparaît
     // plus jamais dans le code public. Ne JAMAIS remettre d'URL Bitrix ici.
     document.getElementById('contact-form').style.display = 'none';
     document.getElementById('form-ok').style.display = 'block';
+    setTimeout(()=>{location.href='/merci/';},1200);
   } catch(err) {
     btn.disabled = false;
     btn.textContent = 'On vous rappelle';
-    alert('Erreur — veuillez réessayer ou écrire à contact@prodi.com');
+    alert('Erreur — veuillez réessayer ou écrire à ethan@prodi.com');
   }
 }
 
 // Confirmation maison « Bien reçu. » (coche animée, partagée popup/bandeau)
 const OK_HTML='<div class="ok-box"><svg class="ok-check" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="25"/><path d="M14 27l8 8 16-16"/></svg><div class="ok-t">Bien re\u00e7u.</div><div class="ok-s">On vous rappelle tr\u00e8s vite.</div></div>';
+
+// ─── TURNSTILE (anti-bot Cloudflare, version légère : contrôle côté navigateur,
+// pas de vérif serveur — un POST direct sur Supabase passe encore, assumé 17/08).
+// TS_KEY vide = tout est inactif, les formulaires marchent comme avant.
+// Widget « interaction-only » : invisible sauf si Cloudflare exige un défi. ───
+const TS_KEY='0x4AAAAAAESDAT4K4lA2WBBC'; // widget « prodi-paper-forms » (compte CF eelbilia)
+const _tsIds={};
+window._tsInit=function(){
+  if(!TS_KEY||!window.turnstile) return;
+  ['contact-form','lead-form','rappel-form'].forEach(fid=>{
+    const form=document.getElementById(fid);
+    if(!form||form.querySelector('.cf-turnstile-slot')) return;
+    const div=document.createElement('div');div.className='cf-turnstile-slot';
+    const btn=form.querySelector('button[type="submit"]')||form.lastElementChild;
+    btn.parentNode.insertBefore(div,btn);
+    _tsIds[fid]=turnstile.render(div,{sitekey:TS_KEY,size:'flexible',appearance:'interaction-only',language:'fr',
+      'error-callback':()=>{try{turnstile.reset(_tsIds[fid]);}catch(_){}},
+      'timeout-callback':()=>{try{turnstile.reset(_tsIds[fid]);}catch(_){}}});
+  });
+};
+if(TS_KEY&&(document.getElementById('contact-form')||document.getElementById('lead-modal')||document.getElementById('rappel-form'))){
+  const s=document.createElement('script');
+  s.src='https://challenges.cloudflare.com/turnstile/v0/api.js?onload=_tsInit&render=explicit';
+  s.async=true;document.head.appendChild(s);
+}
+async function _tsOk(fid){
+  if(!TS_KEY||!window.turnstile||!(fid in _tsIds)) return true;
+  const form=document.getElementById(fid);
+  // Le jeton peut mettre quelques secondes à arriver après le chargement : on
+  // l'ATTEND (max 6 s) au lieu de rejeter un client rapide (vu au test 17/08).
+  for(let i=0;i<20;i++){
+    if(turnstile.getResponse(_tsIds[fid])){form?.querySelector('.lead-err')?.remove();return true;}
+    if(i===0)_leadErr(form,'Vérification anti-robot…');
+    await new Promise(r=>setTimeout(r,300));
+  }
+  _leadErr(form,'Vérification anti-robot échouée — réessayez.');
+  return false;
+}
+
+// ─── VALIDATION LEADS : bloque les saisies bâclées (nom « 12 », tél « 7788888 »)
+// constatées sur le trafic Ads du 16/08 — humains pressés plus que bots, donc
+// message d'erreur visible plutôt que rejet silencieux. ───
+function _leadErr(form,msg){
+  if(!form) return;
+  let e=form.querySelector('.lead-err');
+  if(!e){
+    e=document.createElement('div');e.className='lead-err';
+    e.style.cssText='color:#FE0000;font-size:13px;font-weight:600;margin:6px 0 2px';
+    const btn=form.querySelector('button[type="submit"]')||form.lastElementChild;
+    btn.parentNode.insertBefore(e,btn);
+  }
+  e.textContent=msg;
+}
+function _leadValide(form,nom,tel,msg){
+  if(((nom||'').match(/\p{L}/gu)||[]).length<3){_leadErr(form,'Entrez votre nom complet.');return false;}
+  const d=(tel||'').replace(/\D/g,'');
+  if(d.length<8||d.length>15){_leadErr(form,'Entrez un numéro de téléphone valide.');return false;}
+  // un même chiffre qui fait >70 % du numéro = pianotage (« 7788888 »)
+  const rep=Math.max(...[...new Set(d)].map(c=>d.split(c).length-1));
+  if(rep/d.length>0.7){_leadErr(form,'Entrez un numéro de téléphone valide.');return false;}
+  // message obligatoire ≥15 caractères sur TOUS les formulaires (demande 17/08)
+  if(msg!==undefined&&(msg||'').trim().length<15){_leadErr(form,'Décrivez votre besoin en quelques mots (15 caractères minimum).');return false;}
+  form.querySelector('.lead-err')?.remove();
+  return true;
+}
 
 // ─── SÉLECTEUR D'INDICATIF PAYS (champs Téléphone) : bouton drapeau+code,
 // panneau avec RECHERCHE (taper « fran » → France). Le code choisi est posé
@@ -188,14 +317,22 @@ const CC_PAYS=[["France","fr","+33"],["Maroc","ma","+212"],["Algérie","dz","+21
 ["Colombie","co","+57"],["Argentine","ar","+54"],["Chili","cl","+56"],["Pérou","pe","+51"],
 ["Chine","cn","+86"],["Inde","in","+91"]];
 function ccFlag(iso){return iso.toUpperCase().replace(/./g,c=>String.fromCodePoint(127397+c.charCodeAt(0)));}
+// Indicatif PAR DÉFAUT = locale du navigateur (fr-DZ → +213, ar-MA → +212) :
+// avec +33 imposé, les numéros Maghreb ressortaient en faux « +33 06… »
+// (constat leads Ads 16/08). Repli France si locale inconnue.
+const _ccDef=(()=>{
+  const r=((navigator.language||'').split('-')[1]||'').toLowerCase();
+  const c=r&&CC_PAYS.find(p=>p[1]===r);
+  return c?{code:c[2],iso:c[1]}:{code:'+33',iso:'fr'};
+})();
 function ccInit(inputId){
   const inp=document.getElementById(inputId);
   if(!inp||inp.closest('.tel-wrap')) return;
-  inp.dataset.cc='+33';
+  inp.dataset.cc=_ccDef.code;
   const wrap=document.createElement('div');wrap.className='tel-wrap';
   inp.parentNode.insertBefore(wrap,inp);
   const btn=document.createElement('button');btn.type='button';btn.className='tel-cc';
-  btn.innerHTML='<span>'+ccFlag('fr')+'</span> +33';
+  btn.innerHTML='<span>'+ccFlag(_ccDef.iso)+'</span> '+_ccDef.code;
   wrap.appendChild(btn);wrap.appendChild(inp);
   const pan=document.createElement('div');pan.className='tel-cc-pan';
   pan.innerHTML='<input type="text" class="tel-cc-search" placeholder="Pays ou indicatif (+245)…" aria-label="Rechercher un pays ou saisir un indicatif">'
@@ -261,12 +398,16 @@ ccInit('f-tel');ccInit('l-tel');ccInit('r-tel');
 (function(){
   const modal=document.getElementById('lead-modal');
   if(!modal) return;
+  // ?stock=1 : arrivée depuis « Catalogue »/« Voir le stock » d'une sous-page
+  // sans popup → ouvrir la porte stock direct
+  if(location.search.indexOf('stock=1')>-1){ setTimeout(()=>openStock(),500); return; }
   // ?popup=1 : forcer l'affichage (test) malgré le verrou de session
   const force=location.search.indexOf('popup=1')>-1;
   try{ if(!force&&sessionStorage.getItem('lead_popup')==='1') return; }catch(_){}
   let done=false;
   const ouvrir=()=>{
     if(done) return; done=true;
+    _leadBtnMode(false);
     modal.classList.add('open'); document.body.style.overflow='hidden';
     window.prodiTrack?.('lead_popup_vue');
     try{sessionStorage.setItem('lead_popup','1');}catch(_){}
@@ -274,22 +415,25 @@ ccInit('f-tel');ccInit('l-tel');ccInit('r-tel');
   if(force){ setTimeout(ouvrir,800); return; }
   const hero=document.querySelector('.hero');
   if(document.getElementById('page-home')&&hero){
-    // accueil : 5 s après avoir DÉPASSÉ le hero
+    // accueil : 20 s après avoir DÉPASSÉ le hero (5 s → 20 s le 17/08 : le
+    // trafic Ads peu engagé remplissait le popup trop tôt)
     const obs=new IntersectionObserver(es=>{
       if(!es[0].isIntersecting){
-        obs.disconnect(); setTimeout(ouvrir,5000);
+        obs.disconnect(); setTimeout(ouvrir,20000);
       }
     },{threshold:0});
     obs.observe(hero);
   } else if(document.getElementById('apercu')){
-    // page /produits/ : après 5 s
-    setTimeout(ouvrir,5000);
+    // page /produits/ : après 20 s
+    setTimeout(ouvrir,20000);
   }
   document.addEventListener('keydown',e=>{if(e.key==='Escape')leadClose();});
 })();
 function leadClose(){
   document.getElementById('lead-modal')?.classList.remove('open');
   document.body.style.overflow='';
+  _waUrl=null; // portail WhatsApp abandonné sans envoi → pas de redirection
+  _stockGate=false; // idem porte stock
 }
 async function submitLead(e){
   e.preventDefault();
@@ -297,7 +441,9 @@ async function submitLead(e){
   const nom=document.getElementById('l-nom').value.trim();
   const _lt=document.getElementById('l-tel');
   let tel=_lt.value.trim();
-  if(!nom||tel.length<6) return;
+  const msg=document.getElementById('l-msg')?.value.trim()||'';
+  if(!_leadValide(document.getElementById('lead-form'),nom,tel,msg)) return;
+  if(!await _tsOk('lead-form')) return;
   if(!/^(\+|00)/.test(tel)) tel=(_lt.dataset.cc||'+33')+' '+tel;
   const btn=document.getElementById('l-submit');
   btn.disabled=true; btn.textContent='…';
@@ -305,15 +451,19 @@ async function submitLead(e){
     const r=await fetch(SURL+'/rest/v1/proforma_requests',{method:'POST',
       headers:{'apikey':SKEY,'Authorization':'Bearer '+SKEY,'Content-Type':'application/json','Prefer':'return=minimal'},
       body:JSON.stringify({nom,societe:'',email:'',telephone:tel,
-        message:'Demande de rappel (popup)',
+        message:(_stockGate?'Demande stock — ':_waUrl?'Demande WhatsApp — ':'Demande de rappel (popup) — ')+msg,
         quantite_souhaitee:'Contact vitrine',statut:'vitrine_contact'})});
     if(!r.ok) throw new Error('HTTP '+r.status);
-    window.prodiTrack?.('contact_envoye',{via:'popup'});
+    try{sessionStorage.setItem('lead_done','1');}catch(_){}
+    window.prodiTrack?.('contact_envoye',{via:_stockGate?'stock':_waUrl?'whatsapp':'popup'});
     document.getElementById('lead-form').outerHTML=OK_HTML;
-    setTimeout(leadClose,2200);
+    // Portail WhatsApp → la conversation ; sinon → /merci/ (page de
+    // remerciement = conversion Ads fiable par simple visite, 17/08)
+    const _wa=_waUrl;_waUrl=null;_stockGate=false;
+    setTimeout(()=>{location.href=_wa||'/merci/';},1100);
   }catch(err){
-    btn.disabled=false; btn.textContent='On vous rappelle';
-    alert('Erreur — veuillez réessayer ou écrire à contact@prodi.com');
+    btn.disabled=false; _leadBtnMode(!!_waUrl);
+    alert('Erreur — veuillez réessayer ou écrire à ethan@prodi.com');
   }
 }
 
@@ -324,7 +474,9 @@ async function submitRappel(e){
   const nom=document.getElementById('r-nom').value.trim();
   const _rt=document.getElementById('r-tel');
   let tel=_rt.value.trim();
-  if(!nom||tel.length<6) return;
+  const msg=document.getElementById('r-msg')?.value.trim()||'';
+  if(!_leadValide(document.getElementById('rappel-form'),nom,tel,msg)) return;
+  if(!await _tsOk('rappel-form')) return;
   if(!/^(\+|00)/.test(tel)) tel=(_rt.dataset.cc||'+33')+' '+tel;
   const btn=document.getElementById('r-submit');
   btn.disabled=true; btn.textContent='…';
@@ -332,13 +484,15 @@ async function submitRappel(e){
     const r=await fetch(SURL+'/rest/v1/proforma_requests',{method:'POST',
       headers:{'apikey':SKEY,'Authorization':'Bearer '+SKEY,'Content-Type':'application/json','Prefer':'return=minimal'},
       body:JSON.stringify({nom,societe:'',email:'',telephone:tel,
-        message:'Demande de rappel (bandeau)',quantite_souhaitee:'Contact vitrine',statut:'vitrine_contact'})});
+        message:'Demande de rappel (bandeau) — '+msg,quantite_souhaitee:'Contact vitrine',statut:'vitrine_contact'})});
     if(!r.ok) throw new Error('HTTP '+r.status);
+    try{sessionStorage.setItem('lead_done','1');}catch(_){}
     window.prodiTrack?.('contact_envoye',{via:'bandeau'});
     document.getElementById('rappel-form').innerHTML=OK_HTML;
+    setTimeout(()=>{location.href='/merci/';},1200);
   }catch(err){
     btn.disabled=false; btn.textContent='On vous rappelle';
-    alert('Erreur — veuillez réessayer ou écrire à contact@prodi.com');
+    alert('Erreur — veuillez réessayer ou écrire à ethan@prodi.com');
   }
 }
 
@@ -966,11 +1120,12 @@ function toggleSound(){
   },1500);
 })();
 
-// ─── CONTACT : placeholder machine-à-écrire du champ Message (vraies
-// demandes papier) — coupé si reduced-motion, champ actif ou déjà rempli ───
+// ─── Placeholder machine-à-écrire (vraies demandes papier) : champ Message
+// du contact + champs « Votre besoin » du popup lead et du bandeau (17/08).
+// Coupé si reduced-motion, champ actif ou déjà rempli. Départs décalés pour
+// que les champs ne tapent pas en chœur. ───
 (function(){
-  const ta=document.getElementById('f-msg');
-  if(!ta||matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const PH=[
     "Je cherche 20 tonnes de kraft brun 90 g…",
     "Avez-vous du couché 135 g en 64×90 ?",
@@ -978,16 +1133,22 @@ function toggleSound(){
     "Quelles laizes disponibles en bobine 70 g ?",
     "Envoyez-moi votre offre déstockage du moment…"
   ];
-  let i=0,pos=0,del=false;
-  (function tick(){
-    if(document.activeElement===ta||ta.value){ta.placeholder='Message';setTimeout(tick,1200);return;}
-    const cur=PH[i];
-    pos+=del?-1:1;
-    ta.placeholder=cur.slice(0,pos)||'Message';
-    if(!del&&pos===cur.length){del=true;setTimeout(tick,1800);return;}
-    if(del&&pos===0){del=false;i=(i+1)%PH.length;}
-    setTimeout(tick,del?18:45);
-  })();
+  function anime(ta,repos,depart){
+    let i=depart%PH.length,pos=0,del=false;
+    (function tick(){
+      if(document.activeElement===ta||ta.value){ta.placeholder=repos;setTimeout(tick,1200);return;}
+      const cur=PH[i];
+      pos+=del?-1:1;
+      ta.placeholder=cur.slice(0,pos)||repos;
+      if(!del&&pos===cur.length){del=true;setTimeout(tick,1800);return;}
+      if(del&&pos===0){del=false;i=(i+1)%PH.length;}
+      setTimeout(tick,del?18:45);
+    })();
+  }
+  const BESOIN='Votre besoin : qualité, quantité…';
+  const f=document.getElementById('f-msg'); if(f) anime(f,'Message',0);
+  const l=document.getElementById('l-msg'); if(l) anime(l,BESOIN,1);
+  const r=document.getElementById('r-msg'); if(r) anime(r,BESOIN,3);
 })();
 
 // ─── ADAPTATION GRANDS ÉCRANS (05/08) : la vitrine est DESSINÉE pour ~1440px.
