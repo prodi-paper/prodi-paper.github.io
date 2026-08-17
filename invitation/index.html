@@ -33,7 +33,7 @@
   h2:not(:first-child) { margin-top: 24px; }
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .grid .full { grid-column: 1 / -1; }
-  label { display: block; font-size: 14px; color: var(--gris); margin-bottom: 6px; }
+  label { display: block; font-size: 18px; font-weight: 700; color: var(--encre); margin-bottom: 8px; }
   input, select {
     width: 100%; padding: 14px 14px; font-size: 18px; border: 1px solid var(--ligne);
     border-radius: 9px; background: #fff; color: var(--encre); font-family: inherit;
@@ -203,14 +203,10 @@ html.cat-unlocked #cat-gate{display:none !important;}
     </div>
     <input type="file" id="ocr-fichier" accept="image/*,application/pdf" hidden onchange="importerDocument(this.files[0]); this.value=''">
     <div class="grid">
-      <div>
-        <select id="civilite"><option>M.</option><option>Mme</option></select>
-      </div>
-      <div style="grid-column:1">
-        <input id="prenom" placeholder="Prénom" autocomplete="off">
-      </div>
-      <div>
-        <input id="nom" placeholder="Nom" autocomplete="off" style="text-transform:uppercase">
+      <div class="full" style="display:flex;gap:12px">
+        <select id="civilite" style="width:110px;flex:none"><option>M.</option><option>Mme</option></select>
+        <input id="prenom" placeholder="Prénom" autocomplete="off" style="flex:1;min-width:0">
+        <input id="nom" placeholder="Nom" autocomplete="off" style="flex:1;min-width:0;text-transform:uppercase">
       </div>
       <div class="full">
         <input id="passeport" placeholder="N° de passeport" autocomplete="off" style="text-transform:uppercase">
@@ -220,8 +216,7 @@ html.cat-unlocked #cat-gate{display:none !important;}
       </div>
     </div>
 
-    <h2>Le séjour</h2>
-    <div class="grid">
+    <div class="grid" style="margin-top:16px">
       <div>
         <label>Début du séjour</label>
         <input id="date_debut" class="champ-date" readonly placeholder="jj/mm/aaaa" onclick="ouvrirCal('date_debut')">
@@ -231,7 +226,7 @@ html.cat-unlocked #cat-gate{display:none !important;}
         <input id="date_fin" class="champ-date" readonly placeholder="jj/mm/aaaa" onclick="ouvrirCal('date_fin')">
       </div>
       <div class="full">
-        <label>Date du courrier (aujourd'hui)</label>
+        <label>Date de l'invitation (aujourd'hui)</label>
         <input id="date_courrier" class="champ-date" readonly placeholder="jj/mm/aaaa" onclick="ouvrirCal('date_courrier')">
       </div>
     </div>
