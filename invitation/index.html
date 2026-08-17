@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Invitations — Prodiconseil</title>
+<link rel="icon" href="assets/logo.png">
+<style>
+  :root {
+    --rouge: #e30613;
+    --encre: #1a1a1a;
+    --gris: #6b6b6b;
+    --ligne: #e2e2e2;
+    --fond: #f7f6f4;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--fond); color: var(--encre);
+    min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+  }
+  header.app {
+    width: 100%; background: #fff; border-bottom: 1px solid var(--ligne);
+    padding: 14px 20px; display: flex; align-items: center; gap: 12px;
+  }
+  header.app img { height: 26px; }
+  header.app span { font-size: 14px; color: var(--gris); }
+  main { width: 100%; max-width: 900px; padding: 32px 20px 56px; }
+
+  .card { background: #fff; border: 1px solid var(--ligne); border-radius: 12px; padding: 24px; }
+  h2 { font-size: 20px; margin-bottom: 16px; }
+  h2:not(:first-child) { margin-top: 24px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid .full { grid-column: 1 / -1; }
+  label { display: block; font-size: 14px; color: var(--gris); margin-bottom: 6px; }
+  input, select {
+    width: 100%; padding: 14px 14px; font-size: 18px; border: 1px solid var(--ligne);
+    border-radius: 9px; background: #fff; color: var(--encre); font-family: inherit;
+  }
+  input:focus, select:focus { outline: none; border-color: var(--rouge); }
+  .err { border-color: var(--rouge) !important; background: #fff5f5; }
+
+  button {
+    font-family: inherit; font-size: 18px; padding: 14px 22px; border-radius: 10px;
+    border: 1px solid var(--ligne); background: #fff; color: var(--encre); cursor: pointer;
+  }
+  button.principal { background: var(--rouge); border-color: var(--rouge); color: #fff; font-weight: 600; }
+  button:active { transform: translateY(1px); }
+  .actions { display: flex; gap: 14px; margin-top: 20px; }
+  .actions button {
+    flex: 1; padding: 16px; color: #fff; font-weight: 600;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  .btn-word { background: #2b579a; border-color: #2b579a; }
+  .btn-pdf { background: #d93025; border-color: #d93025; }
+  .badge {
+    background: #fff; border-radius: 5px; font-weight: 800;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 26px; height: 26px; flex: none;
+  }
+  .btn-word .badge { color: #2b579a; font-size: 17px; font-family: Georgia, serif; }
+  .btn-pdf .badge { color: #d93025; font-size: 9px; letter-spacing: .2px; }
+
+  .histo-btn { margin-left: auto; font-size: 15px; padding: 8px 16px; border-radius: 8px; }
+  #histo-fond {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,.35);
+    z-index: 10; align-items: flex-start; justify-content: center; padding: 60px 16px;
+  }
+  #histo-fond.ouvert { display: flex; }
+  .histo-panneau {
+    background: #fff; border-radius: 12px; width: 100%; max-width: 640px;
+    max-height: 75vh; overflow: auto; padding: 20px;
+  }
+  .histo-tete { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .histo-tete b { font-size: 18px; }
+  .histo-tete button { font-size: 14px; padding: 6px 14px; }
+  .histo-item {
+    border: 1px solid var(--ligne); border-radius: 9px; padding: 12px 14px;
+    margin-bottom: 10px; cursor: pointer; font-size: 15px; line-height: 1.5;
+  }
+  .histo-item:hover { border-color: var(--rouge); }
+  .histo-item .quand { color: var(--gris); font-size: 13px; }
+  .histo-vide { color: var(--gris); font-size: 15px; padding: 12px 0; }
+
+  .champ-date { cursor: pointer; }
+  #cal-fond {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,.35);
+    z-index: 20; align-items: center; justify-content: center; padding: 16px;
+  }
+  #cal-fond.ouvert { display: flex; }
+  .cal { background: #fff; border-radius: 14px; padding: 22px; width: 420px; max-width: 96vw; }
+  .cal-tete { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .cal-tete b { font-size: 22px; text-transform: capitalize; }
+  .cal-tete button { font-size: 24px; padding: 4px 16px; border-radius: 9px; line-height: 1.2; }
+  .cal-jours { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center;
+    color: var(--gris); font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+  .cal-grille { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .cal-grille button {
+    aspect-ratio: 1; border: none; background: none; font-size: 19px;
+    border-radius: 9px; padding: 0; display: flex; align-items: center; justify-content: center;
+  }
+  .cal-grille button:hover { background: var(--fond); }
+  .cal-grille button.autre { color: #c4c4c4; }
+  .cal-grille button.jour-actuel { outline: 1.5px solid var(--ligne); }
+  .cal-grille button.choisi { background: var(--rouge); color: #fff; font-weight: 700; }
+
+  @media (max-width: 560px) {
+    header.app span { display: none; }
+    main { padding: 20px 12px 40px; }
+    .card { padding: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── PORTE CODE D'ACCÈS (même mécanique que /catalogue/ : localStorage
+     'prodi_cat_ok' partagé — déjà validé sur le catalogue = pas de re-saisie.
+     Code = constante PWD ci-dessous (garder SYNCHRO avec catalogue + vitrine). -->
+<script>(function(){try{if(localStorage.getItem('prodi_cat_ok')==='1')document.documentElement.classList.add('cat-unlocked');}catch(e){document.documentElement.classList.add('cat-unlocked');}})();</script>
+<style>
+#cat-gate{position:fixed;inset:0;z-index:100000;background:#F5F3EE;display:flex;align-items:center;justify-content:center;padding:24px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
+html.cat-unlocked #cat-gate{display:none !important;}
+.cat-gate-card{background:#fff;border-radius:20px;box-shadow:0 16px 44px rgba(0,0,0,.16);padding:38px 34px 28px;width:100%;max-width:370px;text-align:center;box-sizing:border-box;}
+.cat-gate-logo{height:32px;margin-bottom:16px;}
+.cat-gate-t{font-size:22px;font-weight:800;color:#1d1d1f;letter-spacing:-.3px;}
+.cat-gate-s{font-size:13.5px;color:#86868b;margin:7px 0 20px;line-height:1.4;}
+#cat-gate-form{display:flex;flex-direction:column;gap:10px;}
+#cat-gate-input{height:46px;border:1.5px solid #e0e0e5;border-radius:12px;padding:0 16px;font-size:16px;outline:none;box-sizing:border-box;text-align:center;}
+#cat-gate-input:focus{border-color:#1d1d1f;}
+#cat-gate-form button{height:46px;border:none;border-radius:12px;background:#1d1d1f;color:#fff;font-size:16px;font-weight:700;cursor:pointer;}
+#cat-gate-form button:active{transform:scale(.98);}
+.cat-gate-err{color:#FE0000;font-size:13px;font-weight:600;min-height:17px;margin-top:11px;}
+.cat-gate-shake{animation:catShake .34s;}
+@keyframes catShake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+</style>
+<div id="cat-gate">
+  <div class="cat-gate-card">
+    <img src="assets/logo.png" alt="Prodiconseil" class="cat-gate-logo">
+    <div class="cat-gate-t">Accès réservé</div>
+    <div class="cat-gate-s">Outil interne Prodiconseil.<br>Entrez le code d'accès pour continuer.</div>
+    <form id="cat-gate-form" autocomplete="off">
+      <input type="password" id="cat-gate-input" placeholder="Code d'accès" autocomplete="off" spellcheck="false">
+      <button type="submit">Confirmer</button>
+    </form>
+    <div class="cat-gate-err" id="cat-gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){
+  var PWD='PRODI2026'; /* ← même code que catalogue/vitrine — changer les 3 ensemble */
+  if(document.documentElement.classList.contains('cat-unlocked'))return;
+  function boot(){
+    var g=document.getElementById('cat-gate'),f=document.getElementById('cat-gate-form'),i=document.getElementById('cat-gate-input'),err=document.getElementById('cat-gate-err');
+    if(!f)return;
+    setTimeout(function(){try{i.focus();}catch(e){}},60);
+    f.addEventListener('submit',function(e){
+      e.preventDefault();
+      if(i.value.trim()===PWD){try{localStorage.setItem('prodi_cat_ok','1');}catch(e){}document.documentElement.classList.add('cat-unlocked');}
+      else{err.textContent='Code incorrect';var card=g.querySelector('.cat-gate-card');card.classList.remove('cat-gate-shake');void card.offsetWidth;card.classList.add('cat-gate-shake');i.select();}
+    });
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})();
+</script>
+
+<header class="app">
+  <img src="assets/logo.png" alt="Prodiconseil">
+  <span>Invitations professionnelles</span>
+  <button class="histo-btn" onclick="ouvrirHisto()">Historique</button>
+</header>
+
+<div id="histo-fond" onclick="fermerHisto()">
+  <div class="histo-panneau" onclick="event.stopPropagation()">
+    <div class="histo-tete">
+      <b>Dernières invitations</b>
+      <button onclick="fermerHisto()">Fermer</button>
+    </div>
+    <div id="histo-liste"></div>
+  </div>
+</div>
+
+<main>
+  <section class="card">
+    <div class="grid">
+      <div>
+        <select id="civilite"><option>M.</option><option>Mme</option></select>
+      </div>
+      <div style="grid-column:1">
+        <input id="prenom" placeholder="Prénom" autocomplete="off">
+      </div>
+      <div>
+        <input id="nom" placeholder="Nom" autocomplete="off" style="text-transform:uppercase">
+      </div>
+      <div class="full">
+        <input id="societe" placeholder="Société" autocomplete="off" style="text-transform:uppercase">
+      </div>
+      <div class="full">
+        <input id="passeport" placeholder="N° de passeport" autocomplete="off" style="text-transform:uppercase">
+      </div>
+    </div>
+
+    <h2>Le séjour</h2>
+    <div class="grid">
+      <div>
+        <label>Début du séjour</label>
+        <input id="date_debut" class="champ-date" readonly placeholder="jj/mm/aaaa" onclick="ouvrirCal('date_debut')">
+      </div>
+      <div>
+        <label>Fin du séjour</label>
+        <input id="date_fin" class="champ-date" readonly placeholder="jj/mm/aaaa" onclick="ouvrirCal('date_fin')">
+      </div>
+      <div class="full">
+        <label>Date du courrier (aujourd'hui)</label>
+        <input id="date_courrier" class="champ-date" readonly placeholder="jj/mm/aaaa" onclick="ouvrirCal('date_courrier')">
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-word" onclick="telechargerWord()"><span class="badge">W</span>Word (.docx)</button>
+      <button class="btn-pdf" onclick="telechargerPDF()"><span class="badge">PDF</span>PDF</button>
+    </div>
+  </section>
+</main>
+
+<div id="cal-fond" onclick="fermerCal()">
+  <div class="cal" onclick="event.stopPropagation()">
+    <div class="cal-tete">
+      <button onclick="calMois(-1)">‹</button>
+      <b id="cal-titre"></b>
+      <button onclick="calMois(1)">›</button>
+    </div>
+    <div class="cal-jours">
+      <span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span>
+    </div>
+    <div class="cal-grille" id="cal-grille"></div>
+  </div>
+</div>
+
+<script src="vendor/pizzip.js"></script>
+<script src="vendor/docxtemplater.js"></script>
+<script src="vendor/jspdf.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+function frDate(iso) {
+  if (!iso) return "";
+  const [a, m, j] = iso.split("-");
+  return `${j}/${m}/${a}`;
+}
+
+function isoLocale(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function poserDate(id, iso) {
+  $(id).dataset.iso = iso || "";
+  $(id).value = frDate(iso);
+}
+
+// date du courrier = aujourd'hui par défaut
+poserDate("date_courrier", isoLocale(new Date()));
+
+// ===== Calendrier maison (le popup natif est minuscule) =====
+let calChamp = null, calAnnee = 0, calMoisIdx = 0;
+const MOIS_FR = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+
+function ouvrirCal(id) {
+  calChamp = id;
+  const base = $(id).dataset.iso ? new Date($(id).dataset.iso + "T12:00:00") : new Date();
+  calAnnee = base.getFullYear();
+  calMoisIdx = base.getMonth();
+  dessinerCal();
+  $("cal-fond").classList.add("ouvert");
+}
+
+function fermerCal() { $("cal-fond").classList.remove("ouvert"); }
+
+function calMois(delta) {
+  calMoisIdx += delta;
+  if (calMoisIdx < 0) { calMoisIdx = 11; calAnnee--; }
+  if (calMoisIdx > 11) { calMoisIdx = 0; calAnnee++; }
+  dessinerCal();
+}
+
+function dessinerCal() {
+  $("cal-titre").textContent = `${MOIS_FR[calMoisIdx]} ${calAnnee}`;
+  const premier = new Date(calAnnee, calMoisIdx, 1);
+  const debut = new Date(premier);
+  debut.setDate(1 - ((premier.getDay() + 6) % 7)); // recule au lundi
+  const auj = isoLocale(new Date());
+  const choisi = $(calChamp).dataset.iso || "";
+  let html = "";
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(debut);
+    d.setDate(debut.getDate() + i);
+    const iso = isoLocale(d);
+    const cls = [
+      d.getMonth() !== calMoisIdx ? "autre" : "",
+      iso === auj ? "jour-actuel" : "",
+      iso === choisi ? "choisi" : "",
+    ].filter(Boolean).join(" ");
+    html += `<button class="${cls}" onclick="choisirJour('${iso}')">${d.getDate()}</button>`;
+  }
+  $("cal-grille").innerHTML = html;
+}
+
+function choisirJour(iso) {
+  poserDate(calChamp, iso);
+  $(calChamp).classList.remove("err");
+  fermerCal();
+}
+
+function donnees() {
+  const civilite = $("civilite").value;
+  return {
+    civilite,
+    salutation: civilite === "Mme" ? "Madame" : "Monsieur",
+    prenom: $("prenom").value.trim().replace(/^./, c => c.toUpperCase()),
+    nom: $("nom").value.trim().toUpperCase(),
+    societe: $("societe").value.trim().toUpperCase(),
+    passeport: $("passeport").value.trim().toUpperCase(),
+    conteneurs: "3",
+    date_courrier: $("date_courrier").value,
+    date_debut: $("date_debut").value,
+    date_fin: $("date_fin").value,
+    signataire: "Véronique ELBILIA",
+    titre_signataire: "Directrice Commercial",
+  };
+}
+
+function valide() {
+  let ok = true;
+  for (const id of ["prenom", "nom", "societe", "passeport", "date_debut", "date_fin", "date_courrier"]) {
+    const vide = !$(id).value.trim();
+    $(id).classList.toggle("err", vide);
+    if (vide) ok = false;
+  }
+  if (ok && $("date_fin").dataset.iso <= $("date_debut").dataset.iso) {
+    $("date_fin").classList.add("err");
+    ok = false;
+  }
+  return ok;
+}
+
+
+const HISTO_CLE = "invitations_histo";
+
+function enregistrerHisto(type) {
+  const entree = {
+    civilite: $("civilite").value,
+    prenom: $("prenom").value.trim(),
+    nom: $("nom").value.trim(),
+    societe: $("societe").value.trim(),
+    passeport: $("passeport").value.trim(),
+    date_debut: $("date_debut").dataset.iso,
+    date_fin: $("date_fin").dataset.iso,
+    date_courrier: $("date_courrier").dataset.iso,
+    type,
+    quand: Date.now(),
+  };
+  const histo = JSON.parse(localStorage.getItem(HISTO_CLE) || "[]");
+  histo.unshift(entree);
+  localStorage.setItem(HISTO_CLE, JSON.stringify(histo.slice(0, 30)));
+}
+
+function ouvrirHisto() {
+  const histo = JSON.parse(localStorage.getItem(HISTO_CLE) || "[]");
+  const liste = $("histo-liste");
+  if (!histo.length) {
+    liste.innerHTML = '<p class="histo-vide">Aucune invitation générée pour l\'instant.</p>';
+  } else {
+    liste.innerHTML = histo.map((e, i) => {
+      const q = new Date(e.quand).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+      return `<div class="histo-item" onclick="reprendreHisto(${i})">` +
+        `<b>${e.civilite} ${e.prenom} ${e.nom.toUpperCase()}</b> — ${e.societe.toUpperCase()}<br>` +
+        `Séjour du ${frDate(e.date_debut)} au ${frDate(e.date_fin)}` +
+        `<div class="quand">${e.type.toUpperCase()} généré le ${q} — cliquer pour recharger</div></div>`;
+    }).join("");
+  }
+  $("histo-fond").classList.add("ouvert");
+}
+
+function fermerHisto() { $("histo-fond").classList.remove("ouvert"); }
+
+function reprendreHisto(i) {
+  const e = JSON.parse(localStorage.getItem(HISTO_CLE) || "[]")[i];
+  if (!e) return;
+  for (const c of ["civilite", "prenom", "nom", "societe", "passeport"]) {
+    $(c).value = e[c];
+    $(c).classList.remove("err");
+  }
+  for (const c of ["date_debut", "date_fin", "date_courrier"]) {
+    poserDate(c, e[c]);
+    $(c).classList.remove("err");
+  }
+  fermerHisto();
+}
+
+async function telechargerWord() {
+  if (!valide()) return;
+  enregistrerHisto("word");
+  const d = donnees();
+  const buf = await (await fetch("template.docx")).arrayBuffer();
+  const doc = new docxtemplater(new PizZip(buf), { paragraphLoop: true, linebreaks: true });
+  doc.render(d);
+  const blob = doc.getZip().generate({
+    type: "blob",
+    mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `INVITATION ${d.civilite}${d.nom}.docx`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+async function imageBase64(url) {
+  const blob = await (await fetch(url)).blob();
+  return new Promise(res => {
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.readAsDataURL(blob);
+  });
+}
+
+// Lettre PDF vectorielle — géométrie calquée sur le modèle Word (A4, marges 25 mm)
+async function construireLettrePDF(d) {
+  const doc = new jspdf.jsPDF({ unit: "mm", format: "a4" });
+  const M = 25, W = 160, DROITE = 185;
+  const lh = 4.9; // interligne 12 pt
+
+  doc.addImage(await imageBase64("assets/logo.png"), "PNG", M, 16.5, 75.5, 9.8);
+  doc.setFont("times", "normal");
+  doc.setFontSize(9);
+  doc.text("N° TVA FR 50 382 445922", M, 37);
+  doc.setFontSize(12);
+  doc.text(`Ivry-sur-Seine, le ${d.date_courrier}`, DROITE, 47.5, { align: "right" });
+
+  doc.text(`${d.civilite} ${d.prenom} ${d.nom}`, M, 59.5);
+  doc.text(`SOCIÉTÉ : ${d.societe}`, M, 68);
+  doc.text(`PASSEPORT N° : ${d.passeport}`, M, 76.5);
+
+  doc.setFontSize(20);
+  doc.setFont("times", "bold");
+  doc.text("Invitation professionnelle", 105, 93.5, { align: "center" });
+  doc.setFont("times", "normal");
+  doc.setFontSize(12);
+
+  let y = 103;
+  const paras = [
+    `${d.salutation},`,
+    `À la suite des commandes déjà confirmées pour cette année, nous vous confirmons que selon notre programme de commandes prévues, les livraisons se feront en plusieurs fois, ${d.conteneurs} conteneurs par mois en moyenne.`,
+    `Nous vous invitons en nos bureaux afin de discuter des conditions de chargement et de paiement, pour un séjour du ${d.date_debut} au ${d.date_fin}.`,
+    `Nous nous engageons à prendre en charge les frais d’hébergement et de restauration de ${d.civilite} ${d.prenom} ${d.nom}.`,
+    `Dans cette attente, veuillez agréer l’expression de nos salutations distinguées.`,
+  ];
+  for (const p of paras) {
+    const lignes = doc.splitTextToSize(p, W);
+    doc.text(p, M, y, { maxWidth: W, align: "justify", lineHeightFactor: 1.15 });
+    y += lignes.length * lh + 3.6;
+  }
+
+  y += 4;
+  doc.text(d.signataire, M + 8, y);
+  doc.text(d.titre_signataire, M + 8, y + 8.5);
+  doc.addImage(await imageBase64("assets/tampon.png"), "PNG", M + 6, y + 13, 45, 27);
+
+  doc.setFontSize(9);
+  doc.text("Sarl au capital de 516 000,00 € - RCS : Créteil B382445922", 105, 272, { align: "center" });
+  doc.text("9 Promenée Jeanne hachette 94200 Ivry sur Seine – Tél : 331 46 42 03 69 – fax : 331 49 59 87 31", 105, 276.2, { align: "center" });
+  doc.text("Entrepôt  Tél : 03 22 39 23 – Fax : 03 22 39 24 47", 105, 280.4, { align: "center" });
+
+  return doc;
+}
+
+async function telechargerPDF() {
+  if (!valide()) return;
+  enregistrerHisto("pdf");
+  const d = donnees();
+  (await construireLettrePDF(d)).save(`INVITATION ${d.civilite}${d.nom}.pdf`);
+}
+</script>
+</body>
+</html>

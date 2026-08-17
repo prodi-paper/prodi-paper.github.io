@@ -1134,3 +1134,29 @@ Politique de confidentialité RGPD-lite (gabarit souspage, styles scoped
 politique obligatoire). Lien « Confidentialité » ajouté au ft2-bottom de
 44 pages + sitemap (priority 0.3). Contenu : formulaires site + lead forms
 Google, analytics maison, balise Google Ads, droits RGPD → contact@prodi.com.
+
+## 17/08/2026 — formats resserrés + partage sobre (3637bdff, v735)
+
+- `FORMAT_TOL` 50 → 20 mm (catalogue.js) : à ±50, la famille « 520 × 720 » avalait
+  du 480×765 et du 555×750. Ne pas ré-élargir sans regarder les regroupements réels.
+- `catalogue/index.html` : og:image + twitter:card SUPPRIMÉS volontairement — les
+  liens clients `?s=` partagés sur WhatsApp affichaient une grosse carte logo,
+  Ethan veut un aperçu texte seul. La vitrine garde ses cartes complètes.
+- Bouton email vue client (`?s=`) : contact@prodi.com → ethan@prodi.com.
+
+## Outil interne /invitation/ (17/08/2026)
+
+Générateur d'invitations professionnelles (lettres visa clients) — page
+autonome `invitation/` (index.html + template.docx + assets/ + vendor/),
+source de travail `~/Code/prodi_invitation` (copie synchronisée à la main,
+comme la plaquette). Formulaire une page (civilité/prénom/nom/société/
+passeport + dates avec calendrier maison — le popup natif était minuscule),
+boutons Word (docxtemplater+pizzip sur template.docx = modèle NDIAYE avec
+placeholders, logo+tampon intacts) et PDF (jsPDF vectoriel, géométrie calquée
+sur le Word). Historique localStorage `invitations_histo` (30 entrées, clic =
+recharge). Signataire figé « Véronique ELBILIA / Directrice Commercial »
+(orthographe voulue), 3 conteneurs/mois en dur. **Porte à code = copie de
+celle du catalogue, MÊME clé `prodi_cat_ok`** (déverrouillé une fois =
+partout) — PWD `PRODI2026`, désormais 3 constantes à changer ensemble
+(vitrine.js, catalogue/index.html, invitation/index.html). `noindex` +
+Disallow robots.txt (outil interne, hors sitemap).
