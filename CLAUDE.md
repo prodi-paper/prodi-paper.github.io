@@ -1158,12 +1158,12 @@ table Supabase `invitations_histo` (ce projet, RLS anon INSERT+SELECT —
 lisible clé anon, assumé ; contient noms+passeports), lecture 30 dernières
 à l'ouverture, écriture fire-and-forget à chaque génération, repli
 localStorage hors ligne. +30 % desktop (`body{zoom:1.3}` ≥561px).
-**Import OCR** (17/08 soir) : zone « Importer ou déposer un document »
-(clic/drag&drop, resize client 1600px, PDF ok) → POST
-prodi-arrivages.vercel.app/api/invitation-ocr (Haiku vision, publique,
-30/h/IP) → remplit civilité/prénom/nom/passeport/société/dates séjour
-(billet d'avion : début = arrivée en France). N° passeport placé AVANT
-Société dans le formulaire. Signataire figé « Véronique ELBILIA / Directrice Commercial »
+Import OCR construit puis RETIRÉ du front le soir même (« trop
+d'erreurs ») — l'API prodi-arrivages.vercel.app/api/invitation-ocr reste
+déployée, rebranchable. **Mémoire clients** : table `invitations_clients`
+(PK passeport = anti-doublon, upsert à chaque génération) + autocomplétion
+sur Prénom/Nom (≥2 lettres, insensible accents, clic = remplit tout).
+N° passeport placé AVANT Société dans le formulaire. Signataire figé « Véronique ELBILIA / Directrice Commercial »
 (orthographe voulue), 3 conteneurs/mois en dur. **Porte à code = copie de
 celle du catalogue, MÊME clé `prodi_cat_ok`** (déverrouillé une fois =
 partout) — PWD `PRODI2026`, désormais 3 constantes à changer ensemble
