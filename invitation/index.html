@@ -105,6 +105,11 @@
   .cal-grille button.jour-actuel { outline: 1.5px solid var(--ligne); }
   .cal-grille button.choisi { background: var(--rouge); color: #fff; font-weight: 700; }
 
+  /* +30 % global demandé 17/08 (calendrier et popups compris) — desktop seulement,
+     le mobile garde sa taille (déjà plein écran) */
+  @media (min-width: 561px) {
+    body { zoom: 1.3; }
+  }
   @media (max-width: 560px) {
     header.app span { display: none; }
     main { padding: 20px 12px 40px; }
