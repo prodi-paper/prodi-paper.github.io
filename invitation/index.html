@@ -53,7 +53,8 @@
     display: flex; align-items: center; justify-content: center; gap: 10px;
   }
   .btn-word { background: #2b579a; border-color: #2b579a; }
-  .btn-pdf { background: #d93025; border-color: #d93025; }
+  .btn-pdf { background: #b30b00; border-color: #b30b00; } /* rouge Adobe Acrobat officiel */
+  .btn-pdf svg { flex: none; }
   .badge {
     background: #fff; border-radius: 5px; font-weight: 800;
     display: inline-flex; align-items: center; justify-content: center;
@@ -235,8 +236,8 @@ html.cat-unlocked #cat-gate{display:none !important;}
     </div>
 
     <div class="actions">
-      <button class="btn-word" onclick="telechargerWord()"><span class="badge">W</span>Word (.docx)</button>
-      <button class="btn-pdf" onclick="telechargerPDF()"><span class="badge">PDF</span>PDF</button>
+      <!-- Bouton Word retiré (18/08, demande Ethan) — telechargerWord() reste dispo pour le rebrancher -->
+      <button class="btn-pdf" onclick="telechargerPDF()"><svg viewBox="0 0 60 58.5" width="30" height="29" aria-hidden="true"><path d="M48.2 33.9C47 32.6 44.7 32 41.4 32c-1.8 0-3.7.2-5.5.5-1.2-1.1-2.2-2.4-3.2-3.7-.7-1-1.4-2-2-3.1 1-2.8 1.6-5.8 1.8-8.8 0-2.7-1.1-5.6-4.1-5.6-1 0-2 .6-2.5 1.5-1.3 2.2-.8 6.7 1.3 11.4-.7 2.1-1.5 4.2-2.4 6.5-.8 2-1.7 3.9-2.8 5.7-3.1 1.2-9.6 4.2-10.2 7.5-.2 1 .1 2 .9 2.6.7.6 1.7 1 2.7.9 3.9 0 7.8-5.4 10.5-10.1 1.5-.5 3-1 4.6-1.4 1.7-.4 3.3-.8 4.8-1.1 4.2 3.6 7.9 4.2 9.7 4.2 2.5 0 3.5-1.1 3.8-2 .4-1.1.2-2.3-.6-3.1zm-2.7 1.9c-.1.7-.9 1.2-1.9 1.2-.3 0-.6 0-.9-.1-2-.5-3.9-1.5-5.5-2.8 1.3-.2 2.7-.3 4-.3.9 0 1.8.1 2.7.2.9.2 1.9.6 1.6 1.8zM27.6 13.7c.2-.3.5-.5.9-.6 1 0 1.2 1.1 1.2 2.1-.1 2.3-.5 4.5-1.2 6.7-1.7-4.3-1.5-7.2-.9-8.2zm5.6 19.2c-1.1.2-2.2.5-3.3.8-.8.2-1.6.5-2.5.7.4-.9.8-1.8 1.2-2.6.5-1.1.9-2.2 1.3-3.3.4.6.7 1.1 1.1 1.6.7 1 1.5 1.9 2.2 2.8zm-12.1 5.8c-2.5 4-5 6.6-6.4 6.6-.2 0-.5-.1-.6-.2-.3-.2-.4-.6-.3-.9.2-1.5 3.1-3.6 7.3-5.5z" fill="#fff"/></svg>PDF</button>
     </div>
   </section>
 </main>

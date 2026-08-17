@@ -1182,6 +1182,11 @@ celle du catalogue, MÊME clé `prodi_cat_ok`** (déverrouillé une fois =
 partout) — PWD `PRODI2026`, désormais 3 constantes à changer ensemble
 (vitrine.js, catalogue/index.html, invitation/index.html). `noindex` +
 Disallow robots.txt (outil interne, hors sitemap).
+18/08 : bouton **Word retiré** (fonction `telechargerWord()` conservée,
+rebranchable) — il ne reste que PDF, passé à la **D.A. Acrobat officielle**
+(fond #b30b00, glyphe blanc de l'icône 2020 inliné en SVG, plus de badge
+blanc). Dossier source ~/Code/prodi_invitation resynchronisé depuis le site
+(il était en retard : porte à code/noindex/favicon faits dans prodi_site).
 
 ## 18/08/2026 nuit — liste 3×3 + vue client harmonisée (js v747, css v805)
 
