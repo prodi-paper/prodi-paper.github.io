@@ -349,7 +349,14 @@ function valide() {
 }
 
 
+// Historique PARTAGÉ entre appareils (table Supabase invitations_histo,
+// même projet que le catalogue — clé anon publique par design).
+// localStorage = copie de secours si hors ligne.
 const HISTO_CLE = "invitations_histo";
+const HISTO_URL = "https://bvcgpdoukhcatjibmvnb.supabase.co/rest/v1/invitations_histo";
+const HISTO_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2Y2dwZG91a2hjYXRqaWJtdm5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNzg5MjgsImV4cCI6MjA4Nzg1NDkyOH0.Ip3ykSUS9sajTH04yXBerOG1haBKMD1kAvMQNjnGL1Q";
+const HISTO_HDR = { apikey: HISTO_KEY, Authorization: "Bearer " + HISTO_KEY, "Content-Type": "application/json" };
+let _histoCache = [];
 
 function enregistrerHisto(type) {
   const entree = {
@@ -362,15 +369,32 @@ function enregistrerHisto(type) {
     date_fin: $("date_fin").dataset.iso,
     date_courrier: $("date_courrier").dataset.iso,
     type,
-    quand: Date.now(),
   };
   const histo = JSON.parse(localStorage.getItem(HISTO_CLE) || "[]");
-  histo.unshift(entree);
+  histo.unshift({ ...entree, quand: Date.now() });
   localStorage.setItem(HISTO_CLE, JSON.stringify(histo.slice(0, 30)));
+  fetch(HISTO_URL, {
+    method: "POST",
+    headers: { ...HISTO_HDR, Prefer: "return=minimal" },
+    body: JSON.stringify(entree),
+  }).catch(() => {});
 }
 
-function ouvrirHisto() {
-  const histo = JSON.parse(localStorage.getItem(HISTO_CLE) || "[]");
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g, c =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+async function ouvrirHisto() {
+  let histo;
+  try {
+    const r = await fetch(`${HISTO_URL}?select=*&order=created_at.desc&limit=30`, { headers: HISTO_HDR });
+    if (!r.ok) throw 0;
+    histo = (await r.json()).map(e => ({ ...e, quand: Date.parse(e.created_at) }));
+  } catch {
+    histo = JSON.parse(localStorage.getItem(HISTO_CLE) || "[]"); // hors ligne
+  }
+  _histoCache = histo;
   const liste = $("histo-liste");
   if (!histo.length) {
     liste.innerHTML = '<p class="histo-vide">Aucune invitation générée pour l\'instant.</p>';
@@ -378,7 +402,7 @@ function ouvrirHisto() {
     liste.innerHTML = histo.map((e, i) => {
       const q = new Date(e.quand).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
       return `<div class="histo-item" onclick="reprendreHisto(${i})">` +
-        `<b>${e.civilite} ${e.prenom} ${e.nom.toUpperCase()}</b> — ${e.societe.toUpperCase()}<br>` +
+        `<b>${esc(e.civilite)} ${esc(e.prenom)} ${esc(e.nom.toUpperCase())}</b> — ${esc(e.societe.toUpperCase())}<br>` +
         `Séjour du ${frDate(e.date_debut)} au ${frDate(e.date_fin)}` +
         `<div class="quand">${e.type.toUpperCase()} généré le ${q} — cliquer pour recharger</div></div>`;
     }).join("");
@@ -389,7 +413,7 @@ function ouvrirHisto() {
 function fermerHisto() { $("histo-fond").classList.remove("ouvert"); }
 
 function reprendreHisto(i) {
-  const e = JSON.parse(localStorage.getItem(HISTO_CLE) || "[]")[i];
+  const e = _histoCache[i];
   if (!e) return;
   for (const c of ["civilite", "prenom", "nom", "societe", "passeport"]) {
     $(c).value = e[c];
