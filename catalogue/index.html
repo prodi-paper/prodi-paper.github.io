@@ -93,7 +93,7 @@ gtag('config', 'AW-18393110999');
 <link rel="preconnect" href="https://images.weserv.nl">
 <link rel="dns-prefetch" href="https://stock.prodi.net">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/catalogue.css?v=732">
+<link rel="stylesheet" href="/catalogue.css?v=735">
 <!-- EmailJS : chargé À LA DEMANDE par _ejsReady() (perf 18/07) -->
 </head>
 <body>
@@ -235,10 +235,10 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
   </div>
 </header>
 
-<!-- Header ÉPURÉ desktop (13/08) : Album photo / Usine / Offre / Réf article-Max
-     regroupés dans UN menu « Outils » (reparentage JS → tous les ids et
-     handlers existants continuent de marcher). Mobile et vue client ?s=
-     gardent le header d'origine. -->
+<!-- Menu « Outils » (13/08, reparentage JS — ids et handlers intacts) :
+     depuis le 17/08 réservé au TÉLÉPHONE (≤768px) — sur ordinateur on a la
+     place, Album photo / Usine / Offre / Réf article restent des boutons
+     directs dans le header. Vue client ?s= : header déjà épuré, jamais touché. -->
 <style>
   .outils-wrap{position:relative}
   #outils-btn{
@@ -277,6 +277,7 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
 <script>
 (function(){
   if (/[?&](s|share)=/.test(location.search)) return; // vue client : header déjà épuré
+  if (window.innerWidth > 768) return; // ordinateur : boutons directs (menu = téléphone seulement, 17/08)
   var hr = document.querySelector('.hright');
   var cart = hr && hr.querySelector('.cart-wrap');
   var sg = document.querySelector('.header-search-group');
