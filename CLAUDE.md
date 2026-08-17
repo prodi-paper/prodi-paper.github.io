@@ -1153,8 +1153,11 @@ comme la plaquette). Formulaire une page (civilité/prénom/nom/société/
 passeport + dates avec calendrier maison — le popup natif était minuscule),
 boutons Word (docxtemplater+pizzip sur template.docx = modèle NDIAYE avec
 placeholders, logo+tampon intacts) et PDF (jsPDF vectoriel, géométrie calquée
-sur le Word). Historique localStorage `invitations_histo` (30 entrées, clic =
-recharge). Signataire figé « Véronique ELBILIA / Directrice Commercial »
+sur le Word). **Historique PARTAGÉ entre appareils** (17/08 soir) :
+table Supabase `invitations_histo` (ce projet, RLS anon INSERT+SELECT —
+lisible clé anon, assumé ; contient noms+passeports), lecture 30 dernières
+à l'ouverture, écriture fire-and-forget à chaque génération, repli
+localStorage hors ligne. +30 % desktop (`body{zoom:1.3}` ≥561px). Signataire figé « Véronique ELBILIA / Directrice Commercial »
 (orthographe voulue), 3 conteneurs/mois en dur. **Porte à code = copie de
 celle du catalogue, MÊME clé `prodi_cat_ok`** (déverrouillé une fois =
 partout) — PWD `PRODI2026`, désormais 3 constantes à changer ensemble
