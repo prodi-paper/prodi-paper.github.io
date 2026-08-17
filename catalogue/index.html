@@ -119,6 +119,8 @@ html.cat-unlocked #cat-gate{display:none !important;}
 .cat-gate-err{color:#FE0000;font-size:13px;font-weight:600;min-height:17px;margin-top:11px;}
 .cat-gate-shake{animation:catShake .34s;}
 @keyframes catShake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+/* +30 % sur la porte (17/08, même règle que /invitation/) — grands écrans seulement */
+@media (min-width:561px){#cat-gate{zoom:1.3;}}
 </style>
 <div id="cat-gate">
   <div class="cat-gate-card">
