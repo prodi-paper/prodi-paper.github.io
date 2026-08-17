@@ -1055,7 +1055,9 @@ const msdLabels = {
 };
 // ── FAMILLES DE FORMATS (16/07) : dimensions feuilles regroupées à ±20 mm,
 // sens ignoré (520×720 = 720×520). Anchors = les formats du fond de stock.
-const FORMAT_TOL=50;
+// ⚠️ 17/08 : revenu de 50 à 20 — à ±50, « 520 × 720 » avalait du 480×765/
+// 555×750 (constat Ethan), la famille ne voulait plus rien dire.
+const FORMAT_TOL=20;
 const FORMAT_FAMILLES=[[700,1000],[650,920],[520,720],[297,420],[210,297],[630,880],[450,640],[580,780],[570,870],[963,1342],[690,800],[600,640]];
 const FORMAT_AUTRES='__fmt_autres__';
 const _fmtLbl=f=>f[0]+' × '+f[1]+' mm';
@@ -7621,7 +7623,7 @@ function _buildSharedInfo(list){
       <div class="si-title">Une question ?</div>
       <a class="si-btn si-wa" href="https://wa.me/33609997407" target="_blank" rel="noopener noreferrer" onclick="window.prodiTrack?.('whatsapp_click',{via:'shared'})">WhatsApp</a>
       <a class="si-btn" href="tel:+33609997407" onclick="window.prodiTrack?.('tel_click',{via:'shared'})">+33 6 09 99 74 07</a>
-      <a class="si-btn" href="mailto:contact@prodi.com" onclick="window.prodiTrack?.('email_click',{via:'shared'})">contact@prodi.com</a>
+      <a class="si-btn" href="mailto:ethan@prodi.com" onclick="window.prodiTrack?.('email_click',{via:'shared'})">ethan@prodi.com</a>
       <div class="si-row" style="color:#999"><span>Lun – Ven · 9h – 18h</span></div>
     </div>
     <div class="si-card">
