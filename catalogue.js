@@ -959,11 +959,17 @@ async function init(){
   buildMsdOptions('sb-msd-format',FORMAT_OPTIONS,'Dimensions',v=>v===FORMAT_AUTRES?'Autres dimensions':v,'msd-format');
   buildMsdOptions('sb-msd-grammage',GRAMMAGE_OPTIONS,'Grammages',v=>v===GRAMMAGE_AUTRES?'Autres grammages':v,'msd-grammage');
   _buildGrammageSlider('sb-msd-grammage');
-  // Accordéon Grammages (17/08) : le bouton déplie/replie le curseur dans la carte
+  // Accordéon Grammages (17/08) : le bouton déplie/replie le curseur dans la carte.
+  // ⚠️ DESKTOP seulement — sur téléphone on garde le menu déroulant d'origine
+  // (toggleMsd), sinon le curseur ne s'ouvre plus du tout (bug 18/08).
   (function(){
     const g=document.getElementById('sb-msd-grammage');
     const btn=g&&g.querySelector('.msd-btn');
-    if(btn){btn.setAttribute('onclick','');btn.onclick=e=>{e.stopPropagation();g.classList.toggle('gsl-open');};}
+    if(btn){btn.setAttribute('onclick','');btn.onclick=e=>{
+      e.stopPropagation();
+      if(window.matchMedia('(max-width: 768px)').matches){toggleMsd('sb-msd-grammage');}
+      else{g.classList.toggle('gsl-open');}
+    };}
   })();
   buildMsdOptions('sb-msd-laize',LAIZE_OPTIONS,'Laizes',v=>v===LAIZE_AUTRES?'Autres laizes':v,'msd-laize');
   buildMsdOptions('sb-msd-diametre',DIAM_OPTIONS,'Diamètre',v=>v===DIAM_AUTRES?'Autres Ø':v,'msd-diametre');
@@ -3646,6 +3652,14 @@ async function _fetchAndRender(token){
   // Compteur tonnage dans la barre outils (à côté du +) — sélection filtrée
   const tbTons=document.getElementById('tb-tons');
   if(tbTons){const _t=_totalWeightKg/1000;tbTons.innerHTML=_t>0?`<b>${_t>=100?Math.round(_t).toLocaleString('fr-FR'):_t.toFixed(1).replace('.',',')}</b> t`:'';}
+  // 18/08 (Ethan, téléphone) : tonnage de la sélection AUSSI dans le header,
+  // entre le logo Prodiconseil et les boutons de droite
+  (function(){
+    let ht=document.getElementById('head-tons');
+    if(!ht){const hi=document.querySelector('.header-inner');const ll=hi&&hi.querySelector('.logo-link');
+      if(ll){ht=document.createElement('div');ht.id='head-tons';ll.insertAdjacentElement('afterend',ht);}}
+    if(ht){const _t=_totalWeightKg/1000;ht.innerHTML=_t>0?`<b>${_t>=100?Math.round(_t).toLocaleString('fr-FR'):_t.toFixed(1).replace('.',',')}</b> t`:'';}
+  })();
   const cn=document.getElementById('correction-note');
   if(cn)cn.innerHTML=_lastCorrections.length?` <span class="correction-note">· correction : ${_lastCorrections.map(c=>`<b>${esc(c.from)}</b> → ${esc(c.to)}`).join(', ')}</span>`:'';
   // Update fd-count for mobile drawer
