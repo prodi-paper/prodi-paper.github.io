@@ -93,7 +93,7 @@ gtag('config', 'AW-18393110999');
 <link rel="preconnect" href="https://images.weserv.nl">
 <link rel="dns-prefetch" href="https://stock.prodi.net">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/catalogue.css?v=805">
+<link rel="stylesheet" href="/catalogue.css?v=812">
 <!-- EmailJS : chargé À LA DEMANDE par _ejsReady() (perf 18/07) -->
 </head>
 <body>
@@ -208,8 +208,8 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
         <input type="file" id="album-file-input" accept=".pdf,.xlsx,.xls,.csv,.txt,.docx" style="display:none" onchange="if(this.files[0])_albumImport(this.files[0]);this.value='';">
       </div>
       <div class="offre-wrap" id="fab-wrap">
-        <button class="btn-head" id="fab-btn" onclick="toggleFabMenu()" title="Offres fabrication sur demande (Excel usine)">
-          <span class="offre-txt" style="font-size:19px;font-weight:800;">Usine</span>
+        <button class="btn-head" id="fab-btn" onclick="toggleFabMenu()" title="Offres du dépôt (Excel par usine)">
+          <span class="offre-txt" style="font-size:19px;font-weight:800;">Dépôt</span>
           <span class="offre-arrow">▾</span>
         </button>
         <div class="offre-menu" id="fab-menu" role="menu" aria-label="Offres fabrication par qualité"></div>
@@ -277,6 +277,14 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
 <script>
 (function(){
   if (/[?&](s|share)=/.test(location.search)) return; // vue client : header déjà épuré
+  // 18/08 : la bascule menu☰/boutons directs doit suivre les ROTATIONS
+  // (iPhone ouvert en paysage puis tourné = layout cassé) → si la largeur
+  // change de camp après le chargement, on recharge proprement.
+  var _mq = window.matchMedia('(max-width: 768px)');
+  var _camp = _mq.matches;
+  (_mq.addEventListener ? _mq.addEventListener.bind(_mq, 'change') : _mq.addListener.bind(_mq))(function(e){
+    if (e.matches !== _camp) location.reload();
+  });
   if (window.innerWidth > 768) return; // ordinateur : boutons directs (menu = téléphone seulement, 17/08)
   var hr = document.querySelector('.hright');
   var cart = hr && hr.querySelector('.cart-wrap');
@@ -1005,7 +1013,7 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
 <div class="spin-bg" id="spinner"><div class="spin"></div></div>
 
 <script src="/analytics.js?v=2"></script>
-<script src="/catalogue.js?v=747"></script>
+<script src="/catalogue.js?v=749"></script>
 <!-- Traqueur de perf, inerte sans ?perf=1 (voir perf-hud.js) -->
 <script src="/perf-hud.js?v=1" defer></script>
 </body>

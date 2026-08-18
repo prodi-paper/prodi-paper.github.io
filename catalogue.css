@@ -2685,3 +2685,38 @@ body.apple-view .cie-g4 .cie-ref .cie-val{font-family:monospace;display:flex;ali
 body.apple-view .ci-laize{text-transform:uppercase;font-family:'Bebas Neue',sans-serif;font-size:17px;font-weight:400;letter-spacing:.5px;}
 body.apple-view .ci-gsm{display:none;} /* le grammage vit dans la grille */
 body.apple-view .ci-foot{margin-top:6px;}
+
+/* 18/08 : téléphone — Ma Liste = juste le CAMION, pilule compacte */
+@media(max-width:768px){
+  body.topbar-view #cart-btn{padding:5px 12px !important;min-width:0 !important;width:auto !important;}
+  body.topbar-view #cart-btn .btn-panier-txt{display:none !important;}
+  body.topbar-view #cart-btn img{height:26px !important;width:auto;}
+}
+
+/* ── 18/08 téléphone : TOUS les filtres en pilules individuelles dans la barre
+   défilante (le groupe « Filtres avancés » est dissous, chaque section devient
+   une pilule ; son panneau s'ouvre en surcouche pleine largeur). ── */
+@media(max-width:768px){
+  body.topbar-view .filters-panel #tb-adv>.msd-btn{display:none !important;}
+  body.topbar-view .filters-panel #tb-adv{display:contents;}
+  body.topbar-view .filters-panel #tb-adv>.msd-panel{display:contents !important;}
+  body.topbar-view .filters-panel .msd-group-row{flex:0 0 auto;border:none !important;border-radius:999px !important;background:#fff !important;padding:8px 14px !important;margin:0 !important;font-size:14.5px !important;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.10);}
+  body.topbar-view .filters-panel #tb-adv .adv-pop{position:fixed !important;left:10px !important;right:10px !important;top:120px !important;bottom:auto !important;width:auto !important;max-height:62vh;overflow-y:auto;background:#fff !important;border-radius:14px;box-shadow:0 14px 44px rgba(0,0,0,.28);z-index:3000;padding:8px;}
+}
+@media(max-width:768px){
+  /* la plage chiffrée vit AVEC le curseur (panneau ouvert), pas sur la pilule */
+  body.topbar-view #sb-msd-grammage .gsl-btnval{display:none !important;}
+  body.topbar-view #sb-msd-grammage .msd-panel .gsl-val{display:block !important;}
+}
+@media(max-width:768px){
+  /* 18/08 : pilules avancées APRÈS Type/Détails/Grammages (elles retombaient
+     entre les deux, ordre flex) + harmonisées sur le modèle « Type de papier » */
+  body.topbar-view .filters-panel .msd-group-row{order:10;font-size:13px !important;font-weight:600 !important;padding:8px 12px !important;border-radius:10px !important;box-shadow:0 1px 6px rgba(0,0,0,.06) !important;}
+}
+
+/* Tonnage sélection dans le header (18/08, téléphone) */
+#head-tons{display:none;}
+@media(max-width:768px){
+  body.topbar-view #head-tons{display:block;font-size:15px;color:#1d1d1f;white-space:nowrap;align-self:center;justify-self:start;padding-left:10px;}
+  body.topbar-view #head-tons b{font-weight:800;}
+}

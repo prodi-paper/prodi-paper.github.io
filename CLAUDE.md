@@ -1116,6 +1116,23 @@ display + bots potentiels) :
   annule (`leadClose` remet `_waUrl=null`). Motif : 43 cliqueurs WP le 16/08,
   8 réellement engagés — taps réflexes transformés en vrais leads qualifiés.
 
+## Générateur de proforma /proforma/ (17/08/2026)
+
+Outil INTERNE (Véro/Ethan) sur le moule du générateur d'invitations : page
+autonome `proforma/index.html` (formulaire à gauche, feuille A4 fidèle au
+modèle Sage « Facture Proforma » DE42827 à droite — en-tête, mentions rouges
+export, tableau Référence/Désignation/Qté/PU/Montant, lignes FOB/FRET/COÛT
+ET FRET si fret > 0, totaux + NET A PAYER, tampon CSS bleu incliné, 3 RIB,
+encadré « RENVOYER SIGNÉ ET CACHETÉ »). Modèles de lignes GROFF/GRCAR/GSCOL
+préremplis (désignations du PDF type). « Générer » = numéro via RPC Supabase
+`proforma_next_numero()` (série `PW-26-xxx`, séquence `proforma_num_seq`,
+SECURITY DEFINER) + archive table `proformas` (RLS : anon INSERT borné,
+authenticated SELECT, PAS de SELECT anon) + `window.print()` (print CSS A4 =
+la feuille seule, PDF via le dialogue). Repli hors-ligne : numéro `PW-LOC-…`.
+Porte d'accès dédiée : code **PANDA26** (localStorage `prodi_prof_ok`) —
+différent du code clients. ⚠️ SAGE JAMAIS TOUCHÉ : si la proforma devient
+commande, saisie Sage à la main (duplication de pièce). noindex, hors sitemap.
+
 ## Page /merci/ (17/08/2026)
 
 Page de remerciement autonome (HTML standalone, styles inline, DM Sans,
