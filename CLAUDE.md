@@ -1172,6 +1172,11 @@ Google, analytics maison, balise Google Ads, droits RGPD → contact@prodi.com.
 - `catalogue/index.html` : og:image + twitter:card SUPPRIMÉS volontairement — les
   liens clients `?s=` partagés sur WhatsApp affichaient une grosse carte logo,
   Ethan veut un aperçu texte seul. La vitrine garde ses cartes complètes.
+  **18/08 (7bc0060b)** : title/description/og:title/og:description NEUTRALISÉS
+  aussi (« Catalogue Prodiconseil » + phrase sobre) — l'aperçu WhatsApp montrait
+  encore « export — Maghreb, Afrique, international » aux clients. Page noindex
+  + Disallow robots : zéro enjeu SEO. ⚠️ WhatsApp cache l'aperçu PAR URL : un
+  lien ?s= déjà partagé garde l'ancien aperçu → regénérer un code frais.
 - Bouton email vue client (`?s=`) : contact@prodi.com → ethan@prodi.com.
 
 ## Outil interne /invitation/ (17/08/2026)
