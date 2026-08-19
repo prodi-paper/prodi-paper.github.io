@@ -4052,7 +4052,8 @@ function _renderCatalogueCard(p){
       const detRow=`<div class="sc-cell sc-wrap sc-det-only" style="grid-column:span 4;"><div class="sc-val">${_detClean?esc(_detClean):'—'}</div></div>`;
       const prixVal=p.price?esc(Math.round(p.price*1000).toLocaleString('fr-FR'))+' <small>€/T</small>':'—';
       const usineCell=`<div class="sc-cell sc-price-usine" style="grid-column:span 2;"><div class="sc-cap">USINE</div><div class="sc-val">${_usineLbl?esc(_usineLbl):'—'}</div></div>`;
-      const prixCell=`<div class="sc-cell sc-det-row sc-price-main" style="grid-column:span 2;"><div class="sc-val sc-price-val">${_priceMode?prixVal:'—'}</div>${_addBtn}</div>`;
+      // Vue client (18/08 Ethan) : le prix S'AFFICHE sur la carte (la fiche reste sans prix)
+      const prixCell=`<div class="sc-cell sc-det-row sc-price-main" style="grid-column:span 2;"><div class="sc-val sc-price-val">${(_priceMode||_sharedMode)?prixVal:'—'}</div>${_addBtn}</div>`;
       const foot='';
       return`<div class="pcard sc-card" onclick="openDetail(${numId(p.id)})">
         <div class="pcard-img">${imgHtml}${resaOverlay}${p.promo?'<div class="pcard-promo-overlay">PROMO</div>':''}
@@ -6324,9 +6325,9 @@ async function loadSharedQuote(idsOverride){
   _maxKnownPage=1; // vue client : tout sur UNE page (listes 40-60 T)
   currentPage=1;
   _viewMode='grid'; // vue fiches uniquement (tableau retiré 18/07)
-  // Bouton − de retrait : OUVERT À TOUS sur le lien partagé (choix Ethan 07/08) —
-  // le client peut aussi retirer ; le retrait met à jour le MÊME lien ?s=.
-  window._sharedEdit=true;
+  // Bouton − de retrait RETIRÉ de la vue client (18/08 Ethan, « la poubelle
+  // ne sert à rien ») — annule l'ouverture à tous du 07/08.
+  window._sharedEdit=false;
 
   const totalKg=units.reduce((s,p)=>s+(+p.weight||0),0);
   const rbarRefs=document.getElementById('rbar-refs');
@@ -6359,7 +6360,7 @@ async function loadSharedQuote(idsOverride){
     const _cbSvg=_cb.querySelector('svg,img');
     if(_cbSvg)_cbSvg.outerHTML='<svg width="30" height="30" viewBox="0 0 32 32" style="flex-shrink:0;"><rect x="9" y="2" width="21" height="14" rx="3.5" fill="#8bd47e"/><rect x="20" y="2" width="10" height="14" rx="3.5" fill="#b9e695"/><path d="M9 9h17.5A3.5 3.5 0 0 1 30 12.5V26.5a3.5 3.5 0 0 1-3.5 3.5H12.5A3.5 3.5 0 0 1 9 26.5Z" fill="#2f9e55"/><rect x="2" y="12" width="16" height="16" rx="3.5" fill="#185c37"/><path d="M6.4 16.5h2.7l1.8 3.2 1.8-3.2h2.7l-3.1 4.7 3.2 4.8h-2.8l-1.8-3.3-1.9 3.3H6.2l3.2-4.8z" fill="#fff"/></svg>';
     const _cbTxt=_cb.querySelector('.btn-panier-txt');
-    if(_cbTxt){_cbTxt.textContent='Télécharger liste';_cbTxt.style.fontSize='16px';_cbTxt.style.whiteSpace='nowrap';}
+    if(_cbTxt){_cbTxt.textContent='Télécharger';_cbTxt.style.whiteSpace='nowrap';} // taille via CSS shared-view (18.5px comme Album photo)
     const _cbSv2=_cb.querySelector('svg');
     if(_cbSv2)_cb.appendChild(_cbSv2); // logo à DROITE du texte
     const _cbBdg=_cb.querySelector('.cart-badge');
