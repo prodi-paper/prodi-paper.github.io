@@ -1078,49 +1078,71 @@ function toggleSound(){
   }else start();
 })();
 
-// ─── POP TRADUCTION : visiteur non francophone → petit pop dans SA langue,
-// bouton = ouvre le site traduit par Google (proxy translate.goog). Refus
-// mémorisé (localStorage), tracké trad_prompt / trad_click / trad_non.
+// ─── POP TRADUCTION : visiteur non francophone → pop-up bouton qui MONTE DU BAS
+// (centré), visible ~8 s. Le bouton = traduction Google EN PLACE (on reste sur
+// le domaine). S'il NE clique PAS, le pop repart et on reste en français (rien
+// n'est traduit). Une fois par session. ?trad=xx = forcer (test). Tracké
+// trad_prompt (vu) / trad_click (traduit).
 (function(){
-  var MSG={
-    en:['This site is in French — view it in English?','Translate','No thanks'],
-    es:['Este sitio está en francés — ¿verlo en español?','Traducir','No, gracias'],
-    ar:['هذا الموقع بالفرنسية — هل تريد ترجمته إلى العربية؟','ترجمة','لا شكراً'],
-    ru:['Сайт на французском — перевести на русский?','Перевести','Нет, спасибо'],
-    ro:['Site-ul este în franceză — îl vezi în română?','Tradu','Nu, mulțumesc'],
-    el:['Ο ιστότοπος είναι στα γαλλικά — μετάφραση στα ελληνικά;','Μετάφραση','Όχι, ευχαριστώ'],
-    tr:['Bu site Fransızca — Türkçe görüntülemek ister misiniz?','Çevir','Hayır'],
-    de:['Diese Seite ist auf Französisch — auf Deutsch ansehen?','Übersetzen','Nein, danke'],
-    it:['Questo sito è in francese — vederlo in italiano?','Traduci','No, grazie'],
-    pt:['Este site está em francês — vê-lo em português?','Traduzir','Não, obrigado'],
-    uk:['Сайт французькою — перекласти українською?','Перекласти','Ні, дякую'],
-    pl:['Ta strona jest po francusku — zobaczyć po polsku?','Przetłumacz','Nie, dziękuję'],
-    nl:['Deze site is in het Frans — in het Nederlands bekijken?','Vertalen','Nee, bedankt'],
-    zh:['本网站为法语 — 要翻译成中文吗？','翻译','不用了']
+  var MSG={en:'Translate',es:'Traducir',ar:'ترجمة',ru:'Перевести',ro:'Tradu',
+    el:'Μετάφραση',tr:'Çevir',de:'Übersetzen',it:'Traduci',pt:'Traduzir',
+    uk:'Перекласти',pl:'Przetłumacz',nl:'Vertalen',zh:'翻译'};
+  var force=new URLSearchParams(location.search).get('trad'); // ?trad=en = forcer (test)
+  var target=(force||navigator.language||'').slice(0,2).toLowerCase();
+  if(!target||target==='fr')return;             // francophone : rien
+  try{if(!force&&sessionStorage.getItem('prodi_trad_seen')==='1')return;}catch(e){}
+  var label=MSG[target]||MSG.en;
+
+  // widget Google (caché) + masquage de sa barre du haut / surlignages
+  var st=document.createElement('style');
+  st.textContent='.goog-te-banner-frame,.skiptranslate{display:none!important}body{top:0!important}'
+    +'#goog-gt-tt,.goog-te-balloon-frame{display:none!important}'
+    +'.goog-text-highlight{background:none!important;box-shadow:none!important}';
+  document.head.appendChild(st);
+  var gel=document.createElement('div');gel.id='google_translate_element';gel.style.display='none';
+  document.body.appendChild(gel);
+  window.googleTranslateElementInit=function(){
+    new google.translate.TranslateElement({pageLanguage:'fr',autoDisplay:false},'google_translate_element');
   };
-  var l=(navigator.language||'').slice(0,2).toLowerCase();
-  if(!l||l==='fr')return;                       // francophone : rien
-  try{if(localStorage.getItem('prodi_trad_non')==='1')return;}catch(e){}
-  var m=MSG[l]||MSG.en;
-  var url='https://paper-prodi-com.translate.goog/?_x_tr_sl=fr&_x_tr_tl='+l+'&_x_tr_hl='+l;
+  var s=document.createElement('script');
+  s.src='https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+  document.body.appendChild(s);
+  function traduire(){                           // sélectionne la langue dans le combo caché
+    var t=0,iv=setInterval(function(){
+      var sel=document.querySelector('.goog-te-combo');
+      if(sel){clearInterval(iv);sel.value=target;sel.dispatchEvent(new Event('change'));}
+      else if(++t>40){clearInterval(iv);}        // 8 s max d'attente du widget
+    },200);
+  }
+
+  var TICO='<svg class="trad-ico" viewBox="0 0 41 40" width="24" height="24" aria-hidden="true">'
+    +'<rect x="17" y="15" width="21" height="21" rx="5" fill="#4285F4"/>'
+    +'<g transform="translate(20.4,18.4) scale(0.62)" fill="#fff"><path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/></g>'
+    +'<rect x="3" y="6" width="21" height="21" rx="5" fill="#fff" stroke="#e6e6ea"/>'
+    +'<g transform="translate(6.4,9.4) scale(0.3125)">'
+    +'<path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"/>'
+    +'<path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"/>'
+    +'<path fill="#FBBC05" d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24s.85 6.91 2.34 9.88l7.35-5.7z"/>'
+    +'<path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"/></g></svg>';
   setTimeout(function(){
+    try{sessionStorage.setItem('prodi_trad_seen','1');}catch(e){}
     var d=document.createElement('div');
     d.className='trad-pop';
-    if(l==='ar')d.setAttribute('dir','rtl');
-    d.innerHTML='<span class="trad-txt">'+m[0]+'</span>'
-      +'<div class="trad-btns"><a class="trad-go" href="'+url+'" rel="noopener">'+m[1]+'</a>'
-      +'<button type="button" class="trad-no">'+m[2]+'</button></div>';
+    if(target==='ar')d.setAttribute('dir','rtl');
+    d.innerHTML='<button type="button" class="trad-go"><span class="trad-cd" id="trad-cd">8</span><span>'+label+'</span>'+TICO+'</button>';
     document.body.appendChild(d);
-    window.prodiTrack?.('trad_prompt',{l:l});
+    requestAnimationFrame(function(){d.classList.add('in');});   // monte du bas
+    window.prodiTrack?.('trad_prompt',{l:target});
+    var n=8,tick=setInterval(function(){         // compte à rebours affiché 8 -> 0
+      n--;var cd=document.getElementById('trad-cd');if(cd)cd.textContent=n;
+      if(n<=0)clearInterval(tick);
+    },1000);
+    var hide=setTimeout(fermer,8000);            // auto-disparition après 8 s
+    function fermer(){clearInterval(tick);clearTimeout(hide);d.classList.remove('in');setTimeout(function(){if(d.parentNode)d.remove();},500);}
     d.querySelector('.trad-go').addEventListener('click',function(){
-      window.prodiTrack?.('trad_click',{l:l});
+      clearInterval(tick);clearTimeout(hide);window.prodiTrack?.('trad_click',{l:target});d.remove();traduire();
     });
-    d.querySelector('.trad-no').addEventListener('click',function(){
-      window.prodiTrack?.('trad_non',{l:l});
-      try{localStorage.setItem('prodi_trad_non','1');}catch(e){}
-      d.remove();
-    });
-  },1500);
+  },1200);
 })();
 
 // ─── Placeholder machine-à-écrire (vraies demandes papier) : champ Message
