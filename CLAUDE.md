@@ -1249,3 +1249,29 @@ des contextes qu'il peint au-dessus du `z:auto`) → menu sous les tuiles.
 `position:relative;z-index:0` (< 99). Zéro nœud DOM déplacé, aucune modale piégée (toutes
 créées en `document.body.appendChild`, cf `#detail-bg` hors `.body-wrap`). Bug Safari-only
 → vérifier sur iPhone réel (headless Chrome ne le reproduit pas).
+
+## Pop-up TRADUCTION (20/08/2026, poussé eb25a1d3, css v318/js v171)
+
+Remplace l'ancien bandeau « traduire via Google » (proxy `translate.goog` HORS-domaine,
+seulement 8 % de clics EN / 34 % AR — audit friction du 20/08). `vitrine.js` bloc
+« POP TRADUCTION » :
+- Visiteur non-francophone (`navigator.language` ≠ fr) → pop-up qui **MONTE DU BAS,
+  centré** (`.trad-pop`, transform translateY), **pilule BLANCHE** style « Contact us »
+  (`.trad-go`) : **compte à rebours 8→0** (`.trad-cd`, purement visuel) + « Translate »
+  (verbe localisé, `MSG` ~14 langues) + **VRAI logo Google Translate** (SVG inline :
+  tuile blanche G multicolore + tuile bleue glyphe traduction). Visible ~8 s puis repart.
+  **Une fois par session** (sessionStorage `prodi_trad_seen`).
+- **CLIC = traduction Google EN PLACE** via le widget officiel (`element.js`, combo caché
+  `.goog-te-combo` piloté par code : `sel.value=target;dispatchEvent(change)`) — on **RESTE
+  sur paper.prodi.com**, barre Google masquée (CSS `.goog-te-banner-frame/.skiptranslate`
+  display:none, `body{top:0}`). **Sans clic = rien**, on reste en français (pas d'auto-trad).
+- **CSP** : ajout de `translate.google.com` `translate.googleapis.com`
+  `translate-pa.googleapis.com` `www.gstatic.com` (script/img/connect + frame-src
+  translate.google.com + style-src gstatic) sur **les 45 pages vitrine** (sed en masse ;
+  catalogue NON concerné). Le beacon `http://translate.google.com/gen204` (HTTP) est
+  bloqué par la CSP = **inoffensif** (ping analytics, la trad marche).
+- **Hook test `?trad=xx`** (force la langue + bypasse le once/session) — **GARDÉ en prod**
+  pour tester (un navigateur FR ne verrait jamais le pop) : `paper.prodi.com/?trad=en`
+  (ou `?trad=ar` = RTL, `?trad=es`…). À retirer si gênant (1 ligne dans vitrine.js).
+- Traqueurs `trad_prompt` (vu) / `trad_click` (traduit). ⚠️ à déployer sur toute nouvelle
+  page vitrine : CSP translate + versions css318/js171.
