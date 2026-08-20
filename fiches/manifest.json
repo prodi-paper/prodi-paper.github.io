@@ -1,0 +1,1458 @@
+{
+ "generated": "2026-08-20",
+ "families": [
+  {
+   "codes": [
+    "S2SC",
+    "R2SC"
+   ],
+   "label": "Couché 2 faces",
+   "fiches": [
+    {
+     "file": "tds-coated-2-sides-matt.pdf",
+     "fini": "mat",
+     "gmin": 90,
+     "gmax": 130
+    },
+    {
+     "file": "fiche-technique-papier-couch-2faces-brillant.pdf",
+     "fini": "brillant",
+     "gmin": 90,
+     "gmax": 400
+    }
+   ],
+   "certs": [
+    "pefc"
+   ],
+   "note": "Vérifier mat/brillant · ISO/FSC/EN71 sont DANS la fiche brillant"
+  },
+  {
+   "codes": [
+    "S1SC",
+    "R1SC"
+   ],
+   "label": "Couché 1 face",
+   "fiches": [
+    {
+     "file": "prodiconsei1-fiche-technique-couch-1f.pdf",
+     "gmin": 94,
+     "gmax": 200
+    },
+    {
+     "file": "prodiconsei1-fiche-technique-couch-1f-reh.pdf",
+     "fini": "REH",
+     "gmin": 94,
+     "gmax": 200
+    },
+    {
+     "file": "fiche-technique-couch-1f-m-tallis-reh-n158.pdf",
+     "fini": "métallisé",
+     "ref": "158",
+     "gmin": 68,
+     "gmax": 200
+    },
+    {
+     "file": "fiche-technique-couch-1f-reh-toil-offre-n158.pdf",
+     "fini": "toilé",
+     "ref": "158",
+     "gmin": 70,
+     "gmax": 200
+    }
+   ],
+   "certs": [],
+   "note": ""
+  },
+  {
+   "codes": [
+    "SBOA",
+    "RBOA"
+   ],
+   "label": "Carton couché (GC/GD/GT/duplex)",
+   "fiches": [
+    {
+     "file": "fiche-techn-carton-blanc-gc1.pdf",
+     "dos": "dos blanc GC1",
+     "gmin": 215,
+     "gmax": 500
+    },
+    {
+     "file": "fiche-tech-blanc-dos-cr-me-gc2.pdf",
+     "dos": "dos crème GC2",
+     "gmin": 215,
+     "gmax": 500
+    },
+    {
+     "file": "gd2.pdf",
+     "dos": "dos gris GD2",
+     "gmin": 230,
+     "gmax": 675
+    },
+    {
+     "file": "fiche-techn-carton-duplex-blanc-dos-gris-gd2-301.pdf",
+     "dos": "dos gris GD2",
+     "usine": "301",
+     "gmin": 230,
+     "gmax": 450
+    },
+    {
+     "file": "gd3.pdf",
+     "dos": "dos gris GD3",
+     "gmin": 230,
+     "gmax": 755
+    },
+    {
+     "file": "fiche-technique-carton-gt.pdf",
+     "dos": "triplex GT",
+     "gmin": 200,
+     "gmax": 600,
+     "approx": true
+    },
+    {
+     "file": "fiche-techn-blanc-dos-kraft-gt4.pdf",
+     "dos": "dos kraft GT4",
+     "gmin": 230,
+     "gmax": 600,
+     "approx": true
+    },
+    {
+     "file": "ref-40-fiche-technique-gt4-blanc-dos-kraft.pdf",
+     "dos": "dos kraft GT4",
+     "ref": "40",
+     "approx": true
+    },
+    {
+     "file": "fiche-techn-triplex-blanc.pdf",
+     "dos": "triplex blanc GT1",
+     "gmin": 230,
+     "gmax": 460
+    },
+    {
+     "file": "fiche-tech-triplex-dos-cr-me.pdf",
+     "dos": "triplex dos crème",
+     "gmin": 230,
+     "gmax": 600,
+     "approx": true
+    },
+    {
+     "file": "fiche-technique-gc1-ref-160.pdf",
+     "dos": "dos blanc GC1",
+     "ref": "160"
+    },
+    {
+     "file": "fiche-technique-gc2-ref-160.pdf",
+     "dos": "dos crème GC2",
+     "ref": "160"
+    },
+    {
+     "file": "gc1-ref-86.pdf",
+     "dos": "dos blanc GC1",
+     "ref": "86"
+    },
+    {
+     "file": "gc2-ref-86.pdf",
+     "dos": "dos crème GC2",
+     "ref": "86"
+    },
+    {
+     "file": "fiche-technique-carton-dos-bois-ref-95.pdf",
+     "dos": "dos bois",
+     "ref": "95",
+     "approx": true
+    },
+    {
+     "file": "fiche-technique-carton-dos-blanc-ref-95.pdf",
+     "dos": "dos blanc",
+     "ref": "95",
+     "approx": true
+    }
+   ],
+   "certs": [
+    "contact",
+    "pefc"
+   ],
+   "note": "La bonne fiche dépend du DOS (blanc/crème/gris/kraft)"
+  },
+  {
+   "codes": [
+    "SSBS"
+   ],
+   "label": "SBS / Carton blanc",
+   "fiches": [
+    {
+     "file": "fiche-technique-carton-sbs.pdf",
+     "gmin": 200,
+     "gmax": 400,
+     "approx": true
+    },
+    {
+     "file": "fiche-technique-sbb-solid-board-bleached-ref-134.pdf",
+     "usine": "134",
+     "gmin": 200,
+     "gmax": 450,
+     "approx": true
+    },
+    {
+     "file": "prodiconseil-fiche-technique-couche-2faces-sbb-format-n134.pdf",
+     "dos": "SBB 2 faces",
+     "usine": "134",
+     "gmin": 235,
+     "gmax": 345
+    }
+   ],
+   "certs": [
+    "contact",
+    "pefc"
+   ],
+   "note": ""
+  },
+  {
+   "codes": [
+    "ROFF",
+    "SOFF",
+    "RCOL",
+    "SCOL"
+   ],
+   "label": "Offset",
+   "fiches": [
+    {
+     "file": "fiche-techn-offset-100613.pdf",
+     "gmin": 40,
+     "gmax": 300,
+     "approx": true
+    },
+    {
+     "file": "fiche-techn-offset-brillant-100613.pdf",
+     "fini": "brillant",
+     "gmin": 40,
+     "gmax": 300,
+     "approx": true
+    },
+    {
+     "file": "n-160-fiche-techn-offset-extra-blanc-165-270513.pdf",
+     "fini": "extra blanc",
+     "gmin": 50,
+     "gmax": 170,
+     "approx": true
+    },
+    {
+     "file": "fiche-technique-ref-182-offset-cie-105.pdf",
+     "ref": "182",
+     "approx": true
+    },
+    {
+     "file": "fiche-technique-ref-158-offset.pdf",
+     "ref": "158",
+     "approx": true
+    },
+    {
+     "file": "fiche-technique-rcol-anglais.pdf",
+     "fini": "couleur (EN)",
+     "approx": true
+    },
+    {
+     "file": "fiche-technique-ref-82-offset-preprint.pdf",
+     "fini": "préprint",
+     "usine": "82",
+     "approx": true
+    },
+    {
+     "file": "prodiconsei1-fiche-technique-offset-ref-82.pdf",
+     "usine": "82",
+     "approx": true
+    },
+    {
+     "file": "prodiconseil-fiche-technique-offset-couleur.pdf",
+     "fini": "couleur",
+     "approx": true
+    },
+    {
+     "file": "prodiconseil-fiche-technique-bristol.pdf",
+     "fini": "bristol",
+     "approx": true
+    },
+    {
+     "file": "prodiconsei1-fiche-technique-papier-mince.pdf",
+     "fini": "mince",
+     "approx": true
+    },
+    {
+     "file": "prodiconsei1-fiche-technique-offset-laser.pdf",
+     "fini": "laser",
+     "approx": true
+    }
+   ],
+   "certs": [
+    "iso82",
+    "pefc"
+   ],
+   "note": ""
+  },
+  {
+   "codes": [
+    "SCUT"
+   ],
+   "label": "Ramette",
+   "fiches": [
+    {
+     "file": "fiche-technique-ref-82-ramette-extra-blanc.pdf",
+     "fini": "extra blanc",
+     "usine": "82",
+     "approx": true
+    }
+   ],
+   "certs": [
+    "iso82"
+   ],
+   "note": ""
+  },
+  {
+   "codes": [
+    "RKRABRUN",
+    "RKRA",
+    "SKRA",
+    "RKRG",
+    "RKRR"
+   ],
+   "label": "Kraft brun",
+   "fiches": [
+    {
+     "file": "fiche-technique-417-kraft-brun-verge.pdf",
+     "fini": "vergé",
+     "usine": "417",
+     "approx": true
+    },
+    {
+     "file": "nfo32-fiche-tech-kraft-cpro-270513.pdf",
+     "fini": "cpro",
+     "approx": true
+    },
+    {
+     "file": "nfo32-fiche-tech-kraft20pro-270513.pdf",
+     "fini": "20 pro",
+     "approx": true
+    },
+    {
+     "file": "nfo32-fiche-tech-kraft-brun22pro-270513.pdf",
+     "fini": "22 pro",
+     "approx": true
+    },
+    {
+     "file": "n-fo32-fiche-techn-du-papier-kraft-brun-58pro-270513.pdf",
+     "fini": "58 pro",
+     "approx": true
+    },
+    {
+     "file": "nfo32-fiche-tech-kraft-semi-crepe-270513.pdf",
+     "fini": "semi-crêpé",
+     "approx": true
+    },
+    {
+     "file": "417-prodiconsei1-fiche-technique-kraft-semi-extensible.pdf",
+     "fini": "semi-extensible",
+     "usine": "154",
+     "gmin": 70,
+     "gmax": 200,
+     "approx": true
+    },
+    {
+     "file": "nfo32-fiche-tech-kraft-corseil-270513.pdf",
+     "fini": "corseil",
+     "approx": true
+    }
+   ],
+   "certs": [
+    "kraft1",
+    "kraft2",
+    "kraft3",
+    "alim_gen",
+    "pefc"
+   ],
+   "note": ""
+  },
+  {
+   "codes": [
+    "SKRA"
+   ],
+   "label": "Kraft blanc",
+   "fiches": [
+    {
+     "file": "n-49-kraft-blanc-fiche-tech-prog-6.pdf",
+     "fini": "PROG6",
+     "usine": "49",
+     "approx": true
+    },
+    {
+     "file": "n49-kraft-blanc-fiche-tech-prog2.pdf",
+     "fini": "PROG2",
+     "usine": "49",
+     "approx": true
+    },
+    {
+     "file": "n-49-kraft-blanc-fiche-tech-prog3.pdf",
+     "fini": "PROG3",
+     "usine": "49",
+     "approx": true
+    },
+    {
+     "file": "n49-kraft-blanc-fiche-tech-prog-5.pdf",
+     "fini": "PROG5",
+     "usine": "49",
+     "approx": true
+    },
+    {
+     "file": "n49-kraft-blanc-fiche-tech-prog5-bl.pdf",
+     "fini": "PROG5 BL",
+     "usine": "49",
+     "approx": true
+    },
+    {
+     "file": "n49-fiche-tech-kraft-blanc-prow1.pdf",
+     "fini": "PROW1",
+     "usine": "49",
+     "approx": true
+    },
+    {
+     "file": "n-49-fiche-tech-kraft-blanc-prow2.pdf",
+     "fini": "PROW2",
+     "usine": "49",
+     "approx": true
+    },
+    {
+     "file": "n49-fiche-tech-kraft-blanc-prow4.pdf",
+     "fini": "PROW4",
+     "usine": "49",
+     "approx": true
+    },
+    {
+     "file": "n49-fiche-tech-kraft-blanc-prow5.pdf",
+     "fini": "PROW5",
+     "usine": "49",
+     "approx": true
+    },
+    {
+     "file": "nfo32-fiche-tech-kraft-blanc-2sulpro-270513.pdf",
+     "fini": "2 sulpro",
+     "approx": true
+    },
+    {
+     "file": "nfo32-fiche-tech-kraft-blanc-k75pro-270513.pdf",
+     "fini": "K75 pro",
+     "approx": true
+    },
+    {
+     "file": "ref-134-fiche-technique-kraft-blanc-mg-100-pp.pdf",
+     "fini": "MG 100% PP",
+     "usine": "134",
+     "gmin": 94,
+     "gmax": 200,
+     "approx": true
+    }
+   ],
+   "certs": [
+    "alim_gen",
+    "pefc"
+   ],
+   "note": ""
+  },
+  {
+   "codes": [
+    "RNEW",
+    "SNEW"
+   ],
+   "label": "Papier journal",
+   "fiches": [
+    {
+     "file": "fiche-technique-journal-blanc-250513.pdf",
+     "dos": "blanc",
+     "approx": true
+    },
+    {
+     "file": "fiche-techn-journal-blanc-72-050124.pdf",
+     "dos": "blanc 72g",
+     "approx": true
+    },
+    {
+     "file": "fiche-techn-journal-blanc-76-240513.pdf",
+     "dos": "blanc 76g",
+     "approx": true
+    },
+    {
+     "file": "fichier-techn-journal-blanc-68-270513.pdf",
+     "dos": "blanc 68g",
+     "approx": true
+    },
+    {
+     "file": "fiche-techn-journal-blanc-eco-240513.pdf",
+     "dos": "blanc ECO",
+     "approx": true
+    },
+    {
+     "file": "fiche-techn-journal-eco-68-100613.pdf",
+     "dos": "ECO 68g",
+     "approx": true
+    },
+    {
+     "file": "fiche-techn-journal-jaune-250513.pdf",
+     "dos": "jaune",
+     "approx": true
+    },
+    {
+     "file": "fiche-techn-journal-bleu-240513.pdf",
+     "dos": "bleu",
+     "approx": true
+    },
+    {
+     "file": "fiche-techn-journal-orange-240513.pdf",
+     "dos": "orange",
+     "approx": true
+    },
+    {
+     "file": "fiche-techn-journal-saumon-250313.pdf",
+     "dos": "saumon",
+     "approx": true
+    },
+    {
+     "file": "fichier-techn-journal-vert-240513.pdf",
+     "dos": "vert",
+     "approx": true
+    },
+    {
+     "file": "fichier-techn-journal-rose-270513.pdf",
+     "dos": "rose",
+     "approx": true
+    }
+   ],
+   "certs": [
+    "pefc"
+   ],
+   "note": ""
+  },
+  {
+   "codes": [
+    "RLWC",
+    "SLWC"
+   ],
+   "label": "LWC",
+   "fiches": [
+    {
+     "file": "fiche-techn-lwc-matt-270513.pdf",
+     "fini": "mat",
+     "approx": true
+    },
+    {
+     "file": "fiche-techn-lwc-demi-mat-240513.pdf",
+     "fini": "demi-mat",
+     "approx": true
+    },
+    {
+     "file": "fiche-tech-lwc-brillant-1-240513.pdf",
+     "fini": "brillant 1",
+     "approx": true
+    },
+    {
+     "file": "fiche-techn-lwc-brillant-prodi-2-240513.pdf",
+     "fini": "brillant 2",
+     "approx": true
+    },
+    {
+     "file": "fiche-techn-lwc-brillant-prodi-3.pdf",
+     "fini": "brillant 3",
+     "approx": true
+    },
+    {
+     "file": "fiche-techn-lwc-brillant-prodi-4.pdf",
+     "fini": "brillant 4",
+     "approx": true
+    },
+    {
+     "file": "fiche-techn-mwc-brillant-270513.pdf",
+     "fini": "MWC brillant",
+     "approx": true
+    }
+   ],
+   "certs": [
+    "pefc"
+   ],
+   "note": ""
+  },
+  {
+   "codes": [
+    "RLINER"
+   ],
+   "label": "Liner / Testliner",
+   "fiches": [
+    {
+     "file": "ref-219-fiche-technique-liner.pdf",
+     "usine": "219",
+     "gmin": 94,
+     "gmax": 219,
+     "approx": true
+    },
+    {
+     "file": "ref-276-fiche-technique-testliner.pdf",
+     "fini": "testliner",
+     "usine": "276",
+     "gmin": 94,
+     "gmax": 276,
+     "approx": true
+    },
+    {
+     "file": "kraftliner-blanc-dos-brun-ref-262.pdf",
+     "fini": "kraftliner blanc dos brun",
+     "usine": "262",
+     "approx": true
+    }
+   ],
+   "certs": [],
+   "note": ""
+  },
+  {
+   "codes": [
+    "RCAR",
+    "SCAR"
+   ],
+   "label": "Autocopiant",
+   "fiches": [
+    {
+     "file": "prodiconseil-fiche-technique-papier-autocopiant.pdf",
+     "gmin": 50,
+     "gmax": 80,
+     "approx": true
+    }
+   ],
+   "certs": [],
+   "note": ""
+  },
+  {
+   "codes": [
+    "RBOU",
+    "SBOU"
+   ],
+   "label": "Bouffant",
+   "fiches": [
+    {
+     "file": "fiche-tech-bouffant-gk.pdf",
+     "approx": true
+    }
+   ],
+   "certs": [
+    "pefc"
+   ],
+   "note": ""
+  },
+  {
+   "codes": [
+    "RSIL"
+   ],
+   "label": "Silicone / Glassine",
+   "fiches": [
+    {
+     "file": "fiche-technique-glassine.pdf",
+     "approx": true
+    }
+   ],
+   "certs": [],
+   "note": ""
+  },
+  {
+   "codes": [
+    "RCUI",
+    "SCUI"
+   ],
+   "label": "Papier cuisson",
+   "fiches": [
+    {
+     "file": "fiche-technique.pdf",
+     "gmin": 40,
+     "gmax": 60,
+     "approx": true
+    }
+   ],
+   "certs": [
+    "alim_gen"
+   ],
+   "note": ""
+  },
+  {
+   "codes": [
+    "SSPE"
+   ],
+   "label": "Spécial / Sécurité",
+   "fiches": [
+    {
+     "file": "prodiconseil-fiche-technique-papier-securite-fibres.pdf",
+     "approx": true
+    }
+   ],
+   "certs": [],
+   "note": ""
+  },
+  {
+   "codes": [
+    "RTIS"
+   ],
+   "label": "Ouate / Tissue",
+   "fiches": [
+    {
+     "file": "prodiconsei1-fiche-technique-tissu-non-tisse.pdf",
+     "gmin": 69,
+     "gmax": 200,
+     "approx": true
+    }
+   ],
+   "certs": [],
+   "note": ""
+  }
+ ],
+ "browse": [
+  {
+   "label": "Autocopiant",
+   "items": [
+    {
+     "file": "prodiconseil-fiche-technique-papier-autocopiant.pdf",
+     "name": "PRODICONSEIL FICHE TECHNIQUE PAPIER AUTOCOPIANT "
+    }
+   ]
+  },
+  {
+   "label": "Bouffant",
+   "items": [
+    {
+     "file": "fiche-tech-bouffant-gk.pdf",
+     "name": "Fiche tech bouffant GK "
+    }
+   ]
+  },
+  {
+   "label": "Carton · duplex · triplex",
+   "items": [
+    {
+     "file": "fiche-technique-carton-dos-blanc-ref-95.pdf",
+     "name": "FICHE TECHNIQUE CARTON DOS BLANC REF 95"
+    },
+    {
+     "file": "fiche-technique-carton-dos-bois-ref-95.pdf",
+     "name": "FICHE TECHNIQUE CARTON DOS BOIS REF 95"
+    },
+    {
+     "file": "fiche-technique-carton-sbs.pdf",
+     "name": "FICHE TECHNIQUE CARTON SBS "
+    },
+    {
+     "file": "fiche-technique-gc1-ref-160.pdf",
+     "name": "FICHE TECHNIQUE GC1 REF 160"
+    },
+    {
+     "file": "fiche-technique-gc2-ref-160.pdf",
+     "name": "FICHE TECHNIQUE GC2 REF 160"
+    },
+    {
+     "file": "fiche-technique-sbb-solid-board-bleached-ref-134.pdf",
+     "name": "FICHE TECHNIQUE SBB SOLID BOARD BLEACHED REF 134"
+    },
+    {
+     "file": "fich-tech-carton-duplex-blanc-dos-gris-gd3.pdf",
+     "name": "Fich tech carton duplex blanc dos gris GD3"
+    },
+    {
+     "file": "fiche-tech-argent-gk.pdf",
+     "name": "Fiche tech argent GK"
+    },
+    {
+     "file": "fiche-tech-blanc-dos-cr-me-gc2.pdf",
+     "name": "Fiche tech blanc dos crème GC2"
+    },
+    {
+     "file": "fiche-tech-carton-gris-gris-brillant-1-face.pdf",
+     "name": "Fiche tech carton gris gris brillant 1 face "
+    },
+    {
+     "file": "fiche-tech-triplex-dos-cr-me.pdf",
+     "name": "Fiche tech triplex dos crème "
+    },
+    {
+     "file": "fiche-techn-blanc-dos-kraft-gt4.pdf",
+     "name": "Fiche techn blanc dos kraft GT4"
+    },
+    {
+     "file": "fiche-techn-carton-blanc-gc1.pdf",
+     "name": "Fiche techn carton blanc GC1"
+    },
+    {
+     "file": "fiche-techn-carton-duplex-blanc-dos-gris-gd2-301.pdf",
+     "name": "Fiche techn carton duplex blanc dos gris GD2 301"
+    },
+    {
+     "file": "fiche-techn-carton-gris-gris-gk.pdf",
+     "name": "Fiche techn carton gris gris GK"
+    },
+    {
+     "file": "fiche-techn-carton-liner.pdf",
+     "name": "Fiche techn carton liner"
+    },
+    {
+     "file": "fiche-techn-description-carton.pdf",
+     "name": "Fiche techn description carton"
+    },
+    {
+     "file": "fiche-techn-triplex-blanc.pdf",
+     "name": "Fiche techn triplex blanc"
+    },
+    {
+     "file": "fiche-technique-carton-gt.pdf",
+     "name": "Fiche technique carton GT"
+    },
+    {
+     "file": "fiche-technique-carton-pigmente.pdf",
+     "name": "Fiche technique carton pigmente"
+    },
+    {
+     "file": "gd2.pdf",
+     "name": "GD2"
+    },
+    {
+     "file": "gd3.pdf",
+     "name": "GD3"
+    },
+    {
+     "file": "gt2.pdf",
+     "name": "GT2"
+    },
+    {
+     "file": "prodiconsei1-certificat-carton-couche-kraft-1.pdf",
+     "name": "PRODICONSEI1 CERTIFICAT CARTON COUCHE KRAFT(1)"
+    },
+    {
+     "file": "prodiconseil-fiche-technique-carton-fbb-n134.pdf",
+     "name": "PRODICONSEIL FICHE TECHNIQUE CARTON FBB   N°134"
+    },
+    {
+     "file": "prodiconseil-fiche-technique-carton-sbs-n134.pdf",
+     "name": "PRODICONSEIL FICHE TECHNIQUE CARTON SBS   N°134"
+    },
+    {
+     "file": "prodiconseil-fiche-technique-couche-2faces-sbb-format-n134.pdf",
+     "name": "PRODICONSEIL FICHE TECHNIQUE couche 2faces SBB FORMAT N°134"
+    },
+    {
+     "file": "ref-40-fiche-technique-gt4-blanc-dos-kraft.pdf",
+     "name": "REF 40 FICHE TECHNIQUE GT4 BLANC DOS KRAFT"
+    },
+    {
+     "file": "gc1-ref-86.pdf",
+     "name": "gc1 REF 86"
+    },
+    {
+     "file": "gc2-ref-86.pdf",
+     "name": "gc2 REF 86"
+    }
+   ]
+  },
+  {
+   "label": "Couché 1 face",
+   "items": [
+    {
+     "file": "fiche-technique-couch-1f-m-tallis-reh-n158.pdf",
+     "name": "Fiche technique couché 1f métallisé reh N°158"
+    },
+    {
+     "file": "fiche-technique-couch-1f-reh-toil-offre-n158.pdf",
+     "name": "Fiche technique couché 1f reh toilé OFFRE N°158"
+    },
+    {
+     "file": "prodiconsei1-fiche-technique-couch-1f.pdf",
+     "name": "PRODICONSEI1 FICHE TECHNIQUE couché1f"
+    },
+    {
+     "file": "prodiconsei1-fiche-technique-couch-1f-reh.pdf",
+     "name": "PRODICONSEI1 FICHE TECHNIQUE couché1f REH"
+    },
+    {
+     "file": "prodiconsei1-fiche-technique-couch-1f-reh.pdf",
+     "name": "PRODICONSEI1 FICHE TECHNIQUE couché1f REH"
+    },
+    {
+     "file": "prodiconseil-fr1-fiche-technique-couch-1face.pdf",
+     "name": "PRODICONSEIL FR1 FICHE TECHNIQUE couché 1face "
+    }
+   ]
+  },
+  {
+   "label": "Couché 2 faces",
+   "items": [
+    {
+     "file": "fiche-technique-papier-couch-2faces-brillant.pdf",
+     "name": "Fiche technique papier couché 2faces brillant-"
+    },
+    {
+     "file": "prodiconseil-fiche-technique-couche-2faces-sbb-format-n134.pdf",
+     "name": "PRODICONSEIL FICHE TECHNIQUE couche 2faces SBB FORMAT N°134"
+    },
+    {
+     "file": "tds-coated-2-sides-matt.pdf",
+     "name": "TDS COATED 2 SIDES MATT "
+    }
+   ]
+  },
+  {
+   "label": "Data sheets (EN)",
+   "items": [
+    {
+     "file": "prodiconseil-fiche-technique-papier-autocopiant.pdf",
+     "name": "PRODICONSEIL FICHE TECHNIQUE PAPIER AUTOCOPIANT "
+    },
+    {
+     "file": "data-sheet-gc2-1.pdf",
+     "name": "data sheet gc2 1"
+    },
+    {
+     "file": "data-sheet-gc2-2.pdf",
+     "name": "data sheet gc2 2"
+    },
+    {
+     "file": "data-sheet-gt1-1.pdf",
+     "name": "data sheet gt1 1"
+    },
+    {
+     "file": "data-sheet-gt1-2.pdf",
+     "name": "data sheet gt1 2"
+    },
+    {
+     "file": "data-sheet-gt2-1.pdf",
+     "name": "data sheet gt2 1"
+    },
+    {
+     "file": "data-sheet-gt2-2.pdf",
+     "name": "data sheet gt2 2"
+    },
+    {
+     "file": "data-sheet-gt3-1.pdf",
+     "name": "data sheet gt3 1"
+    },
+    {
+     "file": "data-sheet-gt3-2.pdf",
+     "name": "data sheet gt3 2"
+    }
+   ]
+  },
+  {
+   "label": "Divers",
+   "items": [
+    {
+     "file": "fiche-technique-glassine.pdf",
+     "name": "Fiche technique glassine "
+    },
+    {
+     "file": "prodiconsei1-fiche-technique-tissu-non-tisse.pdf",
+     "name": "PRODICONSEI1 FICHE TECHNIQUE TISSU NON TISSE "
+    }
+   ]
+  },
+  {
+   "label": "Kraft blanc",
+   "items": [
+    {
+     "file": "fiche-technique-kraft-149.pdf",
+     "name": "Fiche technique kraft 149"
+    },
+    {
+     "file": "fiche-technique-kraft-extensible.pdf",
+     "name": "Fiche technique kraft extensible"
+    },
+    {
+     "file": "n-49-fiche-tech-kraft-blanc-prow2.pdf",
+     "name": "N° 49 FICHE TECH KRAFT BLANC PROW2"
+    },
+    {
+     "file": "n-49-kraft-blanc-fiche-tech-prog-6.pdf",
+     "name": "N° 49 KRAFT BLANC FICHE TECH PROG 6"
+    },
+    {
+     "file": "n-49-kraft-blanc-fiche-tech-prog3.pdf",
+     "name": "N° 49 KRAFT BLANC FICHE TECH PROG3"
+    },
+    {
+     "file": "n49-fiche-tech-kraft-blanc-prow1.pdf",
+     "name": "N°49 FICHE TECH  KRAFT BLANC PROW1"
+    },
+    {
+     "file": "n49-fiche-tech-kraft-blanc-prow4.pdf",
+     "name": "N°49 FICHE TECH KRAFT BLANC PROW4"
+    },
+    {
+     "file": "n49-fiche-tech-kraft-blanc-prow5.pdf",
+     "name": "N°49 FICHE TECH KRAFT BLANC PROW5"
+    },
+    {
+     "file": "n49-kraft-blanc-fiche-tech-prog-5.pdf",
+     "name": "N°49 KRAFT BLANC FICHE TECH PROG 5"
+    },
+    {
+     "file": "n49-kraft-blanc-fiche-tech-prog2.pdf",
+     "name": "N°49 KRAFT BLANC FICHE TECH PROG2"
+    },
+    {
+     "file": "n49-kraft-blanc-fiche-tech-prog5-bl.pdf",
+     "name": "N°49 KRAFT BLANC FICHE TECH PROG5 BL"
+    },
+    {
+     "file": "nfo32-fiche-tech-kraft-blanc-2sulpro-270513.pdf",
+     "name": "N°FO32 Fiche tech kraft blanc 2SULPRO 270513"
+    },
+    {
+     "file": "nfo32-fiche-tech-kraft-blanc-k75pro-270513.pdf",
+     "name": "N°FO32 Fiche tech kraft blanc K75PRO 270513"
+    }
+   ]
+  },
+  {
+   "label": "Kraft blanchi MG",
+   "items": [
+    {
+     "file": "ref-134-fiche-technique-kraft-blanc-mg-100-pp.pdf",
+     "name": "REF 134 FICHE TECHNIQUE KRAFT BLANC MG 100_ PP"
+    }
+   ]
+  },
+  {
+   "label": "Kraft brun",
+   "items": [
+    {
+     "file": "417-prodiconsei1-fiche-technique-kraft-semi-extensible.pdf",
+     "name": "417-PRODICONSEI1 FICHE TECHNIQUE  KRAFT semi extensible"
+    },
+    {
+     "file": "certificat-alimentaire.pdf",
+     "name": "CERTIFICAT ALIMENTAIRE "
+    },
+    {
+     "file": "fiche-technique-417-kraft-brun-verge.pdf",
+     "name": "FICHE TECHNIQUE 417 KRAFT BRUN VERGE  "
+    },
+    {
+     "file": "fiche-technique-kraft-extensible.pdf",
+     "name": "Fiche technique kraft extensible"
+    },
+    {
+     "file": "n-fo32-fiche-techn-du-papier-kraft-brun-58pro-270513.pdf",
+     "name": "N° FO32 Fiche techn du papier kraft brun 58PRO 270513"
+    },
+    {
+     "file": "nfo32-fiche-tech-kraft-brun22pro-270513.pdf",
+     "name": "N°FO32 Fiche tech kraft brun22PRO 270513"
+    },
+    {
+     "file": "nfo32-fiche-tech-kraft-corseil-270513.pdf",
+     "name": "N°FO32 Fiche tech kraft corseil 270513"
+    },
+    {
+     "file": "nfo32-fiche-tech-kraft-semi-crepe-270513.pdf",
+     "name": "N°FO32 Fiche tech kraft semi crepe 270513"
+    },
+    {
+     "file": "nfo32-fiche-tech-kraft20pro-270513.pdf",
+     "name": "N°FO32 Fiche tech kraft20PRO 270513"
+    },
+    {
+     "file": "nfo32-fiche-tech-kraft-cpro-270513.pdf",
+     "name": "N°FO32 fiche tech kraft cpro 270513"
+    }
+   ]
+  },
+  {
+   "label": "LWC / MWC",
+   "items": [
+    {
+     "file": "fiche-tech-lwc-brillant-1-240513.pdf",
+     "name": "Fiche tech LWC Brillant 1 240513"
+    },
+    {
+     "file": "fiche-techn-lwc-matt-270513.pdf",
+     "name": "Fiche techn LWC Matt 270513"
+    },
+    {
+     "file": "fiche-techn-lwc-brillant-prodi-3.pdf",
+     "name": "Fiche techn LWC brillant prodi 3"
+    },
+    {
+     "file": "fiche-techn-lwc-brillant-prodi-4.pdf",
+     "name": "Fiche techn LWC brillant prodi 4"
+    },
+    {
+     "file": "fiche-techn-lwc-demi-mat-240513.pdf",
+     "name": "Fiche techn LWC demi Mat 240513"
+    },
+    {
+     "file": "fiche-techn-mwc-brillant-270513.pdf",
+     "name": "Fiche techn MWC Brillant 270513"
+    },
+    {
+     "file": "fiche-techn-lwc-brillant-prodi-2-240513.pdf",
+     "name": "Fiche techn lwc brillant prodi 2 240513"
+    }
+   ]
+  },
+  {
+   "label": "Liner / Testliner",
+   "items": [
+    {
+     "file": "kraftliner-blanc-dos-brun-ref-262.pdf",
+     "name": "KRAFTLINER BLANC DOS BRUN, REF 262"
+    },
+    {
+     "file": "ref-219-fiche-technique-liner.pdf",
+     "name": "REF 219-  FICHE TECHNIQUE  liner   "
+    },
+    {
+     "file": "ref-276-fiche-technique-testliner.pdf",
+     "name": "REF 276-  FICHE TECHNIQUE testliner   "
+    }
+   ]
+  },
+  {
+   "label": "Offset",
+   "items": [
+    {
+     "file": "fiche-technique-ref-158-offset.pdf",
+     "name": "FICHE TECHNIQUE REF 158 OFFSET"
+    },
+    {
+     "file": "fiche-technique-ref-182-offset-cie-105.pdf",
+     "name": "FICHE TECHNIQUE REF 182 OFFSET CIE 105"
+    },
+    {
+     "file": "fiche-techn-offset-100613.pdf",
+     "name": "Fiche techn offset 100613"
+    },
+    {
+     "file": "fiche-techn-offset-brillant-100613.pdf",
+     "name": "Fiche techn offset Brillant 100613"
+    },
+    {
+     "file": "fiche-technique-ref-82-offset-preprint.pdf",
+     "name": "Fiche technique ref 82 offset PREPRINT"
+    },
+    {
+     "file": "fiche-technique-rcol-anglais.pdf",
+     "name": "Fiche_technique_RCOL_ANGLAIS"
+    },
+    {
+     "file": "n-160-fiche-techn-offset-extra-blanc-165-270513.pdf",
+     "name": "N° 160 Fiche techn offset extra blanc 165 270513"
+    },
+    {
+     "file": "prodiconsei1-fiche-technique-offset-ref-82.pdf",
+     "name": "PRODICONSEI1 FICHE TECHNIQUE offset  REF 82"
+    },
+    {
+     "file": "prodiconsei1-fiche-technique-offset-laser.pdf",
+     "name": "PRODICONSEI1 FICHE TECHNIQUE offset  laser"
+    },
+    {
+     "file": "prodiconsei1-fiche-technique-papier-mince.pdf",
+     "name": "PRODICONSEI1 FICHE TECHNIQUE papier mince"
+    },
+    {
+     "file": "prodiconseil-fiche-technique-bristol.pdf",
+     "name": "PRODICONSEIL FICHE TECHNIQUE bristol "
+    },
+    {
+     "file": "prodiconseil-fiche-technique-offset-couleur.pdf",
+     "name": "PRODICONSEIL FICHE TECHNIQUE offset couleur "
+    }
+   ]
+  },
+  {
+   "label": "Papier cuisson",
+   "items": [
+    {
+     "file": "fiche-technique.pdf",
+     "name": "Fiche technique"
+    }
+   ]
+  },
+  {
+   "label": "Papier journal",
+   "items": [
+    {
+     "file": "fiche-techn-journal-eco-68-100613.pdf",
+     "name": "Fiche techn journal  ECO 68 100613"
+    },
+    {
+     "file": "fiche-techn-journal-blanc-72-050124.pdf",
+     "name": "Fiche techn journal blanc 72 050124"
+    },
+    {
+     "file": "fiche-techn-journal-blanc-76-240513.pdf",
+     "name": "Fiche techn journal blanc 76 240513"
+    },
+    {
+     "file": "fiche-techn-journal-blanc-eco-240513.pdf",
+     "name": "Fiche techn journal blanc ECO 240513"
+    },
+    {
+     "file": "fiche-techn-journal-bleu-240513.pdf",
+     "name": "Fiche techn journal bleu 240513"
+    },
+    {
+     "file": "fiche-techn-journal-jaune-250513.pdf",
+     "name": "Fiche techn journal jaune 250513"
+    },
+    {
+     "file": "fiche-techn-journal-orange-240513.pdf",
+     "name": "Fiche techn journal orange 240513"
+    },
+    {
+     "file": "fiche-techn-journal-saumon-250313.pdf",
+     "name": "Fiche techn journal saumon 250313"
+    },
+    {
+     "file": "fichier-techn-journal-blanc-68-270513.pdf",
+     "name": "Fichier techn journal blanc 68 270513"
+    },
+    {
+     "file": "fichier-techn-journal-rose-270513.pdf",
+     "name": "Fichier techn journal rose 270513"
+    },
+    {
+     "file": "fichier-techn-journal-vert-240513.pdf",
+     "name": "Fichier techn journal vert 240513"
+    },
+    {
+     "file": "fiche-technique-journal-blanc-250513.pdf",
+     "name": "fiche technique journal blanc 250513"
+    }
+   ]
+  },
+  {
+   "label": "Papier sécurité",
+   "items": [
+    {
+     "file": "prodiconseil-fiche-technique-papier-securite-fibres.pdf",
+     "name": "PRODICONSEIL FICHE TECHNIQUE PAPIER SECURITE FIBRES "
+    }
+   ]
+  },
+  {
+   "label": "Ramette",
+   "items": [
+    {
+     "file": "fiche-technique-ref-82-ramette-extra-blanc.pdf",
+     "name": "FICHE TECHNIQUE REF 82 RAMETTE EXTRA BLANC  "
+    }
+   ]
+  }
+ ],
+ "certs": [
+  {
+   "id": "alim_gen",
+   "file": "certificat-alimentaire.pdf",
+   "label": "Certificat alimentaire (ISEGA, tous papiers)",
+   "scope": "papiers · CE 1935/2004"
+  },
+  {
+   "id": "contact",
+   "file": "certificat-de-contr-le-qualit-contact-alimentaire-de38440.pdf",
+   "label": "Contact alimentaire — carton duplex",
+   "scope": "carton couché/duplex"
+  },
+  {
+   "id": "kraft1",
+   "file": "certificat-kraft-isega-001.pdf",
+   "label": "Certificat kraft ISEGA 001",
+   "scope": "kraft"
+  },
+  {
+   "id": "kraft2",
+   "file": "certificat-kraft-isega-002.pdf",
+   "label": "Certificat kraft ISEGA 002",
+   "scope": "kraft"
+  },
+  {
+   "id": "kraft3",
+   "file": "certificat-kraft-isega-003.pdf",
+   "label": "Certificat kraft ISEGA 003",
+   "scope": "kraft"
+  },
+  {
+   "id": "pefc",
+   "file": "certificat-pecf.pdf",
+   "label": "Certificat PEFC (gestion durable des forêts)",
+   "scope": "général"
+  },
+  {
+   "id": "iso82",
+   "file": "ref82-certificat-iso.pdf",
+   "label": "Certificat ISO (offset REF 82)",
+   "scope": "offset"
+  }
+ ],
+ "files": [
+  "417-prodiconsei1-fiche-technique-kraft-semi-extensible.pdf",
+  "certificat-alimentaire.pdf",
+  "certificat-de-contr-le-qualit-contact-alimentaire-de38440.pdf",
+  "certificat-kraft-isega-001.pdf",
+  "certificat-kraft-isega-002.pdf",
+  "certificat-kraft-isega-003.pdf",
+  "certificat-pecf.pdf",
+  "data-sheet-gc2-1.pdf",
+  "data-sheet-gc2-2.pdf",
+  "data-sheet-gt1-1.pdf",
+  "data-sheet-gt1-2.pdf",
+  "data-sheet-gt2-1.pdf",
+  "data-sheet-gt2-2.pdf",
+  "data-sheet-gt3-1.pdf",
+  "data-sheet-gt3-2.pdf",
+  "fich-tech-carton-duplex-blanc-dos-gris-gd3.pdf",
+  "fiche-tech-argent-gk.pdf",
+  "fiche-tech-blanc-dos-cr-me-gc2.pdf",
+  "fiche-tech-bouffant-gk.pdf",
+  "fiche-tech-carton-gris-gris-brillant-1-face.pdf",
+  "fiche-tech-lwc-brillant-1-240513.pdf",
+  "fiche-tech-triplex-dos-cr-me.pdf",
+  "fiche-techn-blanc-dos-kraft-gt4.pdf",
+  "fiche-techn-carton-blanc-gc1.pdf",
+  "fiche-techn-carton-duplex-blanc-dos-gris-gd2-301.pdf",
+  "fiche-techn-carton-gris-gris-gk.pdf",
+  "fiche-techn-carton-liner.pdf",
+  "fiche-techn-description-carton.pdf",
+  "fiche-techn-journal-blanc-72-050124.pdf",
+  "fiche-techn-journal-blanc-76-240513.pdf",
+  "fiche-techn-journal-blanc-eco-240513.pdf",
+  "fiche-techn-journal-bleu-240513.pdf",
+  "fiche-techn-journal-eco-68-100613.pdf",
+  "fiche-techn-journal-jaune-250513.pdf",
+  "fiche-techn-journal-orange-240513.pdf",
+  "fiche-techn-journal-saumon-250313.pdf",
+  "fiche-techn-lwc-brillant-prodi-2-240513.pdf",
+  "fiche-techn-lwc-brillant-prodi-3.pdf",
+  "fiche-techn-lwc-brillant-prodi-4.pdf",
+  "fiche-techn-lwc-demi-mat-240513.pdf",
+  "fiche-techn-lwc-matt-270513.pdf",
+  "fiche-techn-mwc-brillant-270513.pdf",
+  "fiche-techn-offset-100613.pdf",
+  "fiche-techn-offset-brillant-100613.pdf",
+  "fiche-techn-triplex-blanc.pdf",
+  "fiche-technique-417-kraft-brun-verge.pdf",
+  "fiche-technique-carton-dos-blanc-ref-95.pdf",
+  "fiche-technique-carton-dos-bois-ref-95.pdf",
+  "fiche-technique-carton-gt.pdf",
+  "fiche-technique-carton-pigmente.pdf",
+  "fiche-technique-carton-sbs.pdf",
+  "fiche-technique-couch-1f-m-tallis-reh-n158.pdf",
+  "fiche-technique-couch-1f-reh-toil-offre-n158.pdf",
+  "fiche-technique-gc1-ref-160.pdf",
+  "fiche-technique-gc2-ref-160.pdf",
+  "fiche-technique-glassine.pdf",
+  "fiche-technique-journal-blanc-250513.pdf",
+  "fiche-technique-kraft-149.pdf",
+  "fiche-technique-kraft-extensible.pdf",
+  "fiche-technique-papier-couch-2faces-brillant.pdf",
+  "fiche-technique-rcol-anglais.pdf",
+  "fiche-technique-ref-158-offset.pdf",
+  "fiche-technique-ref-182-offset-cie-105.pdf",
+  "fiche-technique-ref-82-offset-preprint.pdf",
+  "fiche-technique-ref-82-ramette-extra-blanc.pdf",
+  "fiche-technique-sbb-solid-board-bleached-ref-134.pdf",
+  "fiche-technique.pdf",
+  "fichier-techn-journal-blanc-68-270513.pdf",
+  "fichier-techn-journal-rose-270513.pdf",
+  "fichier-techn-journal-vert-240513.pdf",
+  "gc1-ref-86.pdf",
+  "gc2-ref-86.pdf",
+  "gd2.pdf",
+  "gd3.pdf",
+  "gt2.pdf",
+  "kraftliner-blanc-dos-brun-ref-262.pdf",
+  "manifest.json",
+  "n-160-fiche-techn-offset-extra-blanc-165-270513.pdf",
+  "n-49-fiche-tech-kraft-blanc-prow2.pdf",
+  "n-49-kraft-blanc-fiche-tech-prog-6.pdf",
+  "n-49-kraft-blanc-fiche-tech-prog3.pdf",
+  "n-fo32-fiche-techn-du-papier-kraft-brun-58pro-270513.pdf",
+  "n49-fiche-tech-kraft-blanc-prow1.pdf",
+  "n49-fiche-tech-kraft-blanc-prow4.pdf",
+  "n49-fiche-tech-kraft-blanc-prow5.pdf",
+  "n49-kraft-blanc-fiche-tech-prog-5.pdf",
+  "n49-kraft-blanc-fiche-tech-prog2.pdf",
+  "n49-kraft-blanc-fiche-tech-prog5-bl.pdf",
+  "nfo32-fiche-tech-kraft-blanc-2sulpro-270513.pdf",
+  "nfo32-fiche-tech-kraft-blanc-k75pro-270513.pdf",
+  "nfo32-fiche-tech-kraft-brun22pro-270513.pdf",
+  "nfo32-fiche-tech-kraft-corseil-270513.pdf",
+  "nfo32-fiche-tech-kraft-cpro-270513.pdf",
+  "nfo32-fiche-tech-kraft-semi-crepe-270513.pdf",
+  "nfo32-fiche-tech-kraft20pro-270513.pdf",
+  "prodiconsei1-certificat-carton-couche-kraft-1.pdf",
+  "prodiconsei1-fiche-technique-couch-1f-reh.pdf",
+  "prodiconsei1-fiche-technique-couch-1f.pdf",
+  "prodiconsei1-fiche-technique-offset-laser.pdf",
+  "prodiconsei1-fiche-technique-offset-ref-82.pdf",
+  "prodiconsei1-fiche-technique-papier-mince.pdf",
+  "prodiconsei1-fiche-technique-tissu-non-tisse.pdf",
+  "prodiconseil-fiche-technique-bristol.pdf",
+  "prodiconseil-fiche-technique-carton-fbb-n134.pdf",
+  "prodiconseil-fiche-technique-carton-sbs-n134.pdf",
+  "prodiconseil-fiche-technique-couche-2faces-sbb-format-n134.pdf",
+  "prodiconseil-fiche-technique-offset-couleur.pdf",
+  "prodiconseil-fiche-technique-papier-autocopiant.pdf",
+  "prodiconseil-fiche-technique-papier-securite-fibres.pdf",
+  "prodiconseil-fr1-fiche-technique-couch-1face.pdf",
+  "ref-134-fiche-technique-kraft-blanc-mg-100-pp.pdf",
+  "ref-219-fiche-technique-liner.pdf",
+  "ref-276-fiche-technique-testliner.pdf",
+  "ref-40-fiche-technique-gt4-blanc-dos-kraft.pdf",
+  "ref82-certificat-iso.pdf",
+  "tds-coated-2-sides-matt.pdf"
+ ],
+ "detailRules": [
+  {
+   "codes": [
+    "RLUX",
+    "SLUX"
+   ],
+   "kw": [
+    "CALQUE",
+    "TRANSPARENT"
+   ],
+   "file": "fiche-technique-glassine.pdf",
+   "label": "Calque / transparent ≈ glassine"
+  },
+  {
+   "codes": [
+    "RLUX",
+    "SLUX"
+   ],
+   "kw": [
+    "CHROMOLUX"
+   ],
+   "file": "prodiconsei1-fiche-technique-couch-1f.pdf",
+   "label": "Chromolux ≈ couché 1 face"
+  },
+  {
+   "codes": [
+    "RLUX",
+    "SLUX"
+   ],
+   "kw": [
+    "ALUMINIUM",
+    "METALLIS",
+    "ARGENT",
+    "FACE ALU"
+   ],
+   "file": "fiche-technique-couch-1f-m-tallis-reh-n158.pdf",
+   "label": "Face alu / métallisé ≈ couché 1F métallisé"
+  },
+  {
+   "codes": [
+    "RPAC",
+    "SPAC"
+   ],
+   "kw": [
+    "KRAFT"
+   ],
+   "file": "nfo32-fiche-tech-kraft-cpro-270513.pdf",
+   "label": "Emballage kraft ≈ kraft"
+  }
+ ]
+}
