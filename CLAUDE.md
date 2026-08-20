@@ -1235,3 +1235,17 @@ blanc). Dossier source ~/Code/prodi_invitation resynchronisé depuis le site
     d'ajout reste catalogue seul) ; sans prix, USINE reste en ligne grise.
   - ⚠️ lien SANS prix : cartes avec USINE + PRIX « — » (règle catalogue
     littérale) — à conditionner si on ne veut pas montrer l'usine au client.
+
+## Fix menus filtres DERRIÈRE les tuiles — Safari iOS (20/08, css v817)
+
+Sur iPhone (Safari), ouvrir un menu de filtre en vue grille faisait passer le
+`.msd-panel` DERRIÈRE les cartes. Cause : le panneau est `position:fixed;z-index:2000`
+mais **piégé dans le contexte d'empilement de `.sidebar-col`** (mobile
+`position:relative;z-index:99`, ligne ~2098). Sa **sœur** = la zone des cartes
+(`.body-wrap>div:not(.sidebar-col)`, `z:auto`). Chrome ordonne 99>auto correctement ;
+Safari, lui, classe mal ces deux sœurs (les cartes en `content-visibility:auto` créent
+des contextes qu'il peint au-dessus du `z:auto`) → menu sous les tuiles.
+**Fix** (1 règle, `@media(max-width:768px)`) : forcer la zone cartes en calque EXPLICITE
+`position:relative;z-index:0` (< 99). Zéro nœud DOM déplacé, aucune modale piégée (toutes
+créées en `document.body.appendChild`, cf `#detail-bg` hors `.body-wrap`). Bug Safari-only
+→ vérifier sur iPhone réel (headless Chrome ne le reproduit pas).
