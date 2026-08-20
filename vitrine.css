@@ -1254,6 +1254,12 @@ footer{background:#f5f5f7;border-top:1px solid var(--border);padding:52px 0 30px
   border-right:1px solid #e3e3e6;border-radius:0;padding:6px 14px 6px 18px;margin:8px 0;
   font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;color:var(--ink);cursor:pointer;}
 .tel-cc:hover{color:#000;}
+/* chevron ▾ = indice « cliquable / choisir le pays » (pivote quand ouvert) */
+.tel-cc::after{content:"";width:6px;height:6px;margin-left:-1px;flex-shrink:0;
+  border-right:1.8px solid var(--g3);border-bottom:1.8px solid var(--g3);
+  transform:translateY(-2px) rotate(45deg);transition:transform .2s,border-color .2s;}
+.tel-cc:hover::after{border-color:var(--ink);}
+.tel-wrap:has(.tel-cc-pan.open) .tel-cc::after{transform:translateY(1px) rotate(-135deg);}
 .lead-form .tel-wrap,.rappel-band .tel-wrap{border-radius:999px;}
 .tel-cc-pan{display:none;position:absolute;top:calc(100% + 8px);left:0;z-index:50;
   background:#fff;border:1px solid var(--border);border-radius:16px;width:320px;
