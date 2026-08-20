@@ -2096,6 +2096,13 @@ body.topbar-view .phero-panel-head{display:none !important;}
      voile du hero (vécu 31/07 sur iPhone — Chrome n'est pas affecté).
      z-index 99 = au-dessus du hero (z 2-5), sous le header sticky (z 100). */
   body.topbar-view .body-wrap>.sidebar-col{position:relative;z-index:99;background:transparent;}
+  /* Safari iOS (20/08) : les .msd-panel sont fixed z2000 mais PIÉGÉS dans le
+     contexte d'empilement de .sidebar-col (z:99). Sa sœur (zone des cartes) est
+     en z:auto → Safari ordonne mal ces deux sœurs et peint les menus DERRIÈRE les
+     tuiles (les cartes en content-visibility créent des contextes que Safari classe
+     au-dessus du z:auto). Chrome non affecté. Fix : forcer la zone cartes en calque
+     EXPLICITE z:0 (sous 99). Aucune modale ici (toutes en document.body). */
+  body.topbar-view .body-wrap>div:not(.sidebar-col){position:relative;z-index:0;}
   body.topbar-view .msd-panel{width:auto !important;min-width:240px;max-width:calc(100vw - 16px);}
   body.topbar-view .filters-panel{position:static !important;top:auto;height:auto !important;border-right:none;background:transparent;flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;gap:6px;padding:10px 4px 12px;-webkit-overflow-scrolling:touch;scrollbar-width:none;pointer-events:auto;}
   body.topbar-view .filters-panel::-webkit-scrollbar{display:none;}
