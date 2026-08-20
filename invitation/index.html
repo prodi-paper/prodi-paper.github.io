@@ -534,30 +534,53 @@ async function imageBase64(url) {
   });
 }
 
-// Lettre PDF vectorielle — géométrie calquée sur le modèle Word (A4, marges 25 mm)
+// Lettre PDF vectorielle — en-tête façon PROFORMA (logo à gauche + bloc société),
+// corps justifié, titre « Invitation Professionnelle » (A4, marges 25 mm)
 async function construireLettrePDF(d) {
   const doc = new jspdf.jsPDF({ unit: "mm", format: "a4" });
   const M = 25, W = 160, DROITE = 185;
-  const lh = 4.9; // interligne 12 pt
+  const K = 1.15;  // agrandissement global police + logo (+15 %)
+  const KH = 1.2;  // agrandissement supplémentaire de l'en-tête (+20 %), proportions conservées
+  const ENCRE = [26, 26, 26], GRIS = [110, 110, 110], LIGNE = [214, 212, 208];
 
-  doc.addImage(await imageBase64("assets/logo.png"), "PNG", M, 16.5, 75.5, 9.8);
-  doc.setFont("times", "normal");
-  doc.setFontSize(9);
-  doc.text("N° TVA FR 50 382 445922", M, 37);
-  doc.setFontSize(12);
-  doc.text(`Ivry-sur-Seine, le ${d.date_courrier}`, DROITE, 47.5, { align: "right" });
+  // ── EN-TÊTE façon PROFORMA : logo à gauche + bloc société aligné à gauche ──
+  const lw = 54 * K * KH, lh = lw / 7.7041;
+  doc.addImage(await imageBase64("assets/logo.png"), "PNG", M, 15, lw, lh);
+  const H = [
+    ["9 Promenée Jeanne Hachette 94200 Ivry sur Seine – FRANCE", "normal"],
+    ["Contact e-mail : clients@prodi.com", "bold"],
+    ["Tel : 331 4672 0369 – Fax : 331 4959 8731", "normal"],
+    ["SARL au Capital de 516 000 EUR – Siret : 382445922", "normal"],
+    ["NAF 4676Z – TVA FR50 382 445922 RCS Créteil", "normal"],
+  ];
+  doc.setFontSize(8.5 * K * KH); doc.setTextColor(...ENCRE);
+  let hy = 15 + lh + 5 * KH;
+  for (const [t, w] of H) { doc.setFont("times", w); doc.text(t, M, hy); hy += 3.9 * KH; }
 
-  doc.text(`${d.civilite} ${d.prenom} ${d.nom}`, M, 59.5);
-  doc.text(`SOCIÉTÉ : ${d.societe}`, M, 68);
-  doc.text(`PASSEPORT N° : ${d.passeport}`, M, 76.5);
+  const yf = hy + 0.4;
 
-  doc.setFontSize(20);
-  doc.setFont("times", "bold");
-  doc.text("Invitation professionnelle", 105, 93.5, { align: "center" });
-  doc.setFont("times", "normal");
-  doc.setFontSize(12);
+  // date (droite)
+  const yDate = yf + 9;
+  doc.setFont("times", "normal"); doc.setFontSize(12 * K); doc.setTextColor(...ENCRE);
+  doc.text(`Ivry-sur-Seine, le ${d.date_courrier}`, DROITE, yDate, { align: "right" });
 
-  let y = 103;
+  // destinataire (aligné à la marge, sans liseré)
+  const yb = yDate + 7;
+  doc.text(`${d.civilite} ${d.prenom} ${d.nom}`, M, yb + 4);
+  doc.text(`SOCIÉTÉ : ${d.societe}`, M, yb + 12);
+  doc.text(`PASSEPORT N° : ${d.passeport}`, M, yb + 20);
+
+  // titre (léger interlettrage, sans barre)
+  const yt = yb + 37;
+  doc.setFont("times", "bold"); doc.setFontSize(15 * K);
+  doc.setCharSpace(0.6);
+  doc.text("Invitation Professionnelle", 105, yt, { align: "center" });
+  doc.setCharSpace(0);
+
+  // corps
+  doc.setFont("times", "normal"); doc.setFontSize(12 * K); doc.setTextColor(...ENCRE);
+  const lhCorps = 12 * K * 0.3527 * 1.2;
+  let y = yt + 13;
   const paras = [
     `${d.salutation},`,
     `À la suite des commandes déjà confirmées pour cette année, nous vous confirmons que selon notre programme de commandes prévues, les livraisons se feront en plusieurs fois, ${d.conteneurs} conteneurs par mois en moyenne.`,
@@ -566,17 +589,22 @@ async function construireLettrePDF(d) {
     `Dans cette attente, veuillez agréer l’expression de nos salutations distinguées.`,
   ];
   for (const p of paras) {
-    const lignes = doc.splitTextToSize(p, W);
-    doc.text(p, M, y, { maxWidth: W, align: "justify", lineHeightFactor: 1.15 });
-    y += lignes.length * lh + 3.6;
+    const n = doc.splitTextToSize(p, W).length;
+    doc.text(p, M, y, { maxWidth: W, align: "justify", lineHeightFactor: 1.2 });
+    y += n * lhCorps + 3.6;
   }
 
-  y += 4;
-  doc.text(d.signataire, M + 8, y);
-  doc.text(d.titre_signataire, M + 8, y + 8.5);
-  doc.addImage(await imageBase64("assets/tampon.png"), "PNG", M + 6, y + 13, 45, 27);
+  // signature (droite) + tampon
+  const sx = 118;
+  doc.setFont("times", "normal"); doc.setFontSize(12 * K); doc.setTextColor(...ENCRE);
+  doc.text(d.signataire, sx, y + 6);
+  doc.setFont("times", "italic"); doc.setFontSize(11 * K); doc.setTextColor(...GRIS);
+  doc.text(d.titre_signataire, sx, y + 12.5);
+  doc.addImage(await imageBase64("assets/tampon.png"), "PNG", sx - 2, y + 16, 44 * K, 26.4 * K);
 
-  doc.setFontSize(9);
+  // pied
+  doc.setDrawColor(...LIGNE); doc.setLineWidth(0.3); doc.line(M, 267, 210 - M, 267);
+  doc.setFont("times", "normal"); doc.setFontSize(9); doc.setTextColor(...GRIS);
   doc.text("Sarl au capital de 516 000,00 € - RCS : Créteil B382445922", 105, 272, { align: "center" });
   doc.text("9 Promenée Jeanne hachette 94200 Ivry sur Seine – Tél : 331 46 42 03 69 – fax : 331 49 59 87 31", 105, 276.2, { align: "center" });
   doc.text("Entrepôt  Tél : 03 22 39 23 – Fax : 03 22 39 24 47", 105, 280.4, { align: "center" });
