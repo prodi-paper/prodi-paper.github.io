@@ -1275,3 +1275,12 @@ seulement 8 % de clics EN / 34 % AR — audit friction du 20/08). `vitrine.js` b
   (ou `?trad=ar` = RTL, `?trad=es`…). À retirer si gênant (1 ligne dans vitrine.js).
 - Traqueurs `trad_prompt` (vu) / `trad_click` (traduit). ⚠️ à déployer sur toute nouvelle
   page vitrine : CSP translate + versions css318/js171.
+
+## Panneau « Fiches techniques & certificats » (20/08/2026, déployé « fiches seulement »)
+
+`fiches.js` = module AUTONOME chargé après catalogue.js, **INTERNE only** (early return si `?s=`/`?share=`). Bouton « Fiches » injecté dans `.hright` → panneau overlay. Charge `fiches/manifest.json` (cerveau curé : 17 familles catalogue→fiches avec dos+plage grammage réelle+certifs par id ; `browse`=113 fiches groupées par dossier Dropbox ; `certs` ; `detailRules`=fallback par `details` pour familles hétérogènes). `fiches/` = 115 PDF bundlés (Dropbox commerciale), ~22 Mo.
+- **Auto-match** : lit qualité (msd-type) + grammage (f-gmin/f-gmax) filtrés → fiches+certifs + ligne « usines en stock » (fetch Supabase anon direct). RÈGLE = qualité+dos+grammage, JAMAIS le n° d'usine (le N° d'une fiche = n° de FORMULAIRE : F087 cartons / 122 papiers).
+- **Réf → fiche** : input réf → `products?ref=ilike` → matchProduct (famille + gsm + dos détecté depuis details/color).
+- **Dépôt fichier** : Excel/PDF-texte/CSV/TXT/Word via `_extractTextFromFile` (réutilisé) → réfs 6 chiffres → batch lookup. Image/scan → OCR `/api/ocr-refs` de l'app arrivages (Haiku vision, public, rate-limité IP).
+- Tags usine (vert, fiable) vs réf-à-confirmer (orange, pièges 40/86/160). Couverture ~78 % des réfs / 87 % du tonnage.
+- ⚠️ Déploiement 20/08 = **fiches uniquement** : les modifs catalogue.js/css (chevrons SVG, icône poubelle) et `proforma/` sont restées en local non poussées.
