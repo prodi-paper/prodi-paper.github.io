@@ -7,6 +7,33 @@ const safeUrl = u => {
 };
 
 
+// ─── LEAD MODAL UNIVERSEL (21/08) : injecté sur les pages qui ne l'ont pas déjà
+// (pages pays, produits, histoire, contact, merci…) pour que le PORTAIL
+// WHATSAPP + la capture de lead marchent PARTOUT, pas seulement sur l'accueil.
+// Même markup/ids que l'accueil → submitLead/leadClose/ccInit/Turnstile le
+// reprennent tels quels. ───
+(function(){
+  if(document.getElementById('lead-modal')||!document.body)return;
+  var m=document.createElement('div');
+  m.className='lead-modal';m.id='lead-modal';
+  m.setAttribute('onclick','if(event.target===this)leadClose()');
+  m.innerHTML=
+    '<div class="lead-panel">'
+    +'<button type="button" class="eq-close" onclick="leadClose()" aria-label="Fermer">✕</button>'
+    +'<div class="lead-visu" aria-hidden="true"></div>'
+    +'<div class="lead-right">'
+    +'<h3 class="lead-h">Vous êtes imprimeur, transformateur, distributeur ?</h3>'
+    +'<p class="lead-sub">Des solutions adaptées pour vous.</p>'
+    +'<form class="lead-form" id="lead-form" onsubmit="submitLead(event)">'
+    +'<input type="text" id="l-nom" placeholder="Votre nom ou société" aria-label="Votre nom ou société" required>'
+    +'<input type="tel" id="l-tel" placeholder="Téléphone" aria-label="Téléphone" required minlength="6">'
+    +'<input type="text" id="l-msg" placeholder="Votre besoin : qualité, quantité…" aria-label="Votre besoin" required minlength="15">'
+    +'<input type="text" id="l-hp" name="website" autocomplete="off" tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px;opacity:0;height:0;width:0;pointer-events:none;">'
+    +'<button type="submit" class="rappel-btn" id="l-submit">On vous rappelle</button>'
+    +'</form></div></div>';
+  document.body.appendChild(m);
+})();
+
 // ─── STOCK ACCESS GATE ───
 const STOCK_CODE = 'prodi2026';
 // ─── NAV « Catalogue » = porte à CODE historique (clients : PRODI2026,

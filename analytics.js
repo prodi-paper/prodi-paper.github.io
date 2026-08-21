@@ -75,7 +75,9 @@
         session_id: sessionId,
         page: page,
         event: String(event).slice(0, 40),
-        props: props || null,
+        // chemin exact de la page (accueil vs /maroc/ vs /offset/…) sur CHAQUE
+        // événement (21/08 : le traqueur ne distinguait que vitrine|catalogue)
+        props: Object.assign({ p: location.pathname.slice(0, 120) }, props || {}),
         referrer: ref,
         utm: utm,
         lang: (navigator.language || '').slice(0, 20),
