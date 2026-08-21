@@ -1284,3 +1284,9 @@ seulement 8 % de clics EN / 34 % AR — audit friction du 20/08). `vitrine.js` b
 - **Dépôt fichier** : Excel/PDF-texte/CSV/TXT/Word via `_extractTextFromFile` (réutilisé) → réfs 6 chiffres → batch lookup. Image/scan → OCR `/api/ocr-refs` de l'app arrivages (Haiku vision, public, rate-limité IP).
 - Tags usine (vert, fiable) vs réf-à-confirmer (orange, pièges 40/86/160). Couverture ~78 % des réfs / 87 % du tonnage.
 - ⚠️ Déploiement 20/08 = **fiches uniquement** : les modifs catalogue.js/css (chevrons SVG, icône poubelle) et `proforma/` sont restées en local non poussées.
+
+## Porte lead universelle + path tracking (21/08/2026, déployé)
+
+- **`vitrine.js` injecte le `#lead-modal` s'il est absent** (IIFE en tête de fichier, mêmes ids que l'accueil → submitLead/leadClose/ccInit/Turnstile le reprennent). Avant, seuls l'accueil/`/produits/` avaient le modal → sur les ~40 pages pays + pages produits, le **PORTAIL WHATSAPP** (clic wa.me → popup lead) était **bypassé** (clic direct WhatsApp). Maintenant la capture de lead marche PARTOUT (pays, produits, histoire, contact, merci…). Testé `/maroc/?popup=1` : modal stylé + indicatif +33 + Supabase autorisé.
+- **`analytics.js` : `props.p = location.pathname`** sur CHAQUE événement (le traqueur ne distinguait que `page` vitrine|catalogue, pas le chemin). → permet enfin de savoir le trafic par page (accueil vs /maroc/ vs /offset/…). Requête type : `SELECT props->>'p', count(*) FROM site_events WHERE event='pageview' AND interne=false GROUP BY 1`.
+- Versions bumpées : `vitrine.js?v=172`, `analytics.js?v=3` sur les 45 pages vitrine + générateurs (JS_V=172). ⚠️ `catalogue/` NON touché (WIP chevrons/poubelle + proforma restés locaux).

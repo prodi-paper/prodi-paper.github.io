@@ -5,7 +5,7 @@ villes, ports et ZONES INDUSTRIELLES réelles par pays. Idempotent."""
 import os, html, json, urllib.parse
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CSS_V = "309"; JS_V = "155"
+CSS_V = "309"; JS_V = "172"
 
 WA = "33649754915"
 WA_SVG = ('<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'
@@ -447,7 +447,7 @@ TEMPL = '''<!DOCTYPE html>
   </div>
 </div>
 
-<script src="/analytics.js?v=1"></script>
+<script src="/analytics.js?v=3"></script>
 <script src="/vitrine.js?v=@@JSV@@"></script>
 <a href="@@WAURL@@" target="_blank" rel="noopener noreferrer" class="wa-sticky" title="WhatsApp" aria-label="Nous contacter sur WhatsApp">
   @@WASVGBIG@@
