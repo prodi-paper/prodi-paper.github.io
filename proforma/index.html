@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Générateur de proforma — Prodiconseil</title>
+<link rel="icon" type="image/png" href="/img/panda.png">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ── Outil interne : formulaire (écran) + feuille A4 (écran + impression) ── */
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'DM Sans',sans-serif;background:#f0f0f2;color:#222;}
+  .wrap{display:flex;gap:18px;padding:18px;align-items:flex-start;max-width:1720px;margin:0 auto;}
+  /* ── Panneau formulaire ── */
+  .panel{width:430px;flex-shrink:0;background:#fff;border-radius:14px;padding:18px;box-shadow:0 2px 14px rgba(0,0,0,.07);position:sticky;top:18px;max-height:calc(100vh - 36px);overflow-y:auto;}
+  .panel h1{font-size:19px;margin:0 0 4px;}
+  .panel .sub{font-size:12.5px;color:#86868b;margin:0 0 14px;}
+  .panel h2{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:#86868b;margin:18px 0 8px;}
+  .panel label{display:block;font-size:12.5px;color:#515154;margin:8px 0 3px;}
+  .panel input,.panel textarea,.panel select{width:100%;border:1px solid #d2d2d7;border-radius:8px;padding:8px 10px;font:inherit;font-size:14px;}
+  .panel textarea{resize:vertical;min-height:54px;}
+  .row2{display:flex;gap:8px;}
+  .row2>*{flex:1;}
+  .ligne{border:1px solid #e8e8e4;border-radius:10px;padding:10px;margin-bottom:10px;background:#fafafa;position:relative;}
+  .ligne .del{position:absolute;top:6px;right:8px;border:none;background:none;color:#FE0000;font-size:16px;cursor:pointer;padding:2px 6px;}
+  .modeles{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
+  .modeles button{border:1px solid #d2d2d7;background:#fff;border-radius:999px;padding:6px 12px;font-size:12.5px;cursor:pointer;}
+  .modeles button:hover{border-color:#222;}
+  .btn{display:block;width:100%;border:none;border-radius:999px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;margin-top:10px;}
+  .btn-red{background:#FE0000;color:#fff;}
+  .btn-red:hover{background:#cc0000;}
+  .btn-ghost{background:#fff;border:1px solid #d2d2d7;color:#222;font-weight:600;}
+  .num-ok{font-size:13px;color:#1da851;font-weight:700;margin-top:8px;text-align:center;}
+  /* ── Feuille A4 ── */
+  .sheetbox{flex:1;display:flex;justify-content:center;}
+  .sheet{width:210mm;min-height:297mm;background:#fff;box-shadow:0 4px 22px rgba(0,0,0,.13);padding:9mm 10mm;font-size:9.2pt;line-height:1.25;color:#111;position:relative;}
+  .sheet .pagenum{position:absolute;top:5mm;right:10mm;font-size:8.5pt;}
+  .hd{display:flex;justify-content:space-between;}
+  .hd-l{width:56%;}
+  .hd-l img{height:11mm;}
+  .hd-l .adr{font-size:8pt;margin-top:1mm;}
+  .hd-l .adr b{font-size:8.2pt;}
+  .mentions{font-size:8pt;margin-top:.6mm;}
+  .rouge{color:#d40000;font-weight:700;font-size:8pt;margin-top:.4mm;}
+  .titre{font-family:Georgia,'Times New Roman',serif;font-size:21pt;margin:2.5mm 0 1mm;}
+  .commercial{font-size:8.5pt;margin-bottom:1.5mm;}
+  .hd-r{width:40%;font-size:9pt;}
+  .hd-r .client{text-align:left;font-size:8.6pt;line-height:1.3;margin:0 0 2.5mm;white-space:pre-wrap;}
+  .hd-r .client .cnom{display:block;font-weight:700;font-size:11pt;text-transform:uppercase;margin-bottom:2.8mm;}
+  .hd-r .refint{margin:140px 0 .6mm;}
+  .hd-r .rc{margin:3mm 0 2mm;}
+  .box-livr{border:1px solid #111;margin-top:1.5mm;}
+  .box-livr .t{border-bottom:1px solid #111;text-align:center;font-weight:700;padding:.6mm 0;}
+  .box-livr .v{padding:1mm 1.5mm;min-height:16mm;}
+  .box-livr .paysbox{margin-top:3mm;}
+  table.ndr{border-collapse:collapse;width:75mm;margin:1mm 0 2mm;}
+  table.ndr th,table.ndr td{border:1px solid #111;font-size:8.5pt;padding:.8mm 1.5mm;text-align:center;}
+  table.ndr th{font-weight:700;}
+  table.corps{border-collapse:collapse;width:100%;margin-top:1mm;}
+  table.corps th{border:1px solid #111;padding:1mm;font-size:8.5pt;}
+  table.corps td{border-left:1px solid #111;border-right:1px solid #111;padding:1mm 1.5mm;vertical-align:top;font-size:9pt;}
+  table.corps .lref{width:16mm;}
+  table.corps .lqte,table.corps .lpu{width:20mm;text-align:right;}
+  table.corps .lmt{width:24mm;text-align:right;}
+  table.corps tr.fill td{height:36mm;border-bottom:1px solid #111;}
+  /* impression : garder les couleurs (rouge/tampon) et ne pas couper les blocs */
+  .sheet{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .paiebox,.basflex,.totflex,.souscorps,table.tot,.tampon{break-inside:avoid;page-break-inside:avoid;}
+  .desig{white-space:pre-wrap;}
+  /* bloc sous le tableau (toujours affiché, comme Sage) : réf usine + ventilation fret | code douanier + tolérance */
+  .souscorps{display:flex;gap:26mm;margin:1.5mm 0 0 12mm;font-size:8.8pt;}
+  .souscorps div{margin-bottom:.5mm;}
+  /* tampon à GAUCHE du tableau des totaux (comme Sage) */
+  .totflex{display:flex;gap:4mm;margin-top:2mm;align-items:flex-start;}
+  table.tot{border-collapse:collapse;flex:1;margin-top:1mm;}
+  table.tot th,table.tot td{border:1px solid #111;padding:1mm 2mm;text-align:center;font-size:9pt;}
+  table.tot .net{font-weight:700;font-size:12pt;}
+  table.tot th.netl{font-weight:700;text-decoration:underline;}
+  .tampon{display:inline-block;transform:rotate(-6deg);color:#27359b;border:2px solid #27359b;border-radius:6px;padding:1.5mm 3mm;font-size:7.5pt;line-height:1.3;margin:0 0 0 1mm;flex-shrink:0;opacity:.85;}
+  .tampon b{font-size:10pt;letter-spacing:.5px;}
+  /* conditions de paiement : encadré fin, lignes en gras, « Banque du client » dedans en petit */
+  .paiebox{border:1px solid #111;margin-top:3mm;padding:1.5mm 2mm 2mm;}
+  .paie{display:flex;gap:3mm;font-size:9.5pt;font-weight:700;}
+  .paie #p-paie-lignes div{margin-bottom:.6mm;}
+  .banqcli{margin:1.5mm 0 0 4mm;font-weight:700;font-size:8.2pt;}
+  .basflex{display:flex;gap:2mm;margin-top:2mm;}
+  table.banques{border-collapse:collapse;flex:1;}
+  table.banques th,table.banques td{border:1px solid #111;font-size:6.8pt;padding:.7mm 1mm;}
+  table.banques th{text-align:center;}
+  .engage{width:52mm;border:1px solid #111;font-size:7.6pt;padding:1.5mm;display:flex;flex-direction:column;justify-content:space-between;}
+  .engage .rsc{font-weight:700;text-align:center;margin-top:2mm;}
+  /* ── Téléphone / tablette étroite : formulaire au-dessus, feuille réduite à l'écran ── */
+  @media (max-width:900px){
+    .wrap{flex-direction:column;padding:10px;gap:14px;}
+    .panel{width:100%;position:static;max-height:none;overflow:visible;}
+    /* 16px mini sinon iOS zoome dans chaque champ au focus */
+    .panel input,.panel textarea,.panel select{font-size:16px;}
+    .sheetbox{width:100%;justify-content:flex-start;overflow:hidden;}
+  }
+  /* ── Impression : la feuille seule ── */
+  @media print{
+    body{background:#fff;}
+    .panel,.pagenum{display:none!important;}
+    .wrap{padding:0;display:block;}
+    .sheet{box-shadow:none;width:auto;min-height:auto;padding:0;zoom:1!important;}
+    @page{size:A4;margin:7mm 10mm;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ═══ FORMULAIRE ═══ -->
+  <div class="panel">
+    <h1>Proforma express 🐼</h1>
+    <p class="sub">Remplis à gauche, le document se construit à droite. « Générer » = numéro + archive + impression PDF.</p>
+
+    <h2>Client</h2>
+    <label>Nom / société (tel qu'affiché sur le document)</label>
+    <textarea id="c-nom" rows="2" placeholder="STE KOUMA PAPIER&#10;ABIDJAN — CÔTE D'IVOIRE"></textarea>
+    <div class="row2">
+      <div><label>N° intra. / RC</label><input id="c-rc" placeholder="(optionnel)"></div>
+      <div><label>Votre commercial</label><input id="c-comm" placeholder="Véronique ELBILIA"></div>
+    </div>
+    <div class="row2">
+      <div><label>Réf. interne</label><input id="c-refint" value="PRO25"></div>
+      <div><label>Référence (encadré)</label><input id="c-ref" placeholder="(optionnel)"></div>
+    </div>
+
+    <h2>Livraison</h2>
+    <div class="row2">
+      <div><label>Incoterm</label><select id="c-inco"><option>CFR</option><option>CIF</option><option>FOB</option><option>EX WORKS</option><option>DAP</option></select></div>
+      <div><label>Lieu (port / ville)</label><input id="c-lieu" placeholder="ex. ACCRA"></div>
+    </div>
+    <label>Montant fret (€)</label><input id="c-fret" type="number" min="0" step="100" value="0">
+    <div class="row2">
+      <div><label>Pays d'origine</label><input id="c-orig" value="FRANCE"></div>
+      <div><label>Pays de provenance</label><input id="c-prov" value="FRANCE"></div>
+    </div>
+    <div class="row2">
+      <div><label>Référence usine</label><input id="c-usine" placeholder="(optionnel)"></div>
+      <div><label>Code douanier</label><input id="c-douane" placeholder="(optionnel)"></div>
+    </div>
+
+    <h2>Lignes</h2>
+    <div class="modeles">
+      <button onclick="addModele('GROFF')">+ Offset GROFF</button>
+      <button onclick="addModele('GRCAR')">+ Couché GRCAR</button>
+      <button onclick="addModele('GSCOL')">+ Duplex GSCOL</button>
+      <button onclick="addModele('')">+ Ligne vide</button>
+    </div>
+    <div id="lignes"></div>
+
+    <h2>Paiement</h2>
+    <label>Conditions de paiement</label>
+    <select id="c-paiemode">
+      <option value="5050">Virement 50 % avant expédition / 50 % avant documents</option>
+      <option value="libre">Texte libre (100 % du montant)</option>
+    </select>
+    <div id="paie-libre-wrap" style="display:none;margin-top:6px">
+      <label>Texte (après le montant)</label>
+      <input id="c-paie" value="CONTRE DOCUMENTS A VUE">
+    </div>
+
+    <button class="btn btn-red" onclick="generer()">Générer → numéro + PDF</button>
+    <button class="btn btn-ghost" onclick="window.print()">Réimprimer sans nouveau numéro</button>
+    <div class="num-ok" id="genok"></div>
+  </div>
+
+  <!-- ═══ FEUILLE A4 ═══ -->
+  <div class="sheetbox"><div class="sheet" id="sheet">
+    <div class="pagenum">1</div>
+    <div class="hd">
+      <div class="hd-l">
+        <img src="/img/logo.png" alt="Prodiconseil">
+        <div class="adr">
+          9 Promenée Jeanne Hachette 94200 Ivry sur Seine - FRANCE<br>
+          <b>Contact e-mail : clients@prodi.com</b><br>
+          Tel : 331 4672 0369 - Fax : 331 4959 8731<br>
+          SARL au Capital de 516 000 EUR - Siret : 382445922<br>
+          NAF 4676Z - TVA FR50 382 445922 RCS CRETEIL
+        </div>
+        <div class="mentions">
+          Exonération de TVA :<br>
+          Export hors UE: Article 262, I du CGI<br>
+          Livraison intracommunautaire: Article 262 ter, I du CGI
+        </div>
+        <div class="rouge">
+          Valable 10 jours sauf vente entre temps<br>
+          La confirmation de commande suivra
+        </div>
+        <div class="titre">Offre de prix (Euros)</div>
+        <div class="commercial">Votre commercial : <span id="p-comm"></span></div>
+        <table class="ndr">
+          <tr><th>NUMERO</th><th>DATE</th><th>REFERENCE</th></tr>
+          <tr><td id="p-num">—</td><td id="p-date"></td><td id="p-ref"></td></tr>
+        </table>
+      </div>
+      <div class="hd-r">
+        <div class="client" id="p-client">CLIENT</div>
+        <div class="refint">Ref. Interne : <span id="p-refint"></span></div>
+        <div class="rc">N° intra./RC : <span id="p-rc"></span></div>
+        <div class="box-livr">
+          <div class="t">Conditions de livraison</div>
+          <div class="v">
+            <div id="p-inco"></div>
+            <div id="p-lieu"></div>
+            <div class="paysbox">Pays d'origine : <span id="p-orig"></span><br>Pays de provenance : <span id="p-prov"></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <table class="corps">
+      <tr><th class="lref">Référence</th><th>Désignation</th><th class="lqte">PN (kg)</th><th class="lpu">P.U (€)</th><th class="lmt">Montant HT (€)</th></tr>
+      <tbody id="p-lignes"></tbody>
+      <tr class="fill"><td></td><td></td><td></td><td></td><td></td></tr>
+    </table>
+
+    <div class="souscorps">
+      <div>
+        <div>REFERENCE USINE : <span id="p-usine"></span></div>
+        <div>MONTANT FOB : <span id="p-fob"></span> €</div>
+        <div>MONTANT DU FRET : <span id="p-fret"></span> €</div>
+        <div>MONTANT COÛT ET FRET : <span id="p-cf"></span> €</div>
+      </div>
+      <div>
+        <div>CODE DOUANIER : <span id="p-douane"></span></div>
+        <div>TOLÉRANCE +/- 10%</div>
+      </div>
+    </div>
+
+    <div class="totflex">
+      <div class="tampon"><b>PRODICONSEIL</b><br>9 promenée Jeanne Hachette<br>94200 Ivry sur Seine - France<br>Tél. : +33 (0)1 46 72 03 69<br>SARL au capital de 516 000 € — RCS Créteil B382445922<br>N° CEE FR 50 382 445 922 — APE 4676Z</div>
+      <table class="tot">
+        <tr><th>Total HT</th><th>Total TTC</th><th>Poids Total (kg)</th><th class="netl">NET A PAYER</th></tr>
+        <tr><td id="p-ht"></td><td id="p-ttc"></td><td id="p-poids"></td><td class="net" id="p-net"></td></tr>
+      </table>
+    </div>
+
+    <div class="paiebox">
+      <div class="paie"><b>CONDITIONS DE PAIEMENT :</b><div id="p-paie-lignes"></div></div>
+      <div class="banqcli">Banque du client :</div>
+    </div>
+
+    <div class="basflex">
+      <table class="banques">
+        <tr><th style="text-align:left">BANQUE PRODICONSEIL</th><th>CODE</th><th>GUICHET</th><th>COMPTE</th><th>RIB</th></tr>
+        <tr><td>BNP PARIBAS - ILE DE FRANCE EST ENTREPRISES (02511)<br>IBAN : FR 76 3000 4008 3400 0100 1743 986 - SWIFT : BNPAFRPPIFE</td><td>30004</td><td>00834</td><td>00010017439</td><td>86</td></tr>
+        <tr><td>BANQUE POPULAIRE - BP RIVES CA TOLBIAC (00118)<br>IBAN : FR 76 1020 7000 1304 0130 5290 161 - SWIFT : CCBPFRPPMTG</td><td>10207</td><td>00013</td><td>04013052901</td><td>61</td></tr>
+        <tr><td>SOCIETE GENERALE - SG IVRY SUR SEINE (04240)<br>IBAN : FR 76 3000 3042 4000 0209 3161 041 - SWIFT : SOGEFRPP</td><td>30003</td><td>04240</td><td>00020931610</td><td>41</td></tr>
+      </table>
+      <div class="engage">
+        <div>Je confirme mon accord sur cette proforma et les conditions de vente :<br>Je m'engage à payer tous les frais et taxes s'il y avait un retard, une annulation hors du pays de départ des marchandises.</div>
+        <div class="rsc">RENVOYER SIGNÉ ET CACHETÉ</div>
+      </div>
+    </div>
+  </div></div>
+</div>
+
+<script>
+'use strict';
+// ── Porte d'accès (outil interne — code différent des portes clients) ──
+(function(){
+  try{
+    if(localStorage.getItem('prodi_prof_ok')==='1') return;
+    const c=prompt('Code d\'accès outil proforma :');
+    if(c==='PRODI2026'){localStorage.setItem('prodi_prof_ok','1');return;}
+    document.body.innerHTML='<p style="font-family:sans-serif;padding:40px">Accès refusé.</p>';
+  }catch(e){}
+})();
+
+const SURL='https://bvcgpdoukhcatjibmvnb.supabase.co';
+const ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2Y2dwZG91a2hjYXRqaWJtdm5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNzg5MjgsImV4cCI6MjA4Nzg1NDkyOH0.Ip3ykSUS9sajTH04yXBerOG1haBKMD1kAvMQNjnGL1Q';
+
+// Modèles de lignes — désignations reprises de la proforma Sage type (DE42827)
+const MODELES={
+  GROFF:{code:'GROFF',des:'PAPIER OFFSET BLANC EN FORMAT\nGRAMMAGES : 65 - 70 - 75 - 80 - 90 g/m²\nFORMAT : 52 X 72 CM',pu:0.85},
+  GRCAR:{code:'GRCAR',des:'PAPIER COUCHE EN FORMAT\nGRAMMAGES : 110 grs/m² A 300 GRS\nFORMATS : 52 x 72 cm',pu:0.90},
+  GSCOL:{code:'GSCOL',des:'CARTON DUPLEX GC2 DOS BLANC EN FORMAT\nGRAMMAGES : 250 GRS A 350 GRS\nFORMATS : 52 X 72 CM',pu:0.74},
+};
+let lignes=[];
+let numero=null;
+
+const eur=n=>n.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const kg=n=>String(Math.round(n)); // PN entier sans séparateur, comme Sage (« 12090 »)
+const pu3=n=>n.toLocaleString('fr-FR',{minimumFractionDigits:3,maximumFractionDigits:3}); // P.U « 0,580 »
+
+function addModele(k){
+  const m=MODELES[k];
+  lignes.push(m?{code:m.code,des:m.des,qte:8000,pu:m.pu}:{code:'',des:'',qte:0,pu:0});
+  renderForm();maj();
+}
+function delLigne(i){lignes.splice(i,1);renderForm();maj();}
+
+function renderForm(){
+  document.getElementById('lignes').innerHTML=lignes.map((l,i)=>`
+    <div class="ligne">
+      <button class="del" onclick="delLigne(${i})" title="Supprimer">✕</button>
+      <div class="row2">
+        <div><label>Code</label><input value="${esc(l.code)}" oninput="lignes[${i}].code=this.value;maj()"></div>
+        <div><label>Qté (kg)</label><input type="number" min="0" step="500" value="${l.qte}" oninput="lignes[${i}].qte=+this.value;maj()"></div>
+      </div>
+      <label>Désignation</label>
+      <textarea rows="3" oninput="lignes[${i}].des=this.value;maj()">${esc(l.des)}</textarea>
+      <label>Prix unitaire (€/kg)</label>
+      <input type="number" min="0" step="0.01" value="${l.pu}" oninput="lignes[${i}].pu=+this.value;maj()">
+    </div>`).join('');
+}
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function totaux(){
+  // Logique Sage (cf. DE42827) : les P.U des lignes sont FRET INCLUS (CFR) —
+  // le total = somme des lignes ; le fret n'est qu'une VENTILATION affichée
+  // (MONTANT FOB = total − fret, COÛT ET FRET = total).
+  const total=lignes.reduce((s,l)=>s+l.qte*l.pu,0);
+  const fret=+document.getElementById('c-fret').value||0;
+  return{total,fret,fob:total-fret,poids:lignes.reduce((s,l)=>s+l.qte,0)};
+}
+
+function maj(){
+  const v=id=>document.getElementById(id).value.trim();
+  const _nl=(v('c-nom')||'CLIENT').split('\n');
+  const _rest=_nl.slice(1).map((l,i,a)=>i===a.length-1?'<b>'+esc(l)+'</b>':esc(l)).join('<br>');
+  document.getElementById('p-client').innerHTML='<span class="cnom">'+esc(_nl[0])+'</span>'+_rest;
+  document.getElementById('p-comm').textContent=v('c-comm');
+  document.getElementById('p-refint').textContent=v('c-refint');
+  document.getElementById('p-ref').textContent=v('c-ref');
+  document.getElementById('p-rc').textContent=v('c-rc');
+  document.getElementById('p-inco').textContent=v('c-inco');
+  document.getElementById('p-lieu').textContent=v('c-lieu');
+  document.getElementById('p-orig').textContent=v('c-orig');
+  document.getElementById('p-prov').textContent=v('c-prov');
+  document.getElementById('p-date').textContent=new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'2-digit'});
+  document.getElementById('p-num').textContent=numero||'—';
+  document.getElementById('p-lignes').innerHTML=lignes.map(l=>`
+    <tr><td class="lref">${esc(l.code)}</td><td class="desig">${esc(l.des)}</td>
+    <td class="lqte">${l.qte?kg(l.qte):''}</td><td class="lpu">${l.pu?pu3(l.pu):''}</td>
+    <td class="lmt">${l.qte&&l.pu?eur(l.qte*l.pu):''}</td></tr>`).join('');
+  // zone de remplissage : rétrécit quand il y a beaucoup de lignes (1 page)
+  const _fh=Math.max(6,36-Math.max(0,lignes.length-3)*11);
+  document.querySelectorAll('table.corps tr.fill td').forEach(td=>td.style.height=_fh+'mm');
+  const t=totaux();
+  // bloc sous-tableau toujours affiché (comme Sage) — fret vide si 0
+  document.getElementById('p-usine').textContent=v('c-usine');
+  document.getElementById('p-douane').textContent=v('c-douane');
+  document.getElementById('p-fob').textContent=t.total?eur(t.fob):'';
+  document.getElementById('p-fret').textContent=t.fret>0?eur(t.fret):'';
+  document.getElementById('p-cf').textContent=t.total?eur(t.total):'';
+  document.getElementById('p-ht').textContent=eur(t.total)+' €';
+  document.getElementById('p-ttc').textContent=eur(t.total)+' €';
+  document.getElementById('p-poids').textContent=kg(t.poids);
+  document.getElementById('p-net').textContent=eur(t.total)+' €';
+  // conditions de paiement : 50/50 Sage ou texte libre
+  const mode=document.getElementById('c-paiemode').value;
+  document.getElementById('paie-libre-wrap').style.display=mode==='libre'?'':'none';
+  document.getElementById('p-paie-lignes').innerHTML=mode==='5050'
+    ?`<div>${eur(t.total/2)}&nbsp;&nbsp;VIREMENT AVANT EXPEDITION</div><div>${eur(t.total/2)}&nbsp;&nbsp;VIREMENT AVANT ENVOI DE DOCUMENTS</div>`
+    :`<div>${eur(t.total)}&nbsp;&nbsp;${esc(v('c-paie'))}</div>`;
+}
+
+async function generer(){
+  if(!lignes.length){alert('Ajoute au moins une ligne.');return;}
+  const ok=document.getElementById('genok');
+  ok.textContent='Numérotation…';
+  // numéro officiel via Supabase, repli local si hors ligne
+  try{
+    const r=await fetch(SURL+'/rest/v1/rpc/proforma_next_numero',{method:'POST',
+      headers:{apikey:ANON,Authorization:'Bearer '+ANON,'Content-Type':'application/json'},body:'{}'});
+    numero=await r.json();
+    if(typeof numero!=='string')throw 0;
+  }catch(e){
+    numero='PW-LOC-'+Date.now().toString(36).slice(-4).toUpperCase();
+  }
+  maj();
+  // archive (fire-and-forget)
+  const t=totaux();
+  fetch(SURL+'/rest/v1/proformas',{method:'POST',
+    headers:{apikey:ANON,Authorization:'Bearer '+ANON,'Content-Type':'application/json',Prefer:'return=minimal'},
+    body:JSON.stringify({numero,client:{nom:document.getElementById('c-nom').value,rc:document.getElementById('c-rc').value,lieu:document.getElementById('c-lieu').value,orig:document.getElementById('c-orig').value,prov:document.getElementById('c-prov').value,usine:document.getElementById('c-usine').value,douane:document.getElementById('c-douane').value,paie:document.getElementById('c-paiemode').value},
+      lignes,incoterm:document.getElementById('c-inco').value,fret:t.fret,
+      totaux:{fob:t.fob,total:t.total,poids:t.poids}})}).catch(()=>{});
+  ok.textContent='✓ '+numero+' — enregistrée. Impression…';
+  setTimeout(()=>window.print(),350);
+}
+
+// ── Adaptation téléphone : la feuille A4 (210mm ≈ 794px) est réduite à la
+//    largeur de l'écran via zoom (le layout suit, pas de vide sous la feuille).
+//    L'impression repasse toujours en taille réelle (zoom:1 dans @media print).
+function fitSheet(){
+  const s=document.getElementById('sheet');if(!s)return;
+  const avail=document.documentElement.clientWidth-20;
+  s.style.zoom=avail<794?(avail/794):'';
+}
+window.addEventListener('resize',fitSheet);
+window.addEventListener('orientationchange',fitSheet);
+
+// maj live sur tous les champs
+document.querySelectorAll('.panel input,.panel textarea,.panel select').forEach(el=>el.addEventListener('input',maj));
+// démarrage : les 3 lignes du modèle type
+addModele('GROFF');addModele('GRCAR');addModele('GSCOL');
+lignes[2].qte=10000;
+renderForm();maj();fitSheet();
+</script>
+</body>
+</html>
