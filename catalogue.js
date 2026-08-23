@@ -164,8 +164,16 @@ function _updateGroupedToggleBtn(){
   if(lbl)lbl.textContent=_groupedMode?'Groupé':'Détaillé';
 }
 // Prix TOUJOURS affiché au catalogue (interne), JAMAIS en vue client (?s=/?share=) — Ethan 08/08.
-let _priceMode=!(new URLSearchParams(location.search).get('s')||new URLSearchParams(location.search).get('share'));
+// Accès LEAD (23/08 Ethan) : formulaire « Accéder au stock » de la vitrine
+// validé (prodi_stock_ok) SANS le code client (prodi_cat_ok) → catalogue
+// complet mais SANS PRIX ni exports chiffrés (Excel, Stocklot, Fabrication —
+// masqués via body.lead-view). Saisir PRODI2026 ensuite rend les prix.
+let _leadMode=false;
+try{_leadMode=localStorage.getItem('prodi_stock_ok')==='1'&&localStorage.getItem('prodi_cat_ok')!=='1';}catch(_){}
+if(_leadMode){const _lv=()=>document.body.classList.add('lead-view');document.body?_lv():document.addEventListener('DOMContentLoaded',_lv);}
+let _priceMode=!(new URLSearchParams(location.search).get('s')||new URLSearchParams(location.search).get('share'))&&!_leadMode;
 function togglePriceMode(on){
+  if(_leadMode)on=false; // pas de prix en accès lead, même à la bascule
   _priceMode=on;
   try{localStorage.setItem('prodi_price_mode',on?'1':'0');}catch(_){}
   ['lang-fr','lang-fr-m'].forEach(id=>{const e=document.getElementById(id);if(e){e.classList.toggle('on',on);e.style.background=on?'var(--red)':'';e.style.borderColor=on?'var(--red)':'';e.style.color=on?'#fff':'';}});
@@ -1516,6 +1524,36 @@ function formatProductTitle(qualite, fallback){
   return `${prefix} — ${label.toUpperCase()}`;
 }
 
+// Safari iOS (20/08) : les .msd-panel sont position:fixed mais DESCENDANTS de
+// .filters-panel (overflow-scroll horizontal) + .sidebar-col (stacking context).
+// WebKit peint alors le fixed DANS ces calques → SOUS les tuiles, insensible au
+// z-index. Fix robuste et uniforme : à l'ouverture on déplace le panneau vers
+// <body> (il reste position:fixed, MÊME position à l'écran, mais échappe overflow
+// ET stacking → passe au-dessus de tout) ; on le remet à sa place à la fermeture,
+// AVANT tout _flushFacetsApresFermeture (qui interroge le panneau via son .msd).
+function _msdReparentOpen(panel){
+  if(!panel||panel._msdHome) return;
+  panel._msdHome={p:panel.parentNode,n:panel.nextSibling};
+  const mob = window.matchMedia('(max-width:768px)').matches;
+  if(mob){
+    // MOBILE (21/08) : menu en BOTTOM-SHEET plein écran + fond noir (même patron que
+    // le popup tonnage _qtyModal, qui marche sur iOS). Un panneau plein écran + backdrop
+    // ne peut PAS passer derrière les tuiles — fini le bug de compositing Safari.
+    let bg=document.getElementById('msd-sheet-bg');
+    if(!bg){bg=document.createElement('div');bg.id='msd-sheet-bg';document.body.appendChild(bg);}
+    panel.classList.add('msd-sheet');
+    panel.style.top=panel.style.left=panel.style.width='';   // efface le positionnement dropdown
+    bg.appendChild(panel);
+  } else {
+    document.body.appendChild(panel);
+  }
+}
+function _msdRestoreAll(){
+  document.querySelectorAll('.msd-panel').forEach(p=>{
+    if(p._msdHome){ p.classList.remove('msd-sheet'); p.style.top=p.style.left=p.style.width=''; p._msdHome.p.insertBefore(p,p._msdHome.n); p._msdHome=null; }
+  });
+  const bg=document.getElementById('msd-sheet-bg'); if(bg)bg.remove();
+}
 function toggleMsd(id) {
   const panel = document.querySelector(`#${id} .msd-panel`);
   const btn = document.querySelector(`#${id} .msd-btn`);
@@ -1530,6 +1568,7 @@ function toggleMsd(id) {
   // Close all
   document.querySelectorAll('.msd-panel.show').forEach(p => p.classList.remove('show'));
   document.querySelectorAll('.msd-btn.open').forEach(b => b.classList.remove('open'));
+  _msdRestoreAll();
   _flushFacetsApresFermeture();
   if (!isOpen) {
     // Tri À L'OUVERTURE (21/07) : le menu s'affiche déjà compté/trié par volume
@@ -1555,6 +1594,7 @@ function toggleMsd(id) {
     if(!hint){hint=document.createElement('div');hint.className='msd-scroll-hint';panel.appendChild(hint);}
     hint.classList.toggle('hidden',panel.scrollHeight<=panel.clientHeight+10);
     panel.onscroll=()=>{if(hint)hint.classList.toggle('hidden',panel.scrollTop+panel.clientHeight>=panel.scrollHeight-10);};
+    _msdReparentOpen(panel); // Safari : sortir le panneau fixed vers <body> (au-dessus des tuiles)
   }
 }
 
@@ -1569,6 +1609,9 @@ function toggleMsdOption(el, id) {
     if(!o.closest(`#${id},#${id}-mob,#sb-${id}`))return;
     o.classList.toggle('selected', willSelect);
   });
+  // Panneau reparenté vers <body> (fix Safari) : l'option cliquée n'est plus dans
+  // #id → le closest ci-dessus la rate. On la coche directement, robuste au reparent.
+  el.classList.toggle('selected', willSelect);
   updateMsdBtn(id);
   // Le choix d'un Type de papier débloque les filtres bobine/format (17/07).
   if(id==='msd-type')updateFilterVisibility();
@@ -1661,9 +1704,10 @@ function resetMsd(id) {
 
 // Close dropdowns when clicking outside
 document.addEventListener('click', e => {
-  if (!e.target.closest('.msd') && !e.target.closest('.fb-msd')) {
+  if (!e.target.closest('.msd') && !e.target.closest('.fb-msd') && !e.target.closest('.msd-panel')) {
     document.querySelectorAll('.msd-panel.show').forEach(p => p.classList.remove('show'));
     document.querySelectorAll('.msd-btn.open,.fb-msd-btn.open').forEach(b => b.classList.remove('open'));
+    _msdRestoreAll();
     _flushFacetsApresFermeture();
   }
 });
@@ -2682,18 +2726,15 @@ async function _openTonnage(){
       }
       if(fini&&rows.length){
         const units=rows.map(rowToUi);
-        const refN=g=>Math.max(...g.units.map(u=>parseInt(String(u.ref||'').replace(/\D/g,''),10)||0));
-        const flat=(list,recentFirst)=>{
-          const grps=groupProducts(list).sort((a,b)=>recentFirst?refN(b)-refN(a):refN(a)-refN(b));
-          return grps.flatMap(g=>g.units);
-        };
         const cumOf=l=>{let t=0;return l.map(u=>(t+=(+u.poids_net||0)));};
-        // STOCK = promo OU réf < 981600 (≈ arrivé il y a plus d'UN AN, avant
-        // juillet 2025 — frontière Ethan 21/07). Le reste = FAB.
-        const refU=u=>parseInt(String(u.ref||'').replace(/\D/g,''),10)||0;
-        const isStock=u=>u.promo||(refU(u)>0&&refU(u)<981600);
-        // FAB/LOTS FUSIONNÉS (demande Ethan 08/08) : un seul pool = tout le stock (récents d'abord).
-        const allL=flat(units,true);
+        // Sélection tonnage = ORDRE DU TRI AFFICHÉ (demande Ethan 20/08) : on part du
+        // 1er article de la liste triée (_lastQueryP porte le tri courant, ex. grammage,
+        // arrivage…). On garde les équivalents groupés (lots), mais on ordonne les lots
+        // par leur 1re apparition dans l'ordre affiché — au lieu de re-trier par n° réf
+        // (l'ancien `flat(units,true)` écrasait le tri).
+        const _ordIdx=new Map();units.forEach((u,i)=>{if(!_ordIdx.has(u.id))_ordIdx.set(u.id,i);});
+        const _minIdx=g=>Math.min(...g.units.map(u=>_ordIdx.has(u.id)?_ordIdx.get(u.id):1e9));
+        const allL=groupProducts(units).sort((a,b)=>_minIdx(a)-_minIdx(b)).flatMap(g=>g.units);
         pools={FAB:{list:allL,cum:cumOf(allL)},STOCK:{list:allL,cum:cumOf(allL)}};
       }
     }catch(_){}
@@ -2769,6 +2810,9 @@ async function _tonnagePick(tonnes){
   localStorage.setItem('prodi_cart',JSON.stringify(cart));
   updateCartBadge();renderDrawer();
   if(typeof _updateAddPageBtn==='function')_updateAddPageBtn();
+  // Re-render la grille pour que les cartes ajoutées passent le « + » en CORBEILLE
+  // (classe .added → CSS .sc-add.added::before) — comme le chemin pool (20/08).
+  const _pg=document.getElementById('pgrid');if(_pg&&_pg._lastList)render(_pg._lastList);
   toast(added?('✓ '+added+' articles · '+(sum/1000).toFixed(1)+' t ajoutés — bouton Liste en haut'):'Rien à ajouter (déjà tout en liste ?)',5000);
 }
 // ── BOUTON OFFRE (22/07) : offres PRÊTES À ENVOYER par qualité de papier.
@@ -4052,8 +4096,10 @@ function _renderCatalogueCard(p){
       const detRow=`<div class="sc-cell sc-wrap sc-det-only" style="grid-column:span 4;"><div class="sc-val">${_detClean?esc(_detClean):'—'}</div></div>`;
       const prixVal=p.price?esc(Math.round(p.price*1000).toLocaleString('fr-FR'))+' <small>€/T</small>':'—';
       const usineCell=`<div class="sc-cell sc-price-usine" style="grid-column:span 2;"><div class="sc-cap">USINE</div><div class="sc-val">${_usineLbl?esc(_usineLbl):'—'}</div></div>`;
-      // Vue client (18/08 Ethan) : le prix S'AFFICHE sur la carte (la fiche reste sans prix)
-      const prixCell=`<div class="sc-cell sc-det-row sc-price-main" style="grid-column:span 2;"><div class="sc-val sc-price-val">${(_priceMode||_sharedMode)?prixVal:'—'}</div>${_addBtn}</div>`;
+      // Vue client (20/08) : PAS de prix sur la carte — cohérent avec la fiche et
+      // avec « jamais de prix en vue client » (le _sharedMode a été retiré de la
+      // condition : le prix ne s'affiche plus que dans le catalogue interne _priceMode).
+      const prixCell=`<div class="sc-cell sc-det-row sc-price-main" style="grid-column:span 2;"><div class="sc-val sc-price-val">${_priceMode?prixVal:''}</div>${_addBtn}</div>`;
       const foot='';
       return`<div class="pcard sc-card" onclick="openDetail(${numId(p.id)})">
         <div class="pcard-img">${imgHtml}${resaOverlay}${p.promo?'<div class="pcard-promo-overlay">PROMO</div>':''}
@@ -4471,7 +4517,14 @@ async function openDetail(id){
         b.className='sc-add'+(cart.find(x=>x.id===+p.id)?' added':'');
         b.textContent='+';
         b.title='Ajouter / retirer de la liste';
-        b.onclick=(e)=>{e.stopPropagation();addToCart(p.id);b.classList.toggle('added',!!cart.find(x=>x.id===+p.id));};
+        b.onclick=(e)=>{e.stopPropagation();
+          // Lot ×N (mode Groupé) : même popup Quantité que le + de la carte —
+          // le + sec ne prenait qu'UNE bobine du lot (Ethan 23/08). Retrait
+          // idem carte (tout le lot). Fiche fermée : le popup s'ouvre sur la grille.
+          const grp=_groupedMode?(_groupsList||[]).find(g=>g.units&&g.units.length>1&&g.units.some(u=>+u.id===+p.id)):null;
+          if(grp){closeDetail();_grpRound(grp.gid);return;}
+          addToCart(p.id);b.classList.toggle('added',!!cart.find(x=>x.id===+p.id));
+        };
         prixCell.appendChild(b);
       }
     }
@@ -5653,7 +5706,7 @@ if(_sharedMode)_sharedViewUI(true);
       _sd.innerHTML='<button class="msd-btn tb-sort-btn" data-msd-id="tb-sort" onclick="toggleMsd(\'tb-sort\')" title="Trier"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5h10"/><path d="M11 9h7"/><path d="M11 13h4"/><path d="M3 17l3 3 3-3"/><path d="M6 4v16"/></svg></button><div class="msd-panel"></div>';
       _fp.appendChild(_sd);
       const _pn=_sd.querySelector('.msd-panel');
-      window._tbSortPick=v=>{_sortTouched=true;_sel.value=v;filterProducts();document.querySelectorAll('.msd-panel.show').forEach(p=>p.classList.remove('show'));document.querySelectorAll('.msd-btn.open').forEach(b=>b.classList.remove('open'));_flushFacetsApresFermeture();};
+      window._tbSortPick=v=>{_sortTouched=true;_sel.value=v;filterProducts();document.querySelectorAll('.msd-panel.show').forEach(p=>p.classList.remove('show'));document.querySelectorAll('.msd-btn.open').forEach(b=>b.classList.remove('open'));_msdRestoreAll();_flushFacetsApresFermeture();};
       const _paint=()=>{_pn.innerHTML=[..._sel.options].filter(o=>!o.hidden&&!o.disabled).map(o=>`<div class="msd-option${o.value===_sel.value?' selected':''}" onclick="_tbSortPick('${o.value}')">${o.textContent}</div>`).join('');};
       _paint();
       _sel.addEventListener('change',_paint);
@@ -5690,7 +5743,7 @@ if(_sharedMode)_sharedViewUI(true);
       // (Sans photo, Réservés, Bobine/Format, tranches de Poids).
       const _fa=document.createElement('div');
       _fa.className='msd';_fa.id='tb-adv';
-      _fa.innerHTML='<button class="msd-btn" data-msd-id="tb-adv" onclick="toggleMsd(\'tb-adv\')"><span class="msd-btn-label">Filtres avancés</span><span class="msd-arrow">▾</span></button><div class="msd-panel"></div>';
+      _fa.innerHTML='<button class="msd-btn" data-msd-id="tb-adv" onclick="toggleMsd(\'tb-adv\')"><span class="msd-btn-label">Filtres avancés</span><span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span></button><div class="msd-panel"></div>';
       _fp.appendChild(_fa);
       const _faPn=_fa.querySelector('.msd-panel');
       window._advToggle=(kind,val)=>{
@@ -7497,6 +7550,7 @@ function _buildSharedTabs(){
 // Popup d'accueil vue client (10/08) : le header est réduit au logo, le
 // téléchargement Excel est proposé D'ENTRÉE dans ce popup (gabarit recap-card).
 function _excelPopup(){
+  if(_leadMode)return; // accès lead : pas d'Excel (il contient les prix)
   if(document.getElementById('recap-bg'))return;
   if(!cart||!cart.length)return;
   const d=document.createElement('div');

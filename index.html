@@ -314,7 +314,7 @@ gtag('config', 'AW-18393110999');
   <!-- ── BANDEAU RAPPEL (mini contact une ligne) ── -->
   <section class="rappel-sec" id="rappel">
     <div class="sec-inner">
-      <form class="rappel-band" id="rappel-form" data-reveal onsubmit="submitRappel(event)">
+      <form class="rappel-band" id="rappel-form" data-reveal onsubmit="submitRappel(event)" novalidate>
         <div class="rappel-txt">Un besoin&nbsp;? <b>Laissez un numéro.</b></div>
         <input type="text" id="r-nom" placeholder="Votre nom ou société" aria-label="Votre nom ou société" required>
         <input type="tel" id="r-tel" placeholder="Téléphone" aria-label="Téléphone" required minlength="6">
@@ -626,7 +626,7 @@ gtag('config', 'AW-18393110999');
     <div class="lead-right">
       <h3 class="lead-h">Vous êtes imprimeur, transformateur, distributeur&nbsp;?</h3>
       <p class="lead-sub">Des solutions adaptées pour vous.</p>
-      <form class="lead-form" id="lead-form" onsubmit="submitLead(event)">
+      <form class="lead-form" id="lead-form" onsubmit="submitLead(event)" novalidate>
         <input type="text" id="l-nom" placeholder="Votre nom ou société" aria-label="Votre nom ou société" required>
         <input type="tel" id="l-tel" placeholder="Téléphone" aria-label="Téléphone" required minlength="6">
         <input type="text" id="l-msg" placeholder="Votre besoin : qualité, quantité…" aria-label="Votre besoin" required minlength="15">

@@ -24,7 +24,7 @@ const safeUrl = u => {
     +'<div class="lead-right">'
     +'<h3 class="lead-h">Vous êtes imprimeur, transformateur, distributeur ?</h3>'
     +'<p class="lead-sub">Des solutions adaptées pour vous.</p>'
-    +'<form class="lead-form" id="lead-form" onsubmit="submitLead(event)">'
+    +'<form class="lead-form" id="lead-form" onsubmit="submitLead(event)" novalidate>'
     +'<input type="text" id="l-nom" placeholder="Votre nom ou société" aria-label="Votre nom ou société" required>'
     +'<input type="tel" id="l-tel" placeholder="Téléphone" aria-label="Téléphone" required minlength="6">'
     +'<input type="text" id="l-msg" placeholder="Votre besoin : qualité, quantité…" aria-label="Votre besoin" required minlength="15">'
@@ -56,10 +56,14 @@ function openStock(){
   try{
     if(sessionStorage.getItem('stock_unlocked')==='1'){ window.location.href='/catalogue/'; return; }
   }catch(_){}
+  // Lead déjà déposé sur cet appareil → accès direct au stock (sans prix)
+  try{
+    if(localStorage.getItem('prodi_stock_ok')==='1'){ window.location.href='/catalogue/'; return; }
+  }catch(_){}
   // PORTE LEAD (17/08, remplace le code d'accès sur accueil + /produits/) :
-  // « Voir le stock » ouvre le POPUP lead = CAPTURE SEULE — « Bien reçu, on
-  // vous rappelle », PAS d'accès au catalogue (correction Ethan 17/08 : seul
-  // le code PRODI2026 fait entrer). Déjà envoyé → le popup montre « Bien reçu ».
+  // « Voir le stock » ouvre le POPUP lead. 23/08 Ethan (remplace la capture
+  // seule du 17/08) : le formulaire validé OUVRE le catalogue SANS PRIX
+  // (prodi_stock_ok) — les prix restent réservés au code PRODI2026.
   const modal=document.getElementById('lead-modal');
   if(modal){
     _stockGate=true;
@@ -119,6 +123,10 @@ function _leadBtnMode(wa){
   if(wa){
     b.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.5 15.3L2 22l4.9-1.4A10 10 0 1 0 12 2zm5.4 14.1c-.23.65-1.33 1.24-1.86 1.28-.5.05-1.12.07-1.8-.11-.42-.13-.95-.3-1.63-.6-2.87-1.24-4.74-4.13-4.88-4.32-.14-.19-1.17-1.55-1.17-2.97 0-1.4.74-2.1 1-2.38.26-.29.57-.36.76-.36h.55c.18 0 .41-.06.64.5.23.55.8 1.95.86 2.09.07.14.12.31.02.5-.09.19-.14.3-.28.47-.14.17-.3.37-.42.5-.14.14-.29.29-.13.57.17.28.74 1.22 1.58 1.97 1.09.97 2 1.27 2.28 1.41.28.14.45.12.61-.07.17-.19.7-.82.89-1.1.19-.28.38-.23.64-.14.26.1 1.66.78 1.94.93.28.14.47.21.54.33.07.12.07.68-.16 1.33z"/></svg> WhatsApp maintenant';
     b.classList.add('btn-wa');
+  } else if(_stockGate){
+    // Porte stock (23/08 Ethan) : le formulaire OUVRE le catalogue sans prix
+    b.innerHTML='Accéder au stock <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-left:3px;" aria-hidden="true"><line x1="4" y1="12" x2="19" y2="12"></line><polyline points="13 6 19 12 13 18"></polyline></svg>';
+    b.classList.remove('btn-wa');
   } else {
     b.textContent='On vous rappelle';
     b.classList.remove('btn-wa');
@@ -324,7 +332,7 @@ function _leadValide(form,nom,tel,msg){
   const rep=Math.max(...[...new Set(d)].map(c=>d.split(c).length-1));
   if(rep/d.length>0.7){_leadErr(form,'Entrez un numéro de téléphone valide.');return false;}
   // message obligatoire ≥15 caractères sur TOUS les formulaires (demande 17/08)
-  if(msg!==undefined&&(msg||'').trim().length<15){_leadErr(form,'Décrivez votre besoin en quelques mots (15 caractères minimum).');return false;}
+  if(msg!==undefined&&(msg||'').trim().length<15){_leadErr(form,'Minimum 15 caractères.');return false;}
   form.querySelector('.lead-err')?.remove();
   return true;
 }
@@ -487,10 +495,18 @@ async function submitLead(e){
     try{sessionStorage.setItem('lead_done','1');}catch(_){}
     window.prodiTrack?.('contact_envoye',{via:_stockGate?'stock':_waUrl?'whatsapp':'popup'});
     document.getElementById('lead-form').outerHTML=OK_HTML;
-    // Portail WhatsApp → la conversation ; sinon → /merci/ (page de
-    // remerciement = conversion Ads fiable par simple visite, 17/08)
-    const _wa=_waUrl;_waUrl=null;_stockGate=false;
-    setTimeout(()=>{location.href=_wa||'/merci/';},1100);
+    // Portail WhatsApp → la conversation ; porte stock → /merci/?next=stock
+    // (conversion Ads par URL conservée, puis /merci/ enchaîne sur le
+    // catalogue sans prix — prodi_stock_ok lu par la porte de /catalogue/
+    // et par catalogue.js) ; sinon → /merci/ simple (17/08).
+    const _wa=_waUrl,_stk=_stockGate;_waUrl=null;_stockGate=false;
+    if(_stk){
+      try{localStorage.setItem('prodi_stock_ok','1');}catch(_){}
+      const _s=document.querySelector('#lead-modal .ok-s'); if(_s)_s.textContent='Ouverture du stock…';
+      setTimeout(()=>{location.href='/merci/?next=stock';},900);
+    }else{
+      setTimeout(()=>{location.href=_wa||'/merci/';},1100);
+    }
   }catch(err){
     btn.disabled=false; _leadBtnMode(!!_waUrl);
     alert('Erreur — veuillez réessayer ou écrire à ethan@prodi.com');

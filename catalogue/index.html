@@ -95,7 +95,7 @@ gtag('config', 'AW-18393110999');
 <link rel="preconnect" href="https://images.weserv.nl">
 <link rel="dns-prefetch" href="https://stock.prodi.net">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/catalogue.css?v=817">
+<link rel="stylesheet" href="/catalogue.css?v=827">
 <!-- EmailJS : chargé À LA DEMANDE par _ejsReady() (perf 18/07) -->
 </head>
 <body>
@@ -104,8 +104,10 @@ gtag('config', 'AW-18393110999');
      validé → mémorisé (localStorage 'prodi_cat_ok') : plus de re-saisie sur cet
      appareil. Les liens client ?s=/?share= NE sont PAS bloqués.
      ⚠️ Porte côté navigateur (dissuasive), pas une sécurité forte.
+     23/08 : prodi_stock_ok (formulaire « Accéder au stock » de la vitrine)
+     ouvre aussi la porte — mais catalogue.js masque alors les prix (_leadMode).
      👉 MOT DE PASSE : changer la constante PWD dans le 2e <script> ci-dessous. -->
-<script>(function(){try{var p=new URLSearchParams(location.search);if(p.get('s')||p.get('share')||localStorage.getItem('prodi_cat_ok')==='1')document.documentElement.classList.add('cat-unlocked');}catch(e){document.documentElement.classList.add('cat-unlocked');}})();</script>
+<script>(function(){try{var p=new URLSearchParams(location.search);if(p.get('s')||p.get('share')||localStorage.getItem('prodi_cat_ok')==='1'||localStorage.getItem('prodi_stock_ok')==='1')document.documentElement.classList.add('cat-unlocked');}catch(e){document.documentElement.classList.add('cat-unlocked');}})();</script>
 <style>
 #cat-gate{position:fixed;inset:0;z-index:100000;background:#F5F3EE;display:flex;align-items:center;justify-content:center;padding:24px;font-family:'DM Sans',system-ui,sans-serif;}
 html.cat-unlocked #cat-gate{display:none !important;}
@@ -237,49 +239,23 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
   </div>
 </header>
 
-<!-- Menu « Outils » (13/08, reparentage JS — ids et handlers intacts) :
-     depuis le 17/08 réservé au TÉLÉPHONE (≤768px) — sur ordinateur on a la
-     place, Album photo / Usine / Offre / Réf article restent des boutons
-     directs dans le header. Vue client ?s= : header déjà épuré, jamais touché. -->
+<!-- Bouton « Filtres » TÉLÉPHONE (23/08 Ethan, remplace le menu Outils du
+     13/08) : la barre de filtres horizontale est masquée sur mobile (CSS) —
+     ce bouton ouvre le TIROIR filtres plein écran (#filter-drawer, l'ancien
+     panneau ethanelb.github.io, toujours câblé : msd -mob, fd-count, pills).
+     Réf article Min/Max vivent dans le tiroir (f-refmin-mob). Sur ordinateur
+     rien ne change (boutons directs). Vue client ?s= : header épuré, jamais
+     touché. -->
 <style>
-  .outils-wrap{position:relative}
-  #outils-btn{
+  #mob-filtres-btn{
     width:42px;height:42px;padding:0 !important;border-radius:999px;
     display:flex;align-items:center;justify-content:center;
   }
-  #outils-btn svg{transition:transform .2s}
-  .outils-wrap.open #outils-btn svg{transform:rotate(180deg)}
-  #outils-panel{
-    display:none;position:absolute;top:calc(100% + 10px);right:0;z-index:1200;
-    background:#fff;border-radius:20px;box-shadow:0 12px 40px rgba(0,0,0,.18);
-    padding:8px;width:300px;flex-direction:column;
-  }
-  .outils-wrap.open #outils-panel{display:flex}
-  /* Réf article / Max en tête du menu */
-  #outils-panel .header-search-group{position:static !important;left:auto !important;display:block !important;width:100%;box-sizing:border-box;margin:0 !important;padding:8px 8px 12px;border-bottom:1px solid #e8e8e4}
-  #outils-panel .header-search-group *{box-sizing:border-box}
-  #outils-panel .header-search{display:flex;gap:8px;width:100% !important;max-width:100% !important;flex:none !important;margin:0 !important}
-  #outils-panel .header-search input{flex:1 1 50% !important;width:auto !important;min-width:0 !important}
-  /* Album photo / Usine / Offre = lignes plates de menu, plus de pilules */
-  #outils-panel .offre-wrap{display:block;width:100%;position:relative}
-  #outils-panel .offre-wrap + .offre-wrap{border-top:1px solid #e8e8e4}
-  #outils-panel .btn-head,
-  #outils-panel #album-btn, #outils-panel #fab-btn, #outils-panel #offre-btn{
-    width:100% !important;display:flex !important;align-items:center !important;
-    justify-content:space-between !important;
-    background:none !important;border:none !important;box-shadow:none !important;
-    border-radius:12px !important;height:auto !important;padding:13px 12px !important;
-    margin:0 !important;cursor:pointer;
-  }
-  #outils-panel .btn-head:hover{background:#f5f5f3 !important}
-  #outils-panel .btn-head .offre-txt{font-size:15.5px !important;font-weight:600 !important;color:#1d1d1f !important}
-  #outils-panel .offre-arrow{color:#86868b !important}
-  #outils-panel .offre-wrap{margin:0 !important;width:100% !important}
 </style>
 <script>
 (function(){
   if (/[?&](s|share)=/.test(location.search)) return; // vue client : header déjà épuré
-  // 18/08 : la bascule menu☰/boutons directs doit suivre les ROTATIONS
+  // 18/08 : la bascule mobile/desktop doit suivre les ROTATIONS
   // (iPhone ouvert en paysage puis tourné = layout cassé) → si la largeur
   // change de camp après le chargement, on recharge proprement.
   var _mq = window.matchMedia('(max-width: 768px)');
@@ -287,32 +263,17 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
   (_mq.addEventListener ? _mq.addEventListener.bind(_mq, 'change') : _mq.addListener.bind(_mq))(function(e){
     if (e.matches !== _camp) location.reload();
   });
-  if (window.innerWidth > 768) return; // ordinateur : boutons directs (menu = téléphone seulement, 17/08)
+  if (window.innerWidth > 768) return; // ordinateur : boutons directs inchangés
   var hr = document.querySelector('.hright');
   var cart = hr && hr.querySelector('.cart-wrap');
-  var sg = document.querySelector('.header-search-group');
-  if (!hr || !cart || !sg) return;
+  if (!hr || !cart) return;
   var wrap = document.createElement('div');
   wrap.className = 'outils-wrap';
   wrap.id = 'outils-wrap';
-  wrap.innerHTML = '<button class="btn-head" id="outils-btn" title="Recherche par réf, album photo, offres usine et stock" aria-label="Menu outils">' +
-    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="13" y2="17"/><path d="m16 15 3 3 3-3" transform="translate(-2 -1)"/></svg>' +
-    '</button><div id="outils-panel"></div>';
+  wrap.innerHTML = '<button class="btn-head" id="mob-filtres-btn" title="Filtres" aria-label="Filtres" onclick="openFilterDrawer()">' +
+    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><circle cx="8" cy="6" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="16" cy="12" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="8" cy="18" r="2" fill="currentColor" stroke="none"/></svg>' +
+    '</button>';
   hr.insertBefore(wrap, cart);
-  var panel = wrap.querySelector('#outils-panel');
-  sg.removeAttribute('style');
-  panel.appendChild(sg);
-  ['album-wrap', 'fab-wrap', 'offre-wrap'].forEach(function(id){
-    var el = document.getElementById(id);
-    if (el) panel.appendChild(el);
-  });
-  document.getElementById('outils-btn').onclick = function(e){
-    e.stopPropagation();
-    wrap.classList.toggle('open');
-  };
-  document.addEventListener('click', function(e){
-    if (!wrap.contains(e.target)) wrap.classList.remove('open');
-  });
 })();
 </script>
 
@@ -430,7 +391,7 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
       <div class="fg">
         <div class="msd" id="sb-msd-type">
           <button class="msd-btn" data-msd-id="msd-type" onclick="toggleMsd('sb-msd-type')">
-            <span class="msd-btn-label">Type de papier</span><span class="msd-arrow">▾</span>
+            <span class="msd-btn-label">Type de papier</span><span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
           </button>
           <div class="msd-panel"></div>
         </div>
@@ -438,7 +399,7 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
       <div class="fg">
         <div class="msd" id="sb-msd-details">
           <button class="msd-btn" data-msd-id="msd-details" onclick="toggleMsd('sb-msd-details')">
-            <span class="msd-btn-label">Détails</span><span class="msd-arrow">▾</span>
+            <span class="msd-btn-label">Détails</span><span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
           </button>
           <div class="msd-panel"></div>
         </div>
@@ -448,7 +409,7 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
       <div class="fg">
         <div class="msd" id="sb-msd-grammage">
           <button class="msd-btn" data-msd-id="msd-grammage" onclick="toggleMsd('sb-msd-grammage')">
-            <span class="msd-btn-label">Grammages</span><span class="msd-arrow">▾</span>
+            <span class="msd-btn-label">Grammages</span><span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
           </button>
           <div class="msd-panel"></div>
         </div>
@@ -456,7 +417,7 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
       <div class="fg">
         <div class="msd" id="sb-msd-couleur">
           <button class="msd-btn" data-msd-id="msd-couleur" onclick="toggleMsd('sb-msd-couleur')">
-            <span class="msd-btn-label">Couleurs</span><span class="msd-arrow">▾</span>
+            <span class="msd-btn-label">Couleurs</span><span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
           </button>
           <div class="msd-panel"></div>
         </div>
@@ -464,7 +425,7 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
       <div class="fg" id="sb-sec-format">
         <div class="msd" id="sb-msd-format">
           <button class="msd-btn" data-msd-id="msd-format" onclick="toggleMsd('sb-msd-format')">
-            <span class="msd-btn-label">Dimensions</span><span class="msd-arrow">▾</span>
+            <span class="msd-btn-label">Dimensions</span><span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
           </button>
           <div class="msd-panel"></div>
         </div>
@@ -474,14 +435,14 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
       <div class="fg" id="sb-sec-laize">
         <div class="msd" id="sb-msd-laize">
           <button class="msd-btn" data-msd-id="msd-laize" onclick="toggleMsd('sb-msd-laize')">
-            <span class="msd-btn-label">Laizes</span><span class="msd-arrow">▾</span>
+            <span class="msd-btn-label">Laizes</span><span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
           </button>
           <div class="msd-panel"></div>
         </div>
       </div>
       <div class="fg" id="sb-sec-mandrin">
         <div class="msd" id="sb-msd-mandrin">
-          <button class="msd-btn" data-msd-id="msd-mandrin" onclick="toggleMsd('sb-msd-mandrin')"><span class="msd-btn-label">Mandrins</span><span class="msd-arrow">▾</span></button>
+          <button class="msd-btn" data-msd-id="msd-mandrin" onclick="toggleMsd('sb-msd-mandrin')"><span class="msd-btn-label">Mandrins</span><span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span></button>
           <div class="msd-panel"></div>
         </div>
       </div>
@@ -492,7 +453,7 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
       <div class="fg" id="sb-sec-longueur">
         <div class="msd" id="sb-msd-diametre">
           <button class="msd-btn" data-msd-id="msd-diametre" onclick="toggleMsd('sb-msd-diametre')">
-            <span class="msd-btn-label">Diamètre (Ø)</span><span class="msd-arrow">▾</span>
+            <span class="msd-btn-label">Diamètre (Ø)</span><span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
           </button>
           <div class="msd-panel"></div>
         </div>
@@ -500,7 +461,7 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
       <div class="fg">
         <div class="msd" id="sb-msd-poids">
           <button class="msd-btn" data-msd-id="msd-poids" onclick="toggleMsd('sb-msd-poids')">
-            <span class="msd-btn-label">Poids</span><span class="msd-arrow">▾</span>
+            <span class="msd-btn-label">Poids</span><span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
           </button>
           <div class="msd-panel"></div>
         </div>
@@ -519,7 +480,7 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
       <div class="fg">
         <div class="msd" id="sb-msd-usine">
           <button class="msd-btn" data-msd-id="msd-usine" onclick="toggleMsd('sb-msd-usine')">
-            <span class="msd-btn-label">Réf usine</span><span class="msd-arrow">▾</span>
+            <span class="msd-btn-label">Réf usine</span><span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
           </button>
           <div class="msd-panel"></div>
         </div>
@@ -657,7 +618,7 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
     </div>
     <div class="drawer-head-actions">
       <button class="dh-clear-btn dh-scan-btn" onclick="openScanModal()" title="Scanner un QR code" aria-label="Scanner un QR code"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg></button>
-      <button class="dh-clear-btn" onclick="doClearCart()" title="Vider la liste">Vider la liste</button>
+      <button class="dh-clear-btn dh-clear-trash" onclick="doClearCart()" title="Vider la liste" aria-label="Vider la liste"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
       <button class="dh-close-btn" onclick="closeCartDrawer()" aria-label="Fermer">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
@@ -822,7 +783,7 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
           <button class="msd-btn" id="fd-msd-type-btn" data-msd-id="msd-type" onclick="toggleMsd('msd-type-mob')">
             <span class="msd-btn-label" id="fd-msd-type-label">Tous</span>
             <span class="msd-count" id="fd-msd-type-count" style="display:none"></span>
-            <span class="msd-arrow">▾</span>
+            <span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
           </button>
           <div class="msd-panel"></div>
         </div>
@@ -834,7 +795,7 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
         <div class="msd" id="msd-details-mob">
           <button class="msd-btn" data-msd-id="msd-details" onclick="toggleMsd('msd-details-mob')">
             <span class="msd-btn-label">Détails</span>
-            <span class="msd-arrow">▾</span>
+            <span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
           </button>
           <div class="msd-panel"></div>
         </div>
@@ -849,7 +810,7 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
         <div class="msd" id="msd-grammage-mob">
           <button class="msd-btn" data-msd-id="msd-grammage" onclick="toggleMsd('msd-grammage-mob')">
             <span class="msd-btn-label">Grammages</span>
-            <span class="msd-arrow">▾</span>
+            <span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
           </button>
           <div class="msd-panel"></div>
         </div>
@@ -861,7 +822,7 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
         <div class="msd" id="msd-couleur-mob">
           <button class="msd-btn" data-msd-id="msd-couleur" onclick="toggleMsd('msd-couleur-mob')">
             <span class="msd-btn-label" id="fd-msd-couleur-label">Couleurs</span>
-            <span class="msd-arrow">▾</span>
+            <span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
           </button>
           <div class="msd-panel"></div>
         </div>
@@ -873,7 +834,7 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
         <div class="msd" id="msd-format-mob">
           <button class="msd-btn" data-msd-id="msd-format" onclick="toggleMsd('msd-format-mob')">
             <span class="msd-btn-label">Dimensions</span>
-            <span class="msd-arrow">▾</span>
+            <span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
           </button>
           <div class="msd-panel"></div>
         </div>
@@ -887,7 +848,7 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
         <div class="msd" id="msd-laize-mob">
           <button class="msd-btn" data-msd-id="msd-laize" onclick="toggleMsd('msd-laize-mob')">
             <span class="msd-btn-label">Laizes</span>
-            <span class="msd-arrow">▾</span>
+            <span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
           </button>
           <div class="msd-panel"></div>
         </div>
@@ -900,7 +861,7 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
         <div class="msd" id="msd-mandrin-mob">
           <button class="msd-btn" data-msd-id="msd-mandrin" onclick="toggleMsd('msd-mandrin-mob')">
             <span class="msd-btn-label" id="fd-msd-mandrin-label">Mandrins</span>
-            <span class="msd-arrow">▾</span>
+            <span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
           </button>
           <div class="msd-panel"></div>
         </div>
@@ -915,7 +876,7 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
         <div class="msd" id="msd-diametre-mob">
           <button class="msd-btn" data-msd-id="msd-diametre" onclick="toggleMsd('msd-diametre-mob')">
             <span class="msd-btn-label">Diamètre (Ø)</span>
-            <span class="msd-arrow">▾</span>
+            <span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
           </button>
           <div class="msd-panel"></div>
         </div>
@@ -930,7 +891,7 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
         <div class="msd" id="msd-poids-mob">
           <button class="msd-btn" data-msd-id="msd-poids" onclick="toggleMsd('msd-poids-mob')">
             <span class="msd-btn-label">Poids</span>
-            <span class="msd-arrow">▾</span>
+            <span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
           </button>
           <div class="msd-panel"></div>
         </div>
@@ -952,7 +913,7 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
         <div class="msd" id="msd-usine-mob">
           <button class="msd-btn" data-msd-id="msd-usine" onclick="toggleMsd('msd-usine-mob')">
             <span class="msd-btn-label">Réf usine</span>
-            <span class="msd-arrow">▾</span>
+            <span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
           </button>
           <div class="msd-panel"></div>
         </div>
@@ -1015,7 +976,7 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
 <div class="spin-bg" id="spinner"><div class="spin"></div></div>
 
 <script src="/analytics.js?v=2"></script>
-<script src="/catalogue.js?v=752"></script>
+<script src="/catalogue.js?v=758"></script>
 <!-- Fiches techniques & certificats (interne, bouton header + panneau) -->
 <script src="/fiches.js?v=5" defer></script>
 <!-- Traqueur de perf, inerte sans ?perf=1 (voir perf-hud.js) -->

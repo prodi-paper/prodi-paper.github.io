@@ -34,6 +34,22 @@ gtag('config', 'AW-18393110999');
   <h1>Merci&nbsp;!</h1>
   <p>Votre demande est bien reçue. Un expert Prodiconseil vous recontacte très vite avec une offre adaptée.</p>
   <a class="btn" href="/">Retour à l'accueil</a>
+  <script>
+  /* Porte stock (23/08) : après le formulaire « Accéder au stock » on passe
+     ici (conversion Ads par simple visite de /merci/) puis on enchaîne sur
+     le catalogue sans prix. */
+  (function(){
+    if(new URLSearchParams(location.search).get('next')!=='stock')return;
+    function go(){
+      var p=document.querySelector('p');
+      if(p)p.textContent='Votre accès au stock est ouvert. Un expert Prodiconseil vous recontacte très vite.';
+      var b=document.querySelector('a.btn');
+      if(b){b.href='/catalogue/';b.textContent='Voir le stock →';}
+      setTimeout(function(){location.href='/catalogue/';},1600);
+    }
+    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go);else go();
+  })();
+  </script>
   <script src="/analytics.js" defer></script>
 </body>
 </html>

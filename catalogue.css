@@ -401,6 +401,9 @@ body.drawer-open{margin-right:420px;overflow-x:hidden;}
 .dh-clear-btn:hover{border-color:var(--red);color:var(--red);}
 .dh-close-btn{width:32px;height:32px;border:1.5px solid var(--border);border-radius:50%;background:#fff;color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;padding:0;flex-shrink:0;}
 .dh-close-btn:hover{border-color:var(--red);background:var(--red);color:#fff;}
+/* « Vider la liste » = cercle ROUGE + poubelle blanche centrée (20/08, demande Ethan) */
+.dh-clear-trash{width:32px !important;height:32px !important;padding:0 !important;border-radius:50% !important;background:var(--red) !important;border:none !important;color:#fff !important;display:flex !important;align-items:center;justify-content:center;flex-shrink:0;}
+.dh-clear-trash:hover{background:#cc0000 !important;color:#fff !important;}
 .drawer-items{flex:1;overflow-y:auto;padding:14px;}
 .drawer-empty{text-align:center;padding:52px 20px;color:var(--gray);}
 .drawer-empty-ico{font-size:36px;margin-bottom:10px;}
@@ -1674,8 +1677,8 @@ body.topbar-view .body-wrap>div:last-child{padding:12px 0 0;}
 }
 @media(min-width:769px){
 body.topbar-view .pgrid{grid-template-columns:repeat(5,1fr);max-width:var(--gab);margin-left:auto;margin-right:auto;gap:8px;} /* 4→5 (17/08, rail réduit à 270px) */
-/* Grand écran : 6 cartes — le zoom global fait le reste */
-@media(min-width:2100px){body.topbar-view .pgrid{grid-template-columns:repeat(6,1fr);}body.shared-view .pgrid{grid-template-columns:repeat(5,1fr);}}
+/* Grand écran : 5 cartes MAX par rangée (demande Ethan 20/08 — le zoom global gère le reste) */
+@media(min-width:2100px){body.topbar-view .pgrid{grid-template-columns:repeat(5,1fr);}body.shared-view .pgrid{grid-template-columns:repeat(5,1fr);}}
 /* Perf CLS desktop : quand on quitte le hero pour la grille, la bascule est
    synchrone mais la grille reste VIDE le temps du fetch (debounce 200ms) → le
    contenu s'effondre puis resaute quand les cartes arrivent (CLS ~0,58). On
@@ -2096,18 +2099,16 @@ body.topbar-view .phero-panel-head{display:none !important;}
      voile du hero (vécu 31/07 sur iPhone — Chrome n'est pas affecté).
      z-index 99 = au-dessus du hero (z 2-5), sous le header sticky (z 100). */
   body.topbar-view .body-wrap>.sidebar-col{position:relative;z-index:99;background:transparent;}
-  /* Safari iOS (20/08) : les .msd-panel sont fixed z2000 mais PIÉGÉS dans le
-     contexte d'empilement de .sidebar-col (z:99). Sa sœur (zone des cartes) est
-     en z:auto → Safari ordonne mal ces deux sœurs et peint les menus DERRIÈRE les
-     tuiles (les cartes en content-visibility créent des contextes que Safari classe
-     au-dessus du z:auto). Chrome non affecté. Fix : forcer la zone cartes en calque
-     EXPLICITE z:0 (sous 99). Aucune modale ici (toutes en document.body). */
-  body.topbar-view .body-wrap>div:not(.sidebar-col){position:relative;z-index:0;}
   body.topbar-view .msd-panel{width:auto !important;min-width:240px;max-width:calc(100vw - 16px);}
   body.topbar-view .filters-panel{position:static !important;top:auto;height:auto !important;border-right:none;background:transparent;flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;gap:6px;padding:10px 4px 12px;-webkit-overflow-scrolling:touch;scrollbar-width:none;pointer-events:auto;}
   body.topbar-view .filters-panel::-webkit-scrollbar{display:none;}
   body.topbar-view .filters-panel .msd,body.topbar-view .filters-panel .fg{flex-shrink:0;}
-  body.topbar-view .filters-panel .msd-btn{width:auto !important;padding:8px 12px;font-size:13px;}
+  body.topbar-view .filters-panel .msd-btn{width:auto !important;padding:8px 12px;font-size:13px;display:inline-flex !important;align-items:center !important;box-sizing:border-box;}
+  /* iOS (20/08) : la flèche ▾ (U+25BE) rend en EMOJI plus haut sur Safari → boutons
+     de tailles inégales (invisible sur Chrome). Fix : masquer le glyphe et dessiner
+     un chevron en CSS (bordures) → aucun glyphe, taille identique partout. */
+  body.topbar-view .filters-panel .msd-btn .msd-arrow{font-size:0 !important;width:8px !important;height:8px !important;min-width:8px !important;flex:0 0 8px !important;background:none !important;position:relative;margin-left:5px;}
+  body.topbar-view .filters-panel .msd-btn .msd-arrow::after{content:'' !important;position:absolute;top:1px;left:0;width:6px;height:6px;border-right:1.7px solid #86868b;border-bottom:1.7px solid #86868b;transform:rotate(45deg);background:none;}
   body.topbar-view .fpill-photo,body.topbar-view .fpill-resa{padding:6px 11px !important;font-size:11.5px !important;}
   /* 2e ligne : + / tags déroulants / tri dans le flux */
   body.topbar-view #topbar-row2{padding:0 4px 8px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
@@ -2400,8 +2401,8 @@ body.saisie-basse .pxdot.on.still::after{animation:none;}
   body.topbar-view .filters-panel .msd-group-row{font-size:18.5px !important;font-weight:700 !important;color:#1d1d1f !important;}
   body.topbar-view .filters-panel .msd-search-inp{font-size:17.5px !important;}
 
-  /* Flèche ▾ des boutons filtres remplacée par l'icône FILTRE (sliders) */
-  body.topbar-view .filters-panel .msd-btn .msd-arrow{font-size:0 !important;width:20px;height:20px;flex:0 0 20px;opacity:.9;background:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%231d1d1f'%20stroke-width='2.2'%20stroke-linecap='round'%3E%3Cline%20x1='4'%20y1='9'%20x2='20'%20y2='9'/%3E%3Cline%20x1='4'%20y1='15'%20x2='20'%20y2='15'/%3E%3Ccircle%20cx='10'%20cy='9'%20r='2.4'%20fill='%23fff'/%3E%3Ccircle%20cx='15'%20cy='15'%20r='2.4'%20fill='%23fff'/%3E%3C/svg%3E")%20center/19px%20no-repeat;}
+  /* Flèche = SVG inline (20/08) — ancienne icône sliders supprimée */
+  body.topbar-view .filters-panel .msd-btn .msd-arrow{font-size:0 !important;background:none !important;}
   body.topbar-view .filters-panel .fg:has([data-format]){display:block !important;order:-1;}
 
   /* FILTRES AVANCÉS dépliés DIRECTEMENT dans le rail (08/08 Ethan) — plus de clic */
@@ -2434,8 +2435,7 @@ body.saisie-basse .pxdot.on.still::after{animation:none;}
   body.topbar-view .filters-panel #sb-msd-details .msd-arrow::after,
   body.topbar-view .filters-panel #sb-msd-couleur .msd-arrow::after,
   body.topbar-view .filters-panel #sb-msd-format .msd-arrow::after{
-    content:'\203A';font-size:19px;line-height:1;color:#a1a1a6;font-weight:400;
-    display:inline-block;transform:rotate(90deg);} /* › tourné = ˅ (17/08) */
+    content:none !important;display:none !important;} /* glyph › SUPPRIMÉ — SVG inline (20/08) */
 
   /* Rangée haute du rail : FILTRES + tri (⤓) + ajout (+) + chips — compacte */
   body.topbar-view #topbar-row2{
@@ -2499,7 +2499,8 @@ body.saisie-basse .pxdot.on.still::after{animation:none;}
   /* Segment Bobine/Format = MÊME style que les cartes du rail (17/08) :
      blanc flottant, ombre douce, sans bordure — actif = fond noir. */
   body.topbar-view .filters-panel .format-pills{display:flex !important;width:100% !important;margin:0 !important;position:relative;grid-template-columns:none !important;gap:4px;background:transparent;border-radius:0;padding:0;box-shadow:none;}
-  body.topbar-view .filters-panel .format-pills .fpill{flex:1 1 0 !important;position:relative;z-index:1;border:none !important;background:#fff !important;border:1px solid rgba(0,0,0,.05) !important;outline:none;border-radius:12px !important;box-shadow:0 2px 8px rgba(0,0,0,.10) !important;padding:9px 0 !important;width:auto !important;font-family:'DM Sans',sans-serif;font-weight:700;color:#1d1d1f !important;box-shadow:none !important;}
+  /* 23/08 Ethan : contour fin visible pour que ça se lise comme des boutons */
+  body.topbar-view .filters-panel .format-pills .fpill{flex:1 1 0 !important;position:relative;z-index:1;border:none !important;background:#fff !important;border:1px solid #d2d2d7 !important;outline:none;border-radius:12px !important;box-shadow:0 2px 8px rgba(0,0,0,.10) !important;padding:9px 0 !important;width:auto !important;font-family:'DM Sans',sans-serif;font-weight:700;color:#1d1d1f !important;box-shadow:none !important;}
   body.topbar-view .filters-panel .format-pills .fpill:not(.active):hover{background:#fafafa !important;}
   body.topbar-view .filters-panel .format-pills .fpill.active{background:#222 !important;color:#fff !important;}
   /* Bouton « Offre » en HAUT du rail (déplacé du header en JS), pleine largeur */
@@ -2526,8 +2527,7 @@ body.saisie-basse .pxdot.on.still::after{animation:none;}
   body.topbar-view #sb-msd-grammage .gsl-btnval{display:none !important;}
   body.topbar-view #sb-msd-grammage.gsl-open .gsl-btnval{display:inline !important;margin-left:auto;padding-right:8px !important;font-size:15.5px;font-weight:700;color:#48484a;white-space:nowrap;}
   body.topbar-view #sb-msd-grammage .msd-btn .msd-arrow{display:inline-block;background:none !important;width:auto !important;height:auto !important;flex:none !important;font-size:0 !important;transform:none !important;}
-  body.topbar-view #sb-msd-grammage .msd-btn .msd-arrow::after{content:'\203A';font-size:19px;line-height:1;color:#a1a1a6;font-weight:400;display:inline-block;transform:rotate(90deg);transition:transform .15s;}
-  body.topbar-view #sb-msd-grammage.gsl-open .msd-btn .msd-arrow::after{transform:rotate(-90deg);}
+  body.topbar-view #sb-msd-grammage .msd-btn .msd-arrow::after{content:none !important;display:none !important;} /* glyph › Grammages SUPPRIMÉ — SVG inline (20/08) */
   body.topbar-view #sb-msd-grammage .gsl-val{display:none;}
   body.topbar-view #sb-msd-grammage .gsl-bornes{display:none !important;}
   body.topbar-view #sb-msd-grammage .msd-panel{position:static !important;inset:auto !important;display:none !important;width:100% !important;min-width:0 !important;max-width:none !important;transform:none !important;box-shadow:none !important;border:none !important;padding:4px 2px 0 !important;margin:0 !important;background:transparent !important;}
@@ -2764,3 +2764,39 @@ body.topbar-view .offre-menu{min-width:270px;}
 /* 18/08 (Ethan) : vue client — badge réf masqué sur les cartes (inutile côté
    client ; la poubelle est retirée en JS, le prix s'affiche à sa place) */
 body.shared-view .pbig-ref{display:none !important;}
+
+/* UNIFORMITÉ flèche boutons filtres (20/08, Ethan) — UN SEUL chevron identique à
+   TOUTES les largeurs (mobile + desktop) : tue les 2 styles qui cohabitaient
+   (icône « sliders » sur certains boutons, glyph « › » sur Type/Détails/Couleur/
+   Dimensions/Grammages). Fin de fichier + !important pour battre les overrides #id. */
+body.topbar-view .filters-panel .msd-btn .msd-arrow{font-size:0 !important;width:auto !important;min-width:0 !important;height:auto !important;flex:0 0 auto !important;background:none !important;border:none !important;box-shadow:none !important;padding:0 !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;}
+body.topbar-view .filters-panel .msd-btn .msd-arrow::before,
+body.topbar-view .filters-panel .msd-btn .msd-arrow::after{content:none !important;display:none !important;background:none !important;border:none !important;}
+body.topbar-view .filters-panel .msd-btn .msd-arrow svg{display:block !important;width:13px !important;height:13px !important;stroke:#86868b !important;fill:none !important;transform:none !important;}
+
+/* MENU FILTRE MOBILE = BOTTOM-SHEET (21/08) — plein écran + fond noir, patron du popup
+   tonnage (qui marche sur iOS). Impossible de passer derrière les tuiles : z 9000/9001
+   au niveau body, backdrop opaque. Fin du bug de compositing Safari des dropdowns fixed. */
+#msd-sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.42);z-index:9000;}
+.msd-panel.msd-sheet{position:fixed !important;left:0 !important;right:0 !important;bottom:0 !important;top:auto !important;width:100% !important;max-width:100% !important;min-width:0 !important;max-height:74vh !important;z-index:9001 !important;border:none !important;border-radius:18px 18px 0 0 !important;box-shadow:0 -10px 40px rgba(0,0,0,.28) !important;overflow-y:auto !important;padding:16px 14px calc(18px + env(safe-area-inset-bottom)) !important;animation:msdSheetUp .24s cubic-bezier(.32,.72,0,1) !important;}
+.msd-panel.msd-sheet::before{content:'';position:sticky;top:0;display:block;width:40px;height:4px;border-radius:99px;background:#d2d2d7;margin:2px auto 12px;flex:0 0 auto;}
+@keyframes msdSheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+
+/* ── ACCÈS LEAD (23/08) : formulaire « Accéder au stock » validé sans code
+   client → catalogue SANS PRIX ; on masque aussi l'export chiffré
+   (Excel de la liste). body.lead-view = catalogue.js. */
+body.lead-view #btn-excel-list{display:none !important;}
+/* 23/08 Ethan : Album photo + Fiches non plus ne parlent pas aux leads */
+body.lead-view #album-wrap,body.lead-view #fiche-wrap{display:none !important;}
+/* ── STAND BY (23/08 Ethan) : Fabrication + Stocklot masqués pour TOUT LE
+   MONDE « pour le moment » — réactiver en supprimant cette règle. */
+#fab-wrap,#offre-wrap{display:none !important;}
+
+/* ── TÉLÉPHONE 23/08 (Ethan) : plus de barre de filtres horizontale — les
+   filtres passent par le TIROIR (#filter-drawer, bouton Filtres du header,
+   ex-panneau ethanelb.github.io). Réf article Min/Max = dans le tiroir.
+   Album photo mobile : sacrifié avec le menu Outils (dispo sur ordinateur). */
+@media(max-width:768px){
+  body.topbar-view .filters-panel{display:none !important;}
+  body.topbar-view .header-search-group,body.topbar-view #album-wrap{display:none !important;}
+}
