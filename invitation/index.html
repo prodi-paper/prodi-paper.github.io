@@ -76,12 +76,28 @@
   .histo-tete { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
   .histo-tete b { font-size: 18px; }
   .histo-tete button { font-size: 14px; padding: 6px 14px; }
+  .histo-onglets { display: flex; gap: 8px; margin-bottom: 14px; }
+  .ong { font-size: 14px; padding: 7px 15px; border-radius: 20px;
+    border: 1px solid var(--ligne); background: #fff; color: var(--gris); cursor: pointer; }
+  .ong.actif { background: var(--encre); border-color: var(--encre); color: #fff; }
   .histo-item {
-    border: 1px solid var(--ligne); border-radius: 9px; padding: 12px 14px;
-    margin-bottom: 10px; cursor: pointer; font-size: 15px; line-height: 1.5;
+    display: flex; align-items: center; gap: 8px;
+    border: 1px solid var(--ligne); border-radius: 9px; padding: 10px 8px 10px 14px;
+    margin-bottom: 10px; font-size: 15px; line-height: 1.5;
   }
   .histo-item:hover { border-color: var(--rouge); }
-  .histo-item .quand { color: var(--gris); font-size: 13px; }
+  .histo-corps { flex: 1; min-width: 0; cursor: pointer; }
+  .histo-corps.histo-off { cursor: default; color: var(--gris); }
+  .histo-suppr {
+    flex: none; background: none; border: none; cursor: pointer; color: var(--gris);
+    padding: 6px 8px; border-radius: 8px; line-height: 0; display: flex;
+  }
+  .histo-suppr:hover { color: var(--rouge); background: var(--fond); }
+  .histo-restaurer {
+    flex: none; font-size: 13px; padding: 7px 12px; border-radius: 8px;
+    border: 1px solid #2563eb; background: #fff; color: #2563eb; cursor: pointer; font-weight: 600;
+  }
+  .histo-restaurer:hover { background: #eff4ff; }
   .histo-vide { color: var(--gris); font-size: 15px; padding: 12px 0; }
 
   .sugg {
@@ -115,6 +131,28 @@
   .cal-grille button.autre { color: #c4c4c4; }
   .cal-grille button.jour-actuel { outline: 1.5px solid var(--ligne); }
   .cal-grille button.choisi { background: var(--rouge); color: #fff; font-weight: 700; }
+  .cal-grille button.dans-plage { background: #f8dcde; color: var(--encre); border-radius: 4px; }
+
+  /* Bouton « Modifier » (secondaire, 25 %) à côté du PDF (75 %) + éditeur du corps */
+  .actions .btn-pdf { flex: 3; }
+  .actions .btn-modif { flex: 1; background: #fff; border: 1.5px solid #2563eb;
+    color: #2563eb; font-weight: 600; }
+  .actions .btn-modif:hover { background: #eff4ff; }
+  #corps-fond {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,.35);
+    z-index: 20; align-items: flex-start; justify-content: center; padding: 48px 16px;
+  }
+  #corps-fond.ouvert { display: flex; }
+  .corps-panneau {
+    background: #fff; border-radius: 12px; width: 100%; max-width: 680px;
+    max-height: 82vh; overflow: auto; padding: 20px; zoom: 1.05;
+  }
+  .corps-aide { font-size: 14px; color: var(--gris); margin: 6px 0 12px; line-height: 1.45; }
+  #corps-zone { width: 100%; min-height: 300px; font-size: 15px; line-height: 1.55;
+    font-family: inherit; padding: 14px; border: 1px solid var(--ligne); border-radius: 10px; resize: vertical; }
+  #corps-zone:focus { outline: none; border-color: var(--rouge); }
+  .corps-actions { display: flex; gap: 12px; margin-top: 14px; }
+  .corps-actions button { flex: 1; padding: 13px; }
 
   /* +30 % global demandé 17/08 (calendrier et popups compris) — desktop seulement,
      le mobile garde sa taille (déjà plein écran) */
@@ -194,6 +232,10 @@ html.cat-unlocked #cat-gate{display:none !important;}
       <b>Dernières invitations</b>
       <button onclick="fermerHisto()">Fermer</button>
     </div>
+    <div class="histo-onglets">
+      <button id="ong-histo" class="ong actif" onclick="voirOnglet('histo')">Historique</button>
+      <button id="ong-corb" class="ong" onclick="voirOnglet('corbeille')">Corbeille</button>
+    </div>
     <div id="histo-liste"></div>
   </div>
 </div>
@@ -237,6 +279,7 @@ html.cat-unlocked #cat-gate{display:none !important;}
 
     <div class="actions">
       <!-- Bouton Word retiré (18/08, demande Ethan) — telechargerWord() reste dispo pour le rebrancher -->
+      <button type="button" class="btn-modif" onclick="ouvrirCorps()">✎ Modifier</button>
       <button class="btn-pdf" onclick="telechargerPDF()"><svg viewBox="0 0 60 58.5" width="30" height="29" aria-hidden="true"><path d="M48.2 33.9C47 32.6 44.7 32 41.4 32c-1.8 0-3.7.2-5.5.5-1.2-1.1-2.2-2.4-3.2-3.7-.7-1-1.4-2-2-3.1 1-2.8 1.6-5.8 1.8-8.8 0-2.7-1.1-5.6-4.1-5.6-1 0-2 .6-2.5 1.5-1.3 2.2-.8 6.7 1.3 11.4-.7 2.1-1.5 4.2-2.4 6.5-.8 2-1.7 3.9-2.8 5.7-3.1 1.2-9.6 4.2-10.2 7.5-.2 1 .1 2 .9 2.6.7.6 1.7 1 2.7.9 3.9 0 7.8-5.4 10.5-10.1 1.5-.5 3-1 4.6-1.4 1.7-.4 3.3-.8 4.8-1.1 4.2 3.6 7.9 4.2 9.7 4.2 2.5 0 3.5-1.1 3.8-2 .4-1.1.2-2.3-.6-3.1zm-2.7 1.9c-.1.7-.9 1.2-1.9 1.2-.3 0-.6 0-.9-.1-2-.5-3.9-1.5-5.5-2.8 1.3-.2 2.7-.3 4-.3.9 0 1.8.1 2.7.2.9.2 1.9.6 1.6 1.8zM27.6 13.7c.2-.3.5-.5.9-.6 1 0 1.2 1.1 1.2 2.1-.1 2.3-.5 4.5-1.2 6.7-1.7-4.3-1.5-7.2-.9-8.2zm5.6 19.2c-1.1.2-2.2.5-3.3.8-.8.2-1.6.5-2.5.7.4-.9.8-1.8 1.2-2.6.5-1.1.9-2.2 1.3-3.3.4.6.7 1.1 1.1 1.6.7 1 1.5 1.9 2.2 2.8zm-12.1 5.8c-2.5 4-5 6.6-6.4 6.6-.2 0-.5-.1-.6-.2-.3-.2-.4-.6-.3-.9.2-1.5 3.1-3.6 7.3-5.5z" fill="#fff"/></svg>PDF</button>
     </div>
   </section>
@@ -253,6 +296,16 @@ html.cat-unlocked #cat-gate{display:none !important;}
       <span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span>
     </div>
     <div class="cal-grille" id="cal-grille"></div>
+  </div>
+</div>
+
+<div id="corps-fond" onclick="fermerCorps()">
+  <div class="corps-panneau" onclick="event.stopPropagation()">
+    <textarea id="corps-zone" spellcheck="false"></textarea>
+    <div class="corps-actions">
+      <button onclick="reinitCorps()">Réinitialiser</button>
+      <button class="principal" onclick="enregistrerCorps()">Enregistrer</button>
+    </div>
   </div>
 </div>
 
@@ -281,12 +334,19 @@ function poserDate(id, iso) {
 poserDate("date_courrier", isoLocale(new Date()));
 
 // ===== Calendrier maison (le popup natif est minuscule) =====
-let calChamp = null, calAnnee = 0, calMoisIdx = 0;
+let calChamp = null, calAnnee = 0, calMoisIdx = 0, calMode = "single", calDebut = "", calFin = "";
 const MOIS_FR = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
 
 function ouvrirCal(id) {
   calChamp = id;
-  const base = $(id).dataset.iso ? new Date($(id).dataset.iso + "T12:00:00") : new Date();
+  // Le séjour (début/fin) ouvre un sélecteur de PLAGE ; la date d'invitation reste un choix simple.
+  calMode = (id === "date_debut" || id === "date_fin") ? "range" : "single";
+  if (calMode === "range") {
+    calDebut = $("date_debut").dataset.iso || "";
+    calFin = $("date_fin").dataset.iso || "";
+  }
+  const ref = calMode === "range" ? calDebut : ($(id).dataset.iso || "");
+  const base = ref ? new Date(ref + "T12:00:00") : new Date();
   calAnnee = base.getFullYear();
   calMoisIdx = base.getMonth();
   dessinerCal();
@@ -308,18 +368,23 @@ function dessinerCal() {
   const debut = new Date(premier);
   debut.setDate(1 - ((premier.getDay() + 6) % 7)); // recule au lundi
   const auj = isoLocale(new Date());
-  const choisi = $(calChamp).dataset.iso || "";
+  const range = calMode === "range";
+  const choisi = range ? "" : ($(calChamp).dataset.iso || "");
   let html = "";
   for (let i = 0; i < 42; i++) {
     const d = new Date(debut);
     d.setDate(debut.getDate() + i);
     const iso = isoLocale(d);
+    const borne = range && (iso === calDebut || (calFin && iso === calFin));
+    const dansPlage = range && calDebut && calFin && iso > calDebut && iso < calFin;
     const cls = [
       d.getMonth() !== calMoisIdx ? "autre" : "",
       iso === auj ? "jour-actuel" : "",
-      iso === choisi ? "choisi" : "",
+      (iso === choisi || borne) ? "choisi" : "",
+      dansPlage ? "dans-plage" : "",
     ].filter(Boolean).join(" ");
-    html += `<button class="${cls}" onclick="choisirJour('${iso}')">${d.getDate()}</button>`;
+    const handler = range ? `choisirJourRange('${iso}')` : `choisirJour('${iso}')`;
+    html += `<button class="${cls}" onclick="${handler}">${d.getDate()}</button>`;
   }
   $("cal-grille").innerHTML = html;
 }
@@ -328,6 +393,22 @@ function choisirJour(iso) {
   poserDate(calChamp, iso);
   $(calChamp).classList.remove("err");
   fermerCal();
+}
+
+// Sélection d'un séjour : 1er clic = début, 2e clic (après) = fin, sans quitter le calendrier.
+function choisirJourRange(iso) {
+  // Pas encore de début, ou plage déjà complète -> on (re)démarre une plage.
+  if (!calDebut || calFin) { calDebut = iso; calFin = ""; dessinerCal(); return; }
+  // Clic avant/le même jour que le début -> on repart de ce jour.
+  if (iso <= calDebut) { calDebut = iso; calFin = ""; dessinerCal(); return; }
+  // Début posé + clic après -> on valide la fin et on écrit les deux champs.
+  calFin = iso;
+  poserDate("date_debut", calDebut);
+  poserDate("date_fin", calFin);
+  $("date_debut").classList.remove("err");
+  $("date_fin").classList.remove("err");
+  dessinerCal();               // laisse voir la plage remplie…
+  setTimeout(fermerCal, 200);  // …puis ferme
 }
 
 function donnees() {
@@ -370,7 +451,34 @@ const HISTO_CLE = "invitations_histo";
 const HISTO_URL = "https://bvcgpdoukhcatjibmvnb.supabase.co/rest/v1/invitations_histo";
 const HISTO_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2Y2dwZG91a2hjYXRqaWJtdm5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNzg5MjgsImV4cCI6MjA4Nzg1NDkyOH0.Ip3ykSUS9sajTH04yXBerOG1haBKMD1kAvMQNjnGL1Q";
 const HISTO_HDR = { apikey: HISTO_KEY, Authorization: "Bearer " + HISTO_KEY, "Content-Type": "application/json" };
-let _histoCache = [];
+// Corbeille PARTAGÉE : flag `supprime` dans Supabase (soft-delete, réversible).
+// Repli localStorage seulement si hors ligne.
+let _histoCache = [], _corbeilleCache = [], _ongletActuel = "histo";
+const CORBEILLE_CLE = "invitations_corbeille";
+const TRASH_SVG = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m3 0v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6"/><path d="M10 11v6M14 11v6"/></svg>';
+function histoKey(e) { return String(e.id ?? e.created_at ?? e.quand ?? ""); }
+function lireCorbeille() { try { return JSON.parse(localStorage.getItem(CORBEILLE_CLE) || "[]"); } catch { return []; } }
+function ecrireCorbeille(arr) { localStorage.setItem(CORBEILLE_CLE, JSON.stringify(arr.slice(0, 100))); }
+
+// Bascule le flag supprime d'une ligne (id) côté Supabase.
+function patchSupprime(id, val) {
+  return fetch(`${HISTO_URL}?id=eq.${id}`, {
+    method: "PATCH",
+    headers: { ...HISTO_HDR, Prefer: "return=minimal" },
+    body: JSON.stringify({ supprime: val }),
+  });
+}
+
+// Liste active (supprime=false) ou corbeille (supprime=true) ; repli local hors ligne.
+async function fetchHisto(corbeille) {
+  try {
+    const r = await fetch(`${HISTO_URL}?select=*&supprime=eq.${corbeille}&order=created_at.desc&limit=50`, { headers: HISTO_HDR });
+    if (!r.ok) throw 0;
+    return (await r.json()).map(e => ({ ...e, quand: Date.parse(e.created_at) }));
+  } catch {
+    return corbeille ? lireCorbeille() : JSON.parse(localStorage.getItem(HISTO_CLE) || "[]");
+  }
+}
 
 function enregistrerHisto(type) {
   const entree = {
@@ -400,29 +508,52 @@ function esc(s) {
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
-async function ouvrirHisto() {
-  let histo;
-  try {
-    const r = await fetch(`${HISTO_URL}?select=*&order=created_at.desc&limit=30`, { headers: HISTO_HDR });
-    if (!r.ok) throw 0;
-    histo = (await r.json()).map(e => ({ ...e, quand: Date.parse(e.created_at) }));
-  } catch {
-    histo = JSON.parse(localStorage.getItem(HISTO_CLE) || "[]"); // hors ligne
-  }
-  _histoCache = histo;
-  const liste = $("histo-liste");
-  if (!histo.length) {
-    liste.innerHTML = '<p class="histo-vide">Aucune invitation générée pour l\'instant.</p>';
-  } else {
-    liste.innerHTML = histo.map((e, i) => {
-      const q = new Date(e.quand).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
-      return `<div class="histo-item" onclick="reprendreHisto(${i})">` +
-        `<b>${esc(e.civilite)} ${esc(e.prenom)} ${esc(e.nom.toUpperCase())}</b> — ${esc(e.societe.toUpperCase())}<br>` +
-        `Séjour du ${frDate(e.date_debut)} au ${frDate(e.date_fin)}` +
-        `<div class="quand">${e.type.toUpperCase()} généré le ${q} — cliquer pour recharger</div></div>`;
-    }).join("");
-  }
+function ouvrirHisto() {
   $("histo-fond").classList.add("ouvert");
+  voirOnglet(_ongletActuel);
+}
+
+function ligneHisto(e, i, corbeille) {
+  const info =
+    `<b>${esc(e.civilite)} ${esc(e.prenom)} ${esc((e.nom || "").toUpperCase())}</b> — ${esc((e.societe || "").toUpperCase())}<br>` +
+    `Séjour du ${frDate(e.date_debut)} au ${frDate(e.date_fin)}`;
+  if (corbeille) {
+    return `<div class="histo-item"><div class="histo-corps histo-off">${info}</div>` +
+      `<button class="histo-restaurer" onclick="restaurerHisto(${i})">Restaurer</button></div>`;
+  }
+  return `<div class="histo-item"><div class="histo-corps" onclick="reprendreHisto(${i})">${info}</div>` +
+    `<button class="histo-suppr" title="Supprimer" onclick="supprimerHisto(${i})">${TRASH_SVG}</button></div>`;
+}
+
+async function voirOnglet(which) {
+  _ongletActuel = which;
+  $("ong-histo").classList.toggle("actif", which === "histo");
+  $("ong-corb").classList.toggle("actif", which === "corbeille");
+  const liste = $("histo-liste");
+  const corbeille = which === "corbeille";
+  liste.innerHTML = '<p class="histo-vide">…</p>';
+  const data = await fetchHisto(corbeille);
+  if (_ongletActuel !== which) return; // l'onglet a changé entre-temps
+  if (corbeille) _corbeilleCache = data; else _histoCache = data;
+  liste.innerHTML = data.length
+    ? data.map((e, i) => ligneHisto(e, i, corbeille)).join("")
+    : `<p class="histo-vide">${corbeille ? "Corbeille vide." : "Aucune invitation générée pour l'instant."}</p>`;
+}
+
+async function supprimerHisto(i) {
+  const e = _histoCache[i];
+  if (!e) return;
+  if (e.id) { try { await patchSupprime(e.id, true); } catch {} }
+  else { const c = lireCorbeille(); c.unshift(e); ecrireCorbeille(c); } // repli hors ligne
+  voirOnglet("histo");
+}
+
+async function restaurerHisto(i) {
+  const e = _corbeilleCache[i];
+  if (!e) return;
+  if (e.id) { try { await patchSupprime(e.id, false); } catch {} }
+  else { ecrireCorbeille(lireCorbeille().filter(x => histoKey(x) !== histoKey(e))); } // repli hors ligne
+  voirOnglet("corbeille");
 }
 
 function fermerHisto() { $("histo-fond").classList.remove("ouvert"); }
@@ -534,6 +665,54 @@ async function imageBase64(url) {
   });
 }
 
+// ===== Texte de la lettre, éditable (mémorisé en local, réinitialisable) =====
+// Les paragraphes sont séparés par une ligne vide ; {champ} est remplacé par donnees()[champ].
+const CORPS_DEFAUT = [
+  `{salutation},`,
+  `À la suite des commandes déjà confirmées pour cette année, nous vous confirmons que selon notre programme de commandes prévues, les livraisons se feront en plusieurs fois, {conteneurs} conteneurs par mois en moyenne.`,
+  `Nous vous invitons en nos bureaux afin de discuter des conditions de chargement et de paiement, pour un séjour du {date_debut} au {date_fin}.`,
+  `Nous nous engageons à prendre en charge les frais d’hébergement et de restauration de {civilite} {prenom} {nom}.`,
+  `Dans cette attente, veuillez agréer l’expression de nos salutations distinguées.`,
+].join("\n\n");
+// Texte personnalisé UNIQUEMENT pour la lettre en cours (en mémoire) :
+// on repart toujours du modèle par défaut après un rechargement de la page.
+let _corpsPerso = null;
+try { localStorage.removeItem("invitations_corps"); } catch (e) {} // purge d'anciens textes enregistrés
+
+// Remplace les {champs} par les infos saisies ; laisse le {champ} tel quel si vide.
+function substituerInfos(txt) {
+  const d = donnees();
+  return txt.replace(/\{(\w+)\}/g, (m, k) => (k in d && String(d[k]).trim() ? d[k] : m));
+}
+
+// Texte affiché/imprimé : version en cours si modifiée, sinon le modèle rempli.
+function corpsTemplate() {
+  return _corpsPerso != null ? _corpsPerso : substituerInfos(CORPS_DEFAUT);
+}
+
+// Paragraphes prêts à imprimer : découpés sur les lignes vides, {champs} restants substitués.
+function corpsParas(d) {
+  return corpsTemplate()
+    .split(/\n\s*\n/)
+    .map(p => p.replace(/[ \t]*\n[ \t]*/g, " ").trim())
+    .filter(Boolean)
+    .map(p => p.replace(/\{(\w+)\}/g, (m, k) => (k in d ? d[k] : m)));
+}
+
+function ouvrirCorps() {
+  $("corps-zone").value = corpsTemplate();
+  $("corps-fond").classList.add("ouvert");
+}
+function fermerCorps() { $("corps-fond").classList.remove("ouvert"); }
+
+function reinitCorps() { _corpsPerso = null; $("corps-zone").value = substituerInfos(CORPS_DEFAUT); }
+
+function enregistrerCorps() {
+  const v = $("corps-zone").value.trim();
+  _corpsPerso = (!v || v === substituerInfos(CORPS_DEFAUT).trim()) ? null : v;
+  fermerCorps();
+}
+
 // Lettre PDF vectorielle — en-tête façon PROFORMA (logo à gauche + bloc société),
 // corps justifié, titre « Invitation Professionnelle » (A4, marges 25 mm)
 async function construireLettrePDF(d) {
@@ -581,13 +760,7 @@ async function construireLettrePDF(d) {
   doc.setFont("times", "normal"); doc.setFontSize(12 * K); doc.setTextColor(...ENCRE);
   const lhCorps = 12 * K * 0.3527 * 1.2;
   let y = yt + 13;
-  const paras = [
-    `${d.salutation},`,
-    `À la suite des commandes déjà confirmées pour cette année, nous vous confirmons que selon notre programme de commandes prévues, les livraisons se feront en plusieurs fois, ${d.conteneurs} conteneurs par mois en moyenne.`,
-    `Nous vous invitons en nos bureaux afin de discuter des conditions de chargement et de paiement, pour un séjour du ${d.date_debut} au ${d.date_fin}.`,
-    `Nous nous engageons à prendre en charge les frais d’hébergement et de restauration de ${d.civilite} ${d.prenom} ${d.nom}.`,
-    `Dans cette attente, veuillez agréer l’expression de nos salutations distinguées.`,
-  ];
+  const paras = corpsParas(d);
   for (const p of paras) {
     const n = doc.splitTextToSize(p, W).length;
     doc.text(p, M, y, { maxWidth: W, align: "justify", lineHeightFactor: 1.2 });
