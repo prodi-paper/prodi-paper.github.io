@@ -15,3 +15,13 @@ Screen*.png
 SECURITY_FIX_PROMPT.md
 ARCHITECTURE.pdf
 .vercel
+
+# Docs internes + SQL + artefacts data : JAMAIS sur ce repo (public).
+# Purge historique faite le 24/08/2026 (git filter-repo) — ne pas re-tracker.
+CLAUDE.md
+ARCHITECTURE.md
+SECURITY_FIXES.md
+supabase_*.sql
+intelligence/offres.json
+scripts/preview_products.json
+.venv-poc/

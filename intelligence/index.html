@@ -6,8 +6,11 @@
 <meta name="robots" content="noindex,nofollow">
 <title>Offres Intelligence — Prodi</title>
 <!-- Source de travail : ~/Code/prodi_verite/v2.html (copie adaptée à la main, comme /invitation/).
-     Différences en ligne : porte code PRODI2026 + fichiers offres/ NON déployés (repo public)
-     → lignes d'offres affichées sans lien de téléchargement. -->
+     Différences en ligne (24/08) : porte validée CÔTÉ SERVEUR (Edge Function `offres`,
+     secret OFFRES_CODE — le code n'est PAS dans cette page) ; index + fichiers servis
+     depuis le bucket Supabase PRIVÉ `offres` (liens signés 1h). Rien de sensible dans
+     le repo public. Rafraîchir les données : build_index.py PUIS upload_supabase.py
+     dans ~/Code/prodi_verite (plus de copie d'offres.json ici). -->
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
 :root{--ink:#222;--g2:#6e6e73;--bg:#f5f5f7;--border:#EBEBEB;--red:#FE0000;--green:#1d7a2e;--blue:#1d4fa8;
@@ -73,10 +76,12 @@ header{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.92);border
 </head>
 <body>
 
-<!-- ── PORTE CODE D'ACCÈS (même mécanique que /catalogue/ et /invitation/ : localStorage
-     'prodi_cat_ok' partagé — déjà validé ailleurs = pas de re-saisie.
-     Code = constante PWD ci-dessous (garder SYNCHRO : vitrine.js + catalogue + invitation). -->
-<script>(function(){try{if(localStorage.getItem('prodi_cat_ok')==='1')document.documentElement.classList.add('cat-unlocked');}catch(e){document.documentElement.classList.add('cat-unlocked');}})();</script>
+<!-- ── PORTE CODE D'ACCÈS validée CÔTÉ SERVEUR (Edge Function `offres`, secret
+     OFFRES_CODE) : le code n'apparaît PAS dans cette page. Le code saisi est
+     mémorisé (localStorage 'prodi_offres_code') car chaque appel API (index,
+     liens signés) le renvoie. prodi_cat_ok posé aussi (compat autres pages),
+     mais ici il ne suffit PAS : il faut le code lui-même. -->
+<script>(function(){try{if(localStorage.getItem('prodi_offres_code'))document.documentElement.classList.add('cat-unlocked');}catch(e){}})();</script>
 <style>
 #cat-gate{position:fixed;inset:0;z-index:100000;background:#F5F3EE;display:flex;align-items:center;justify-content:center;padding:24px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
 html.cat-unlocked #cat-gate{display:none !important;}
@@ -107,16 +112,32 @@ html.cat-unlocked #cat-gate{display:none !important;}
 </div>
 <script>
 (function(){
-  var PWD='PRODI2026'; /* ← même code que catalogue/vitrine/invitation — changer les 4 ensemble */
-  if(document.documentElement.classList.contains('cat-unlocked'))return;
+  window._OFFRES_API='https://bvcgpdoukhcatjibmvnb.supabase.co/functions/v1/offres';
+  try{window._OFFRES_CODE=localStorage.getItem('prodi_offres_code')||'';}catch(e){window._OFFRES_CODE='';}
+  /* pas d'early return si déjà déverrouillé : la porte doit rester câblée pour
+     réapparaître si le code mémorisé est périmé (rotation côté serveur) */
   function boot(){
     var g=document.getElementById('cat-gate'),f=document.getElementById('cat-gate-form'),i=document.getElementById('cat-gate-input'),err=document.getElementById('cat-gate-err');
     if(!f)return;
     setTimeout(function(){try{i.focus();}catch(e){}},60);
     f.addEventListener('submit',function(e){
       e.preventDefault();
-      if(i.value.trim()===PWD){try{localStorage.setItem('prodi_cat_ok','1');}catch(e){}document.documentElement.classList.add('cat-unlocked');}
-      else{err.textContent='Code incorrect';var card=g.querySelector('.cat-gate-card');card.classList.remove('cat-gate-shake');void card.offsetWidth;card.classList.add('cat-gate-shake');i.select();}
+      var code=i.value.trim();if(!code)return;
+      err.textContent='Vérification…';
+      fetch(window._OFFRES_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:code,action:'check'})})
+        .then(function(r){return r.json();})
+        .then(function(d){
+          if(d&&d.ok){
+            window._OFFRES_CODE=code;err.textContent='';
+            try{localStorage.setItem('prodi_offres_code',code);localStorage.setItem('prodi_cat_ok','1');}catch(e){}
+            document.documentElement.classList.add('cat-unlocked');
+            if(window._chargerDonnees)window._chargerDonnees();
+          }else{
+            err.textContent='Code incorrect';
+            var card=g.querySelector('.cat-gate-card');card.classList.remove('cat-gate-shake');void card.offsetWidth;card.classList.add('cat-gate-shake');i.select();
+          }
+        })
+        .catch(function(){err.textContent='Erreur réseau — réessayez';});
     });
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
@@ -180,8 +201,9 @@ const euro=n=>Number(n).toLocaleString('fr-FR');
 const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const href=p=>(p||'').split('/').map(encodeURIComponent).join('/');
 const dateFr=d=>{const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(d||'');return m?m[3]+'/'+m[2]+'/'+m[1]:(d||'');};
-/* les fichiers offres/ ne sont PAS poussés sur le repo public : téléchargement
-   actif seulement en local (serveur du Mac, ~/Code/prodi_verite) */
+/* Les fichiers offres/ ne sont PAS dans le repo public : en local ils sont servis
+   par le serveur du Mac (~/Code/prodi_verite) ; EN LIGNE ils vivent dans le bucket
+   Supabase privé `offres` — index et liens signés via l'Edge Function (code requis). */
 const FICHIERS_DISPO=['localhost','127.0.0.1'].includes(location.hostname);
 /* offre affichée = "OFFRE" dans le nom + moins de 6 mois (recalculé chaque jour) */
 const CUT=(d=>{d.setDate(d.getDate()-183);return d.toISOString().slice(0,10);})(new Date());
@@ -193,7 +215,21 @@ const EXCLUS=['RAMETTES COULEUR A4 ET A3 DU 28 04 26','RAMETTES COULEUR FICHIER 
 const estExclu=n=>EXCLUS.some(x=>n.replace(/\s+/g,' ').includes(x.replace(/\s+/g,' ')));
 const estOffre=f=>/offre/i.test(f.nom)&&(f.date||'')>=CUT&&!INTERNE.test(f.nom)&&!estExclu(f.nom);
 
-fetch('offres.json',{cache:'no-store'}).then(r=>r.json()).then(d=>{DATA=d;buildGrid();});
+function _chargerDonnees(){
+  if(FICHIERS_DISPO){fetch('offres.json',{cache:'no-store'}).then(r=>r.json()).then(d=>{DATA=d;buildGrid();});return;}
+  if(!window._OFFRES_CODE)return; /* porte affichée — rappelé après validation */
+  fetch(window._OFFRES_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:window._OFFRES_CODE,action:'index'})})
+    .then(r=>{if(!r.ok)throw r.status;return r.json();})
+    .then(d=>{DATA=d;buildGrid();})
+    .catch(st=>{
+      if(st===403){/* code mémorisé périmé (rotation serveur) → re-porte */
+        window._OFFRES_CODE='';try{localStorage.removeItem('prodi_offres_code');}catch(e){}
+        document.documentElement.classList.remove('cat-unlocked');
+      }
+    });
+}
+window._chargerDonnees=_chargerDonnees;
+_chargerDonnees();
 
 /* ── Recherche + grille ── */
 const elM=document.getElementById('metiers');
@@ -294,8 +330,9 @@ function render(){
         +(pn.cond?'<span class="chip cd">'+esc(pn.cond)+'</span>':'')
         +'<span class="olp">'+(p?p+' €/T':'—')+'</span>'
         +'<span class="old">'+dateFr(f.date)+'</span>';
-      if(!FICHIERS_DISPO)return '<div class="ol ol-nolien" title="'+esc(f.nom)+'">'+corps+'</div>';
-      return '<a class="ol" href="'+href(f.fichier)+'" download="'+esc(f.nom)+'" rel="noopener" title="'+esc(f.nom)+'">'+corps+'</a>';};
+      if(FICHIERS_DISPO)return '<a class="ol" href="'+href(f.fichier)+'" download="'+esc(f.nom)+'" rel="noopener" title="'+esc(f.nom)+'">'+corps+'</a>';
+      if(f.key)return '<a class="ol" href="#" data-key="'+esc(f.key)+'" data-nom="'+esc(f.nom)+'" title="'+esc(f.nom)+'">'+corps+'</a>';
+      return '<div class="ol ol-nolien" title="'+esc(f.nom)+'">'+corps+'</div>';};
     /* regroupe par usine/réf (même source collée ensemble), groupes ordonnés par meilleur prix */
     const cle=n=>{let m=/REF\s*(?:EUROPE|USA?)?\s*\.?\s*(\d+)/i.exec(n);if(m)return 'REF '+m[1];
       m=/USINE\s+([A-Z0-9+]+)/i.exec(n);if(m)return 'USINE '+m[1];return 'zzz';};
@@ -310,7 +347,21 @@ function render(){
     if(fab.length){h+='<div class="sub-h sh-fab">Fabrication sur commande</div>';fab.forEach(x=>h+=ligne(x));}
     h+='</div>';
     grp.innerHTML=h;
-    grp.querySelectorAll('a.ol').forEach(a=>a.addEventListener('click',()=>{
+    grp.querySelectorAll('a.ol').forEach(a=>a.addEventListener('click',e=>{
+      if(a.dataset.key){ /* en ligne : lien signé 1h via l'Edge Function */
+        e.preventDefault();
+        if(a.querySelector('.dlok'))return;
+        const s=document.createElement('span');s.className='dlok';s.textContent='Préparation…';a.appendChild(s);
+        fetch(window._OFFRES_API,{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({code:window._OFFRES_CODE,action:'sign',key:a.dataset.key,nom:a.dataset.nom||''})})
+          .then(r=>r.json()).then(d=>{
+            if(!d||!d.url)throw 0;
+            s.textContent='✓ Téléchargé';
+            window.location.href=d.url; /* Content-Disposition attachment → télécharge sans quitter la page */
+            setTimeout(()=>s.remove(),2200);
+          }).catch(()=>{s.textContent='Erreur — réessayez';setTimeout(()=>s.remove(),2600);});
+        return;
+      }
       if(a.querySelector('.dlok'))return;
       const s=document.createElement('span');s.className='dlok';s.textContent='✓ Téléchargé';
       a.appendChild(s);setTimeout(()=>s.remove(),2200);}));
