@@ -1555,8 +1555,14 @@ function _msdRestoreAll(){
   const bg=document.getElementById('msd-sheet-bg'); if(bg)bg.remove();
 }
 function toggleMsd(id) {
-  const panel = document.querySelector(`#${id} .msd-panel`);
+  // Panneau OUVERT = reparenté vers <body> par _msdReparentOpen (fix Safari 20/08)
+  // → il n'est plus dans #id et le sélecteur direct le rate : re-clic sur le
+  // bouton plantait (panel null) et le menu ne se refermait jamais. On le
+  // retrouve via son ancre _msdHome.
+  let panel = document.querySelector(`#${id} .msd-panel`);
+  if(!panel) panel = [...document.querySelectorAll('.msd-panel')].find(p=>p._msdHome&&p._msdHome.p&&p._msdHome.p.closest(`#${id}`))||null;
   const btn = document.querySelector(`#${id} .msd-btn`);
+  if(!panel||!btn) return;
   const isOpen = panel.classList.contains('show');
   // Position fixed panel under button
   if(!isOpen){
