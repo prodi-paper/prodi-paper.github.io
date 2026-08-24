@@ -2,5 +2,6 @@ User-agent: *
 Allow: /
 Disallow: /catalogue/
 Disallow: /invitation/
+Disallow: /intelligence/
 
 Sitemap: https://paper.prodi.com/sitemap.xml

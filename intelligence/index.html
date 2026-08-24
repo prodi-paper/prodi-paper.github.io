@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Offres Intelligence — Prodi</title>
+<!-- Source de travail : ~/Code/prodi_verite/v2.html (copie adaptée à la main, comme /invitation/).
+     Différences en ligne : porte code PRODI2026 + fichiers offres/ NON déployés (repo public)
+     → lignes d'offres affichées sans lien de téléchargement. -->
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#222;--g2:#6e6e73;--bg:#f5f5f7;--border:#EBEBEB;--red:#FE0000;--green:#1d7a2e;--blue:#1d4fa8;
+  --shadow:0 1px 8px rgba(0,0,0,.06);--gab:min(1515px,100vw - 32px);}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--ink);}
+header{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.92);border-bottom:1px solid var(--border);box-shadow:var(--shadow);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
+.header-inner{max-width:var(--gab);margin:0 auto;height:64px;display:flex;align-items:center;gap:15px;padding:0 26px;}
+.header-inner img{height:40px;width:auto;display:block;}
+.header-inner .htitre{font-family:'Bebas Neue',sans-serif;font-size:31px;letter-spacing:1.3px;margin-left:2px;padding-top:3px;}
+/* Bouton façon Apple : pilule bleue #0071e3, typo légère, transitions douces */
+.hcat{margin-left:auto;text-decoration:none;background:#0071e3;color:#fff;font-weight:600;font-size:15px;letter-spacing:.1px;padding:9px 19px;border-radius:980px;white-space:nowrap;transition:background .18s ease,transform .12s ease,box-shadow .18s ease;}
+.hcat:hover{background:#0077ed;box-shadow:0 4px 14px rgba(0,113,227,.35);}
+.hcat:active{transform:scale(.97);background:#006edb;}
+.hcat::after{content:' ›';font-weight:600;}
+.wrap{max-width:var(--gab);margin:0 auto;padding:22px 26px 90px;}
+.card{border:1px solid rgba(0,0,0,.05);border-radius:14px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.10);}
+.count{font-size:14px;color:var(--g2);font-weight:600;margin-left:8px;text-transform:none;letter-spacing:0;}
+
+
+/* ── Grille métiers ── */
+.seg-t{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;color:var(--ink);display:flex;align-items:center;gap:9px;padding:0 0 9px;border-bottom:2px solid var(--ink);margin:34px 0 12px;}
+#metiers .seg-t:first-child{margin-top:6px;}
+.seg-t span{font-size:25px;}
+.seg-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
+.mcard{padding:18px 20px;cursor:pointer;display:flex;align-items:center;gap:13px;font-weight:700;font-size:18px;line-height:1.18;user-select:none;min-height:68px;}
+.mcard:hover{background:#fafafa;}
+.mcard.on{background:#222;color:#fff;}
+.mcard .emo{font-size:28px;flex:none;}
+
+
+/* ── Popup panier ── */
+.group{margin-top:24px;}
+.group:first-child{margin-top:0;}
+.modal{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.45);display:flex;align-items:flex-start;justify-content:center;padding:34px 16px;overflow-y:auto;}
+.modal[hidden]{display:none;}
+.modal-panel{position:relative;background:var(--bg);border-radius:18px;max-width:1200px;width:100%;padding:18px 26px 30px;box-shadow:0 24px 70px rgba(0,0,0,.35);}
+.modal-x{position:absolute;top:14px;right:16px;border:none;background:#e6e6e9;border-radius:999px;width:40px;height:40px;font-size:18px;cursor:pointer;color:var(--ink);z-index:5;}
+.modal-x:hover{background:#dcdce0;}
+.grp-h{display:flex;align-items:center;gap:10px;font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:.8px;padding-bottom:8px;padding-right:52px;border-bottom:2px solid var(--ink);margin-bottom:14px;}
+.grp-h .grp-emo{font-size:24px;}
+/* ── Offres ── */
+.docs-body{margin-top:6px;}
+.ol{display:flex;align-items:center;gap:10px;padding:11px 6px;border-top:1px dashed #e4e4e8;text-decoration:none;color:var(--ink);cursor:pointer;border-radius:8px;}
+.ol:hover{background:#f2f2f4;}
+.ol:hover .oln{text-decoration:underline;}
+.ol .oln{flex:0 1 auto;min-width:0;font-size:17.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ol .olp{margin-left:auto;font-weight:800;font-size:18px;color:var(--green);white-space:nowrap;}
+.ol .old{font-size:15.5px;font-weight:800;color:var(--ink);white-space:nowrap;min-width:104px;text-align:right;}
+.ol .dlok{color:var(--green);font-weight:800;font-size:13px;white-space:nowrap;}
+.ol .chip{flex:none;font-size:13px;font-weight:800;letter-spacing:.3px;border-radius:8px;padding:4px 10px;background:#ececef;color:#555;min-width:86px;text-align:center;}
+.ol .chip.cd{background:#222;color:#fff;min-width:0;}
+/* en ligne : pas de fichier à télécharger — ligne informative, pas un lien */
+.ol.ol-nolien{cursor:default;}
+.ol.ol-nolien:hover .oln{text-decoration:none;}
+.sub-h{font-size:15px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;margin:16px 0 4px;padding-bottom:5px;border-bottom:1px solid var(--border);}
+.sub-h:first-child{margin-top:2px;}
+.sh-stock{color:var(--green);}
+.sh-fab{color:var(--blue);}
+.sub-h+.ol{border-top:none;}
+.nodoc{margin-top:12px;font-size:13.5px;color:var(--g2);font-weight:600;}
+</style>
+</head>
+<body>
+
+<!-- ── PORTE CODE D'ACCÈS (même mécanique que /catalogue/ et /invitation/ : localStorage
+     'prodi_cat_ok' partagé — déjà validé ailleurs = pas de re-saisie.
+     Code = constante PWD ci-dessous (garder SYNCHRO : vitrine.js + catalogue + invitation). -->
+<script>(function(){try{if(localStorage.getItem('prodi_cat_ok')==='1')document.documentElement.classList.add('cat-unlocked');}catch(e){document.documentElement.classList.add('cat-unlocked');}})();</script>
+<style>
+#cat-gate{position:fixed;inset:0;z-index:100000;background:#F5F3EE;display:flex;align-items:center;justify-content:center;padding:24px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
+html.cat-unlocked #cat-gate{display:none !important;}
+.cat-gate-card{background:#fff;border-radius:20px;box-shadow:0 16px 44px rgba(0,0,0,.16);padding:38px 34px 28px;width:100%;max-width:370px;text-align:center;box-sizing:border-box;}
+.cat-gate-logo{height:32px;margin-bottom:16px;}
+.cat-gate-t{font-size:22px;font-weight:800;color:#1d1d1f;letter-spacing:-.3px;}
+.cat-gate-s{font-size:13.5px;color:#86868b;margin:7px 0 20px;line-height:1.4;}
+#cat-gate-form{display:flex;flex-direction:column;gap:10px;}
+#cat-gate-input{height:46px;border:1.5px solid #e0e0e5;border-radius:12px;padding:0 16px;font-size:16px;outline:none;box-sizing:border-box;text-align:center;}
+#cat-gate-input:focus{border-color:#1d1d1f;}
+#cat-gate-form button{height:46px;border:none;border-radius:12px;background:#1d1d1f;color:#fff;font-size:16px;font-weight:700;cursor:pointer;}
+#cat-gate-form button:active{transform:scale(.98);}
+.cat-gate-err{color:#FE0000;font-size:13px;font-weight:600;min-height:17px;margin-top:11px;}
+.cat-gate-shake{animation:catShake .34s;}
+@keyframes catShake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+</style>
+<div id="cat-gate">
+  <div class="cat-gate-card">
+    <img src="logo.png" alt="Prodiconseil" class="cat-gate-logo">
+    <div class="cat-gate-t">Accès réservé</div>
+    <div class="cat-gate-s">Outil interne Prodiconseil.<br>Entrez le code d'accès pour continuer.</div>
+    <form id="cat-gate-form" autocomplete="off">
+      <input type="password" id="cat-gate-input" placeholder="Code d'accès" autocomplete="off" spellcheck="false">
+      <button type="submit">Confirmer</button>
+    </form>
+    <div class="cat-gate-err" id="cat-gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){
+  var PWD='PRODI2026'; /* ← même code que catalogue/vitrine/invitation — changer les 4 ensemble */
+  if(document.documentElement.classList.contains('cat-unlocked'))return;
+  function boot(){
+    var g=document.getElementById('cat-gate'),f=document.getElementById('cat-gate-form'),i=document.getElementById('cat-gate-input'),err=document.getElementById('cat-gate-err');
+    if(!f)return;
+    setTimeout(function(){try{i.focus();}catch(e){}},60);
+    f.addEventListener('submit',function(e){
+      e.preventDefault();
+      if(i.value.trim()===PWD){try{localStorage.setItem('prodi_cat_ok','1');}catch(e){}document.documentElement.classList.add('cat-unlocked');}
+      else{err.textContent='Code incorrect';var card=g.querySelector('.cat-gate-card');card.classList.remove('cat-gate-shake');void card.offsetWidth;card.classList.add('cat-gate-shake');i.select();}
+    });
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})();
+</script>
+
+<script>
+(function(){function fit(){var z=Math.max(1,Math.min(window.innerWidth/1550,window.innerHeight/860,1.6));document.body.style.zoom=z>1.01?z:'';}fit();window.addEventListener('resize',fit);})();
+</script>
+<header>
+  <div class="header-inner">
+    <img src="logo.png" alt="Prodiconseil">
+    <span class="htitre">OFFRES INTELLIGENCE</span>
+    <a class="hcat" href="https://paper.prodi.com/catalogue/" target="_blank" rel="noopener">Catalogue</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div id="metiers"></div>
+</div>
+
+<div id="modal" class="modal" hidden>
+  <div class="modal-panel">
+    <button class="modal-x" id="modal-x" aria-label="Fermer">✕</button>
+    <div id="resultats"></div>
+  </div>
+</div>
+
+<script>
+/* Métiers enrichis : chaque besoin a un nom "vente" (langage client) + un usage
+   (le produit fini du client, utilisé dans la phrase « À dire au client »).
+   c = codes qualité (stock) ; g = fenêtre grammage ; inc/exc = mots-clés offres.
+   kw = synonymes pour la recherche. */
+/* Une case = un périmètre d'offres EXCLUSIF : chaque dossier Dropbox est
+   attribué à LA PREMIÈRE case qui matche (ordre du tableau = priorité).
+   => une offre n'apparaît jamais dans deux cases. */
+const METIERS=[
+ /* ═══ IMPRIMEUR ═══ */
+ {id:'ramettes',seg:'Imprimeur',emo:'📄',nom:'Ramette A3/A4',inc:['RAMETTES']},
+ {id:'offset',seg:'Imprimeur',emo:'📓',nom:'Cahiers & offset',inc:['OFFSET']},
+ {id:'couche',seg:'Imprimeur',emo:'🖨️',nom:'Couché & bristol',inc:['COUCHE 2']},
+ {id:'livres_tech',seg:'Imprimeur',emo:'📚',nom:'Livres',inc:['BOUFFANT','MINCE','BIBLE','CALQUE','SECURITE','FILTRE','CIGARETTE','DESSIN','MASQUE']},
+ {id:'magazines',seg:'Imprimeur',emo:'📖',nom:'Magazines & journaux',inc:['LWC','JOURNAL']},
+ {id:'etiquettes',seg:'Imprimeur',emo:'🏷️',nom:'Étiquettes',inc:['COUCHE 1 ?FACE','ETIQUETTE','ADHESIF','GLASSINE','SILICONE']},
+ {id:'tickets',seg:'Imprimeur',emo:'🧾',nom:'Ticket thermique',inc:['THERMIQUE','AUTOCOPIANT']},
+ {id:'papeterie',seg:'Imprimeur',emo:'🎨',nom:'Impression couleur',inc:['CADEAU','PAPETERIE','DOSSIER','COULEUR']},
+ /* ═══ TRANSFORMATEUR ═══ */
+ {id:'gras',seg:'Transformateur',emo:'🍟',nom:'Emballage gras & cuisson',inc:['INGRAISSABLE','SULFURISE','CUISSON','ALIMENTAIRE','VIENNOISERIES']},
+ {id:'complexes',seg:'Transformateur',emo:'🍫',nom:'Complexes, alu & transparent',inc:['COMPLEXE','^PAPIER ALU','METALISE','FILM','CRISTAL']},
+ {id:'thermo',seg:'Transformateur',emo:'🍬',nom:'Sachets sucre & thermo',inc:['THERMO SOUDABLE','SUCRE']},
+ {id:'sacs_kraft',seg:'Transformateur',emo:'🛍️',nom:'Sacs papier',inc:['SACS KRAFT','^KRAFT$','PAPIER KRAFT'],exc:['LINER']},
+ {id:'sacs_ciment',seg:'Transformateur',emo:'🏗️',nom:'Sacs industriels & ciment',inc:['SEMI-EXTENSIBLE'],exc:['LINER']},
+ {id:'gobelets',seg:'Transformateur',emo:'🥤',nom:'Gobelets & barquettes',inc:['GOBELET','GROS GRAMMAGE']},
+ {id:'etuis',seg:'Transformateur',emo:'📦',nom:'Boîtes pliantes & étuis',inc:['GD2','SBS','TRIPLEX','^CARTON$']},
+ {id:'pizza',seg:'Transformateur',emo:'🍕',nom:'Boîtes pizza',inc:['PIZZA','CKB']},
+ {id:'caisses',seg:'Transformateur',emo:'🗃️',nom:'Caisses & ondulé',inc:['KRAFTLINER','KRAFT LINER','TESTLINER','FLUTING','CANNELURE']},
+ {id:'luxe',seg:'Transformateur',emo:'✨',nom:'Emballage luxe & prestige',inc:['LUXE','CHROMOLUX','CARTE PARFUM']}];
+let DATA={offres:[],stock:[]},metSel=new Set();
+const norm=s=>s.normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase();
+const euro=n=>Number(n).toLocaleString('fr-FR');
+const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const href=p=>(p||'').split('/').map(encodeURIComponent).join('/');
+const dateFr=d=>{const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(d||'');return m?m[3]+'/'+m[2]+'/'+m[1]:(d||'');};
+/* les fichiers offres/ ne sont PAS poussés sur le repo public : téléchargement
+   actif seulement en local (serveur du Mac, ~/Code/prodi_verite) */
+const FICHIERS_DISPO=['localhost','127.0.0.1'].includes(location.hostname);
+/* offre affichée = "OFFRE" dans le nom + moins de 6 mois (recalculé chaque jour) */
+const CUT=(d=>{d.setDate(d.getDate()-183);return d.toISOString().slice(0,10);})(new Date());
+/* exclut les fichiers de travail internes : prix à faire/à donner, modèles vides,
+   listes fournisseur UPM, offres avec une vieille année dans le nom (re-dépôts). */
+const INTERNE=/A\s+FAIRE|A\s+DONNER|MODELE|\bVIDE\b|\bTEST\b|\bUPM\b|\b20(0\d|1\d|2[0-4])\b|LOW GRAMMAGES/i;
+/* fichiers écartés à la main (doublons, brouillons…) — fragment du nom suffit */
+const EXCLUS=['RAMETTES COULEUR A4 ET A3 DU 28 04 26','RAMETTES COULEUR FICHIER   EXCEL  A4 ET A3 DU 28 04 26'];
+const estExclu=n=>EXCLUS.some(x=>n.replace(/\s+/g,' ').includes(x.replace(/\s+/g,' ')));
+const estOffre=f=>/offre/i.test(f.nom)&&(f.date||'')>=CUT&&!INTERNE.test(f.nom)&&!estExclu(f.nom);
+
+fetch('offres.json',{cache:'no-store'}).then(r=>r.json()).then(d=>{DATA=d;buildGrid();});
+
+/* ── Recherche + grille ── */
+const elM=document.getElementById('metiers');
+const SEGS=[['Imprimeur','🖨️'],['Transformateur','🏭']];
+const cardById={};
+function buildGrid(){
+  elM.innerHTML='';
+  const aDesOffres=m=>(DATA.offres||[]).some(o=>(o.fichiers||[]).some(f=>estOffre(f)&&caseOf(o,f)===m.id));
+  SEGS.forEach(([seg,emo])=>{
+    const mets=METIERS.filter(m=>m.seg===seg&&aDesOffres(m));
+    if(!mets.length)return;
+    const st=document.createElement('div');st.className='seg-t';st.innerHTML='<span>'+emo+'</span>'+seg;elM.appendChild(st);
+    const list=document.createElement('div');list.className='seg-list';
+    mets.forEach(m=>{
+      const c=document.createElement('div');c.className='card mcard'+(metSel.has(m.id)?' on':'');
+      c.innerHTML='<span class="emo">'+m.emo+'</span><span>'+m.nom+'</span>';
+      c.onclick=()=>toggle(m.id);
+      cardById[m.id]=c;list.appendChild(c);});
+    elM.appendChild(list);});
+}
+const modal=document.getElementById('modal');
+document.getElementById('modal-x').onclick=closeModal;
+modal.onclick=e=>{if(e.target===modal)closeModal();};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+function openModal(){if(!metSel.size)return;modal.hidden=false;document.body.style.overflow='hidden';render();}
+function closeModal(){modal.hidden=true;document.body.style.overflow='';}
+function toggle(id){
+  if(metSel.has(id)){metSel.clear();syncSel();closeModal();return;}
+  metSel.clear();metSel.add(id);syncSel();openModal();
+}
+function syncSel(){
+  Object.entries(cardById).forEach(([id,c])=>{if(c&&c.classList)c.classList.toggle('on',metSel.has(id));});
+  if(!modal.hidden){if(metSel.size)render();else closeModal();}
+}
+
+/* ── Données : stock par besoin, offres par métier ── */
+function matche(m,dossier){
+  const d=norm(dossier);
+  if((m.exc||[]).some(x=>d.includes(norm(x))))return false;
+  return (m.inc||[]).some(x=>x.startsWith('^')?new RegExp(x).test(d):new RegExp('(^|[^A-Z])'+norm(x)).test(d)||d.includes(norm(x)));}
+/* propriétaire EXCLUSIF d'un dossier = 1re case qui matche (jamais 2 cases) */
+function owner(dossier){const m=METIERS.find(x=>matche(x,dossier));return m?m.id:null;}
+/* case d'un FICHIER : reroutages par nom (prioritaires), sinon la case du dossier.
+   Ex. « OFFSET COULEUR » vit dans le dossier OFFSET mais part en Impression couleur. */
+function caseOf(o,f){
+  if(/COULEUR/i.test(f.nom))return 'papeterie';
+  if(/BRISTOL/i.test(f.nom))return 'couche';
+  if(/ALIMENTAIRE|INGRAISSABLE|SULFURISE|CUISSON/i.test(f.nom))return 'gras';
+  return owner(o.dossier);}
+function agregeBesoin(be){
+  const codes=new Set(be.c||[]),g=be.g;let refs=0,t=0,gmin=1e9,gmax=0;
+  (DATA.stock||[]).forEach(s=>{
+    if(!codes.has(s.code))return;
+    if(g&&(s.g==null||s.g<g[0]||s.g>g[1]))return;
+    refs+=+s.refs||0;t+=+s.tonnes||0;
+    if(s.g!=null){gmin=Math.min(gmin,s.g);gmax=Math.max(gmax,s.g);}});
+  return{refs,t:Math.round(t),gmin:gmin<1e9?gmin:null,gmax:gmax||null};}
+/* Décompose un nom de fichier d'offre en colonnes : réf/usine, désignation, conditionnement */
+function parseNom(nom,dossier){
+  const s=nom.replace(/\.(xlsx?|pdf)$/i,'').replace(/[–—]/g,'-');
+  const rm=/(USINE|REF)\s*\.?\s*((?:EUROPE|USA?)\s*)?(\d+[A-Za-z+]*)/i.exec(s);
+  const ref=rm?(rm[1].toUpperCase()==='USINE'?'USINE ':'RÉF ')+rm[3]:null;
+  const bob=/BOBINE/i.test(s),fmt=/FORMAT/i.test(s);
+  const cond=bob&&fmt?'Bobine + format':bob?'Bobine':fmt?'Format':null;
+  let d=(' '+s+' ').replace(/\s+/g,' ');
+  d=d.replace(/\([^)]*\)/g,' ');
+  d=d.replace(/\b(USINE|REF)\s*\.?\s*(EUROPE|USA?)?\s*\d+[A-Za-z+]*/gi,' ');
+  d=d.replace(/\b(COPIE DE|COPY OF|STOCKLOTS?|STOCK FABRICATION|FABRICATION|SIDERUNS|OFFRE DE|OFFRE|EN BOBINES?|EN FORMAT|BOBINES?|FORMAT)\b/gi,' ');
+  d=d.replace(/\b\d{1,2}[ ./-]\d{1,2}[ ./-]\d{2,4}\b/g,' ').replace(/\b\d{6,8}\b/g,' ');
+  d=d.replace(/\b\d+[RS]\b/gi,' ').replace(/\bDU\s*$/i,' ');
+  d=d.replace(/\s*-\s*/g,' ').replace(/\s{2,}/g,' ').trim().replace(/^[.,\-\s]+|[.,\-\s]+$/g,'');
+  d=d.replace(/\s+(DU|EN|DE|ET)$/i,'');
+  if(!d)d=dossier||nom;
+  return{ref,cond,des:d};}
+
+function phrase(be,ag,pmin){
+  const u=be.usage;
+  if(ag.t>0&&pmin) return 'Oui, pour vos '+u+', on a '+euro(ag.t)+' tonnes en stock, à partir de '+pmin+' € la tonne.';
+  if(ag.t>0)       return 'Oui, pour vos '+u+', on a '+euro(ag.t)+' tonnes en stock — je vous chiffre ça tout de suite.';
+  if(pmin)         return 'Pour vos '+u+', on peut vous livrer sur commande à partir de '+pmin+' € la tonne.';
+  return 'Pour vos '+u+', je vérifie la dispo et je vous prépare une offre.';
+}
+
+function render(){
+  const R=document.getElementById('resultats');R.innerHTML='';
+  METIERS.filter(m=>metSel.has(m.id)).forEach(m=>{
+    const items=[];(DATA.offres||[]).forEach(o=>(o.fichiers||[]).forEach(f=>{if(estOffre(f)&&caseOf(o,f)===m.id)items.push({o,f});}));
+    items.sort((a,b)=>{
+      const sa=a.o.source==='stocklots'?0:1,sb=b.o.source==='stocklots'?0:1;if(sa!==sb)return sa-sb;
+      const pa=a.f.prix?a.f.prix.med:1e9,pb=b.f.prix?b.f.prix.med:1e9;if(pa!==pb)return pa-pb;
+      return (b.f.date||'').localeCompare(a.f.date||'');});
+    const grp=document.createElement('div');grp.className='group';
+    let h='<div class="grp-h"><span class="grp-emo">'+m.emo+'</span>'+esc(m.nom)+'</div><div class="docs-body">';
+    const ligne=x=>{
+      const f=x.f,p=f.prix?f.prix.med:null,pn=parseNom(f.nom,x.o.dossier);
+      const corps=(pn.ref?'<span class="chip">'+esc(pn.ref)+'</span>':'')
+        +'<span class="oln">'+esc(pn.des)+'</span>'
+        +(pn.cond?'<span class="chip cd">'+esc(pn.cond)+'</span>':'')
+        +'<span class="olp">'+(p?p+' €/T':'—')+'</span>'
+        +'<span class="old">'+dateFr(f.date)+'</span>';
+      if(!FICHIERS_DISPO)return '<div class="ol ol-nolien" title="'+esc(f.nom)+'">'+corps+'</div>';
+      return '<a class="ol" href="'+href(f.fichier)+'" download="'+esc(f.nom)+'" rel="noopener" title="'+esc(f.nom)+'">'+corps+'</a>';};
+    /* regroupe par usine/réf (même source collée ensemble), groupes ordonnés par meilleur prix */
+    const cle=n=>{let m=/REF\s*(?:EUROPE|USA?)?\s*\.?\s*(\d+)/i.exec(n);if(m)return 'REF '+m[1];
+      m=/USINE\s+([A-Z0-9+]+)/i.exec(n);if(m)return 'USINE '+m[1];return 'zzz';};
+    const grouper=arr=>{
+      const g=new Map();
+      arr.forEach(x=>{const k=cle(x.f.nom);g.has(k)?g.get(k).push(x):g.set(k,[x]);});
+      return [...g.values()].sort((a,b)=>{
+        const pa=Math.min(...a.map(x=>x.f.prix?x.f.prix.med:1e9)),pb=Math.min(...b.map(x=>x.f.prix?x.f.prix.med:1e9));
+        return pa-pb;}).flat();};
+    const stock=grouper(items.filter(x=>x.o.source==='stocklots')),fab=grouper(items.filter(x=>x.o.source!=='stocklots'));
+    if(stock.length){h+='<div class="sub-h sh-stock">En stock</div>';stock.forEach(x=>h+=ligne(x));}
+    if(fab.length){h+='<div class="sub-h sh-fab">Fabrication sur commande</div>';fab.forEach(x=>h+=ligne(x));}
+    h+='</div>';
+    grp.innerHTML=h;
+    grp.querySelectorAll('a.ol').forEach(a=>a.addEventListener('click',()=>{
+      if(a.querySelector('.dlok'))return;
+      const s=document.createElement('span');s.className='dlok';s.textContent='✓ Téléchargé';
+      a.appendChild(s);setTimeout(()=>s.remove(),2200);}));
+    R.appendChild(grp);});
+}
+
+</script>
+</body>
+</html>
