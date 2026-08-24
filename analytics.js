@@ -59,6 +59,17 @@
       .filter(Boolean).join('/').slice(0, 200);
   }
 
+  // ── Attribution PERSISTANTE (25/08) : gclid/gbraid/wbraid + premier utm de
+  // la session, portés par CHAQUE événement (props.g / props.u). Comble le trou
+  // du 24/08 : les clics payés Search (auto-tagging gclid, pas d'utm) étaient
+  // invisibles en base — impossible de relier un lead à un clic Ads. ──
+  var attr = {};
+  try { attr = JSON.parse(sessionStorage.getItem('prodi_attr') || '{}') || {}; } catch (e) {}
+  var _g = qs.get('gclid') || qs.get('gbraid') || qs.get('wbraid');
+  if (_g) attr.g = String(_g).slice(0, 120);
+  if (utm && !attr.u) attr.u = utm;
+  try { sessionStorage.setItem('prodi_attr', JSON.stringify(attr)); } catch (e) {}
+
   // Événements métier reflétés vers Google Ads (balise AW du <head>) pour les
   // conversions des campagnes. Jamais pour l'équipe interne.
   // 25/08 : chaque événement pingue en plus SON action de conversion (labels
@@ -89,7 +100,14 @@
         event: String(event).slice(0, 40),
         // chemin exact de la page (accueil vs /maroc/ vs /offset/…) sur CHAQUE
         // événement (21/08 : le traqueur ne distinguait que vitrine|catalogue)
-        props: Object.assign({ p: location.pathname.slice(0, 120) }, props || {}),
+        // + attribution session (25/08) : g = gclid Ads, u = premier utm
+        props: Object.assign(
+          (function () {
+            var b = { p: location.pathname.slice(0, 120) };
+            if (attr.g) b.g = attr.g;
+            if (attr.u) b.u = attr.u;
+            return b;
+          })(), props || {}),
         referrer: ref,
         utm: utm,
         lang: (navigator.language || '').slice(0, 20),
@@ -130,6 +148,29 @@
     }, true);
   }
 
+  // ── Profondeur de scroll max (25/08) : jointe au ping de durée ──────────
+  var maxDepth = 0;
+  addEventListener('scroll', function () {
+    var h = document.documentElement.scrollHeight - innerHeight;
+    if (h > 50) {
+      var d = Math.round((scrollY / h) * 100);
+      if (d > maxDepth) maxDepth = d > 100 ? 100 : d;
+    }
+  }, { passive: true });
+
+  // ── Erreurs JS visiteurs (25/08) : max 3/page, pour repérer une UX cassée
+  // sur un navigateur qu'on ne teste pas (vieux Safari, webviews…) ──────────
+  var errN = 0;
+  addEventListener('error', function (e) {
+    if (errN >= 3 || !e.message) return;
+    errN++;
+    send('js_error', {
+      m: String(e.message).slice(0, 120),
+      s: String((e.filename || '').split('/').pop()).slice(0, 40),
+      l: e.lineno || 0,
+    });
+  });
+
   // ── Durée de visite : un ping à la sortie (sendBeacon-like via keepalive) ─
   var t0 = Date.now();
   var sent = false;
@@ -137,6 +178,6 @@
     if (sent) return;
     sent = true;
     var sec = Math.round((Date.now() - t0) / 1000);
-    if (sec >= 5) send('duree', { sec: Math.min(sec, 3600) });
+    if (sec >= 5) send('duree', { sec: Math.min(sec, 3600), depth: maxDepth });
   });
 })();

@@ -115,11 +115,14 @@ document.addEventListener('keydown',e=>{
 // déjà envoyé un formulaire cette session (lead_done) passe en direct.
 let _waUrl=null;
 let _stockGate=false; // « Voir le stock » gardé par le popup lead (17/08)
+let _leadT0=0; // ouverture du popup lead (durée avant envoi/abandon, 25/08)
+function _leadVia(){return _waUrl?'wa':_stockGate?'stock':'popup';}
 // Bouton d'envoi du popup : vert « WhatsApp maintenant » en mode portail
 // WhatsApp, rouge « On vous rappelle » partout ailleurs (17/08)
 function _leadBtnMode(wa){
   const b=document.getElementById('l-submit');
   if(!b) return;
+  if(!_leadT0)_leadT0=Date.now(); // appelé à chaque ouverture du popup
   // Mode portail WhatsApp : le message devient facultatif (25/08)
   const m=document.getElementById('l-msg');
   if(m){
@@ -159,8 +162,23 @@ document.addEventListener('click',e=>{
       _leadBtnMode(true);
       modal.classList.add('open');document.body.style.overflow='hidden';
       window.prodiTrack?.('wa_gate_vue',{via:via});
+    }else if(done){
+      // lead déjà envoyé cette session → WhatsApp direct (25/08 : distinguer
+      // les ouvertures WA « payées » d'un lead des re-clics libres)
+      window.prodiTrack?.('wa_direct',{via:via});
     }
   }
+},true);
+
+// Premier focus par champ de formulaire (25/08) : mesure QUI commence à
+// remplir quoi — l = popup lead (mode wa/stock/popup), f = contact, r = bandeau.
+const _ffSeen={};
+document.addEventListener('focusin',e=>{
+  const id=(e.target&&e.target.id)||'';
+  if(!/^[lfr]-(nom|tel|msg)$/.test(id)||_ffSeen[id])return;
+  _ffSeen[id]=1;
+  window.prodiTrack?.('form_focus',{f:id,
+    mode:id.charAt(0)==='l'?_leadVia():id.charAt(0)==='f'?'contact':'bandeau'});
 },true);
 
 // ─── PAGE NAVIGATION ───
@@ -312,6 +330,7 @@ async function _tsOk(fid){
     if(i===0)_leadErr(form,'Vérification anti-robot…');
     await new Promise(r=>setTimeout(r,300));
   }
+  window.prodiTrack?.('ts_fail',{f:fid});
   _leadErr(form,'Vérification anti-robot échouée — réessayez.');
   return false;
 }
@@ -321,6 +340,11 @@ async function _tsOk(fid){
 // message d'erreur visible plutôt que rejet silencieux. ───
 function _leadErr(form,msg){
   if(!form) return;
+  // Traqueur erreurs de validation (25/08) : on ne voyait QUE les envois
+  // réussis — jamais combien butent sur nom/tél/message. Le message d'attente
+  // Turnstile n'est pas une erreur.
+  if(msg!=='Vérification anti-robot…')
+    window.prodiTrack?.('form_err',{f:form.id||'',e:String(msg).slice(0,40)});
   let e=form.querySelector('.lead-err');
   if(!e){
     e=document.createElement('div');e.className='lead-err';
@@ -474,7 +498,17 @@ ccInit('f-tel');ccInit('l-tel');ccInit('r-tel');
   document.addEventListener('keydown',e=>{if(e.key==='Escape')leadClose();});
 })();
 function leadClose(){
-  document.getElementById('lead-modal')?.classList.remove('open');
+  const m=document.getElementById('lead-modal');
+  // Abandon (25/08) : fermeture sans envoi → quels champs étaient REMPLIS
+  // (jamais leur contenu) + durée d'ouverture. Répond à « où décrochent-ils ? »
+  if(m&&m.classList.contains('open')&&!m.querySelector('.ok-box')){
+    const rempli=id=>{const x=document.getElementById(id);return x&&x.value.trim()?1:0;};
+    window.prodiTrack?.('lead_abandon',{mode:_leadVia(),
+      nom:rempli('l-nom'),tel:rempli('l-tel'),msg:rempli('l-msg'),
+      secs:_leadT0?Math.min(Math.round((Date.now()-_leadT0)/1000),600):0});
+  }
+  _leadT0=0;
+  m?.classList.remove('open');
   document.body.style.overflow='';
   _waUrl=null; // portail WhatsApp abandonné sans envoi → pas de redirection
   _stockGate=false; // idem porte stock
@@ -514,6 +548,7 @@ async function submitLead(e){
       const _s=document.querySelector('#lead-modal .ok-s'); if(_s)_s.textContent='Ouverture du stock…';
       setTimeout(()=>{location.href='/merci/?next=stock';},900);
     }else{
+      if(_wa)window.prodiTrack?.('wa_redirect'); // lead envoyé → WhatsApp ouvert
       setTimeout(()=>{location.href=_wa||'/merci/';},1100);
     }
   }catch(err){
