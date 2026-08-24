@@ -61,12 +61,24 @@
 
   // Événements métier reflétés vers Google Ads (balise AW du <head>) pour les
   // conversions des campagnes. Jamais pour l'équipe interne.
-  var ADS_EVENTS = { devis_envoye: 1, contact_envoye: 1, whatsapp_click: 1, tel_click: 1, email_click: 1 };
+  // 25/08 : chaque événement pingue en plus SON action de conversion (labels
+  // extraits via l'API Ads) — clics WhatsApp/tél/email → « Contact » (signal
+  // principal de l'algo), envois de formulaires → « Demande de devis »
+  // (action passée en secondaire côté Ads : la page /merci/ reste LA
+  // conversion primaire des formulaires, pas de double comptage).
+  var ADS_EVENTS = {
+    devis_envoye: 'gdBLCJunzuIcENezwsJE',
+    contact_envoye: 'gdBLCJunzuIcENezwsJE',
+    whatsapp_click: 'rpPjCJ6nzuIcENezwsJE',
+    tel_click: 'rpPjCJ6nzuIcENezwsJE',
+    email_click: 'rpPjCJ6nzuIcENezwsJE',
+  };
 
   function send(event, props) {
     try {
       if (!interne && ADS_EVENTS[event] && typeof window.gtag === 'function') {
         window.gtag('event', event, { send_to: 'AW-18393110999' });
+        window.gtag('event', 'conversion', { send_to: 'AW-18393110999/' + ADS_EVENTS[event] });
       }
     } catch (e) { /* jamais bloquant */ }
     try {

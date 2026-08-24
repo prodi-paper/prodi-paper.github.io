@@ -120,6 +120,12 @@ let _stockGate=false; // « Voir le stock » gardé par le popup lead (17/08)
 function _leadBtnMode(wa){
   const b=document.getElementById('l-submit');
   if(!b) return;
+  // Mode portail WhatsApp : le message devient facultatif (25/08)
+  const m=document.getElementById('l-msg');
+  if(m){
+    if(wa){m.required=false;m.placeholder='Votre besoin (facultatif)';}
+    else{m.required=true;m.placeholder='Votre besoin : qualité, quantité…';}
+  }
   if(wa){
     b.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.5 15.3L2 22l4.9-1.4A10 10 0 1 0 12 2zm5.4 14.1c-.23.65-1.33 1.24-1.86 1.28-.5.05-1.12.07-1.8-.11-.42-.13-.95-.3-1.63-.6-2.87-1.24-4.74-4.13-4.88-4.32-.14-.19-1.17-1.55-1.17-2.97 0-1.4.74-2.1 1-2.38.26-.29.57-.36.76-.36h.55c.18 0 .41-.06.64.5.23.55.8 1.95.86 2.09.07.14.12.31.02.5-.09.19-.14.3-.28.47-.14.17-.3.37-.42.5-.14.14-.29.29-.13.57.17.28.74 1.22 1.58 1.97 1.09.97 2 1.27 2.28 1.41.28.14.45.12.61-.07.17-.19.7-.82.89-1.1.19-.28.38-.23.64-.14.26.1 1.66.78 1.94.93.28.14.47.21.54.33.07.12.07.68-.16 1.33z"/></svg> WhatsApp maintenant';
     b.classList.add('btn-wa');
@@ -480,7 +486,10 @@ async function submitLead(e){
   const _lt=document.getElementById('l-tel');
   let tel=_lt.value.trim();
   const msg=document.getElementById('l-msg')?.value.trim()||'';
-  if(!_leadValide(document.getElementById('lead-form'),nom,tel,msg)) return;
+  // Portail WhatsApp (25/08) : message FACULTATIF — 96 % des cliqueurs WA
+  // abandonnaient sur les 15 caractères obligatoires (448 portes vues /
+  // ~18 envois sur 7 j). Nom + téléphone restent obligatoires (anti-bot).
+  if(!_leadValide(document.getElementById('lead-form'),nom,tel,_waUrl?undefined:msg)) return;
   if(!await _tsOk('lead-form')) return;
   if(!/^(\+|00)/.test(tel)) tel=(_lt.dataset.cc||'+33')+' '+tel;
   const btn=document.getElementById('l-submit');
@@ -489,7 +498,7 @@ async function submitLead(e){
     const r=await fetch(SURL+'/rest/v1/proforma_requests',{method:'POST',
       headers:{'apikey':SKEY,'Authorization':'Bearer '+SKEY,'Content-Type':'application/json','Prefer':'return=minimal'},
       body:JSON.stringify({nom,societe:'',email:'',telephone:tel,
-        message:(_stockGate?'Demande stock — ':_waUrl?'Demande WhatsApp — ':'Demande de rappel (popup) — ')+msg,
+        message:(_stockGate?'Demande stock — ':_waUrl?'Demande WhatsApp — ':'Demande de rappel (popup) — ')+(msg||'(sans message)'),
         quantite_souhaitee:'Contact vitrine',statut:'vitrine_contact'})});
     if(!r.ok) throw new Error('HTTP '+r.status);
     try{sessionStorage.setItem('lead_done','1');}catch(_){}
