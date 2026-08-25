@@ -6,6 +6,16 @@ const safeUrl = u => {
   return esc(s);
 };
 
+// ─── LANGUE (25/08) : les pages /en/ portent lang="en". PLANG pilote les
+// textes que CE script injecte (tuiles, cartes, machine à écrire, messages
+// de formulaire). TR(fr,en) renvoie la chaîne FR d'origine par défaut → le
+// site français est strictement inchangé. ───
+const PLANG = (document.documentElement.lang === 'en') ? 'en' : 'fr';
+const TR = (fr, en) => PLANG === 'en' ? en : fr;
+// Message d'attente Turnstile : sert AUSSI de sentinelle (ne pas le compter en
+// erreur de validation) → une seule source pour l'afficher et le comparer.
+const TS_WAIT = TR('Vérification anti-robot…','Checking you are human…');
+
 
 // ─── LEAD MODAL UNIVERSEL (21/08) : injecté sur les pages qui ne l'ont pas déjà
 // (pages pays, produits, histoire, contact, merci…) pour que le PORTAIL
@@ -96,7 +106,7 @@ function submitStockGate(e){
     window.location.href='/catalogue/';
   }else{
     window.prodiTrack?.('gate_code_ko',{essai:code.slice(0,20)});
-    if(err) err.textContent='Code invalide. Contactez-nous pour obtenir le code d\'accès.';
+    if(err) err.textContent=TR('Code invalide. Contactez-nous pour obtenir le code d\'accès.','Invalid code. Contact us to get the access code.');
   }
 }
 document.addEventListener('keydown',e=>{
@@ -126,18 +136,18 @@ function _leadBtnMode(wa){
   // Mode portail WhatsApp : le message devient facultatif (25/08)
   const m=document.getElementById('l-msg');
   if(m){
-    if(wa){m.required=false;m.placeholder='Votre besoin (facultatif)';}
-    else{m.required=true;m.placeholder='Votre besoin : qualité, quantité…';}
+    if(wa){m.required=false;m.placeholder=TR('Votre besoin (facultatif)','Your need (optional)');}
+    else{m.required=true;m.placeholder=TR('Votre besoin : qualité, quantité…','Your need: grade, quantity…');}
   }
   if(wa){
     b.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.5 15.3L2 22l4.9-1.4A10 10 0 1 0 12 2zm5.4 14.1c-.23.65-1.33 1.24-1.86 1.28-.5.05-1.12.07-1.8-.11-.42-.13-.95-.3-1.63-.6-2.87-1.24-4.74-4.13-4.88-4.32-.14-.19-1.17-1.55-1.17-2.97 0-1.4.74-2.1 1-2.38.26-.29.57-.36.76-.36h.55c.18 0 .41-.06.64.5.23.55.8 1.95.86 2.09.07.14.12.31.02.5-.09.19-.14.3-.28.47-.14.17-.3.37-.42.5-.14.14-.29.29-.13.57.17.28.74 1.22 1.58 1.97 1.09.97 2 1.27 2.28 1.41.28.14.45.12.61-.07.17-.19.7-.82.89-1.1.19-.28.38-.23.64-.14.26.1 1.66.78 1.94.93.28.14.47.21.54.33.07.12.07.68-.16 1.33z"/></svg> WhatsApp maintenant';
     b.classList.add('btn-wa');
   } else if(_stockGate){
     // Porte stock (23/08 Ethan) : le formulaire OUVRE le catalogue sans prix
-    b.innerHTML='Accéder au stock <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-left:3px;" aria-hidden="true"><line x1="4" y1="12" x2="19" y2="12"></line><polyline points="13 6 19 12 13 18"></polyline></svg>';
+    b.innerHTML=TR('Accéder au stock','Access the stock')+' <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-left:3px;" aria-hidden="true"><line x1="4" y1="12" x2="19" y2="12"></line><polyline points="13 6 19 12 13 18"></polyline></svg>';
     b.classList.remove('btn-wa');
   } else {
-    b.textContent='On vous rappelle';
+    b.textContent=TR('On vous rappelle','Request a call back');
     b.classList.remove('btn-wa');
   }
 }
@@ -285,13 +295,13 @@ async function submitContact(e) {
     setTimeout(()=>{location.href='/merci/';},1200);
   } catch(err) {
     btn.disabled = false;
-    btn.textContent = 'On vous rappelle';
-    alert('Erreur — veuillez réessayer ou écrire à ethan@prodi.com');
+    btn.textContent = TR('On vous rappelle','Request a call back');
+    alert(TR('Erreur — veuillez réessayer ou écrire à ethan@prodi.com','Something went wrong — please try again or email ethan@prodi.com'));
   }
 }
 
 // Confirmation maison « Bien reçu. » (coche animée, partagée popup/bandeau)
-const OK_HTML='<div class="ok-box"><svg class="ok-check" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="25"/><path d="M14 27l8 8 16-16"/></svg><div class="ok-t">Bien re\u00e7u.</div><div class="ok-s">On vous rappelle tr\u00e8s vite.</div></div>';
+const OK_HTML='<div class="ok-box"><svg class="ok-check" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="25"/><path d="M14 27l8 8 16-16"/></svg><div class="ok-t">'+TR('Bien re\u00e7u.','Got it.')+'</div><div class="ok-s">'+TR('On vous rappelle tr\u00e8s vite.','We\u2019ll call you back shortly.')+'</div></div>';
 
 // ─── TURNSTILE (anti-bot Cloudflare, version légère : contrôle côté navigateur,
 // pas de vérif serveur — un POST direct sur Supabase passe encore, assumé 17/08).
@@ -307,7 +317,7 @@ window._tsInit=function(){
     const div=document.createElement('div');div.className='cf-turnstile-slot';
     const btn=form.querySelector('button[type="submit"]')||form.lastElementChild;
     btn.parentNode.insertBefore(div,btn);
-    _tsIds[fid]=turnstile.render(div,{sitekey:TS_KEY,size:'flexible',appearance:'interaction-only',language:'fr',
+    _tsIds[fid]=turnstile.render(div,{sitekey:TS_KEY,size:'flexible',appearance:'interaction-only',language:PLANG,
       theme:'light', // jamais le pavé sombre (suivait le dark mode du navigateur)
       callback:()=>{div.style.display='none';}, // succès → on redevient invisible
       'expired-callback':()=>{div.style.display='';},
@@ -327,11 +337,11 @@ async function _tsOk(fid){
   // l'ATTEND (max 6 s) au lieu de rejeter un client rapide (vu au test 17/08).
   for(let i=0;i<20;i++){
     if(turnstile.getResponse(_tsIds[fid])){form?.querySelector('.lead-err')?.remove();return true;}
-    if(i===0)_leadErr(form,'Vérification anti-robot…');
+    if(i===0)_leadErr(form,TS_WAIT);
     await new Promise(r=>setTimeout(r,300));
   }
   window.prodiTrack?.('ts_fail',{f:fid});
-  _leadErr(form,'Vérification anti-robot échouée — réessayez.');
+  _leadErr(form,TR('Vérification anti-robot échouée — réessayez.','Anti-robot check failed — please try again.'));
   return false;
 }
 
@@ -343,7 +353,7 @@ function _leadErr(form,msg){
   // Traqueur erreurs de validation (25/08) : on ne voyait QUE les envois
   // réussis — jamais combien butent sur nom/tél/message. Le message d'attente
   // Turnstile n'est pas une erreur.
-  if(msg!=='Vérification anti-robot…')
+  if(msg!==TS_WAIT)
     window.prodiTrack?.('form_err',{f:form.id||'',e:String(msg).slice(0,40)});
   let e=form.querySelector('.lead-err');
   if(!e){
@@ -355,14 +365,14 @@ function _leadErr(form,msg){
   e.textContent=msg;
 }
 function _leadValide(form,nom,tel,msg){
-  if(((nom||'').match(/\p{L}/gu)||[]).length<3){_leadErr(form,'Entrez votre nom complet.');return false;}
+  if(((nom||'').match(/\p{L}/gu)||[]).length<3){_leadErr(form,TR('Entrez votre nom complet.','Please enter your full name.'));return false;}
   const d=(tel||'').replace(/\D/g,'');
-  if(d.length<8||d.length>15){_leadErr(form,'Entrez un numéro de téléphone valide.');return false;}
+  if(d.length<8||d.length>15){_leadErr(form,TR('Entrez un numéro de téléphone valide.','Please enter a valid phone number.'));return false;}
   // un même chiffre qui fait >70 % du numéro = pianotage (« 7788888 »)
   const rep=Math.max(...[...new Set(d)].map(c=>d.split(c).length-1));
-  if(rep/d.length>0.7){_leadErr(form,'Entrez un numéro de téléphone valide.');return false;}
+  if(rep/d.length>0.7){_leadErr(form,TR('Entrez un numéro de téléphone valide.','Please enter a valid phone number.'));return false;}
   // message obligatoire ≥15 caractères sur TOUS les formulaires (demande 17/08)
-  if(msg!==undefined&&(msg||'').trim().length<15){_leadErr(form,'Minimum 15 caractères.');return false;}
+  if(msg!==undefined&&(msg||'').trim().length<15){_leadErr(form,TR('Minimum 15 caractères.','Minimum 15 characters.'));return false;}
   form.querySelector('.lead-err')?.remove();
   return true;
 }
@@ -545,7 +555,7 @@ async function submitLead(e){
     const _wa=_waUrl,_stk=_stockGate;_waUrl=null;_stockGate=false;
     if(_stk){
       try{localStorage.setItem('prodi_stock_ok','1');}catch(_){}
-      const _s=document.querySelector('#lead-modal .ok-s'); if(_s)_s.textContent='Ouverture du stock…';
+      const _s=document.querySelector('#lead-modal .ok-s'); if(_s)_s.textContent=TR('Ouverture du stock…','Opening the stock…');
       setTimeout(()=>{location.href='/merci/?next=stock';},900);
     }else{
       if(_wa)window.prodiTrack?.('wa_redirect'); // lead envoyé → WhatsApp ouvert
@@ -553,7 +563,7 @@ async function submitLead(e){
     }
   }catch(err){
     btn.disabled=false; _leadBtnMode(!!_waUrl);
-    alert('Erreur — veuillez réessayer ou écrire à ethan@prodi.com');
+    alert(TR('Erreur — veuillez réessayer ou écrire à ethan@prodi.com','Something went wrong — please try again or email ethan@prodi.com'));
   }
 }
 
@@ -581,8 +591,8 @@ async function submitRappel(e){
     document.getElementById('rappel-form').innerHTML=OK_HTML;
     setTimeout(()=>{location.href='/merci/';},1200);
   }catch(err){
-    btn.disabled=false; btn.textContent='On vous rappelle';
-    alert('Erreur — veuillez réessayer ou écrire à ethan@prodi.com');
+    btn.disabled=false; btn.textContent=TR('On vous rappelle','Request a call back');
+    alert(TR('Erreur — veuillez réessayer ou écrire à ethan@prodi.com','Something went wrong — please try again or email ethan@prodi.com'));
   }
 }
 
@@ -654,9 +664,9 @@ async function submitRappel(e){
 // ─── FORM VALIDATION ───
 (function(){
   const RULES = {
-    'f-nom':   {required:true, min:2, errMsg:'Nom requis (min. 2 car.)'},
-    'f-tel':   {required:true, min:6, errMsg:'Téléphone requis'},
-    'f-msg':   {required:true, min:15, errMsg:'Message trop court (min. 15 car.)'},
+    'f-nom':   {required:true, min:2, errMsg:TR('Nom requis (min. 2 car.)','Name required (min. 2 chars)')},
+    'f-tel':   {required:true, min:6, errMsg:TR('Téléphone requis','Phone number required')},
+    'f-msg':   {required:true, min:15, errMsg:TR('Message trop court (min. 15 car.)','Message too short (min. 15 chars)')},
   };
   function validate(id){
     const input = document.getElementById(id);
@@ -712,64 +722,81 @@ async function submitRappel(e){
   // verso = texte rédigé par tuile, à partir des détails réellement en stock
   // (top du champ details du catalogue par famille, bobines + formats confondus)
   const TILES=[
-    {code:'ROFF',    slug:'offset',    title:'Offset',        sub:'Le blanc de référence, du livre à la notice.',            img:U+'flagged/photo-1562221054-cdc9dc299068'+P, pos:'center 60%', dark:false,
-     verso:['Du blanc courant aux blancs les plus lumineux','Blancheurs CIE de 120 à 170','Notice, bristol, satiné ou rugueux','En bobines comme en formats']},
-    {code:'RKRABRUN',slug:'kraft',title:'Kraft',         sub:'Le naturel résistant du sac et de l\'emballage.',          img:U+'photo-1777566131325-78f6e12c50b7'+'?q=60&auto=format&fit=crop&w=900', pos:'center 50%', dark:true,
-     verso:['Du 100 % recyclé à la pure pâte','Finition frictionnée MG ou machine MF','Krafts spéciaux pour enveloppe','Le brun de l\'emballage sous toutes ses formes']},
-    {code:'R2SC',    slug:'papier-couche',    title:'Papier couché', sub:'Le papier des magazines, catalogues et brochures.',       img:U+'photo-1515891396453-6d7e56096a39'+P, pos:'center 55%', dark:false,
-     verso:['Brillant, demi-mat ou mat','Séries recyclées','Magazines, catalogues et brochures','En bobines comme en formats']},
-    {code:'RBOA',    slug:'carton-couche',    title:'Carton couché', sub:'Le carton du packaging et de la belle boîte.',            img:U+'photo-1595246135406-803418233494'+P, pos:'center 55%', dark:true,
-     verso:['GC1 dos blanc · GC2 dos crème','GD2 dos gris · GT4 & CKB dos kraft','Face aluminium pour l\'emballage alimentaire','Le carton du packaging et de la belle boîte']},
-    {code:'RLUX',    slug:'papier-creations',    title:'Papier créations', sub:'Papiers de caractère : teintes, textures, finitions.', img:U+'photo-1586207036106-90aae2456ccb'+P, pos:'center 50%', dark:true,
-     verso:['Calque','Vergé blanc ou ivoire','Martelé','Chromolux une face','Papiers sécurité : fibres invisibles ou filigranés']},
-    {code:'RCAR',    slug:'autocopiant',    title:'Autocopiant',   sub:'Liasses sans carbone, prêtes à imprimer.',                img:U+'photo-1579808324991-cecc784498cc'+P, pos:'center 55%', dark:true,
-     verso:['Trois feuillets : CB, CFB et CF','Rames prêtes à assembler en liasses','Séries spéciales impression digitale']},
+    {code:'ROFF',    slug:'offset',    en:'offset-paper',    title:'Offset',        title_en:'Offset',        sub:'Le blanc de référence, du livre à la notice.',            img:U+'flagged/photo-1562221054-cdc9dc299068'+P, pos:'center 60%', dark:false,
+     verso:['Du blanc courant aux blancs les plus lumineux','Blancheurs CIE de 120 à 170','Notice, bristol, satiné ou rugueux','En bobines comme en formats'],
+     verso_en:['From standard white to the brightest shades','CIE whiteness from 120 to 170','Vellum, bristol, satin or rough','In reels as well as sheets']},
+    {code:'RKRABRUN',slug:'kraft',en:'kraft-paper',title:'Kraft',         title_en:'Kraft',         sub:'Le naturel résistant du sac et de l\'emballage.',          img:U+'photo-1777566131325-78f6e12c50b7'+'?q=60&auto=format&fit=crop&w=900', pos:'center 50%', dark:true,
+     verso:['Du 100 % recyclé à la pure pâte','Finition frictionnée MG ou machine MF','Krafts spéciaux pour enveloppe','Le brun de l\'emballage sous toutes ses formes'],
+     verso_en:['From 100% recycled to pure pulp','MG glazed or MF machine finish','Special krafts for envelopes','Brown packaging paper in every form']},
+    {code:'R2SC',    slug:'papier-couche',    en:'coated-paper',    title:'Papier couché', title_en:'Coated paper', sub:'Le papier des magazines, catalogues et brochures.',       img:U+'photo-1515891396453-6d7e56096a39'+P, pos:'center 55%', dark:false,
+     verso:['Brillant, demi-mat ou mat','Séries recyclées','Magazines, catalogues et brochures','En bobines comme en formats'],
+     verso_en:['Gloss, silk or matt','Recycled series','Magazines, catalogues and brochures','In reels as well as sheets']},
+    {code:'RBOA',    slug:'carton-couche',    en:'coated-board',    title:'Carton couché', title_en:'Coated board', sub:'Le carton du packaging et de la belle boîte.',            img:U+'photo-1595246135406-803418233494'+P, pos:'center 55%', dark:true,
+     verso:['GC1 dos blanc · GC2 dos crème','GD2 dos gris · GT4 & CKB dos kraft','Face aluminium pour l\'emballage alimentaire','Le carton du packaging et de la belle boîte'],
+     verso_en:['GC1 white back · GC2 cream back','GD2 grey back · GT4 & CKB kraft back','Aluminium face for food packaging','The board for packaging and premium cartons']},
+    {code:'RLUX',    slug:'papier-creations',    title:'Papier créations', title_en:'Creative papers', sub:'Papiers de caractère : teintes, textures, finitions.', img:U+'photo-1586207036106-90aae2456ccb'+P, pos:'center 50%', dark:true,
+     verso:['Calque','Vergé blanc ou ivoire','Martelé','Chromolux une face','Papiers sécurité : fibres invisibles ou filigranés'],
+     verso_en:['Tracing paper','Laid white or ivory','Hammered','One-side Chromolux','Security papers: invisible fibres or watermarked']},
+    {code:'RCAR',    slug:'autocopiant',    title:'Autocopiant',   title_en:'Carbonless',   sub:'Liasses sans carbone, prêtes à imprimer.',                img:U+'photo-1579808324991-cecc784498cc'+P, pos:'center 55%', dark:true,
+     verso:['Trois feuillets : CB, CFB et CF','Rames prêtes à assembler en liasses','Séries spéciales impression digitale'],
+     verso_en:['Three plies: CB, CFB and CF','Reams ready to collate into sets','Special series for digital printing']},
   ];
-  wrap.innerHTML=TILES.map((t,i)=>`
+  wrap.innerHTML=TILES.map((t,i)=>{
+    const ttl=TR(t.title,t.title_en||t.title);
+    const verso=(PLANG==='en'&&t.verso_en)?t.verso_en:t.verso;
+    const moreHref=(PLANG==='en')?(t.en?('/en/'+t.en+'/'):('/'+t.slug+'/')):('/'+t.slug+'/');
+    return `
     <div class="qtile${t.dark?' dark':''}" id="qtile-${i}">
       <div class="qtile-flip">
         <div class="qtile-inner qtile-front">
-          <h3 class="qtile-title">${esc(t.title)}</h3>
+          <h3 class="qtile-title">${esc(ttl)}</h3>
           <div class="qtile-btns">
-            <a href="./catalogue/" class="qtile-btn qtile-btn-white" onclick="window.prodiTrack?.('qualite_plus',{q:'${esc(t.code)}'});qtileFlip(${i},1);return false;">En savoir +</a>
+            <a href="./catalogue/" class="qtile-btn qtile-btn-white" onclick="window.prodiTrack?.('qualite_plus',{q:'${esc(t.code)}'});qtileFlip(${i},1);return false;">${esc(TR('En savoir +','Learn more'))}</a>
           </div>
         </div>
         <div class="qtile-inner qtile-backface">
-          <h3 class="qtile-title qtile-title-sm">${esc(t.title)}</h3>
-          <ul class="qtile-list">${t.verso.map(v=>`<li>${esc(v)}</li>`).join('')}</ul>
+          <h3 class="qtile-title qtile-title-sm">${esc(ttl)}</h3>
+          <ul class="qtile-list">${verso.map(v=>`<li>${esc(v)}</li>`).join('')}</ul>
           <div class="qtile-btns">
-            <a href="#contact" class="qtile-btn qtile-btn-red" onclick="qtileDevis('${esc(t.code)}','${esc(t.title)}');return false;">Demander un devis →</a>
-            <a href="/${t.slug}/" class="qtile-btn qtile-btn-out qtile-more" onclick="window.prodiTrack?.('qualite_page',{q:'${esc(t.code)}'})"><span class="qm-full">Encore plus de précisions →</span><span class="qm-dots">···</span></a>
-            <button type="button" class="qtile-btn qtile-btn-out" onclick="qtileFlip(${i},0)">Retour</button>
+            <a href="#contact" class="qtile-btn qtile-btn-red" onclick="qtileDevis('${esc(t.code)}','${esc(ttl)}');return false;">${esc(TR('Demander un devis →','Request a quote →'))}</a>
+            <a href="${moreHref}" class="qtile-btn qtile-btn-out qtile-more" onclick="window.prodiTrack?.('qualite_page',{q:'${esc(t.code)}'})"><span class="qm-full">${esc(TR('Encore plus de précisions →','More details →'))}</span><span class="qm-dots">···</span></a>
+            <button type="button" class="qtile-btn qtile-btn-out" onclick="qtileFlip(${i},0)">${esc(TR('Retour','Back'))}</button>
           </div>
         </div>
       </div>
-      <div class="qtile-imgzone"><img class="qtile-bg" src="${t.img}" alt="${esc(t.title)}" loading="lazy" style="object-position:${t.pos}"></div>
-    </div>`).join('');
+      <div class="qtile-imgzone"><img class="qtile-bg" src="${t.img}" alt="${esc(ttl)}" loading="lazy" style="object-position:${t.pos}"></div>
+    </div>`;}).join('');
 
   // Autres familles à +100 réfs au catalogue (bobines + formats confondus),
   // triées par nombre de références — cartes défilantes façon apple.com
   const CARDS=[
-    {code:'COL',  slug:'offset-couleur', title:'Offset couleur',    img:U+'photo-1716471330459-063b3baf247e'+P},
-    {code:'BOU',  slug:'bouffant', title:'Bouffant',          img:U+'photo-1457369804613-52c61a468e7d'+P},
-    {code:'ADH',  slug:'papier-adhesif', title:'Adhésif',           img:U+'photo-1569725730478-a2f4a1809bb4'+P},
-    {code:'CUT',  slug:'ramette', title:'Ramette',           img:U+'photo-1573978828027-e830975e272c'+P},
-    {code:'LINER',slug:'liner-testliner', title:'Liner / Testliner', img:U+'photo-1640193698858-31565d448f90'+P},
-    {code:'FLEX', slug:'complexe-pe', title:'Complexe / PE',     img:U+'photo-1677586883848-695b3ad692b4'+P},
-    {code:'MORE', title:'Voir tout le stock', img:U+'photo-1719529216596-d7c76431ee0d'+P, more:true},
+    {code:'COL',  slug:'offset-couleur', title:'Offset couleur',    title_en:'Coloured offset', img:U+'photo-1716471330459-063b3baf247e'+P},
+    {code:'BOU',  slug:'bouffant', title:'Bouffant',          title_en:'Bulky paper', img:U+'photo-1457369804613-52c61a468e7d'+P},
+    {code:'ADH',  slug:'papier-adhesif', title:'Adhésif',           title_en:'Self-adhesive', img:U+'photo-1569725730478-a2f4a1809bb4'+P},
+    {code:'CUT',  slug:'ramette', title:'Ramette',           title_en:'Cut-size / reams', img:U+'photo-1573978828027-e830975e272c'+P},
+    {code:'LINER',slug:'liner-testliner', title:'Liner / Testliner', title_en:'Liner / Testliner', img:U+'photo-1640193698858-31565d448f90'+P},
+    {code:'FLEX', slug:'complexe-pe', title:'Complexe / PE',     title_en:'PE-coated / laminated', img:U+'photo-1677586883848-695b3ad692b4'+P},
+    {code:'MORE', title:'Voir tout le stock', title_en:'See all stock', img:U+'photo-1719529216596-d7c76431ee0d'+P, more:true},
   ];
   const cwrap=document.getElementById('qcards');
   if(cwrap){
-    const html=CARDS.map(c=>c.more?`
+    // EN : ces qualités secondaires n'ont pas de page produit anglaise → le
+    // bouton renvoie vers le stock (openStock) au lieu d'une page FR.
+    const html=CARDS.map(c=>{const ct=TR(c.title,c.title_en||c.title);return c.more?`
     <div class="qcard" onclick="window.prodiTrack?.('qualite_plus',{q:'${esc(c.code)}'});openStock();">
-      <img src="${c.img}" alt="${esc(c.title)}" loading="lazy">
-      <button class="qcard-btn" type="button" onclick="event.stopPropagation();window.prodiTrack?.('qualite_stock',{q:'${esc(c.code)}'});openStock();">Voir tout le stock →</button>
+      <img src="${c.img}" alt="${esc(ct)}" loading="lazy">
+      <button class="qcard-btn" type="button" onclick="event.stopPropagation();window.prodiTrack?.('qualite_stock',{q:'${esc(c.code)}'});openStock();">${esc(TR('Voir tout le stock →','See all stock →'))}</button>
+    </div>`:(PLANG==='en'?`
+    <div class="qcard" onclick="window.prodiTrack?.('qualite_plus',{q:'${esc(c.code)}'});openStock();">
+      <img src="${c.img}" alt="${esc(ct)}" loading="lazy">
+      <span class="qcard-title">${esc(ct)}</span>
+      <button class="qcard-btn" type="button" onclick="event.stopPropagation();window.prodiTrack?.('qualite_stock',{q:'${esc(c.code)}'});openStock();">See in stock →</button>
     </div>`:`
     <div class="qcard" onclick="window.prodiTrack?.('qualite_plus',{q:'${esc(c.code)}'});openStock();">
-      <img src="${c.img}" alt="${esc(c.title)}" loading="lazy">
-      <span class="qcard-title">${esc(c.title)}</span>
+      <img src="${c.img}" alt="${esc(ct)}" loading="lazy">
+      <span class="qcard-title">${esc(ct)}</span>
       <a class="qcard-btn" href="/${c.slug}/" onclick="event.stopPropagation();window.prodiTrack?.('qualite_page',{q:'${esc(c.code)}'})">En savoir +</a>
-    </div>`).join('');
+    </div>`)}).join('');
     // Boucle infinie : 3 copies des cartes, le scroll reste dans la copie
     // centrale — jamais de bout de piste, donc jamais de vide
     cwrap.innerHTML=html+html+html;
@@ -1238,7 +1265,13 @@ function toggleSound(){
 // que les champs ne tapent pas en chœur. ───
 (function(){
   if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const PH=[
+  const PH=PLANG==='en'?[
+    "I'm looking for 20 tonnes of 90 gsm brown kraft…",
+    "Do you have 135 gsm coated in 64×90?",
+    "A container of 80 gsm offset for Lagos…",
+    "Which reel widths do you have in 70 gsm?",
+    "Send me your current stocklot offer…"
+  ]:[
     "Je cherche 20 tonnes de kraft brun 90 g…",
     "Avez-vous du couché 135 g en 64×90 ?",
     "Un conteneur d'offset 80 g pour Casablanca…",
@@ -1257,8 +1290,8 @@ function toggleSound(){
       setTimeout(tick,del?18:45);
     })();
   }
-  const BESOIN='Votre besoin : qualité, quantité…';
-  const f=document.getElementById('f-msg'); if(f) anime(f,'Message',0);
+  const BESOIN=TR('Votre besoin : qualité, quantité…','Your need: grade, quantity…');
+  const f=document.getElementById('f-msg'); if(f) anime(f,TR('Message','Message'),0);
   const l=document.getElementById('l-msg'); if(l) anime(l,BESOIN,1);
   const r=document.getElementById('r-msg'); if(r) anime(r,BESOIN,3);
 })();
