@@ -776,6 +776,10 @@ async function submitRappel(e){
     {code:'CUT',  slug:'ramette', title:'Ramette',           title_en:'Cut-size / reams', img:U+'photo-1573978828027-e830975e272c'+P},
     {code:'LINER',slug:'liner-testliner', title:'Liner / Testliner', title_en:'Liner / Testliner', img:U+'photo-1640193698858-31565d448f90'+P},
     {code:'FLEX', slug:'complexe-pe', title:'Complexe / PE',     title_en:'PE-coated / laminated', img:U+'photo-1677586883848-695b3ad692b4'+P},
+    {code:'JRN',  slug:'papier-journal', en:'newsprint',           title:'Papier journal',   title_en:'Newsprint',     img:U+'photo-1504711434969-e33886168f5c'+P},
+    {code:'CUIS', slug:'papier-cuisson', en:'baking-paper',        title:'Papier cuisson',   title_en:'Baking paper',  img:U+'photo-1509440159596-0249088772ff'+P},
+    {code:'THRM', slug:'papier-thermique', en:'thermal-paper',     title:'Papier thermique', title_en:'Thermal paper', img:U+'photo-1556742049-0cfed4f6a45d'+P},
+    {code:'THSD', slug:'thermo-soudable', en:'heat-sealable-paper', title:'Thermosoudable',  title_en:'Heat-sealable', img:U+'photo-1606787366850-de6330128bfc'+P},
     {code:'MORE', title:'Voir tout le stock', title_en:'See all stock', img:U+'photo-1719529216596-d7c76431ee0d'+P, more:true},
   ];
   const cwrap=document.getElementById('qcards');
@@ -790,7 +794,7 @@ async function submitRappel(e){
     <div class="qcard" onclick="window.prodiTrack?.('qualite_plus',{q:'${esc(c.code)}'});openStock();">
       <img src="${c.img}" alt="${esc(ct)}" loading="lazy">
       <span class="qcard-title">${esc(ct)}</span>
-      <button class="qcard-btn" type="button" onclick="event.stopPropagation();window.prodiTrack?.('qualite_stock',{q:'${esc(c.code)}'});openStock();">See in stock →</button>
+      ${c.en?`<a class="qcard-btn" href="/en/${c.en}/" onclick="event.stopPropagation();window.prodiTrack?.('qualite_page',{q:'${esc(c.code)}'})">Learn more</a>`:`<button class="qcard-btn" type="button" onclick="event.stopPropagation();window.prodiTrack?.('qualite_stock',{q:'${esc(c.code)}'});openStock();">See in stock →</button>`}
     </div>`:`
     <div class="qcard" onclick="window.prodiTrack?.('qualite_plus',{q:'${esc(c.code)}'});openStock();">
       <img src="${c.img}" alt="${esc(ct)}" loading="lazy">
