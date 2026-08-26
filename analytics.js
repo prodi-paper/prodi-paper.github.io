@@ -70,6 +70,21 @@
   if (utm && !attr.u) attr.u = utm;
   try { sessionStorage.setItem('prodi_attr', JSON.stringify(attr)); } catch (e) {}
 
+  // ── Géoloc PAYS (27/08) : le vrai pays du visiteur via son IP (api.country.is,
+  // gratuit, sans clé, CORS). La langue du navigateur n'est PAS le pays (fr-FR =
+  // français par défaut même au Maghreb). Mis en cache session (prodi_geo) →
+  // porté par CHAQUE événement en props.geo (code ISO 2 lettres). Fire-and-forget :
+  // seul le CODE PAYS est stocké (pas l'IP), et un échec ne casse jamais rien. ──
+  var geo = null;
+  try { geo = sessionStorage.getItem('prodi_geo') || null; } catch (e) {}
+  if (!geo) {
+    try {
+      fetch('https://api.country.is/').then(function (r) { return r.json(); }).then(function (d) {
+        if (d && d.country) { geo = String(d.country).slice(0, 4); try { sessionStorage.setItem('prodi_geo', geo); } catch (e) {} }
+      }).catch(function () {});
+    } catch (e) { /* jamais bloquant */ }
+  }
+
   // Événements métier reflétés vers Google Ads (balise AW du <head>) pour les
   // conversions des campagnes. Jamais pour l'équipe interne.
   // 25/08 : chaque événement pingue en plus SON action de conversion (labels
@@ -106,6 +121,7 @@
             var b = { p: location.pathname.slice(0, 120) };
             if (attr.g) b.g = attr.g;
             if (attr.u) b.u = attr.u;
+            if (geo) b.geo = geo;
             return b;
           })(), props || {}),
         referrer: ref,

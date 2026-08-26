@@ -291,7 +291,7 @@ TEMPL = '''<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://stock.prodi.net https://paper.prodi.com https://prodi-paper.github.io https://images.unsplash.com; connect-src 'self' https://bvcgpdoukhcatjibmvnb.supabase.co https://api.emailjs.com https://cdn.jsdelivr.net; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://stock.prodi.net https://paper.prodi.com https://prodi-paper.github.io https://images.unsplash.com; connect-src 'self' https://api.country.is https://bvcgpdoukhcatjibmvnb.supabase.co https://api.emailjs.com https://cdn.jsdelivr.net; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <link rel="icon" type="image/png" href="/img/panda.png">
@@ -447,7 +447,7 @@ TEMPL = '''<!DOCTYPE html>
   </div>
 </div>
 
-<script src="/analytics.js?v=3"></script>
+<script src="/analytics.js?v=6"></script>
 <script src="/vitrine.js?v=@@JSV@@"></script>
 <a href="@@WAURL@@" target="_blank" rel="noopener noreferrer" class="wa-sticky" title="WhatsApp" aria-label="Nous contacter sur WhatsApp">
   @@WASVGBIG@@
