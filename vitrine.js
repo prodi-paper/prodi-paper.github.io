@@ -292,7 +292,7 @@ const OK_HTML='<div class="ok-box"><svg class="ok-check" viewBox="0 0 52 52" ari
 // pas de vérif serveur — un POST direct sur Supabase passe encore, assumé 17/08).
 // TS_KEY vide = tout est inactif, les formulaires marchent comme avant.
 // Widget « interaction-only » : invisible sauf si Cloudflare exige un défi. ───
-const TS_KEY='0x4AAAAAAESDAT4K4lA2WBBC'; // widget « prodi-paper-forms » (compte CF eelbilia)
+const TS_KEY=''; // ANTI-BOT DÉSACTIVÉ (26/08, demande Ethan) sur TOUS les formulaires (popup + bandeau ; le contact l'avait déjà) — honeypot + validation nom/tél conservés. Réactiver = remettre '0x4AAAAAAESDAT4K4lA2WBBC' (widget « prodi-paper-forms », compte CF eelbilia).
 const _tsIds={};
 window._tsInit=function(){
   if(!TS_KEY||!window.turnstile) return;
@@ -521,7 +521,7 @@ async function submitLead(e){
   // Portail WhatsApp (25/08) : message FACULTATIF — 96 % des cliqueurs WA
   // abandonnaient sur les 15 caractères obligatoires (448 portes vues /
   // ~18 envois sur 7 j). Nom + téléphone restent obligatoires (anti-bot).
-  if(!_leadValide(document.getElementById('lead-form'),nom,tel,_waUrl?undefined:msg)) return;
+  if(!_leadValide(document.getElementById('lead-form'),nom,tel,undefined)) return; // message FACULTATIF partout (26/08)
   if(!await _tsOk('lead-form')) return;
   if(!/^(\+|00)/.test(tel)) tel=(_lt.dataset.cc||'+33')+' '+tel;
   const btn=document.getElementById('l-submit');
@@ -563,7 +563,7 @@ async function submitRappel(e){
   const _rt=document.getElementById('r-tel');
   let tel=_rt.value.trim();
   const msg=document.getElementById('r-msg')?.value.trim()||'';
-  if(!_leadValide(document.getElementById('rappel-form'),nom,tel,msg)) return;
+  if(!_leadValide(document.getElementById('rappel-form'),nom,tel,undefined)) return; // message FACULTATIF (26/08)
   if(!await _tsOk('rappel-form')) return;
   if(!/^(\+|00)/.test(tel)) tel=(_rt.dataset.cc||'+33')+' '+tel;
   const btn=document.getElementById('r-submit');
@@ -572,7 +572,7 @@ async function submitRappel(e){
     const r=await fetch(SURL+'/rest/v1/proforma_requests',{method:'POST',
       headers:{'apikey':SKEY,'Authorization':'Bearer '+SKEY,'Content-Type':'application/json','Prefer':'return=minimal'},
       body:JSON.stringify({nom,societe:'',email:'',telephone:tel,
-        message:'Demande de rappel (bandeau) — '+msg,quantite_souhaitee:'Contact vitrine',statut:'vitrine_contact'})});
+        message:'Demande de rappel (bandeau) — '+(msg||'(sans message)'),quantite_souhaitee:'Contact vitrine',statut:'vitrine_contact'})});
     if(!r.ok) throw new Error('HTTP '+r.status);
     try{sessionStorage.setItem('lead_done','1');}catch(_){}
     window.prodiTrack?.('contact_envoye',{via:'bandeau'});
