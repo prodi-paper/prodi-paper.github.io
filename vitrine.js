@@ -1301,3 +1301,45 @@ function toggleSound(){
   fit();
   window.addEventListener('resize',fit);
 })();
+
+// ─── SÉLECTEUR DE LANGUE (26/08) : pill « drapeau + code + chevron » injectée
+// dans le header de TOUTES les pages (vitrine + produits + pays + /en/). La
+// cible de l'autre langue est lue sur les balises hreflang DÉJÀ présentes sur
+// chaque page → zéro config par page. Repli : FR=/ , EN=/en/. Nettoie aussi les
+// anciens liens texte « Français »/« English » hardcodés (pages /en/). ───
+(function(){
+  function build(){
+    var head = document.querySelector('.hd .hd-inner') || document.querySelector('.hd-inner');
+    if(!head || document.getElementById('lang-switch')) return;
+    var cur = (document.documentElement.lang === 'en') ? 'en' : 'fr';
+    function alt(l){ var el=document.querySelector('link[rel="alternate"][hreflang="'+l+'"]'); return (el&&el.getAttribute('href'))||''; }
+    var canonEl=document.querySelector('link[rel="canonical"]');
+    var canon=canonEl?canonEl.getAttribute('href'):'';
+    var frUrl=alt('fr'), enUrl=alt('en');
+    if(!frUrl || frUrl===canon) frUrl='/';
+    if(!enUrl || enUrl===canon) enUrl='/en/';
+    var L={fr:{code:'FR',label:'Français',flag:'🇫🇷',url:frUrl},en:{code:'EN',label:'English',flag:'🇬🇧',url:enUrl}};
+    var me=L[cur], other=L[cur==='fr'?'en':'fr'];
+    // retire les anciens liens de langue hardcodés (nav + menu mobile)
+    document.querySelectorAll('.hd-nav a, .mob-menu a').forEach(function(a){
+      if(/Français|English/i.test(a.textContent||'')) a.remove();
+    });
+    var wrap=document.createElement('div'); wrap.className='lang-switch'; wrap.id='lang-switch';
+    var btn=document.createElement('button'); btn.type='button'; btn.className='lang-btn';
+    btn.setAttribute('aria-haspopup','true'); btn.setAttribute('aria-expanded','false');
+    btn.setAttribute('aria-label', cur==='fr'?'Choisir la langue':'Choose language');
+    btn.innerHTML='<span class="lang-flag">'+me.flag+'</span><span class="lang-code">'+me.code+'</span>'
+      +'<svg class="lang-chev" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+    var menu=document.createElement('div'); menu.className='lang-menu';
+    var opt=document.createElement('a'); opt.href=other.url; opt.className='lang-opt';
+    opt.setAttribute('hreflang', cur==='fr'?'en':'fr');
+    opt.innerHTML='<span class="lang-flag">'+other.flag+'</span><span>'+other.label+'</span>';
+    menu.appendChild(opt);
+    wrap.appendChild(btn); wrap.appendChild(menu);
+    btn.addEventListener('click',function(e){ e.stopPropagation(); var o=wrap.classList.toggle('open'); btn.setAttribute('aria-expanded', o?'true':'false'); });
+    document.addEventListener('click',function(){ if(wrap.classList.contains('open')){ wrap.classList.remove('open'); btn.setAttribute('aria-expanded','false'); } });
+    var anchor=head.querySelector('.hd-divider')||head.querySelector('.btn-cat')||head.querySelector('.hd-burger');
+    if(anchor) head.insertBefore(wrap,anchor); else head.appendChild(wrap);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',build); else build();
+})();

@@ -1362,3 +1362,22 @@ footer{background:#f5f5f7;border-top:1px solid var(--border);padding:52px 0 30px
 #l-submit.btn-wa{background:#25D366;}
 #l-submit.btn-wa:hover{background:#1da851;}
 #l-submit.btn-wa svg{vertical-align:-3px;margin-right:6px;}
+
+/* ─── SÉLECTEUR DE LANGUE (26/08) : pill drapeau+code+chevron, injectée par
+   vitrine.js dans le header de toutes les pages. Hors .hd-nav → jamais masquée
+   par la règle mobile qui cache la nav ─── */
+.lang-switch{position:relative;display:inline-flex;align-items:center;flex:0 0 auto;}
+.lang-btn{display:inline-flex;align-items:center;gap:6px;background:#1d1d1f;color:#fff;border:0;cursor:pointer;padding:7px 11px;border-radius:999px;font-family:inherit;font-size:12px;font-weight:700;letter-spacing:.4px;line-height:1;box-shadow:var(--sh-sm);transition:background .2s;}
+.lang-btn:hover{background:#000;}
+.lang-flag{font-size:14px;line-height:1;}
+.lang-code{text-transform:uppercase;}
+.lang-chev{opacity:.85;transition:transform .2s;}
+.lang-switch.open .lang-chev{transform:rotate(180deg);}
+.lang-menu{position:absolute;top:calc(100% + 8px);right:0;min-width:158px;background:#fff;border-radius:14px;box-shadow:var(--sh-lg,0 10px 40px rgba(0,0,0,.16));padding:6px;display:none;z-index:1300;}
+.lang-switch.open .lang-menu{display:block;}
+.lang-opt{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;font-size:14px;font-weight:600;color:var(--ink,#222);text-decoration:none;white-space:nowrap;}
+.lang-opt:hover{background:#f2f2f5;color:var(--red,#FE0000);}
+.lang-menu .lang-flag{font-size:18px;}
+/* mobile : pill compacte (drapeau + chevron seuls) pour laisser la place au
+   burger (accueil) / à la nav (souspages) sur les petits écrans */
+@media(max-width:768px){.lang-btn{padding:7px 8px;gap:4px;}.lang-code{display:none;}.lang-menu{min-width:150px;}}
