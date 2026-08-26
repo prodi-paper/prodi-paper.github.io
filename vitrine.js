@@ -572,7 +572,7 @@ async function submitRappel(e){
     const r=await fetch(SURL+'/rest/v1/proforma_requests',{method:'POST',
       headers:{'apikey':SKEY,'Authorization':'Bearer '+SKEY,'Content-Type':'application/json','Prefer':'return=minimal'},
       body:JSON.stringify({nom,societe:'',email:'',telephone:tel,
-        message:'Demande de rappel (bandeau) — '+(msg||'(sans message)'),quantite_souhaitee:'Contact vitrine',statut:'vitrine_contact'})});
+        message:'Demande de rappel (bandeau)'+(msg?' — '+msg:''),quantite_souhaitee:'Contact vitrine',statut:'vitrine_contact'})});
     if(!r.ok) throw new Error('HTTP '+r.status);
     try{sessionStorage.setItem('lead_done','1');}catch(_){}
     window.prodiTrack?.('contact_envoye',{via:'bandeau'});

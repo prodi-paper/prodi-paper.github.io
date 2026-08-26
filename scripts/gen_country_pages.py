@@ -5,7 +5,7 @@ villes, ports et ZONES INDUSTRIELLES réelles par pays. Idempotent."""
 import os, html, json, urllib.parse
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CSS_V = "321"; JS_V = "184"
+CSS_V = "321"; JS_V = "185"
 
 WA = "33649754915"
 WA_SVG = ('<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'
