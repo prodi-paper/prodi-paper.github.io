@@ -1362,7 +1362,3 @@ footer{background:#f5f5f7;border-top:1px solid var(--border);padding:52px 0 30px
 #l-submit.btn-wa{background:#25D366;}
 #l-submit.btn-wa:hover{background:#1da851;}
 #l-submit.btn-wa svg{vertical-align:-3px;margin-right:6px;}
-
-/* Toast MOBILE « Navigation PC recommandé » (26/08) — monte du bas, quelques s */
-#pc-hint{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translate(-50%,160%);background:#1d1d1f;color:#fff;padding:11px 18px;border-radius:999px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;box-shadow:0 10px 34px rgba(0,0,0,.3);z-index:9500;display:flex;align-items:center;gap:9px;white-space:nowrap;max-width:calc(100vw - 24px);opacity:0;pointer-events:none;transition:transform .42s cubic-bezier(.32,.72,0,1),opacity .42s;}
-#pc-hint.show{transform:translate(-50%,0);opacity:1;}

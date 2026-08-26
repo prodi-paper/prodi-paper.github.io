@@ -171,6 +171,30 @@ function _updateGroupedToggleBtn(){
 let _leadMode=false;
 try{_leadMode=localStorage.getItem('prodi_stock_ok')==='1'&&localStorage.getItem('prodi_cat_ok')!=='1';}catch(_){}
 if(_leadMode){const _lv=()=>document.body.classList.add('lead-view');document.body?_lv():document.addEventListener('DOMContentLoaded',_lv);}
+// ── Toast MOBILE « Navigation PC recommandé » (26/08) : petit bandeau qui monte
+// du bas ~4 s, 1×/session, DANS LE STOCK (catalogue). Vue client ?s= exclue.
+// ?pchint=1 force l'affichage (test). ──
+(function(){
+  const _force=/[?&]pchint=1/.test(location.search);
+  if(!_force){
+    try{
+      if(!window.matchMedia('(max-width:768px)').matches) return;
+      if(/[?&](s|share)=/.test(location.search)) return;
+      if(sessionStorage.getItem('pc_hint_seen')==='1') return;
+      sessionStorage.setItem('pc_hint_seen','1');
+    }catch(_){ return; }
+  }
+  const run=()=>{
+    const t=document.createElement('div'); t.id='pc-hint';
+    t.innerHTML='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg><span>Navigation PC recommandé</span>';
+    document.body.appendChild(t);
+    setTimeout(()=>t.classList.add('show'),1200);
+    setTimeout(()=>t.classList.remove('show'),5600);
+    setTimeout(()=>t.remove(),6300);
+  };
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);
+  else run();
+})();
 let _priceMode=!(new URLSearchParams(location.search).get('s')||new URLSearchParams(location.search).get('share'))&&!_leadMode;
 function togglePriceMode(on){
   if(_leadMode)on=false; // pas de prix en accès lead, même à la bascule

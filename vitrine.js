@@ -12,31 +12,8 @@ const safeUrl = u => {
 // site français est strictement inchangé. ───
 const PLANG = (document.documentElement.lang === 'en') ? 'en' : 'fr';
 const TR = (fr, en) => PLANG === 'en' ? en : fr;
-// ── Toast MOBILE « Navigation PC recommandé » (26/08) : petit bandeau qui monte
-// du bas quelques secondes, une seule fois par session. Vue client ?s= exclue. ──
-(function(){
-  // ?pchint=1 = FORCER l'affichage (test desktop/quelconque, ignore mobile+session)
-  const _force=/[?&]pchint=1/.test(location.search);
-  if(!_force){
-    try{
-      if(!window.matchMedia('(max-width:768px)').matches) return;
-      if(/[?&](s|share)=/.test(location.search)) return;
-      if(sessionStorage.getItem('pc_hint_seen')==='1') return;
-      sessionStorage.setItem('pc_hint_seen','1');
-    }catch(_){ return; }
-  }
-  const run=()=>{
-    const t=document.createElement('div'); t.id='pc-hint';
-    t.innerHTML='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>'
-      +'<span>'+TR('Navigation PC recommandé','Desktop browsing recommended')+'</span>';
-    document.body.appendChild(t);
-    setTimeout(()=>t.classList.add('show'),1200);          // arrive
-    setTimeout(()=>t.classList.remove('show'),5600);        // repart (~4,4 s visible)
-    setTimeout(()=>t.remove(),6300);
-  };
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);
-  else run();
-})();
+// (Toast « Navigation PC recommandé » DÉPLACÉ dans le catalogue — 26/08, il ne
+//  concerne que le stock, pas la vitrine.)
 // Message d'attente Turnstile : sert AUSSI de sentinelle (ne pas le compter en
 // erreur de validation) → une seule source pour l'afficher et le comparer.
 const TS_WAIT = TR('Vérification anti-robot…','Checking you are human…');
