@@ -1344,3 +1344,25 @@ function toggleSound(){
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',build); else build();
 })();
+
+// ─── TRAQUEUR boutons du header (26/08) : un event nav_click{btn} par clic sur
+// un lien de la nav desktop, du menu mobile, le bouton Contact ou le logo →
+// mesure CHAQUE bouton séparément (catalogue/produits/histoire/contact/logo),
+// sur toutes les pages. Complète cta_catalogue/contact_vue existants (le chemin
+// props.p est ajouté par analytics.js). La pill de langue a son propre traqueur. ───
+(function(){
+  function label(el){
+    if(el.classList.contains('hd-logo')) return 'logo';
+    var id=(el.id||'').replace(/^nav-/,'');
+    if(id) return id;
+    if(el.classList.contains('btn-cat')) return 'contact';
+    var t=(el.textContent||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'').slice(0,16);
+    return t||'lien';
+  }
+  document.addEventListener('click',function(e){
+    if(!e.target.closest) return;
+    var el=e.target.closest('.hd-nav a, .mob-menu a, .btn-cat, .hd-logo');
+    if(!el || el.closest('.lang-switch')) return;
+    if(window.prodiTrack) window.prodiTrack('nav_click',{btn:label(el)});
+  },true);
+})();
