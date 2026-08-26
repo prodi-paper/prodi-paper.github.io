@@ -1334,9 +1334,10 @@ function toggleSound(){
     var opt=document.createElement('a'); opt.href=other.url; opt.className='lang-opt';
     opt.setAttribute('hreflang', cur==='fr'?'en':'fr');
     opt.innerHTML='<span class="lang-flag">'+other.flag+'</span><span>'+other.label+'</span>';
+    opt.addEventListener('click',function(){ if(window.prodiTrack) window.prodiTrack('lang_switch',{from:cur,to:(cur==='fr'?'en':'fr'),url:other.url}); });
     menu.appendChild(opt);
     wrap.appendChild(btn); wrap.appendChild(menu);
-    btn.addEventListener('click',function(e){ e.stopPropagation(); var o=wrap.classList.toggle('open'); btn.setAttribute('aria-expanded', o?'true':'false'); });
+    btn.addEventListener('click',function(e){ e.stopPropagation(); var o=wrap.classList.toggle('open'); btn.setAttribute('aria-expanded', o?'true':'false'); if(o&&window.prodiTrack) window.prodiTrack('lang_open',{lang:cur}); });
     document.addEventListener('click',function(){ if(wrap.classList.contains('open')){ wrap.classList.remove('open'); btn.setAttribute('aria-expanded','false'); } });
     var anchor=head.querySelector('.hd-divider')||head.querySelector('.btn-cat')||head.querySelector('.hd-burger');
     if(anchor) head.insertBefore(wrap,anchor); else head.appendChild(wrap);
