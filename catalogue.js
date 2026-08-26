@@ -7216,6 +7216,38 @@ async function copyCartLink(btn){
     prompt('Copie ce lien :',url);
   }
 }
+// ── « Recevoir le prix » (26/08) : le client envoie SA sélection (lien ?s=) à
+// Prodi par mail OU WhatsApp pour obtenir le prix. Génère le lien partagé
+// (comme copyCartLink) puis ouvre le canal. ──
+async function _cartShareUrl(btn){
+  if(!cart.length){toast('Liste vide — ajoutez des produits d\'abord');return null;}
+  const code=_shortCode();
+  const refs=cart.map(x=>x.ref).filter(Boolean).join(',');
+  if(!refs){toast('Aucune référence valide dans la liste');return null;}
+  const url=window.location.origin+window.location.pathname+'?s='+code; // sans prix
+  const span=btn&&btn.querySelector?btn.querySelector('span'):null;
+  const prev=span?span.textContent:null; if(span)span.textContent='…';
+  try{
+    const res=await sbQ('shared_carts',{method:'POST',body:{code,cart_ids:refs},headers:{'Prefer':'return=minimal'}});
+    if(res&&res.status&&res.status>=400)throw new Error('HTTP '+res.status);
+    window.prodiTrack?.('panier_partage',{code,nb:(refs.match(/,/g)||[]).length+1,via:'prix'});
+  }catch(e){ console.error('share',e); toast('Erreur création du lien'); if(span&&prev)span.textContent=prev; return null; }
+  if(span&&prev)span.textContent=prev;
+  return url;
+}
+async function cartPrixMail(btn){
+  const url=await _cartShareUrl(btn); if(!url)return;
+  const sujet=encodeURIComponent('Demande de prix — ma sélection Prodiconseil');
+  const corps=encodeURIComponent('Bonjour,\n\nJe souhaite recevoir le prix pour ma sélection :\n'+url+'\n\nMerci.');
+  window.prodiTrack?.('prix_mail');
+  window.location.href='mailto:ethan@prodi.com?subject='+sujet+'&body='+corps;
+}
+async function cartPrixWa(btn){
+  const url=await _cartShareUrl(btn); if(!url)return;
+  const texte=encodeURIComponent('Bonjour, je souhaite recevoir le prix pour ma sélection : '+url);
+  window.prodiTrack?.('prix_wa');
+  window.open('https://wa.me/'+WA+'?text='+texte,'_blank');
+}
 
 // ── EXPORT EXCEL "OFFRE" (TEST) ──────────────────────────────────────────────
 // Génère un .xlsx depuis la Liste au GABARIT GSE (offre-bot/processeur.py,

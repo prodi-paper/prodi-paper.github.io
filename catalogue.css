@@ -1729,6 +1729,10 @@ body.apple-view .da-action{background:#1d1d1f;}
 body.apple-view .da-action:hover{background:#000;}
 body.apple-view .da-copy-link{background:#e8e8ed;color:#1d1d1f;}
 body.apple-view .da-copy-link:hover{background:#dededf;}
+/* « Recevoir le prix » (26/08) : 2 boutons empilés, WhatsApp en vert */
+.da-prix-row{display:flex;flex-direction:column;}
+.da-prix-wa,body.apple-view .da-prix-wa{background:#25D366 !important;color:#fff !important;}
+.da-prix-wa:hover,body.apple-view .da-prix-wa:hover{background:#1da851 !important;}
 body.apple-view .drawer-totals{background:#fff;border:none;box-shadow:0 2px 10px rgba(0,0,0,.05);}
 body.apple-view .dt-val{color:#000;}
 body.apple-view .btn-drawer-browse{border-radius:999px;}

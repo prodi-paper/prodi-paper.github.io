@@ -12,6 +12,31 @@ const safeUrl = u => {
 // site français est strictement inchangé. ───
 const PLANG = (document.documentElement.lang === 'en') ? 'en' : 'fr';
 const TR = (fr, en) => PLANG === 'en' ? en : fr;
+// ── Toast MOBILE « Navigation PC recommandé » (26/08) : petit bandeau qui monte
+// du bas quelques secondes, une seule fois par session. Vue client ?s= exclue. ──
+(function(){
+  // ?pchint=1 = FORCER l'affichage (test desktop/quelconque, ignore mobile+session)
+  const _force=/[?&]pchint=1/.test(location.search);
+  if(!_force){
+    try{
+      if(!window.matchMedia('(max-width:768px)').matches) return;
+      if(/[?&](s|share)=/.test(location.search)) return;
+      if(sessionStorage.getItem('pc_hint_seen')==='1') return;
+      sessionStorage.setItem('pc_hint_seen','1');
+    }catch(_){ return; }
+  }
+  const run=()=>{
+    const t=document.createElement('div'); t.id='pc-hint';
+    t.innerHTML='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>'
+      +'<span>'+TR('Navigation PC recommandé','Desktop browsing recommended')+'</span>';
+    document.body.appendChild(t);
+    setTimeout(()=>t.classList.add('show'),1200);          // arrive
+    setTimeout(()=>t.classList.remove('show'),5600);        // repart (~4,4 s visible)
+    setTimeout(()=>t.remove(),6300);
+  };
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);
+  else run();
+})();
 // Message d'attente Turnstile : sert AUSSI de sentinelle (ne pas le compter en
 // erreur de validation) → une seule source pour l'afficher et le comparer.
 const TS_WAIT = TR('Vérification anti-robot…','Checking you are human…');
@@ -63,30 +88,12 @@ function openCatalogue(){
 }
 function openStock(){
   window.prodiTrack?.('cta_catalogue');
-  try{
-    if(sessionStorage.getItem('stock_unlocked')==='1'){ window.location.href='/catalogue/'; return; }
-  }catch(_){}
-  // Lead déjà déposé sur cet appareil → accès direct au stock (sans prix)
-  try{
-    if(localStorage.getItem('prodi_stock_ok')==='1'){ window.location.href='/catalogue/'; return; }
-  }catch(_){}
-  // PORTE LEAD (17/08, remplace le code d'accès sur accueil + /produits/) :
-  // « Voir le stock » ouvre le POPUP lead. 23/08 Ethan (remplace la capture
-  // seule du 17/08) : le formulaire validé OUVRE le catalogue SANS PRIX
-  // (prodi_stock_ok) — les prix restent réservés au code PRODI2026.
-  const modal=document.getElementById('lead-modal');
-  if(modal){
-    _stockGate=true;
-    _leadBtnMode(false);
-    modal.classList.add('open');document.body.style.overflow='hidden';
-    window.prodiTrack?.('stock_gate_vue');
-    return;
-  }
-  // pages sans popup lead (pays, contact, histoire…) : on renvoie vers
-  // l'accueil qui ouvre le popup — l'ancienne porte à code ne se montre
-  // PLUS jamais via les boutons (le code PRODI2026 reste saisissable sur
-  // la porte PWD de /catalogue/ en accès direct).
-  window.location.href='/?stock=1';
+  // 26/08 (Ethan « on enlève le barrage du formulaire ») : « Voir le stock »
+  // n'ouvre PLUS le popup lead — accès DIRECT au catalogue SANS PRIX. On pose
+  // prodi_stock_ok qui (1) bypasse la porte à code du catalogue et (2) fait
+  // masquer les prix via _leadMode. Les prix restent réservés au code PRODI2026.
+  try{localStorage.setItem('prodi_stock_ok','1');}catch(_){}
+  window.location.href='/catalogue/';
 }
 function closeStockGate(){
   const g=document.getElementById('stock-gate'); if(!g)return;
@@ -257,10 +264,11 @@ async function submitContact(e) {
     return;
   }
   if (typeof window._contactAllValid === 'function' && !window._contactAllValid()) return;
+  // message FACULTATIF (26/08) : on passe undefined → _leadValide saute le contrôle
   if(!_leadValide(document.getElementById('contact-form'),
     document.getElementById('f-nom').value.trim(),
     document.getElementById('f-tel').value.trim(),
-    document.getElementById('f-msg').value.trim())) return;
+    undefined)) return;
   if(!await _tsOk('contact-form')) return;
   const btn = document.getElementById('f-submit');
   btn.disabled = true;
@@ -311,7 +319,10 @@ const TS_KEY='0x4AAAAAAESDAT4K4lA2WBBC'; // widget « prodi-paper-forms » (comp
 const _tsIds={};
 window._tsInit=function(){
   if(!TS_KEY||!window.turnstile) return;
-  ['contact-form','lead-form','rappel-form'].forEach(fid=>{
+  // 26/08 : Turnstile RETIRÉ du formulaire contact (demande Ethan « plus besoin
+  // d'afficher la vérif anti-bot ») — reste sur le popup lead + bandeau. Le
+  // honeypot + _leadValide (nom/tél/pianotage) restent actifs partout.
+  ['lead-form','rappel-form'].forEach(fid=>{
     const form=document.getElementById(fid);
     if(!form||form.querySelector('.cf-turnstile-slot')) return;
     const div=document.createElement('div');div.className='cf-turnstile-slot';
@@ -666,7 +677,7 @@ async function submitRappel(e){
   const RULES = {
     'f-nom':   {required:true, min:2, errMsg:TR('Nom requis (min. 2 car.)','Name required (min. 2 chars)')},
     'f-tel':   {required:true, min:6, errMsg:TR('Téléphone requis','Phone number required')},
-    'f-msg':   {required:true, min:15, errMsg:TR('Message trop court (min. 15 car.)','Message too short (min. 15 chars)')},
+    'f-msg':   {required:false, errMsg:''}, /* message FACULTATIF (26/08) */
   };
   function validate(id){
     const input = document.getElementById(id);
