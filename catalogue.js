@@ -7164,8 +7164,10 @@ async function copyCartLink(btn){
 }
 
 // ── EXPORT EXCEL "OFFRE" (TEST) ──────────────────────────────────────────────
-// Génère un .xlsx stylé (logo + en-tête société + bande photos + tableaux
-// Bobines/Formats bilingues + prix) depuis la Liste. ExcelJS chargé à la demande.
+// Génère un .xlsx depuis la Liste au GABARIT GSE (offre-bot/processeur.py,
+// DA validée par Véronique) : logo gauche + case STOCKLOTS/date droite + bloc
+// adresse + titres 36pt + photo entrepôt + tableaux Bobines/Formats bilingues.
+// ExcelJS chargé à la demande.
 function _ensureExcelJS(){
   if(window.ExcelJS)return Promise.resolve();
   return new Promise((ok,no)=>{
@@ -7277,230 +7279,545 @@ async function exportListExcelTest(btn){
     const ExcelJS=window.ExcelJS;
     const wb=new ExcelJS.Workbook();
 
-    // Palette "industriel premium" Prodiconseil : charbon + blanc cassé chaud + rouge.
-    const RED='FFFF0000', INK='FF1A1A1A', WHITE='FFFFFFFF'; // rouge pur = modèle USINE 83
-    const BAND='FF1C1C1C';    // bande section (charbon)
-    const HEADBG='FFEDEAE3';  // en-tête colonnes (neutre chaud)
-    const ZEBRA='FFFAF7F2';   // 1 ligne sur 2
-    const HAIR='FFD9D3C8';    // filet hairline discret
-    const SUB='FF6E6A62';     // texte secondaire
-    const BLEU='FFB4C6E7';    // en-tête colonnes — code exact USINE 83
-    const JAUNE='FFFFFF00';   // surlignage prix
-    const VERT='FFA9D08E';    // vert USINE 83 (fond des prix)
-    const thin={style:'thin',color:{argb:HAIR}};
-    const allBorders={top:thin,left:thin,bottom:thin,right:thin};
-    const redRule={bottom:{style:'medium',color:{argb:RED}}};
-    const box=(cell,{bold,italic,size,color,bg,align,wrap,border}={})=>{
-      if(bold||italic||size||color)cell.font={bold:!!bold,italic:!!italic,size:size||11,color:{argb:color||INK},name:'Arial'};
-      if(bg)cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:bg}};
-      cell.alignment={horizontal:align||'left',vertical:'middle',wrapText:wrap!==false};
-      if(border)cell.border=allBorders;
+    // ============ GABARIT « FICHIER MÈRE » (REF 209 Véronique, 25/08) ============
+    // DA relevée cellule par cellule sur le vrai fichier d'offre commerciale
+    // (« REF 209 - OFFRE DE PAPIER MINCE IVOIRE EN BOBINE ») + mécanique GSE
+    // (offre-bot/processeur.py) : Calibri en-têtes / ARIAL GRAS données,
+    // en-tête resserré (lignes 31,5, pas d'espaceurs autour des photos),
+    // en-têtes tableau sur 2 LIGNES (FR noir 26pt / EN rouge 26pt, h90),
+    // données 22pt texte / 28pt chiffres (lignes 55), TRAITS NOIRS partout,
+    // pas de zébrure, traduction EN ROUGE omniprésente (couleur bilingue,
+    // bloc CFR fusionné par section « + 70 ~ 150 €/T DÉPEND DU PORT
+    // D'ARRIVÉE / DEPEND ON PORT OF ARRIVAL »), bande de 3 photos produits
+    // h250, colonnes vides retirées, largeurs au contenu, portrait A4.
+    const FNT='Calibri', FDATA='Arial';
+    const ROUGE='FFFF0000', BANDE='FFB4C6E7', JAUNE='FFFFFF00', VERT='FFC6E0B4',
+          BLEU_LIEN='FF0000FF', NOIR='FF000000';
+    const T_ENT=22, H_ENT=72, T_TXT=22, T_NUM=28, H_LIGNE=55,
+          LARG_CIBLE=271; // somme réelle des largeurs du fichier mère (8 col)
+    const PRIX_CFR_FR="+ 70 ~ 150 €/T \nDÉPEND DU PORT D'ARRIVÉE \n";
+    const PRIX_CFR_EN='DEPEND ON PORT OF ARRIVAL';
+    const bN={style:'thin',color:{argb:NOIR}};
+    const bordN={top:bN,left:bN,bottom:bN,right:bN};
+    const _fillOf=(argb)=>({type:'pattern',pattern:'solid',fgColor:{argb}});
+
+    const _imgId=(dataUrl)=>{try{if(!dataUrl)return null;const ext=/image\/jpe?g/i.test(dataUrl)?'jpeg':'png';return wb.addImage({base64:dataUrl.split(',')[1],extension:ext});}catch(_){return null;}};
+    const _imgSize=(b64)=>new Promise(res=>{const im=new Image();im.onload=()=>res({w:im.naturalWidth||4,h:im.naturalHeight||3});im.onerror=()=>res({w:4,h:3});im.src=b64;});
+
+    // Formats : prix « 600 €/t » (fichier mère) sinon SUR DEMANDE ; montant du
+    // lot « 4 058,10 € » ; laize en CM à virgule, plages assemblées converties.
+    const _sp=(s)=>String(s).replace(/[\u202f\u00a0]/g,' ');
+    const _fmtPrix=(t)=>(typeof t==='number'&&isFinite(t))?_sp(t.toLocaleString('fr-FR'))+' €/t':'SUR DEMANDE';
+    const _fmtMontant=(t,kg)=>{
+      if(typeof t!=='number'||!isFinite(t)||!kg)return '';
+      return _sp((t*kg/1000).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2}))+' €';
+    };
+    // Laize/largeur en MM bruts, sans unité dans la cellule (harmonisé avec
+    // mandrin/Ø, l'unité vit dans l'en-tête — Ethan 26/08, fini le « cm à
+    // virgule » du fichier mère) ; gère les plages assemblées « 480–1000 ».
+    const _mm=(v)=>{
+      if(v===''||v==null)return '';
+      const s=String(v);
+      if(!s.includes('–')){const n=+s;return isFinite(n)&&n>0?Math.round(n):v;}
+      return s.split('–').map(x=>{const n=+x;return isFinite(n)&&n>0?String(Math.round(n)):String(x);}).join('–');
+    };
+    const _numV=(v)=>(typeof v==='string'&&v!==''&&/^\d+(\.\d+)?$/.test(v))?+v:v;
+    // Qualité SANS le code Sage (« RCOL — OFFSET COULEUR » → « OFFSET
+    // COULEUR ») : le code n'apporte rien au client (Ethan 25/08)
+    const _qualSansCode=(q)=>{const t=String(q||'');const m=t.match(/^[A-Z0-9]{2,8}\s*—\s*(.+)$/);return m?m[1]:t;};
+    // Couleur bilingue « IVOIRE / IVORY » (EN affiché en ROUGE, fichier mère).
+    const COUL_EN={'BLANC':'WHITE','TRES BLANC':'EXTRA WHITE','TRÈS BLANC':'EXTRA WHITE','BLANC NATUREL':'NATURAL WHITE','IVOIRE':'IVORY','CREME':'CREAM','CRÈME':'CREAM','ROSE':'PINK','VERT':'GREEN','BLEU':'BLUE','JAUNE':'YELLOW','ROUGE':'RED','NOIR':'BLACK','GRIS':'GREY','ORANGE':'ORANGE','MARRON':'BROWN','BRUN':'BROWN','HAVANE':'HAVANA','KRAFT':'KRAFT','CHAMOIS':'BUFF','SAUMON':'SALMON','VIOLET':'PURPLE','PARME':'LILAC','MAUVE':'MAUVE','CIEL':'SKY BLUE','TURQUOISE':'TURQUOISE','FUCHSIA':'FUCHSIA','OR':'GOLD','ARGENT':'SILVER','BORDEAUX':'BURGUNDY','BEIGE':'BEIGE','ECRU':'ECRU','ÉCRU':'ECRU','AZUR':'AZURE','ANIS':'ANISE','PISTACHE':'PISTACHIO','CANARI':'CANARY','BOUTON D OR':'BUTTERCUP','VERT D EAU':'AQUA GREEN','GRIS PERLE':'PEARL GREY','BLEU ROI':'ROYAL BLUE'};
+    const _coulBi=(c)=>{
+      const fr=String(c||'').trim(); if(!fr)return '';
+      const en=COUL_EN[fr.toUpperCase()];
+      return en&&en!==fr.toUpperCase()?fr+'\n'+en:fr; // \n = marqueur bilingue, rendu richText au write
     };
 
-    // Helper insertion image robuste (strip data-URI prefix + try/catch).
-    const _imgId=(dataUrl)=>{try{if(!dataUrl)return null;const ext=/image\/jpe?g/i.test(dataUrl)?'jpeg':'png';return wb.addImage({base64:dataUrl.split(',')[1],extension:ext});}catch(_){return null;}};
+    // Poids de largeur par colonne = contenu réel + mot le plus long de
+    // l'en-tête, amorti racine carrée (mécanique GSE).
+    const _poidsCols=(vals,n,fr,en)=>{
+      const poids=[],ents=[];
+      for(let k=0;k<n;k++){
+        let lmax=3;
+        vals.forEach(v=>{const s=v[k];if(s!=null&&s!=='')lmax=Math.max(lmax,String(s).length);});
+        let ent=0;
+        [fr,en].forEach(src=>{if(src&&src[k])String(src[k]).split(/\s+/).forEach(m=>{ent=Math.max(ent,m.length);});});
+        poids.push(Math.sqrt(Math.max(lmax,ent,3)));
+        ents.push(ent);
+      }
+      return {poids,ents};
+    };
+    const _largeurs=(n,poids,cible,planchers)=>{
+      cible=cible||LARG_CIBLE;
+      const somme=poids.reduce((a,b)=>a+b,0)||1;
+      let l=poids.map(p=>cible*p/somme);
+      const pl=l.map((_,j)=>Math.max(j===n-1?30:10,(planchers&&planchers[j])||0));
+      for(let it=0;it<l.length;it++){
+        const def=l.map((w,i)=>Math.max(0,pl[i]-w));
+        if(!def.some(d=>d>0))break;
+        const manque=def.reduce((a,b)=>a+b,0);
+        const au=l.map((w,i)=>w>pl[i]?i:-1).filter(i=>i>=0);
+        const tot=au.reduce((a,i)=>a+l[i]-pl[i],0);
+        l=l.map((w,i)=>def[i]>0?pl[i]:(tot>0&&au.includes(i)?w-manque*(w-pl[i])/tot:w));
+      }
+      return l;
+    };
 
-    // Une PAGE par vue : « Offre » détaillée (une ligne par article) puis
-    // « Assemblé » (une ligne par lot) — même gabarit USINE 83 pour les deux.
-    const _buildSheet=async(ws,secBob,secFmt,opts)=>{
-    // Assemblé : PAS de colonne N° (une ligne = un lot, sans réf) → toutes les
-    // colonnes décalées d'un cran et élargies (surtout Qualité/Détails).
-    const noRef=!!(opts&&opts.noRef);
-    const COLW=noRef?[33,33,14,10,15,15,15,12,10,13]:[11,30,30,13,9,13,13,13,11,9,12];
-    COLW.forEach((w,i)=>{ws.getColumn(i+1).width=w;});
-    const NCOL=COLW.length, LAST=noRef?'J':'K', PREL=noRef?'I':'J';
-    // Conversion px → colonne fractionnaire (largeurs inégales) — sert au logo
-    // et à la bande photos. NB le rendu Excel réel est ~1,27× ce modèle.
-    const _colWpx=COLW.map(w=>Math.round(w*7+5));
-    const _cumX=[0]; _colWpx.forEach(w=>_cumX.push(_cumX[_cumX.length-1]+w));
-    const _pxToCol=(x)=>{let c=0;while(c<_colWpx.length-1&&_cumX[c+1]<=x)c++;return c+Math.min(Math.max((x-_cumX[c])/_colWpx[c],0),0.999);};
-    const _totalW=_cumX[_cumX.length-1];
-    let r=1;
-    // Logo (A1:B4)
+    // Images communes : logo + BANDE DE 3 PHOTOS PRODUITS (fichier mère, h250)
+    // — repli photo entrepôt générique si aucune photo produit ne charge.
     const logoB64=await _fetchImgB64(location.origin+'/img/logo.png');
     const _lid=_imgId(logoB64);
-    // Logo +20 % calé DANS le coin droit (04/08) : ancre à (largeur réelle −
-    // logo), même calibrage ×1,27 que la bande photos.
-    const _lw=282,_lh=48;
-    if(_lid!=null)ws.addImage(_lid,{tl:{col:_pxToCol(_totalW-Math.round(_lw/1.27)-6),row:0.15},ext:{width:_lw,height:_lh}});
-    // Encadré STOCKLOTS retiré (16/07).
-    // Bloc société — nom mis en avant, coordonnées en gris (hiérarchie).
-    // Bloc société COMPLET à gauche (copie conforme du modèle USINE 83).
-    const _blocSociete=[
-      ['PRODICONSEIL SARL',{bold:true,size:14}],
-      ['9 PROMENEE JEANNE HACHETTE',{size:11}],
-      ['94200 Ivry sur Seine - FRANCE',{size:11}],
-      ['Tel : + 33 1 46 72 03 69  /  Fax : + 33 1 49 59 87 31',{size:11}],
-      ['Contacts : ',{size:11}],
-      ['Véronique ELBILIA : Whatsapp :  + 33 6 09 46 77 48 / ve@prodi.com',{size:11}],
-      ['Julien CARON : Whatsapp :   +33 6 20 25 85 83 / vente@prodi.com',{size:11}],
-      ['Service client : Whatsapp :  + 33 6 09 99 74 07 / clients@prodi.com',{size:11}],
-      ['Site : www.prodi.com ',{size:11}],
-    ];
-    _blocSociete.forEach(([txt,st],i)=>{
-      ws.mergeCells(`A${i+1}:F${i+1}`);
-      const c=ws.getCell(`A${i+1}`);
-      c.value=txt;
-      c.font={bold:!!st.bold,size:st.size,color:{argb:INK},name:'Arial'};
-      c.alignment={horizontal:'left',vertical:'middle'};
-      ws.getRow(i+1).height=16;
-    });
-    // Date : sa propre ligne, CENTRÉE sur la largeur du tableau (ligne 10).
-    ws.mergeCells('A10:'+LAST+'10');
-    const _dt=ws.getCell('A10');
-    _dt.value=new Date().toLocaleDateString('fr-FR');
-    _dt.font={bold:true,size:14,color:{argb:INK},name:'Arial'};
-    _dt.alignment={horizontal:'center',vertical:'middle'};
-    ws.getRow(10).height=20;
-    r=11;
-    // Titre FR + EN en bandeaux BLEUS bordés (modèle USINE 83)
-    const _darkB={style:'thin',color:{argb:'FF333333'}};
-    const _darkBorders={top:_darkB,left:_darkB,bottom:_darkB,right:_darkB};
-    ws.mergeCells('A11:'+LAST+'11'); const t1=ws.getCell('A11');
-    t1.value='OFFRE PAPIER & CARTON EN STOCKLOTS';
-    box(t1,{bold:true,size:18,color:INK,bg:BLEU,align:'center'});
-    t1.border=_darkBorders;
-    ws.getRow(11).height=30;
-    ws.mergeCells('A12:'+LAST+'12'); const t2=ws.getCell('A12');
-    t2.value='PAPER & CARDBOARD STOCKLOTS OFFER';
-    box(t2,{bold:true,size:14,color:RED,bg:BLEU,align:'center'});
-    t2.border=_darkBorders;
-    ws.getRow(12).height=24;
-    r=13;
-    // Bande photos : quelques produits AU HASARD de la liste (max 5), GRANDES et
-    // CONTIGUËS. Placement au pixel près (les colonnes ont des largeurs inégales,
-    // d'où les "trous" si on se cale sur les colonnes) → on convertit une position
-    // X en pixels vers un index de colonne fractionnaire.
-    // Placement photos : ancres en fractions de colonnes (le mode nativeCol
-    // d'ExcelJS chevauche) + RATIO NATUREL respecté par photo (les portraits
-    // étaient étirés en paysage).
-    const _imgSize=(b64)=>new Promise(res=>{const im=new Image();im.onload=()=>res({w:im.naturalWidth||4,h:im.naturalHeight||3});im.onerror=()=>res({w:4,h:3});im.src=b64;});
-    const _imgUrls=rows.map(x=>x.img).filter(Boolean);
-    for(let i=_imgUrls.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[_imgUrls[i],_imgUrls[j]]=[_imgUrls[j],_imgUrls[i]];}
-    const photoUrls=_imgUrls.slice(0,8);
-    const photos=(await Promise.all(photoUrls.map(_fetchImgB64))).filter(Boolean);
-    if(photos.length){
-      let PH=215; const gap=8;
-      // ×1,27 : Excel (Mac surtout) rend les colonnes ~25 % plus larges que le
-      // modèle 7 px/caractère — sans ce calibrage la bande laissait un grand
-      // blanc à droite (constaté 04/08).
-      const _availW=Math.round(_totalW*1.27)-10;
-      const _sizes=await Promise.all(photos.map(_imgSize));
-      let _ws=_sizes.map(sz=>Math.max(120,Math.min(340,Math.round(PH*sz.w/sz.h))));
-      let bandW=_ws.reduce((a,b)=>a+b,0)+(photos.length-1)*gap;
-      if(bandW>_availW-4){
-        const k=(_availW-4-(photos.length-1)*gap)/(_ws.reduce((a,b)=>a+b,0));
-        PH=Math.max(120,Math.floor(PH*k));
-        _ws=_ws.map(w=>Math.max(80,Math.floor(w*k)));
-        bandW=_ws.reduce((a,b)=>a+b,0)+(photos.length-1)*gap;
-      }
-      // Centre la bande : l'ancre se donne en px MODÈLE, la largeur en px réels.
-      const x=Math.max(2,Math.round((_totalW-bandW/1.27)/2));
-      // BANDE COMPOSÉE EN UNE SEULE IMAGE (canvas) : positionner N photos via
-      // les ancres Excel dérive toujours (le modèle px→colonne est approximatif
-      // face au rendu réel → chevauchements en tl+ext, étirements en tl+br).
-      // Une image unique ancrée en tl+ext garde ratios et taille EXACTS.
-      const cv=document.createElement('canvas');
-      cv.width=bandW;cv.height=PH;
-      const cx2=cv.getContext('2d');
-      cx2.fillStyle='#fff';cx2.fillRect(0,0,bandW,PH);
-      const imgs=await Promise.all(photos.map(b64=>new Promise(res=>{const im=new Image();im.onload=()=>res(im);im.onerror=()=>res(null);im.src=b64;})));
-      let cxX=0;
-      imgs.forEach((im,i)=>{if(im)cx2.drawImage(im,cxX,0,_ws[i],PH);cxX+=_ws[i]+gap;});
-      // Hauteurs de lignes AVANT addImage : ExcelJS convertit les ancres
-      // fractionnaires avec la hauteur CONNUE au moment de l'appel (défaut
-      // 15 pt sinon → photos écrasées en bandeau).
-      ws.getRow(13).height=Math.round(PH*0.75)+6; ws.getRow(14).height=6; ws.getRow(15).height=6;
-      const bid=_imgId(cv.toDataURL('image/jpeg',0.86));
-      if(bid!=null)ws.addImage(bid,{tl:{col:_pxToCol(x),row:12.05},ext:{width:bandW,height:PH}});
-      r=16;
+    const _lsz=logoB64?await _imgSize(logoB64):{w:4,h:1};
+    // Photos d'en-tête : uniquement parmi les ~30 DERNIÈRES références de la
+    // liste (les plus récentes = les plus jolies — demande Ethan 26/08),
+    // mélangées à l'intérieur de ce pool pour garder de la variété.
+    const _bandUrls=rows.filter(x=>x.img)
+      .sort((a2,b2)=>(parseInt(b2.ref,10)||0)-(parseInt(a2.ref,10)||0))
+      .slice(0,30).map(x=>x.img);
+    for(let i=_bandUrls.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[_bandUrls[i],_bandUrls[j]]=[_bandUrls[j],_bandUrls[i]];}
+    const bandImgs=(await Promise.all(_bandUrls.slice(0,5).map(async u=>{
+      const b64=await _fetchImgB64(u); if(!b64)return null;
+      const sz=await _imgSize(b64); const iid=_imgId(b64);
+      return iid==null?null:{id:iid,w:sz.w,h:sz.h};
+    }))).filter(Boolean);
+    let entrepot=null;
+    if(!bandImgs.length){
+      const pb=await _fetchImgB64(location.origin+'/img/entrepot_offre.png');
+      if(pb){const sz=await _imgSize(pb);const iid=_imgId(pb);if(iid!=null)entrepot={id:iid,w:sz.w,h:sz.h};}
     }
 
-    const HEAD=(labelsFr,labelsEn)=>{
-      if(noRef){labelsFr=labelsFr.slice(1);labelsEn=labelsEn.slice(1);} // pas de N° en assemblé
-      const _sp=labelsFr.length===NCOL-1; // formats : la dernière colonne s'étale sur 2
-      const row1=ws.getRow(r); labelsFr.forEach((l,i)=>{const c=row1.getCell(i+1);c.value=l;box(c,{bold:true,size:13,color:INK,bg:BLEU,align:'center'});c.border=_darkBorders;});
-      if(_sp){ws.mergeCells(`${PREL}${r}:${LAST}${r}`);ws.getCell(`${LAST}${r}`).border=_darkBorders;}
-      ws.getRow(r).height=32; r++;
-      const row2=ws.getRow(r); labelsEn.forEach((l,i)=>{const c=row2.getCell(i+1);c.value=l;box(c,{bold:true,size:11,color:RED,bg:BLEU,align:'center'});c.border=_darkBorders;});
-      if(_sp){ws.mergeCells(`${PREL}${r}:${LAST}${r}`);ws.getCell(`${LAST}${r}`).border=_darkBorders;}
-      ws.getRow(r).height=24; r++;
-    };
-    // Chiffres stockés en NOMBRE (sinon Excel affiche « nombre sous forme de texte »)
-    const _num=(v)=>(typeof v==='string'&&v!==''&&/^\d+(\.\d+)?$/.test(v))?+v:v;
-    const DATA=(d,cells,idx)=>{
-      const _qual=String(cells[1]||''),_det=String(cells[2]||'');
-      if(noRef)cells=cells.slice(1); // pas de colonne N° en assemblé
-      const row=ws.getRow(r);
-      const zeb=(idx%2===1)?ZEBRA:null; // 1 ligne sur 2 (lisibilité)
-      const _sp=cells.length===NCOL-1; // formats : prix étalé sur 2 colonnes (même largeur que bobines)
-      const _lg=noRef?[0,1]:[1,2]; // Qualité/Détails alignés à gauche
-      cells.forEach((v,i)=>{
-        const c=row.getCell(i+1); c.value=_num(v);
-        box(c,{size:13,align:_lg.includes(i)?'left':'center',border:true,bg:zeb});
-        if(i===cells.length-1&&String(v).includes('€')){ c.font={bold:true,size:13,color:{argb:RED},name:'Arial'}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:VERT}}; } // prix rouge sur vert
+    // En-têtes courts façon fichier mère (« g/m² » / « gsm »), 2 lignes FR/EN.
+    const COLS_B_FR=['REFERENCE','QUALITE','DETAIL','COULEUR','g/m²','MANDRIN (mm)','LAIZE\n(mm)','DIAMETRE (mm)','POIDS (kg)','USINE','PRIX\nDÉPART USINE','MONTANT\nDU LOT','PRIX\nCFR'];
+    const COLS_B_EN=['REFERENCE','QUALITY','DETAIL','COLOR','gsm','CORE (mm)','WIDTH\n(mm)','DIAMETER (mm)','WEIGHT (kg)','MILL','EX WORKS\nPRICE','LOT\nAMOUNT','CFR\nPRICE'];
+    const TAIL_B=[T_TXT,T_TXT,T_TXT,T_TXT,T_NUM,T_NUM,T_NUM,T_NUM,T_NUM,T_TXT,T_NUM,T_NUM,T_TXT];
+    const COLS_F_FR=['REFERENCE','QUALITE','DETAIL','COULEUR','g/m²','LARGEUR\n(mm)','LONGUEUR (mm)','POIDS (kg)','USINE','PRIX\nDÉPART USINE','MONTANT\nDU LOT','PRIX\nCFR'];
+    const COLS_F_EN=['REFERENCE','QUALITY','DETAIL','COLOR','gsm','WIDTH\n(mm)','LENGTH (mm)','WEIGHT (kg)','MILL','EX WORKS\nPRICE','LOT\nAMOUNT','CFR\nPRICE'];
+    const TAIL_F=[T_TXT,T_TXT,T_TXT,T_TXT,T_NUM,T_NUM,T_NUM,T_NUM,T_TXT,T_NUM,T_NUM,T_TXT];
+
+    const _buildSheet=async(ws,secBob,secFmt,opts)=>{
+      // 1) Matrices de valeurs par section, retrait des colonnes ENTIÈREMENT
+      // vides (l'assemblé perd sa REFERENCE tout seul), indices recalés.
+      // opts.photos (onglet « Photos ») : colonne PHOTO en tête avec la VRAIE
+      // photo de la réf incrustée (fallback SUR DEMANDE), lignes hautes, paysage.
+      const AV=!!(opts&&opts.photos);
+      const phFr=AV?['PHOTO']:[], phEn=AV?['PICTURE']:[];
+      let imgsBob=[],imgsFmt=[];
+      if(AV){
+        const fetchAll=(sec)=>Promise.all(sec.map(async d=>{
+          if(!d.img)return null;
+          const b64=await _fetchImgB64(d.img);
+          if(!b64)return null;
+          const sz=await _imgSize(b64);
+          const iid=_imgId(b64);
+          // url ORIGINALE (pas la vignette proxy) : clic sur la photo dans
+          // Excel = ouvre la photo en grand dans le navigateur
+          return iid==null?null:{id:iid,w:sz.w,h:sz.h,url:safeUrl(d.img)};
+        }));
+        [imgsBob,imgsFmt]=await Promise.all([fetchAll(secBob),fetchAll(secFmt)]);
+      }
+      const secDefs=[];
+      if(secBob.length)secDefs.push({
+        titreFr:'BOBINES / ',titreEn:'REELS',
+        fr:[...phFr,...COLS_B_FR],en:[...phEn,...COLS_B_EN],tailles:[...(AV?[T_TXT]:[]),...TAIL_B],
+        iCoul:3+phFr.length,iDet:2+phFr.length,
+        iPrix:10+phFr.length,iMont:11+phFr.length,iCfr:12+phFr.length,imgs:imgsBob,
+        vals:secBob.map((d,ix)=>[...(AV?[imgsBob[ix]?'':'SUR DEMANDE']:[]),d.ref,_qualSansCode(d.qualite),d.detail,_coulBi(d.couleur),_numV(d.grammage),_numV(d.mandrin),_mm(d.largeur),_numV(d.longueur),_numV(d.poids),d.usine,_fmtPrix(d.prixT),_fmtMontant(d.prixT,+d.poids||0),PRIX_CFR_FR+PRIX_CFR_EN]),
       });
-      // Auto-hauteur : le DÉTAIL (colonne C) peut wrapper sur 2-3 lignes → on
-      // estime le nombre de lignes pour que rien ne soit coupé (col C ≈ 46 car/ligne).
-      if(_sp){
-        ws.mergeCells(`${PREL}${r}:${LAST}${r}`);
-        const ck=row.getCell(NCOL); ck.border=allBorders;
-        const cj=row.getCell(NCOL-1);
-        if(cj.fill)ck.fill=cj.fill; // vert du prix (ou zébrure) sur toute la fusion
-        else if(zeb)ck.fill={type:'pattern',pattern:'solid',fgColor:{argb:zeb}};
+      if(secFmt.length)secDefs.push({
+        titreFr:'FORMATS / PALETTES – ',titreEn:'SHEETS/PALLETS',
+        fr:[...phFr,...COLS_F_FR],en:[...phEn,...COLS_F_EN],tailles:[...(AV?[T_TXT]:[]),...TAIL_F],
+        iCoul:3+phFr.length,iDet:2+phFr.length,
+        iPrix:9+phFr.length,iMont:10+phFr.length,iCfr:11+phFr.length,imgs:imgsFmt,
+        vals:secFmt.map((d,ix)=>[...(AV?[imgsFmt[ix]?'':'SUR DEMANDE']:[]),d.ref,_qualSansCode(d.qualite),d.detail,_coulBi(d.couleur),_numV(d.grammage),_mm(d.largeur),_numV(d.longueur),_numV(d.poids),d.usine,_fmtPrix(d.prixT),_fmtMontant(d.prixT,+d.poids||0),PRIX_CFR_FR+PRIX_CFR_EN]),
+      });
+      secDefs.forEach(s=>{
+        // la colonne PHOTO (k=0 en mode photos) n'est JAMAIS retirée (règle GSE)
+        // opts.sans : colonnes retirées à la demande (onglet Offre épuré 25/08)
+        // MONTANT DU LOT retiré PARTOUT (Ethan 25/08) — plomberie conservée
+        const sans=[...((opts&&opts.sans)||[]),'MONTANT'];
+        const keep=s.fr.map((_,k)=>k).filter(k=>((AV&&k===0)||s.vals.some(v=>v[k]!=null&&v[k]!==''))&&!(sans&&sans.some(p=>String(s.fr[k]).startsWith(p))));
+        s.fr=keep.map(k=>s.fr[k]); s.en=keep.map(k=>s.en[k]); s.tailles=keep.map(k=>s.tailles[k]);
+        s.vals=s.vals.map(v=>keep.map(k=>v[k]));
+        s.iPrix=keep.indexOf(s.iPrix); s.iMont=keep.indexOf(s.iMont); s.iCfr=keep.indexOf(s.iCfr);
+        s.iCoul=keep.indexOf(s.iCoul); s.iDet=keep.indexOf(s.iDet);
+        s.nCols=s.fr.length;
+        const pc=_poidsCols(s.vals,s.nCols,s.fr,s.en);
+        s.poids=pc.poids; s.ents=pc.ents;
+        // prix/montant plus larges : « SUR DEMANDE »/« 1 040,98 € » à 28pt
+        if(s.iPrix>=0)s.poids[s.iPrix]*=1.5;
+        if(s.iMont>=0)s.poids[s.iMont]*=1.5;
+      });
+      // 2) Largeurs par colonne = le MAX des besoins de CHAQUE section —
+      // « la section la plus large gagne » écrasait l'autre quand Bobines et
+      // Formats n'ont pas les mêmes colonnes (vécu 25/08 : prix/CFR bobines
+      // laminés par les largeurs des formats). Le total dépasse la cible :
+      // voulu (« utilise la largeur »), fitToWidth recale à l'impression.
+      const nCols=Math.max(2,...secDefs.map(s2=>s2.nCols));
+      const widths=new Array(nCols).fill(10);
+      secDefs.forEach(s2=>{
+        const off=AV?1:0;
+        const pls=s2.ents.slice(off).map(e=>Math.min(28,Math.round(e*2.7)));
+        const cible=Math.max(LARG_CIBLE,(s2.nCols-off)*26)*(AV?1.15:1);
+        const ws_=_largeurs(s2.nCols-off,s2.poids.slice(off),cible,pls);
+        ws_.forEach((w,i)=>{widths[i+off]=Math.max(widths[i+off],w);});
+      });
+      if(AV)widths[0]=44;
+      widths.forEach((w,i)=>{ws.getColumn(i+1).width=w;});
+      const colPx=widths.map(w=>w*7+5); // approximation Excel largeur → px
+      const totPx=colPx.reduce((a,b)=>a+b,0);
+      const _ancPx=(px)=>{let ci=0,reste=px;while(ci<colPx.length-1&&reste>=colPx[ci]){reste-=colPx[ci];ci++;}return ci+Math.min(reste/colPx[ci],0.999);};
+
+      // 3) EN-TÊTE RESSERRÉ (fichier mère) : logo à gauche, case REF/date à
+      // droite (lignes 31,5), bloc adresse souligné, titres 36pt h50, bande de
+      // 3 photos produits h250, PAS d'espaceurs autour — le tableau suit.
+      ws.getRow(1).height=31.5; ws.getRow(2).height=31.5;
+      if(_lid!=null){const lh=58;ws.addImage(_lid,{tl:{col:0,row:0},ext:{width:Math.round(lh*_lsz.w/_lsz.h),height:lh}});}
+      const cId=ws.getRow(1).getCell(nCols);
+      cId.value='STOCKLOTS';
+      cId.font={name:FNT,size:24,bold:true,color:{argb:ROUGE}};
+      cId.fill=_fillOf(BANDE);
+      cId.alignment={horizontal:'center',vertical:'middle',wrapText:true};
+      cId.border=bordN;
+      const cDt=ws.getRow(2).getCell(nCols);
+      cDt.value=new Date(); cDt.numFmt='DD/MM/YYYY';
+      cDt.font={name:FNT,size:24,color:{argb:ROUGE}};
+      cDt.alignment={horizontal:'center',vertical:'middle',wrapText:true};
+      cDt.border=bordN;
+      // bloc adresse : fusion sur assez de colonnes pour ~95 de large
+      let finBloc=1,cum=0;
+      for(let j=0;j<nCols;j++){cum+=widths[j];finBloc=j+1;if(cum>=95)break;}
+      const bloc=[
+        ['PRODICONSEIL SARL',18,true,ROUGE,false],
+        ['9 PROMENEE JEANNE HACHETTE',18,true,NOIR,false],
+        ['94200 IVRY SUR SEINE - FRANCE',18,true,NOIR,false],
+        ['Tel : + 33 1 46 72 03 69  /  Fax : + 33 1 49 59 87 31',18,true,NOIR,true],
+        ['Contacts : ',18,true,NOIR,true],
+        ['Véronique ELBILIA : Whatsapp :  + 33 6 09 46 77 48 / ve@prodi.com',18,true,NOIR,false],
+        ['Julien CARON : Whatsapp :   +33 6 20 25 85 83 / vente@prodi.com',18,true,NOIR,false],
+        ['Service client : Whatsapp :  + 33 6 09 99 74 07 / clients@prodi.com',18,true,NOIR,false],
+        ['Site : www.prodi.com ',16,false,BLEU_LIEN,true],
+      ];
+      let r=4;
+      bloc.forEach(([txt,taille,gras,coul,sous])=>{
+        if(finBloc>1)ws.mergeCells(r,1,r,finBloc);
+        const c=ws.getRow(r).getCell(1);
+        c.value=txt;
+        c.font={name:FNT,size:taille,bold:gras,color:{argb:coul},underline:!!sous};
+        c.alignment={horizontal:'left',vertical:'middle'};
+        ws.getRow(r).height=23.2; r++;
+      });
+      ws.getRow(r).height=21; r++; // unique espaceur avant les titres (mère)
+      [['OFFRE PAPIER & CARTON EN STOCKLOTS',NOIR],['PAPER & CARDBOARD STOCKLOTS OFFER',ROUGE]].forEach(([txt,coul])=>{
+        ws.mergeCells(r,1,r,nCols);
+        const c=ws.getRow(r).getCell(1);
+        c.value=txt;
+        c.font={name:FNT,size:36,bold:true,color:{argb:coul}};
+        c.fill=_fillOf(BANDE);
+        c.alignment={horizontal:'center',vertical:'middle',wrapText:true};
+        c.border=bordN;
+        ws.getRow(r).height=Math.max(50,Math.ceil(txt.length/45)*50); r++;
+      });
+      // bande de photos PRODUITS (h250, fichier mère) — répliquées côte à côte
+      // centrées ; repli photo entrepôt générique si aucune. SEULEMENT sur les
+      // onglets qui la demandent (opts.bandN) : Offre oui, Détails non (Ethan
+      // 26/08), Photos non plus (chaque ligne a déjà la sienne, Ethan 25/08).
+      if(!AV&&opts&&opts.bandN){
+        ws.mergeCells(r,1,r,nCols);
+        ws.getRow(r).height=250;
+        // rétrécies si ça déborde
+        const _imgsBande=(bandImgs.length?bandImgs:(entrepot?[entrepot]:[])).slice(0,opts.bandN);
+        if(_imgsBande.length){
+          let ph=300;const gap=24;
+          let ws_=_imgsBande.map(im=>Math.round(ph*im.w/im.h));
+          let strip=ws_.reduce((a,b)=>a+b,0)+gap*(ws_.length-1);
+          if(strip>totPx-8){
+            const k=(totPx-8-gap*(ws_.length-1))/ws_.reduce((a,b)=>a+b,0);
+            ph=Math.max(80,Math.floor(ph*k));
+            ws_=_imgsBande.map(im=>Math.round(ph*im.w/im.h));
+            strip=ws_.reduce((a,b)=>a+b,0)+gap*(ws_.length-1);
+          }
+          let x=Math.max(4,(totPx-strip)/2);
+          _imgsBande.forEach((im,i)=>{
+            ws.addImage(im.id,{tl:{col:_ancPx(x),row:r-1+0.03},ext:{width:ws_[i],height:ph}});
+            x+=ws_[i]+gap;
+          });
+        }
+        r++;
       }
-      const _lines=Math.max(1,Math.ceil(_det.length/30),Math.ceil(_qual.length/30));
-      row.height=Math.max(row.height||0,12+_lines*17);
-      r++;
-    };
-    const sectionTitle=(fr)=>{ws.mergeCells(`A${r}:${LAST}${r}`);const c=ws.getCell(`A${r}`);c.value=fr;box(c,{bold:true,size:16,color:INK,bg:BLEU,align:'center'});c.border=_darkBorders;ws.getRow(r).height=30;r++;};
 
-    if(secBob.length){
-      sectionTitle('BOBINES / REELS');
-      HEAD(
-        ['N°','QUALITÉ','DÉTAILS','COULEUR','GSM','LAIZE (mm)','Ø (mm)','MANDRIN (mm)','PN (KG)','USINE','P/T (€)'],
-        ['NUMBER','QUALITY','DETAILS','COLOR','GSM','WIDTH (mm)','DIAMETER (mm)','CORE (mm)','NET WEIGHT','MILL','PRICE €/T'],
-      );
-      secBob.forEach((d,idx)=>DATA(d,[d.ref,d.qualite,d.detail,d.couleur,d.grammage,d.largeur,d.longueur,d.mandrin,d.poids,d.usine,d.prixT!==''?d.prixT+' €/t':''],idx));
-      r++;
-    }
-    if(secFmt.length){
-      sectionTitle('FORMATS / PALETTES — SHEETS / PALLETS');
-      HEAD(
-        ['N°','QUALITÉ','DÉTAILS','COULEUR','GSM','LARGEUR (mm)','LONGUEUR (mm)','PN (KG)','USINE','P/T (€)'],
-        ['NUMBER','QUALITY','DETAILS','COLOR','GSM','WIDTH (mm)','LENGTH (mm)','NET WEIGHT','MILL','PRICE €/T'],
-      );
-      secFmt.forEach((d,idx)=>DATA(d,[d.ref,d.qualite,d.detail,d.couleur,d.grammage,d.largeur,d.longueur,d.poids,d.usine,d.prixT!==''?d.prixT+' €/t':''],idx));
-      r++;
-    }
+      // 4) SECTIONS : bande titre (FR noir + EN rouge), en-tête 2 LIGNES
+      // (FR noir 26 / EN rouge 26, h90), données Arial gras 22/28 lignes 55,
+      // traits noirs, sans zébrure ; jaune = prix+montant ; CFR = un bloc
+      // vert fusionné PAR PAGE (un seul par section = texte centré une fois,
+      // toutes les autres pages montraient une colonne verte vide). On estime
+      // la hauteur de page imprimée (A4 − marges, corrigée du zoom fitToWidth)
+      // et on pose un saut de page manuel à chaque bloc — honoré par Excel
+      // car seule la largeur est contrainte (fitToHeight:0).
+      const _land=(ws.pageSetup||{}).orientation==='landscape';
+      const _wPt=(widths.reduce((a2,w)=>a2+w,0)*7+5*nCols)*0.75;
+      const _scale=Math.min(1,((_land?842:595)-101)/_wPt);
+      const _pageHPt=((_land?595:842)-108)/_scale;
+      secDefs.forEach(s=>{
+        ws.mergeCells(r,1,r,nCols);
+        const ct=ws.getRow(r).getCell(1);
+        ct.value={richText:[{text:s.titreFr,font:{name:FNT,size:18,bold:true,color:{argb:NOIR}}},
+                            {text:s.titreEn,font:{name:FNT,size:18,bold:true,color:{argb:ROUGE}}}]};
+        ct.fill=_fillOf(BANDE);
+        ct.alignment={vertical:'middle'};
+        ct.border=bordN;
+        ws.getRow(r).height=26; r++;
+        // en-tête 2 lignes : FR noir puis EN rouge (fichier mère)
+        [[s.fr,NOIR],[s.en,ROUGE]].forEach(([labels,coul])=>{
+          const rh=ws.getRow(r);
+          labels.forEach((l,i)=>{
+            const c=rh.getCell(i+1);
+            c.value=l;
+            c.font={name:FNT,size:T_ENT,bold:true,color:{argb:coul}};
+            c.fill=_fillOf(BANDE);
+            c.alignment={horizontal:'center',vertical:'middle',wrapText:true};
+            c.border=bordN;
+          });
+          // la section s'étire sur TOUTE la largeur du document : la dernière
+          // colonne (CFR) absorbe l'écart quand l'autre section est plus large
+          if(s.nCols<nCols){
+            for(let cc=s.nCols+1;cc<=nCols;cc++){const c2=rh.getCell(cc);c2.fill=_fillOf(BANDE);c2.border=bordN;}
+            ws.mergeCells(r,s.nCols,r,nCols);
+          }
+          rh.height=H_ENT; r++;
+        });
+        const rDeb=r;
+        // pose un bloc CFR fusionné (texte bilingue du fichier mère) sur r1..r2
+        const _cfrBloc=(r1,r2)=>{
+          if(s.iCfr<0||r2<r1)return;
+          for(let rr=r1;rr<=r2;rr++)for(let cc=s.iCfr+1;cc<=nCols;cc++)ws.getRow(rr).getCell(cc).border=bordN;
+          ws.mergeCells(r1,s.iCfr+1,r2,nCols);
+          const cf=ws.getRow(r1).getCell(s.iCfr+1);
+          cf.value={richText:[{text:PRIX_CFR_FR,font:{name:FDATA,size:T_TXT,bold:true,color:{argb:NOIR}}},
+                              {text:PRIX_CFR_EN,font:{name:FDATA,size:T_TXT,bold:true,color:{argb:ROUGE}}}]};
+          cf.fill=_fillOf(VERT);
+          cf.alignment={horizontal:'center',vertical:'middle',wrapText:true};
+          cf.border=bordN;
+        };
+        let _hCum=0;for(let rr=1;rr<rDeb;rr++)_hCum+=ws.getRow(rr).height||15;
+        let _cfrDeb=rDeb,_pgFin=(Math.floor(_hCum/_pageHPt)+1)*_pageHPt;
+        s.vals.forEach((vals,nb)=>{
+          const row=ws.getRow(r);
+          vals.forEach((v,i)=>{
+            const c=row.getCell(i+1);
+            const tail=s.tailles[i]||T_TXT;
+            if(i===s.iCfr){c.value='';}
+            else if(i===s.iCoul&&typeof v==='string'&&v.includes('\n')){
+              const[fr2,en2]=v.split('\n');
+              c.value={richText:[{text:fr2+'     ',font:{name:FDATA,size:tail,bold:true,color:{argb:NOIR}}},
+                                  {text:en2,font:{name:FDATA,size:tail,bold:true,color:{argb:ROUGE}}}]};
+            }else c.value=v;
+            c.font={name:FDATA,size:tail,bold:true,color:{argb:NOIR}};
+            c.border=bordN;
+            c.alignment={horizontal:'center',vertical:'middle',wrapText:true};
+            if(i===s.iPrix||i===s.iMont)c.fill=_fillOf(JAUNE);
+          });
+          // hauteur : 55 (mère) agrandie pour que RIEN ne soit coupé — estime
+          // le wrap de CHAQUE cellule texte avec la largeur réelle de sa colonne
+          let hMax=AV?178:H_LIGNE;
+          vals.forEach((v,i)=>{
+            if(i===s.iCfr||v==null||v==='')return;
+            const tail=s.tailles[i]||T_TXT;
+            const cap=Math.max(3,(widths[i]||10)*9.5/tail);
+            const nl=String(v).split('\n').reduce((a,l2)=>a+Math.max(1,Math.ceil(l2.length/cap)),0);
+            hMax=Math.max(hMax,nl*(tail*1.4)+8);
+          });
+          row.height=hMax;
+          // photo de la réf incrustée dans la cellule PHOTO, centrée, cliquable
+          const im=AV?s.imgs[nb]:null;
+          if(im){
+            const cellW=widths[0]*7+5, cellH=row.height*4/3;
+            let h=cellH-6, w=h*im.w/im.h;
+            if(w>cellW-6){w=cellW-6;h=w*im.h/im.w;}
+            const _anc={tl:{col:((cellW-w)/2)/cellW,row:r-1+((cellH-h)/2)/cellH},ext:{width:Math.round(w),height:Math.round(h)}};
+            if(im.url)_anc.hyperlinks={hyperlink:im.url,tooltip:'Cliquer pour voir la photo en grand'};
+            ws.addImage(im.id,_anc);
+          }
+          // la ligne déborde de la page → elle passe sur la suivante : on clôt
+          // le bloc CFR de la page et on force le saut là où on l'a calculé
+          _hCum+=row.height;
+          if(_hCum>_pgFin){
+            if(r>_cfrDeb){
+              _cfrBloc(_cfrDeb,r-1);
+              ws.getRow(r-1).addPageBreak();
+              _cfrDeb=r;_hCum=_pgFin+row.height;
+            }
+            _pgFin+=_pageHPt;
+          }
+          r++;
+        });
+        // dernier bloc CFR de la section (reliquat de la dernière page)
+        _cfrBloc(_cfrDeb,r-1);
+        r++; // ligne vide entre sections
+      });
 
-    // TOTAL en TONNES sur jaune (sous la colonne PN) — les kg bruts se
-    // lisaient comme un prix (38043).
-    const _totKg=[...secBob,...secFmt].reduce((s2,d)=>s2+(+d.poids||0),0);
-    // PN de la dernière section affichée (décalé d'un cran sans colonne N°)
-    const _pnCol=String.fromCharCode((secFmt.length?'H':'I').charCodeAt(0)-(noRef?1:0));
-    ws.mergeCells(`A${r}:${String.fromCharCode(_pnCol.charCodeAt(0)-1)}${r}`);
-    const _tl=ws.getCell(`A${r}`); _tl.value='TOTAL'; box(_tl,{bold:true,size:13,align:'right'});
-    const _tk=ws.getCell(`${_pnCol}${r}`); _tk.value=(Math.round(_totKg/100)/10).toLocaleString('fr-FR')+' t'; box(_tk,{bold:true,size:13,color:RED,bg:JAUNE,align:'center',border:true});
-    ws.getRow(r).height=26; r+=2;
-    // Conditions de vente (bilingue)
-    ws.mergeCells(`A${r}:C${r}`); let _c1=ws.getCell(`A${r}`); _c1.value='CONDITIONS DE VENTE'; box(_c1,{bold:true,size:12,align:'center',border:true,bg:HEADBG});
-    ws.mergeCells(`D${r}:${LAST}${r}`); let _c2=ws.getCell(`D${r}`); _c2.value='30% VIREMENT AVANT EXPÉDITION ET 70% CONTRE DOCUMENTS'; box(_c2,{bold:true,size:12,align:'center',border:true});
-    ws.getRow(r).height=24; r++;
-    ws.mergeCells(`A${r}:C${r}`); _c1=ws.getCell(`A${r}`); _c1.value='TERMS OF SALE'; box(_c1,{italic:true,size:12,color:SUB,align:'center',border:true,bg:HEADBG});
-    ws.mergeCells(`D${r}:${LAST}${r}`); _c2=ws.getCell(`D${r}`); _c2.value='30% TRANSFER BEFORE SHIPMENT AND 70% AGAINST DOCUMENTS'; box(_c2,{italic:true,size:12,color:SUB,align:'center',border:true});
-    ws.getRow(r).height=24; r++;
-    // Fond GRIS autour de l'offre (04/08) : colonnes à droite du tableau et
-    // lignes sous le document — le document A1:LAST reste blanc.
-    const _greyFill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEDEDED'}};
-    for(let rr=1;rr<=r+120;rr++)for(let cc=NCOL+1;cc<=NCOL+18;cc++)ws.getRow(rr).getCell(cc).fill=_greyFill;
-    for(let rr=r;rr<=r+120;rr++)for(let cc=1;cc<=NCOL;cc++)ws.getRow(rr).getCell(cc).fill=_greyFill;
+      // 5) TOTAL en tonnes (jaune, sous POIDS) + conditions de vente.
+      const _totKg=[...secBob,...secFmt].reduce((s2,d)=>s2+(+d.poids||0),0);
+      const lastSec=secDefs[secDefs.length-1];
+      const iPoids=lastSec?lastSec.fr.findIndex(x=>/^POIDS/.test(x)):-1;
+      if(iPoids>0){
+        ws.mergeCells(r,1,r,iPoids);
+        const tl=ws.getRow(r).getCell(1);
+        tl.value='TOTAL';
+        tl.font={name:FDATA,size:T_TXT,bold:true};
+        tl.alignment={horizontal:'right',vertical:'middle'};
+        const tk=ws.getRow(r).getCell(iPoids+1);
+        tk.value=_sp((Math.round(_totKg/100)/10).toLocaleString('fr-FR'))+' t';
+        tk.font={name:FDATA,size:T_TXT,bold:true,color:{argb:ROUGE}};
+        tk.fill=_fillOf(JAUNE);
+        tk.alignment={horizontal:'center',vertical:'middle'};
+        tk.border=bordN;
+        ws.getRow(r).height=40; r+=2;
+      }
+      const _cond=(a,b,en)=>{
+        ws.mergeCells(r,1,r,3);
+        const c1=ws.getRow(r).getCell(1);
+        c1.value=a;
+        c1.font={name:FNT,size:16,bold:true,color:{argb:en?ROUGE:NOIR}};
+        c1.fill=_fillOf(BANDE);
+        c1.alignment={horizontal:'center',vertical:'middle',wrapText:true};
+        c1.border=bordN;
+        if(nCols>4)ws.mergeCells(r,4,r,nCols);
+        const c2=ws.getRow(r).getCell(4);
+        c2.value=b;
+        c2.font={name:FNT,size:16,bold:true,color:{argb:en?ROUGE:NOIR}};
+        c2.alignment={horizontal:'center',vertical:'middle',wrapText:true};
+        c2.border=bordN;
+        ws.getRow(r).height=30; r++;
+      };
+      _cond('CONDITIONS DE VENTE','30% VIREMENT AVANT EXPÉDITION ET 70% CONTRE DOCUMENTS',false);
+      _cond('TERMS OF SALE','30% TRANSFER BEFORE SHIPMENT AND 70% AGAINST DOCUMENTS',true);
+      // Vue « Aperçu des sauts de page » (fichier mère) : Excel trace LUI-MÊME
+      // la bordure BLEUE autour de la zone d'impression et grise nativement
+      // tout le reste (leur gris foncé + « Page 1 » en filigrane = cette vue,
+      // pas un fond de cellule) → plus de gris peint à la main.
+      const _colL=(n)=>{let t='';while(n>0){t=String.fromCharCode(65+((n-1)%26))+t;n=Math.floor((n-1)/26);}return t;};
+      ws.pageSetup.printArea='A1:'+_colL(nCols)+(r-1);
+      return {imgsBob,imgsFmt};
     };
-    const _shOpts={views:[{showGridLines:false}],pageSetup:{orientation:'landscape',fitToPage:true,fitToWidth:1}};
-    // Onglet 1 « Offre » = la vue ASSEMBLÉE (une ligne par lot) ; le détail
-    // article par article passe en onglet 2 « Détails » (04/08 Ethan).
-    await _buildSheet(wb.addWorksheet('Offre',_shOpts),lotsBob,lotsFmt,{noRef:true});
+
+    // Marge d'impression de l'onglet Cartes (pouces) — PARTAGÉE entre le calcul
+    // du nombre de rangées/page et le pageSetup de la feuille (doivent coller).
+    const CARTES_MARGIN_IN=0.2;
+    // Onglet « Cartes » (ESSAI 26/08 « on va voir ce que ça donne ») : réplique
+    // les cartes produit du site — photo en haut, titre TYPE — QUALITÉ, réf·
+    // détail, puis caractéristiques en grille 2 colonnes (petit label au-dessus,
+    // grosse valeur en dessous). 3 cartes par rangée. Réutilise les images déjà
+    // chargées pour l'onglet Photos (ids workbook partagés, rien retéléchargé).
+    const _buildCartes=async(ws,secBob,secFmt,ph,cOpts)=>{
+      const PC=(cOpts&&cOpts.cols)||5,land=!!(cOpts&&cOpts.land),CW=21,SP=2;
+      const widths=[SP];for(let i=0;i<PC;i++)widths.push(CW,CW,SP);
+      const nColsC=widths.length;
+      ws.columns=widths.map(w=>({width:w}));
+      const items=[
+        ...secBob.map((d,ix)=>({d,im:(ph&&ph.imgsBob&&ph.imgsBob[ix])||null,bob:true})),
+        ...secFmt.map((d,ix)=>({d,im:(ph&&ph.imgsFmt&&ph.imgsFmt[ix])||null,bob:false})),
+      ];
+      const H_PH=200,H_TI=32,H_SO=20,H_CA=40,H_ES=16;
+      const _v=(x)=>(x==null||x==='')?'—':String(x);
+      const _car=(cell,lab,val)=>{
+        cell.value={richText:[{text:lab+'\n',font:{name:FNT,size:11,bold:true,color:{argb:'FF86868B'}}},
+                              {text:_v(val),font:{name:FNT,size:17,bold:true,color:{argb:NOIR}}}]};
+        cell.alignment={horizontal:'left',vertical:'middle',wrapText:true,indent:1};
+        cell.border=bordN;
+      };
+      const bandH=H_PH+H_TI+H_SO+3*H_CA+H_ES;
+      // Combien de RANGÉES de cartes tiennent EXACTEMENT sur une page imprimée,
+      // pour poser un saut de page manuel au bord de rangée (jamais au milieu
+      // d'une carte). Géométrie réelle : largeur colonnes → px Excel (MDW 7) →
+      // échelle fitToWidth → hauteur imprimable dispo. Marges 0,2" (calées sur
+      // _shOptsCartes). Comme une page entière de N rangées TIENT dans la
+      // hauteur, Excel honore le saut manuel et n'insère PAS de coupe auto qui
+      // traverserait une photo.
+      const _MG=CARTES_MARGIN_IN, pageW=land?842:595, pageH=land?595:842;
+      const printW=pageW-2*_MG*72, printH=pageH-2*_MG*72;
+      const colPxTot=widths.reduce((a2,w)=>a2+Math.trunc(((256*w+18)/256)*7),0);
+      const scaleC=Math.min(1, printW/(colPxTot*0.75));
+      const rowsPerPage=Math.max(1, Math.floor((printH/scaleC)/bandH));
+      let r=1,rowIdx=0;
+      for(let i0=0;i0<items.length;i0+=PC){
+        if(rowIdx>0 && rowIdx%rowsPerPage===0) ws.getRow(r-1).addPageBreak();
+        const rP=r,rT=r+1,rS=r+2,rC=r+3;
+        // hauteurs AVANT addImage (ExcelJS fige l'ancre à la hauteur connue)
+        ws.getRow(rP).height=H_PH;ws.getRow(rT).height=H_TI;ws.getRow(rS).height=H_SO;
+        ws.getRow(rC).height=H_CA;ws.getRow(rC+1).height=H_CA;ws.getRow(rC+2).height=H_CA;
+        ws.getRow(rC+3).height=H_ES;
+        items.slice(i0,i0+PC).forEach((it,j)=>{
+          const d=it.d,c0=2+j*3;
+          // photo (fusion 2 colonnes), contain centré, clic = photo en grand
+          ws.mergeCells(rP,c0,rP,c0+1);
+          const cph=ws.getRow(rP).getCell(c0);
+          cph.border=bordN;cph.alignment={horizontal:'center',vertical:'middle'};
+          if(it.im){
+            const colPx=CW*7,boxW=colPx*2,boxH=H_PH*4/3;
+            // « contain » : la photo tient ENTIÈREMENT dans le cadre (jamais de
+            // débordement), agrandie au max, centrée horizontalement ET
+            // verticalement — le facteur d'échelle est le plus contraignant.
+            const sc=Math.min((boxW-4)/it.im.w,(boxH-4)/it.im.h);
+            const w2=it.im.w*sc,h2=it.im.h*sc;
+            const offX=(boxW-w2)/2,offY=(boxH-h2)/2;
+            // Offsets NATIFS en EMU (1px=9525) : ExcelJS réinterprète mal une
+            // colonne fractionnaire (largeur ≈ 22px au lieu de 147) → la photo
+            // se collait à gauche. En EMU natif, Excel place au bon endroit.
+            const _emu=(px)=>Math.round(px*9525);
+            const anc={tl:{nativeCol:c0-1,nativeColOff:_emu(offX),nativeRow:rP-1,nativeRowOff:_emu(offY)},ext:{width:Math.round(w2),height:Math.round(h2)}};
+            if(it.im.url)anc.hyperlinks={hyperlink:it.im.url,tooltip:'Cliquer pour voir la photo en grand'};
+            ws.addImage(it.im.id,anc);
+          }else{cph.value='SUR DEMANDE';cph.font={name:FNT,size:12,bold:true,color:{argb:NOIR}};}
+          // titre carte : TYPE — QUALITÉ, puis réf · détail (rouge)
+          ws.mergeCells(rT,c0,rT,c0+1);
+          const ct2=ws.getRow(rT).getCell(c0);
+          ct2.value=((it.bob?'BOBINE':'FORMAT')+' — '+_qualSansCode(d.qualite)).toUpperCase();
+          ct2.font={name:FNT,size:15,bold:true,color:{argb:NOIR}};
+          ct2.alignment={horizontal:'left',vertical:'middle',wrapText:true,indent:1};
+          ct2.border=bordN;
+          ws.mergeCells(rS,c0,rS,c0+1);
+          const cs=ws.getRow(rS).getCell(c0);
+          cs.value=_v(String(d.ref||'').replace(/^Photo_/i,''))+(d.detail?' · '+d.detail:'');
+          cs.font={name:FNT,size:11,bold:true,color:{argb:ROUGE}};
+          cs.alignment={horizontal:'left',vertical:'middle',wrapText:true,indent:1};
+          cs.border=bordN;
+          let laize='';
+          if(it.bob){const l2=_mm(d.largeur);laize=l2===''?'':l2+' mm';}
+          else{const dims=[_mm(d.largeur),_mm(d.longueur)].filter(x=>x!==''&&x!=null).join('×');laize=dims?dims+' mm':'';}
+          const cars=[
+            ['GRAMMAGE',d.grammage?d.grammage+' g/m²':''],[it.bob?'LAIZE':'DIMENSIONS',laize],
+            ['COULEUR',d.couleur],['POIDS NET',d.poids?Math.round(d.poids)+' kgs':''],
+            ['USINE',d.usine],['PRIX',_fmtPrix(d.prixT)],
+          ];
+          cars.forEach((cv,k)=>_car(ws.getRow(rC+Math.floor(k/2)).getCell(c0+(k%2)),cv[0],cv[1]));
+        });
+        r=rC+4;rowIdx++;
+      }
+      const _colLC=(n)=>{let t='';while(n>0){t=String.fromCharCode(65+((n-1)%26))+t;n=Math.floor((n-1)/26);}return t;};
+      ws.pageSetup.printArea='A1:'+_colLC(nColsC)+(r-1);
+    };
+    // Portrait A4 ajusté à la largeur ; les onglets Photos/Cartes passent en
+    // paysage. ExcelJS : la vue s'appelle `style` (écrite dans l'attribut XML
+    // `view`) — `view:` serait ignoré en silence et le fond gris sauterait.
+    // Zoom écran : mother-tabs à 50 %, Cartes à 70 % (essai d'harmoniser la
+    // largeur = portrait à 99 % rejeté par Ethan, on garde ces valeurs).
+    const _shOpts={views:[{style:'pageBreakPreview',zoomScale:50}],pageSetup:{orientation:'portrait',paperSize:9,fitToPage:true,fitToWidth:1,fitToHeight:0}};
+    const _shOptsL={views:[{style:'pageBreakPreview',zoomScale:50}],pageSetup:{orientation:'landscape',paperSize:9,fitToPage:true,fitToWidth:1,fitToHeight:0}};
+    // Onglet 1 « Offre » = vue ASSEMBLÉE (une ligne par lot — sa colonne
+    // REFERENCE vide disparaît d'elle-même) ; onglet 2 « Détails » = article
+    // par article ; onglet 3 « Photos » = DÉTAILLÉ réf par réf, chaque
+    // article avec SA photo à gauche (demande Ethan 25/08).
+    await _buildSheet(wb.addWorksheet('Offre',_shOpts),lotsBob,lotsFmt,{sans:['MANDRIN','DIAMETRE','MONTANT'],bandN:5});
     await _buildSheet(wb.addWorksheet('Détails',_shOpts),bobines,formats);
+    const _photosImgs=await _buildSheet(wb.addWorksheet('Photos',_shOptsL),bobines,formats,{photos:true});
+    // ESSAI onglet « Cartes » façon site (photo haut + specs bas) — réutilise
+    // les images de l'onglet Photos (pas de re-téléchargement). Paysage + zoom
+    // 70, 5 cartes/rangée, vue « Aperçu des sauts de page » (FOND GRIS + CADRE
+    // BLEU de la zone d'impression, comme les autres onglets). Les sauts de page
+    // sont posés à la main au bord de rangée (voir _buildCartes) → plus de ligne
+    // bleue au milieu des photos. Marges 0,2" = CARTES_MARGIN_IN.
+    const _shOptsCartes={views:[{style:'pageBreakPreview',zoomScale:70}],pageSetup:{orientation:'landscape',paperSize:9,fitToPage:true,fitToWidth:1,fitToHeight:0,margins:{left:CARTES_MARGIN_IN,right:CARTES_MARGIN_IN,top:CARTES_MARGIN_IN,bottom:CARTES_MARGIN_IN,header:0,footer:0}}};
+    await _buildCartes(wb.addWorksheet('Cartes',_shOptsCartes),bobines,formats,_photosImgs,{cols:5,land:true});
 
     const buf=await wb.xlsx.writeBuffer();
     const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
