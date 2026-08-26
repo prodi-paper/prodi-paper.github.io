@@ -12,7 +12,7 @@ gtag('config', 'AW-18393110999');
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.googletagmanager.com https://googleads.g.doubleclick.net https://www.googleadservices.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://stock.prodi.net https://paper.prodi.com https://prodi-paper.github.io https://images.unsplash.com https://images.weserv.nl https://www.googletagmanager.com https://googleads.g.doubleclick.net https://www.google.com https://www.google.fr; connect-src 'self' https://bvcgpdoukhcatjibmvnb.supabase.co https://prodi-arrivages.vercel.app https://api.emailjs.com https://cdn.jsdelivr.net https://stock.prodi.net https://images.weserv.nl https://www.googletagmanager.com https://googleads.g.doubleclick.net https://www.google.com https://stats.g.doubleclick.net https://www.googleadservices.com https://ad.doubleclick.net; frame-src https://challenges.cloudflare.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.googletagmanager.com https://googleads.g.doubleclick.net https://www.googleadservices.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://stock.prodi.net https://paper.prodi.com https://prodi-paper.github.io https://images.unsplash.com https://images.weserv.nl https://www.googletagmanager.com https://googleads.g.doubleclick.net https://www.google.com https://www.google.fr; connect-src 'self' https://bvcgpdoukhcatjibmvnb.supabase.co https://prodi-arrivages.vercel.app https://api.emailjs.com https://cdn.jsdelivr.net https://stock.prodi.net https://images.weserv.nl https://api.frankfurter.dev https://www.googletagmanager.com https://googleads.g.doubleclick.net https://www.google.com https://stats.g.doubleclick.net https://www.googleadservices.com https://ad.doubleclick.net; frame-src https://challenges.cloudflare.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <link rel="icon" type="image/png" href="/img/panda.png">
@@ -95,7 +95,7 @@ gtag('config', 'AW-18393110999');
 <link rel="preconnect" href="https://images.weserv.nl">
 <link rel="dns-prefetch" href="https://stock.prodi.net">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/catalogue.css?v=827">
+<link rel="stylesheet" href="/catalogue.css?v=842">
 <!-- EmailJS : chargé À LA DEMANDE par _ejsReady() (perf 18/07) -->
 </head>
 <body>
@@ -205,6 +205,10 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
     </div>
     </div>
     <div class="hright">
+      <div class="ccy-seg" id="ccy-wrap" title="Afficher les prix en € ou en $ (taux BCE du jour)">
+        <button type="button" class="ccy-opt active" data-c="EUR" onclick="toggleCurrency('EUR')" aria-label="Prix en euros">€</button>
+        <button type="button" class="ccy-opt" data-c="USD" onclick="toggleCurrency('USD')" aria-label="Prix en dollars">$</button>
+      </div>
       <div class="offre-wrap" id="album-wrap">
         <button class="btn-head" id="album-btn" onclick="document.getElementById('album-file-input').click()" title="Importer des références depuis un fichier (Excel, PDF, BL, texte…)">
           <span class="offre-txt" style="font-size:19px;font-weight:800;">Album photo</span>
@@ -247,10 +251,17 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
      rien ne change (boutons directs). Vue client ?s= : header épuré, jamais
      touché. -->
 <style>
+  /* Bouton « Filtres » ÉLARGI (icône + texte) au lieu d'un rond (26/08) */
   #mob-filtres-btn{
-    width:42px;height:42px;padding:0 !important;border-radius:999px;
-    display:flex;align-items:center;justify-content:center;
+    width:auto;height:42px;padding:0 18px !important;border-radius:999px;
+    display:flex;align-items:center;justify-content:center;gap:7px;
+    font-size:15px;font-weight:800;color:#1d1d1f !important; /* texte + icône (currentColor) foncés (26/08) */
   }
+  #mob-filtres-btn svg{stroke-width:2.7;} /* traits de l'icône plus épais/gras */
+  .mob-filtres-txt{display:inline;}
+  /* Logo panda dans l'en-tête du tiroir filtres (26/08) */
+  .fd-logo{height:26px;width:auto;flex-shrink:0;margin-right:8px;}
+  #filter-drawer .fd-title{margin-right:auto;}
 </style>
 <script>
 (function(){
@@ -267,12 +278,18 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
   var hr = document.querySelector('.hright');
   var cart = hr && hr.querySelector('.cart-wrap');
   if (!hr || !cart) return;
+  // Bascule €/$ déplacée À GAUCHE du header (26/08) : sortie de .hright et
+  // placée en tête de .header-inner.
+  var ccy = document.getElementById('ccy-wrap');
+  var hi = document.querySelector('.header-inner');
+  if (ccy && hi) hi.insertBefore(ccy, hi.firstChild);
+  // Bouton « Filtres » ÉLARGI (icône + texte, pilule large au lieu d'un rond).
   var wrap = document.createElement('div');
   wrap.className = 'outils-wrap';
   wrap.id = 'outils-wrap';
   wrap.innerHTML = '<button class="btn-head" id="mob-filtres-btn" title="Filtres" aria-label="Filtres" onclick="openFilterDrawer()">' +
     '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><circle cx="8" cy="6" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="16" cy="12" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="8" cy="18" r="2" fill="currentColor" stroke="none"/></svg>' +
-    '</button>';
+    '<span class="mob-filtres-txt">Filtres</span></button>';
   hr.insertBefore(wrap, cart);
 })();
 </script>
@@ -762,141 +779,148 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
 <div id="filter-drawer">
   <div class="fd-handle"></div>
   <div class="fd-head">
+    <img src="/img/panda.png?v=2" alt="Prodiconseil" class="fd-logo">
     <div class="fd-title">FILTRES</div>
     <button class="fd-reset" onclick="resetFilters()">↺ Réinitialiser</button>
     <button class="fd-close" onclick="closeFilterDrawer()">✕</button>
   </div>
   <div class="fd-body">
-    <!-- Format -->
-    <div class="fd-section open">
-      <div class="fd-section-body">
-        <div class="format-pills" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-          <button class="fpill" id="pill-bobine" data-format="Bobine" onclick="toggleFormatPill(this)" style="justify-content:center;width:100%;box-sizing:border-box;">Bobine</button>
-          <button class="fpill" id="pill-palette" data-format="Palette" onclick="toggleFormatPill(this)" style="justify-content:center;width:100%;box-sizing:border-box;">Format</button>
-        </div>
+    <!-- BOBINE | FORMAT -->
+    <div class="fd-section open"><div class="fd-section-body">
+      <div class="format-pills" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <button class="fpill" id="pill-bobine" data-format="Bobine" onclick="toggleFormatPill(this)" style="justify-content:center;width:100%;box-sizing:border-box;">Bobine</button>
+        <button class="fpill" id="pill-palette" data-format="Palette" onclick="toggleFormatPill(this)" style="justify-content:center;width:100%;box-sizing:border-box;">Format</button>
       </div>
-    </div>
-    <!-- Type -->
-    <div class="fd-section open">
-      <div class="fd-section-body">
-        <div class="msd" id="msd-type-mob" style="margin-top:6px;">
-          <button class="msd-btn" id="fd-msd-type-btn" data-msd-id="msd-type" onclick="toggleMsd('msd-type-mob')">
-            <span class="msd-btn-label" id="fd-msd-type-label">Tous</span>
-            <span class="msd-count" id="fd-msd-type-count" style="display:none"></span>
-            <span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
-          </button>
-          <div class="msd-panel"></div>
-        </div>
+    </div></div>
+    <!-- Type de papier -->
+    <div class="fd-section open"><div class="fd-section-body">
+      <div class="msd" id="msd-type-mob">
+        <button class="msd-btn" id="fd-msd-type-btn" data-msd-id="msd-type" onclick="toggleMsd('msd-type-mob')">
+          <span class="msd-btn-label" id="fd-msd-type-label">Type de papier</span>
+          <span class="msd-count" id="fd-msd-type-count" style="display:none"></span>
+          <span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
+        </button>
+        <div class="msd-panel"></div>
       </div>
-    </div>
+    </div></div>
     <!-- Détails -->
-    <div class="fd-section open">
-      <div class="fd-section-body" style="margin-top:6px;">
-        <div class="msd" id="msd-details-mob">
-          <button class="msd-btn" data-msd-id="msd-details" onclick="toggleMsd('msd-details-mob')">
-            <span class="msd-btn-label">Détails</span>
-            <span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
-          </button>
-          <div class="msd-panel"></div>
-        </div>
+    <div class="fd-section open"><div class="fd-section-body">
+      <div class="msd" id="msd-details-mob">
+        <button class="msd-btn" data-msd-id="msd-details" onclick="toggleMsd('msd-details-mob')">
+          <span class="msd-btn-label">Détails</span>
+          <span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
+        </button>
+        <div class="msd-panel"></div>
       </div>
-    </div>
-    <!-- Grammage -->
-    <div class="fd-section open">
-      <div class="fd-section-head" onclick="toggleFdSection(this)">
-        <span class="fd-section-title">Grammage (g/m²)</span><span class="fd-section-arrow">▾</span>
+    </div></div>
+    <!-- Grammages -->
+    <div class="fd-section open"><div class="fd-section-body">
+      <div class="msd" id="msd-grammage-mob">
+        <button class="msd-btn" data-msd-id="msd-grammage" onclick="toggleMsd('msd-grammage-mob')">
+          <span class="msd-btn-label">Grammages</span>
+          <span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
+        </button>
+        <div class="msd-panel"></div>
       </div>
-      <div class="fd-section-body" style="padding-top:6px;">
-        <div class="msd" id="msd-grammage-mob">
-          <button class="msd-btn" data-msd-id="msd-grammage" onclick="toggleMsd('msd-grammage-mob')">
-            <span class="msd-btn-label">Grammages</span>
-            <span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
-          </button>
-          <div class="msd-panel"></div>
-        </div>
+    </div></div>
+    <!-- ── FILTRES AVANCÉS (même disposition que le rail desktop) ── -->
+    <div class="fd-adv-hdr">Filtres avancés</div>
+    <!-- Couleurs -->
+    <div class="fd-section open"><div class="fd-section-body">
+      <div class="msd" id="msd-couleur-mob">
+        <button class="msd-btn" data-msd-id="msd-couleur" onclick="toggleMsd('msd-couleur-mob')">
+          <span class="msd-btn-label" id="fd-msd-couleur-label">Couleurs</span>
+          <span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
+        </button>
+        <div class="msd-panel"></div>
       </div>
-    </div>
-    <!-- Couleur -->
-    <div class="fd-section open">
-      <div class="fd-section-body" style="margin-top:6px;">
-        <div class="msd" id="msd-couleur-mob">
-          <button class="msd-btn" data-msd-id="msd-couleur" onclick="toggleMsd('msd-couleur-mob')">
-            <span class="msd-btn-label" id="fd-msd-couleur-label">Couleurs</span>
-            <span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
-          </button>
-          <div class="msd-panel"></div>
-        </div>
-      </div>
-    </div>
-    <!-- Formats -->
-    <div class="fd-section open" id="mob-sec-format">
-      <div class="fd-section-body" style="margin-top:6px;">
-        <div class="msd" id="msd-format-mob">
-          <button class="msd-btn" data-msd-id="msd-format" onclick="toggleMsd('msd-format-mob')">
-            <span class="msd-btn-label">Dimensions</span>
-            <span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
-          </button>
-          <div class="msd-panel"></div>
-        </div>
-      </div>
-    </div>
-    <div class="fd-section open" id="mob-sec-laize">
-      <div class="fd-section-head" onclick="toggleFdSection(this)">
-        <span class="fd-section-title" id="mob-laize-title">Laize (mm)</span><span class="fd-section-arrow">▾</span>
-      </div>
-      <div class="fd-section-body" style="padding-top:6px;">
-        <div class="msd" id="msd-laize-mob">
-          <button class="msd-btn" data-msd-id="msd-laize" onclick="toggleMsd('msd-laize-mob')">
-            <span class="msd-btn-label">Laizes</span>
-            <span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
-          </button>
-          <div class="msd-panel"></div>
-        </div>
-      </div>
-    </div>
-    <!-- Laize -->
+    </div></div>
     <!-- Mandrin -->
-    <div class="fd-section open" id="mob-sec-mandrin">
-      <div class="fd-section-body" style="margin-top:6px;">
-        <div class="msd" id="msd-mandrin-mob">
-          <button class="msd-btn" data-msd-id="msd-mandrin" onclick="toggleMsd('msd-mandrin-mob')">
-            <span class="msd-btn-label" id="fd-msd-mandrin-label">Mandrins</span>
-            <span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
-          </button>
-          <div class="msd-panel"></div>
-        </div>
+    <div class="fd-section open" id="mob-sec-mandrin"><div class="fd-section-body">
+      <div class="msd" id="msd-mandrin-mob">
+        <button class="msd-btn" data-msd-id="msd-mandrin" onclick="toggleMsd('msd-mandrin-mob')">
+          <span class="msd-btn-label" id="fd-msd-mandrin-label">Mandrin</span>
+          <span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
+        </button>
+        <div class="msd-panel"></div>
       </div>
-    </div>
-    <!-- Longueur -->
-    <div class="fd-section open" id="mob-sec-longueur">
-      <div class="fd-section-head" onclick="toggleFdSection(this)">
-        <span class="fd-section-title">Diamètre (Ø)</span><span class="fd-section-arrow">▾</span>
+    </div></div>
+    <!-- Laizes -->
+    <div class="fd-section open" id="mob-sec-laize"><div class="fd-section-body">
+      <div class="msd" id="msd-laize-mob">
+        <button class="msd-btn" data-msd-id="msd-laize" onclick="toggleMsd('msd-laize-mob')">
+          <span class="msd-btn-label">Laizes</span>
+          <span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
+        </button>
+        <div class="msd-panel"></div>
       </div>
-      <div class="fd-section-body" style="padding-top:6px;">
-        <div class="msd" id="msd-diametre-mob">
-          <button class="msd-btn" data-msd-id="msd-diametre" onclick="toggleMsd('msd-diametre-mob')">
-            <span class="msd-btn-label">Diamètre (Ø)</span>
-            <span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
-          </button>
-          <div class="msd-panel"></div>
-        </div>
+    </div></div>
+    <!-- Diamètre -->
+    <div class="fd-section open" id="mob-sec-longueur"><div class="fd-section-body">
+      <div class="msd" id="msd-diametre-mob">
+        <button class="msd-btn" data-msd-id="msd-diametre" onclick="toggleMsd('msd-diametre-mob')">
+          <span class="msd-btn-label">Diamètre</span>
+          <span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
+        </button>
+        <div class="msd-panel"></div>
       </div>
-    </div>
+    </div></div>
     <!-- Poids -->
-    <div class="fd-section open" id="mob-sec-poids">
-      <div class="fd-section-head" onclick="toggleFdSection(this)">
-        <span class="fd-section-title">Poids</span><span class="fd-section-arrow">▾</span>
+    <div class="fd-section open" id="mob-sec-poids"><div class="fd-section-body">
+      <div class="msd" id="msd-poids-mob">
+        <button class="msd-btn" data-msd-id="msd-poids" onclick="toggleMsd('msd-poids-mob')">
+          <span class="msd-btn-label">Poids</span>
+          <span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
+        </button>
+        <div class="msd-panel"></div>
       </div>
-      <div class="fd-section-body" style="padding-top:6px;">
-        <div class="msd" id="msd-poids-mob">
-          <button class="msd-btn" data-msd-id="msd-poids" onclick="toggleMsd('msd-poids-mob')">
-            <span class="msd-btn-label">Poids</span>
-            <span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
-          </button>
-          <div class="msd-panel"></div>
-        </div>
+    </div></div>
+    <!-- Dimensions (formats) -->
+    <div class="fd-section open" id="mob-sec-format"><div class="fd-section-body">
+      <div class="msd" id="msd-format-mob">
+        <button class="msd-btn" data-msd-id="msd-format" onclick="toggleMsd('msd-format-mob')">
+          <span class="msd-btn-label">Dimensions</span>
+          <span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
+        </button>
+        <div class="msd-panel"></div>
       </div>
-    </div>
+    </div></div>
+    <!-- Photo -->
+    <div class="fd-section open"><div class="fd-section-body">
+      <div class="format-pills" style="display:flex;gap:8px;">
+        <button class="fpill fpill-photo" data-photo="with" onclick="togglePhotoPill(this)" style="flex:1;justify-content:center;gap:6px;">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1" y="3" width="12" height="9" rx="1.5"/><circle cx="7" cy="7.5" r="2.2"/><path d="M5 3l1-1.5h2L9 3"/></svg>
+          Photo
+        </button>
+        <button class="fpill fpill-photo" data-photo="without" onclick="togglePhotoPill(this)" style="flex:1;justify-content:center;gap:6px;">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1" y="3" width="12" height="9" rx="1.5"/><line x1="1" y1="1" x2="13" y2="13" stroke-width="1.8"/></svg>
+          Sans photo
+        </button>
+      </div>
+    </div></div>
+    <!-- Réservation -->
+    <div class="fd-section open"><div class="fd-section-body">
+      <div class="format-pills" style="display:flex;gap:8px;">
+        <button class="fpill fpill-resa" data-resa="with" onclick="toggleResaPill(this)" style="flex:1;justify-content:center;gap:6px;">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2.5" y="6" width="9" height="6.5" rx="1.2"/><path d="M4.5 6V4.5a2.5 2.5 0 0 1 5 0V6"/></svg>
+          Réservé
+        </button>
+        <button class="fpill fpill-resa" data-resa="without" onclick="toggleResaPill(this)" style="flex:1;justify-content:center;gap:6px;">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2.5" y="6" width="9" height="6.5" rx="1.2"/><path d="M4.5 6V4.2a2.5 2.5 0 0 1 4.9-.7"/></svg>
+          Dispo
+        </button>
+      </div>
+    </div></div>
+    <!-- Réf usine -->
+    <div class="fd-section open"><div class="fd-section-body">
+      <div class="msd" id="msd-usine-mob">
+        <button class="msd-btn" data-msd-id="msd-usine" onclick="toggleMsd('msd-usine-mob')">
+          <span class="msd-btn-label">Réf usine</span>
+          <span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
+        </button>
+        <div class="msd-panel"></div>
+      </div>
+    </div></div>
     <!-- Référence article (range) -->
     <div class="fd-section open">
       <div class="fd-section-head" style="font-weight:600;padding-bottom:4px;">Référence article</div>
@@ -904,33 +928,6 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
         <div class="frow">
           <input class="fi" type="number" id="f-refmin-mob" placeholder="Min" oninput="syncMobFilter('f-refmin','f-refmin-mob')">
           <input class="fi" type="number" id="f-refmax-mob" placeholder="Max" oninput="syncMobFilter('f-refmax','f-refmax-mob')">
-        </div>
-      </div>
-    </div>
-    <!-- Référence usine -->
-    <div class="fd-section open">
-      <div class="fd-section-body" style="padding-top:6px;">
-        <div class="msd" id="msd-usine-mob">
-          <button class="msd-btn" data-msd-id="msd-usine" onclick="toggleMsd('msd-usine-mob')">
-            <span class="msd-btn-label">Réf usine</span>
-            <span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
-          </button>
-          <div class="msd-panel"></div>
-        </div>
-      </div>
-    </div>
-    <!-- Photo -->
-    <div class="fd-section open">
-      <div class="fd-section-body" style="padding-top:6px;">
-        <div class="format-pills" style="display:flex;gap:8px;">
-          <button class="fpill fpill-photo" data-photo="with" onclick="togglePhotoPill(this)" style="flex:1;justify-content:center;gap:6px;">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1" y="3" width="12" height="9" rx="1.5"/><circle cx="7" cy="7.5" r="2.2"/><path d="M5 3l1-1.5h2L9 3"/></svg>
-            Photo
-          </button>
-          <button class="fpill fpill-photo" data-photo="without" onclick="togglePhotoPill(this)" style="flex:1;justify-content:center;gap:6px;">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1" y="3" width="12" height="9" rx="1.5"/><line x1="1" y1="1" x2="13" y2="13" stroke-width="1.8"/></svg>
-            Sans photo
-          </button>
         </div>
       </div>
     </div>
@@ -976,9 +973,9 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
 <div class="spin-bg" id="spinner"><div class="spin"></div></div>
 
 <script src="/analytics.js?v=5"></script>
-<script src="/catalogue.js?v=774"></script>
+<script src="/catalogue.js?v=782"></script>
 <!-- Fiches techniques & certificats (interne, bouton header + panneau) -->
-<script src="/fiches.js?v=5" defer></script>
+<script src="/fiches.js?v=6" defer></script>
 <!-- Traqueur de perf, inerte sans ?perf=1 (voir perf-hud.js) -->
 <script src="/perf-hud.js?v=1" defer></script>
 </body>

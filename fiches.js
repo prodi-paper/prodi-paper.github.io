@@ -390,7 +390,11 @@
     document.getElementById('fiche-btn').addEventListener('click',openPanel);
     return true;
   }
+  // Fonctionnalité Fiches MASQUÉE sur tous les appareils (Ethan 26/08, temporaire) —
+  // remettre FICHES_OFF=false pour réactiver le bouton header.
+  var FICHES_OFF=true;
   function boot(){
+    if(FICHES_OFF)return;
     if(injectBtn())return;
     var n=0,iv=setInterval(function(){if(injectBtn()||++n>20)clearInterval(iv);},250);
   }

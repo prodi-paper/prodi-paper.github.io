@@ -183,6 +183,53 @@ function togglePriceMode(on){
   if(_detIdx>=0&&all[_detIdx]&&document.getElementById('detail-bg')?.classList.contains('show'))
     openDetail(all[_detIdx].id);
 }
+
+// ── DEVISE € / $ (26/08) : bascule d'affichage des prix. Le taux EUR→USD vient
+// de la BCE via Frankfurter (gratuit, SANS clé, MAJ quotidienne ~16h CET),
+// caché 1 jour en localStorage ; hors ligne on garde le dernier taux connu
+// (et à défaut on reste en €). Ne change QUE l'affichage — la base reste en €.
+let _usdRate=0, _currency='EUR';
+try{ if(localStorage.getItem('prodi_ccy')==='USD')_currency='USD'; }catch(_){}
+// jamais de $ en vue client (?s=) ni en accès lead : le bouton n'y est pas,
+// on ne veut pas laisser un prix en $ figé sans moyen de revenir en €.
+if(_leadMode||/[?&](s|share)=/.test(location.search))_currency='EUR';
+// prixT = valeur en €/T → nombre formaté dans la devise courante.
+function _ccyNum(prixT){
+  if(prixT==null||prixT==='')return '';
+  let v=(_currency==='USD'&&_usdRate>0)?prixT*_usdRate:prixT;
+  v=Math.round(v/10)*10; // arrondi à la DIZAINE : prix « ronds » finissant par 0 (Ethan 26/08, € ET $)
+  return v.toLocaleString('fr-FR');
+}
+function _ccyUnit(low){ const u=(_currency==='USD'&&_usdRate>0)?'$/T':'€/T'; return low?u.toLowerCase():u; }
+function _ccySym(){ return (_currency==='USD'&&_usdRate>0)?'$':'€'; }
+function _paintCcyBtn(){ document.querySelectorAll('.ccy-opt').forEach(b=>b.classList.toggle('active',b.dataset.c===_currency)); }
+function _repaintPrices(){
+  const g=document.getElementById('pgrid'); if(g&&g._lastList)render(g._lastList);
+  if(typeof renderDrawer==='function')renderDrawer();
+  if(_detIdx>=0&&all[_detIdx]&&document.getElementById('detail-bg')?.classList.contains('show'))openDetail(all[_detIdx].id);
+}
+function toggleCurrency(c){
+  const next=c||(_currency==='USD'?'EUR':'USD');
+  if(next==='USD'&&!(_usdRate>0)){ toast('Taux de change en cours de chargement…'); _loadUsdRate(); return; }
+  _currency=next;
+  try{localStorage.setItem('prodi_ccy',_currency);}catch(_){}
+  _paintCcyBtn(); _repaintPrices();
+  window.prodiTrack?.('devise',{ccy:_currency,taux:_usdRate});
+}
+async function _loadUsdRate(){
+  try{
+    const today=new Date().toISOString().slice(0,10);
+    let cached=null; try{cached=JSON.parse(localStorage.getItem('prodi_usd')||'null');}catch(_){}
+    if(cached&&+cached.r>0)_usdRate=+cached.r;                 // repli immédiat
+    if(cached&&cached.d===today&&+cached.r>0)return;           // déjà à jour aujourd'hui
+    const res=await fetch('https://api.frankfurter.dev/v1/latest?base=EUR&symbols=USD');
+    const j=await res.json();
+    const r=j&&j.rates&&+j.rates.USD;
+    if(r>0){ _usdRate=r; try{localStorage.setItem('prodi_usd',JSON.stringify({d:today,r}));}catch(_){}
+      if(_currency==='USD')_repaintPrices(); }
+  }catch(_){/* garde le cache ou reste en € */}
+}
+_paintCcyBtn(); _loadUsdRate();
 const ico=t=>({Kraft:'📦',FBB:'🗂️',SBS:'📋',Testliner:'🧱',Fluting:'〰️',Offset:'🧻',Thermique:'🏷️',Duplex:'📄',Triplex:'📑'}[t]||'📦');
 const fmt=kg=>!kg?'—':kg>=1000?(kg/1000).toFixed(1)+' t':kg+' KGS';
 // 16/07 : TOUT reste en mm (données Sage en mm) — l'helper garde son nom
@@ -984,9 +1031,9 @@ async function init(){
   buildMsdOptions('sb-msd-poids',POIDS_OPTIONS,'Poids','msd-poids'===''?null:undefined,'msd-poids');
 
   // Also build mobile msd panels (msd-type-mob, msd-mandrin-mob, msd-couleur-mob)
-  buildMsdOptions('msd-type-mob',QUALITE_CODES,'Tous',_typeLabel,'msd-type');
+  buildMsdOptions('msd-type-mob',QUALITE_CODES,'Type de papier',_typeLabel,'msd-type');
   buildMsdOptions('msd-couleur-mob',couleurVals,'Couleurs',null,'msd-couleur');
-  buildMsdOptions('msd-mandrin-mob',['70','76','150','152'],'Mandrins',v=>v+' mm','msd-mandrin');
+  buildMsdOptions('msd-mandrin-mob',['70','76','150','152'],'Mandrin',v=>v+' mm','msd-mandrin');
   buildMsdOptions('msd-format-mob',FORMAT_OPTIONS,'Dimensions',v=>v===FORMAT_AUTRES?'Autres dimensions':v,'msd-format');
   buildMsdOptions('msd-grammage-mob',GRAMMAGE_OPTIONS,'Grammages',v=>v===GRAMMAGE_AUTRES?'Autres grammages':v,'msd-grammage');
   _buildGrammageSlider('msd-grammage-mob');
@@ -1564,12 +1611,17 @@ function toggleMsd(id) {
   const btn = document.querySelector(`#${id} .msd-btn`);
   if(!panel||!btn) return;
   const isOpen = panel.classList.contains('show');
-  // Position fixed panel under button
+  // Position fixed panel under button — largeur CALÉE sur le bouton (= largeur
+  // du rail). Une fois reparenté vers <body> (fix Safari), le panneau perd son
+  // ancêtre #sb-msd-* et la règle CSS de largeur ne s'applique plus → il retombe
+  // sur `width:auto !important` (Type déborde du rail, Détails trop étroit). On
+  // force donc la largeur en INLINE !important pour battre ce CSS et rester
+  // contenu dans le rail comme les menus Couleur/Mandrin.
   if(!isOpen){
     const r=btn.getBoundingClientRect(),z=_zf();
     panel.style.top=((r.bottom+4)/z)+'px';
     panel.style.left=(r.left/z)+'px';
-    panel.style.width=(r.width/z)+'px';
+    panel.style.setProperty('width',(r.width/z)+'px','important');
   }
   // Close all
   document.querySelectorAll('.msd-panel.show').forEach(p => p.classList.remove('show'));
@@ -3032,7 +3084,7 @@ async function _buildFabMenu(){
                 :(o.long&&o.laize?o.laize+'×'+o.long:(o.laize?'laize '+o.laize:''));
               return `<button class="offre-item offre-usine fab-offre" role="menuitem" onclick="_fabOpenU(${attrJs(fich)},${attrJs(f.code)},${attrJs(u)})">
                 <span class="offre-lbl">${o.g?numId(o.g)+' g':'—'}${dim?' · '+esc(dim):''}</span>
-                <small>${o.prix?numId(o.prix).toLocaleString('fr-FR')+' €/t':''}</small>
+                <small>${o.prix?_ccyNum(o.prix)+' '+_ccyUnit(true):''}</small>
               </button>`;}).join(''):'');
         }).join('');
       }else{
@@ -4013,7 +4065,7 @@ function _renderCatalogueCard(p){
     const poids=_isGroup
       ?`${Math.round(_grpTotal).toLocaleString('fr-FR')}`
       :(p.poids_net?`${p.poids_net.toLocaleString('fr-FR')}`:'—');
-    const prixHtml=_priceMode&&p.price?`<div class="pcard-price">${Math.round(p.price*1000).toLocaleString('fr-FR')} €/T</div>`:'';
+    const prixHtml=_priceMode&&p.price?`<div class="pcard-price">${_ccyNum(p.price*1000)} ${_ccyUnit()}</div>`:'';
     const typeOverlay='';
     const _usineClean=p.usine?String(p.usine).replace(/^REF\s*/i,''):null;
     const _usineLbl=_isGroup&&p._grpUsines&&p._grpUsines.length>1
@@ -4100,7 +4152,7 @@ function _renderCatalogueCard(p){
         ?`<button class="sc-add${_isInCart?' added':''}" title="${_isInCart?'Retirer le lot':'Ajouter le lot ('+p._grpCount+')'}" onclick="event.stopPropagation();_grpRound(${attrJs(p._grpKey)})">+</button>`
         :`<button class="sc-add${_isInCart?' added':''}" ${_btnAttrs}>+</button>`;
       const detRow=`<div class="sc-cell sc-wrap sc-det-only" style="grid-column:span 4;"><div class="sc-val">${_detClean?esc(_detClean):'—'}</div></div>`;
-      const prixVal=p.price?esc(Math.round(p.price*1000).toLocaleString('fr-FR'))+' <small>€/T</small>':'—';
+      const prixVal=p.price?esc(_ccyNum(p.price*1000))+' <small>'+_ccyUnit()+'</small>':'—';
       const usineCell=`<div class="sc-cell sc-price-usine" style="grid-column:span 2;"><div class="sc-cap">USINE</div><div class="sc-val">${_usineLbl?esc(_usineLbl):'—'}</div></div>`;
       // Vue client (20/08) : PAS de prix sur la carte — cohérent avec la fiche et
       // avec « jamais de prix en vue client » (le _sharedMode a été retiré de la
@@ -4217,7 +4269,7 @@ function renderList(list){
         ?`<td class="plist-td plist-td-num" colspan="3">${esc(paletteDims2)}</td>`
         :`<td class="plist-td plist-td-num">${esc(laize)}</td><td class="plist-td plist-td-num">${esc(dim2)}</td><td class="plist-td plist-td-num plist-col-mandrin">${esc(mandrin||'—')}</td>`}
       <td class="plist-td plist-td-num">${esc(_poidsTxt)}</td>
-      ${_priceMode?`<td class="plist-td plist-td-num plist-price">${p.price?esc(Math.round(p.price*1000).toLocaleString('fr-FR')+' €/T'):'—'}</td>`:''}
+      ${_priceMode?`<td class="plist-td plist-td-num plist-price">${p.price?esc(_ccyNum(p.price*1000)+' '+_ccyUnit()):'—'}</td>`:''}
       <td class="plist-td plist-td-usine plist-col-usine">${esc(_usineTxt)}</td>
     </tr>`;
   };
@@ -4502,7 +4554,7 @@ async function openDetail(id){
     // n'apparaît QUE sur un lien prix (?p=1) — cartes et fiche harmonisées 18/08 ;
     // sans prix, USINE reste en ligne grise discrète. Le + reste catalogue seul.
     if(!_sharedMode||_priceMode){
-      const _prixV=(_priceMode&&p.price)?esc(Math.round(p.price*1000).toLocaleString('fr-FR'))+' <small>€/T</small>':'—';
+      const _prixV=(_priceMode&&p.price)?esc(_ccyNum(p.price*1000))+' <small>'+_ccyUnit()+'</small>':'—';
       et.push({lbl:'Usine',val:_uR?esc(_uR):'—',span:2});
       et.push({val:_prixV,span:2,prix:true});
     }else if(_uR){
@@ -4547,7 +4599,7 @@ async function openDetail(id){
   const _dpRow=document.getElementById('det-price-row');
   const _dpVal=document.getElementById('det-price-val');
   if(_dpRow&&_dpVal){
-    if(_priceMode&&p.price){_dpVal.innerHTML=`<span style="font-size:22px;font-weight:800;color:var(--red)">${Math.round(p.price*1000).toLocaleString('fr-FR')} €/T</span>`;_dpRow.style.display='';}
+    if(_priceMode&&p.price){_dpVal.innerHTML=`<span style="font-size:22px;font-weight:800;color:var(--red)">${_ccyNum(p.price*1000)} ${_ccyUnit()}</span>`;_dpRow.style.display='';}
     else{_dpRow.style.display='none';}
   }
   document.getElementById('det-poids-val').textContent=p.poids_net?fmt(p.poids_net):'—';
@@ -6486,7 +6538,7 @@ function renderDrawer(){
       const _totalEst=cart.reduce((s,p)=>{const _f=all.find(x=>x.id===+p.id)||p;return s+(p.qty_kg??(p.poids_net||0))*(_f.price||0);},0);
       prRow.style.display=_totalEst?'':'none';
       const prVal=document.getElementById('drawer-price-val');
-      if(prVal)prVal.textContent=_totalEst.toLocaleString('fr-FR',{maximumFractionDigits:0})+' €';
+      if(prVal)prVal.textContent=_ccyNum(_totalEst)+' '+_ccySym();
     } else { prRow.style.display='none'; }
   }
   footer.style.display='block';
@@ -6510,7 +6562,7 @@ function renderDrawer(){
     return`<div class="ci" id="ci-${numId(p.id)}" onclick="_ciOpenDetail(${numId(p.id)})" style="cursor:pointer">
       <div class="ci-img">${imgHtml}</div>
       <div class="ci-body">
-        ${(()=>{const _fmtQ=_estFormat(_pFull);const _dimv=_fmtQ?(_pFull.largeur&&_pFull.longueur?mmToCm(Math.min(_pFull.largeur,_pFull.longueur))+' × '+mmToCm(Math.max(_pFull.largeur,_pFull.longueur))+' <small>mm</small>':(_pFull.largeur?mmToCm(_pFull.largeur)+' <small>mm</small>':'—')):(_pFull.largeur?mmToCm(_pFull.largeur)+' <small>mm</small>':'—');const _c=(cap,val)=>`<div class="cie-cell"><div class="cie-cap">${cap}</div><div class="cie-val">${val}</div></div>`;const _prix=_priceMode&&_pFull.price?Math.round(_pFull.price*1000).toLocaleString('fr-FR')+' €/T':null;const _cpSvg='<svg width="10" height="10" viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.6"/><path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';const _refCell=`<div class="cie-cell cie-ref"${_prix?'':' style="grid-column:span 2"'}${lot?` onclick="event.stopPropagation();navigator.clipboard.writeText(${attrJs(lot)}).then(()=>toast('📋 Réf. copiée'))"`:''}><div class="cie-cap">${'RÉFÉRENCE'}</div><div class="cie-val">${lot?esc(lot)+_cpSvg:'—'}</div></div>`;const _prixCell=_prix?`<div class="cie-cell cie-prix"><div class="cie-cap">PRIX</div><div class="cie-val">${esc(_prix)}</div></div>`:'';return `<div class="cie-grid cie-g4"><div class="cie-cell cie-title"><span class="cie-title-txt">${esc(ciTitle)}</span><button class="ci-rm cie-rm" onclick="event.stopPropagation();removeFromCart(${numId(p.id)})" aria-label="${'Retirer'}">${_trashSvg}</button></div>${_c('GRAMMAGE',p.grammage?esc(p.grammage)+' <small>g/m²</small>':'—')+_c(_fmtQ?'DIMENSIONS':'LAIZE',_dimv)+_c('COULEUR',esc(_pFull.couleur||p.couleur||'—'))+_c('POIDS',qkg?esc(Math.round(qkg).toLocaleString('fr-FR'))+' <small>kgs</small>':'—')}${_refCell}${_prixCell}</div>`;})()}
+        ${(()=>{const _fmtQ=_estFormat(_pFull);const _dimv=_fmtQ?(_pFull.largeur&&_pFull.longueur?mmToCm(Math.min(_pFull.largeur,_pFull.longueur))+' × '+mmToCm(Math.max(_pFull.largeur,_pFull.longueur))+' <small>mm</small>':(_pFull.largeur?mmToCm(_pFull.largeur)+' <small>mm</small>':'—')):(_pFull.largeur?mmToCm(_pFull.largeur)+' <small>mm</small>':'—');const _c=(cap,val)=>`<div class="cie-cell"><div class="cie-cap">${cap}</div><div class="cie-val">${val}</div></div>`;const _prix=_priceMode&&_pFull.price?_ccyNum(_pFull.price*1000)+' '+_ccyUnit():null;const _cpSvg='<svg width="10" height="10" viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.6"/><path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';const _refCell=`<div class="cie-cell cie-ref"${_prix?'':' style="grid-column:span 2"'}${lot?` onclick="event.stopPropagation();navigator.clipboard.writeText(${attrJs(lot)}).then(()=>toast('📋 Réf. copiée'))"`:''}><div class="cie-cap">${'RÉFÉRENCE'}</div><div class="cie-val">${lot?esc(lot)+_cpSvg:'—'}</div></div>`;const _prixCell=_prix?`<div class="cie-cell cie-prix"><div class="cie-cap">PRIX</div><div class="cie-val">${esc(_prix)}</div></div>`:'';return `<div class="cie-grid cie-g4"><div class="cie-cell cie-title"><span class="cie-title-txt">${esc(ciTitle)}</span><button class="ci-rm cie-rm" onclick="event.stopPropagation();removeFromCart(${numId(p.id)})" aria-label="${'Retirer'}">${_trashSvg}</button></div>${_c('GRAMMAGE',p.grammage?esc(p.grammage)+' <small>g/m²</small>':'—')+_c(_fmtQ?'DIMENSIONS':'LAIZE',_dimv)+_c('COULEUR',esc(_pFull.couleur||p.couleur||'—'))+_c('POIDS',qkg?esc(Math.round(qkg).toLocaleString('fr-FR'))+' <small>kgs</small>':'—')}${_refCell}${_prixCell}</div>`;})()}
       </div>
       <div class="ci-confirm" id="ci-confirm-${numId(p.id)}" onclick="event.stopPropagation()">
         <span>${'Retirer cet article\u00a0?'}</span>
@@ -6754,10 +6806,12 @@ function updateFilterVisibility(){
   const sbLbl=document.getElementById('sb-laize-lbl');
   if(sbLbl) sbLbl.firstChild.textContent=laizeLbl+' ';
   // Mobile drawer
-  show('mob-sec-longueur', unlocked && !onlyPalette);
-  show('mob-sec-mandrin',  showMandrin);
+  // Tiroir mobile (26/08) : les filtres avancés (Mandrin/Laizes/Diamètre) sont
+  // TOUJOURS visibles, comme les lignes « Filtres avancés » du rail desktop.
+  show('mob-sec-longueur', true);
+  show('mob-sec-mandrin',  true);
   show('mob-sec-format',   unlocked && !onlyBobine && !window._dimsInAdv);
-  show('mob-sec-laize',    unlocked && !onlyPalette);
+  show('mob-sec-laize',    true);
   const mobLbl=document.getElementById('mob-laize-title');
   if(mobLbl) mobLbl.textContent=laizeLbl+' (mm)';
 }
@@ -7295,7 +7349,13 @@ async function exportListExcelTest(btn){
           BLEU_LIEN='FF0000FF', NOIR='FF000000';
     const T_ENT=22, H_ENT=72, T_TXT=22, T_NUM=28, H_LIGNE=55,
           LARG_CIBLE=271; // somme réelle des largeurs du fichier mère (8 col)
-    const PRIX_CFR_FR="+ 70 ~ 150 €/T \nDÉPEND DU PORT D'ARRIVÉE \n";
+    // DEVISE : si le $ est sélectionné à l'écran, l'Excel sort AUSSI en dollars
+    // (converti au taux du jour, arrondi à la dizaine comme l'affichage). Sinon €.
+    const _xUsd=(_currency==='USD'&&_usdRate>0);
+    const _xUnit=(low)=>{const u=_xUsd?'$/T':'€/T';return low?u.toLowerCase():u;};
+    const _xR10=(vEur)=>Math.round((_xUsd?vEur*_usdRate:vEur)/10)*10; // €/T → devise, arrondi dizaine
+    const _xSym=()=>_xUsd?'$':'€';
+    const PRIX_CFR_FR="+ "+_xR10(70)+" ~ "+_xR10(150)+" "+_xUnit()+" \nDÉPEND DU PORT D'ARRIVÉE \n";
     const PRIX_CFR_EN='DEPEND ON PORT OF ARRIVAL';
     const bN={style:'thin',color:{argb:NOIR}};
     const bordN={top:bN,left:bN,bottom:bN,right:bN};
@@ -7307,10 +7367,11 @@ async function exportListExcelTest(btn){
     // Formats : prix « 600 €/t » (fichier mère) sinon SUR DEMANDE ; montant du
     // lot « 4 058,10 € » ; laize en CM à virgule, plages assemblées converties.
     const _sp=(s)=>String(s).replace(/[\u202f\u00a0]/g,' ');
-    const _fmtPrix=(t)=>(typeof t==='number'&&isFinite(t))?_sp(t.toLocaleString('fr-FR'))+' €/t':'SUR DEMANDE';
+    const _fmtPrix=(t)=>(typeof t==='number'&&isFinite(t))?_sp(_xR10(t).toLocaleString('fr-FR'))+' '+_xUnit(true):'SUR DEMANDE';
     const _fmtMontant=(t,kg)=>{
       if(typeof t!=='number'||!isFinite(t)||!kg)return '';
-      return _sp((t*kg/1000).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2}))+' €';
+      let v=t*kg/1000; if(_xUsd)v*=_usdRate;
+      return _sp(Math.round(v).toLocaleString('fr-FR'))+' '+_xSym();
     };
     // Laize/largeur en MM bruts, sans unité dans la cellule (harmonisé avec
     // mandrin/Ø, l'unité vit dans l'en-tête — Ethan 26/08, fini le « cm à
@@ -7926,7 +7987,7 @@ function _sharedRecap(){
       ${bobs?`<div class="recap-stat"><b>${bobs}</b><span>bobine${bobs>1?'s':''}</span></div>`:''}
       ${fmts?`<div class="recap-stat"><b>${fmts}</b><span>format${fmts>1?'s':''}</span></div>`:''}
       <div class="recap-stat"><b>${(tot/1000).toFixed(1)}</b><span>tonnes</span></div>
-      ${prix?`<div class="recap-stat recap-prix"><b>${Math.round(prix).toLocaleString('fr-FR')}</b><span>€</span></div>`:''}
+      ${prix?`<div class="recap-stat recap-prix"><b>${(Math.round(prix/10)*10).toLocaleString('fr-FR')}</b><span>€</span></div>`:''}
     </div>
     <div class="recap-quals">
       ${qrows.slice(0,5).map(([k,g])=>`<div class="recap-q"><span class="recap-q-name">${esc(k)}<small>${esc(_qSub(g))}</small></span><b>${(g.kg/1000).toFixed(1)} T</b></div>`).join('')}
@@ -7959,7 +8020,7 @@ function _buildSharedInfo(list){
       <div class="si-title">Votre sélection</div>
       <div class="si-big">${list.length} <small>produits</small></div>
       <div class="si-big">${(tot/1000).toFixed(1)} <small>tonnes</small></div>
-      ${prix?`<div class="si-big" style="color:var(--red)">${Math.round(prix).toLocaleString('fr-FR')} <small>€</small></div>`:''}
+      ${prix?`<div class="si-big" style="color:var(--red)">${(Math.round(prix/10)*10).toLocaleString('fr-FR')} <small>€</small></div>`:''}
       <div class="si-row"><span>Bobines</span><b>${bobs}</b></div>
       <div class="si-row"><span>Formats</span><b>${fmts}</b></div>
     </div>
