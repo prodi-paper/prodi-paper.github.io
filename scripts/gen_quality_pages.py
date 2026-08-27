@@ -5,7 +5,7 @@ par page, même gabarit que les pages pays (souspage). Idempotent : réécrit.""
 import os, html
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CSS_V = "321"; JS_V = "185"
+CSS_V = "321"; JS_V = "186"
 
 STYLE = """.geopage{padding-top:64px;}
 .geopage .sec-inner{padding-top:14px;padding-bottom:56px;}

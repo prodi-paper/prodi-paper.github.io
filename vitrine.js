@@ -147,21 +147,10 @@ document.addEventListener('click',e=>{
     :a.closest('#contact-section')?'contact'
     :a.closest('footer')?'footer':'page';
   window.prodiTrack?.(ev,{via:via});
-  if(ev==='whatsapp_click'){
-    let done=false;try{done=sessionStorage.getItem('lead_done')==='1';}catch(_){}
-    const modal=document.getElementById('lead-modal');
-    if(!done&&modal&&document.getElementById('lead-form')){
-      e.preventDefault();
-      _waUrl=a.href;
-      _leadBtnMode(true);
-      modal.classList.add('open');document.body.style.overflow='hidden';
-      window.prodiTrack?.('wa_gate_vue',{via:via});
-    }else if(done){
-      // lead déjà envoyé cette session → WhatsApp direct (25/08 : distinguer
-      // les ouvertures WA « payées » d'un lead des re-clics libres)
-      window.prodiTrack?.('wa_direct',{via:via});
-    }
-  }
+  // PORTAIL WHATSAPP RETIRÉ (27/08, Ethan) : entrée OUVERTE — les clics wa.me
+  // ouvrent WhatsApp DIRECTEMENT, plus de popup lead barrage (il bloquait ~92 %
+  // des cliqueurs). Le traqueur whatsapp_click ci-dessus reste (compte les clics).
+  // _waUrl n'est plus jamais posé → le popup lead ne passe plus en mode WhatsApp.
 },true);
 
 // Premier focus par champ de formulaire (25/08) : mesure QUI commence à
