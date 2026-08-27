@@ -32,7 +32,13 @@
   </url>
   <url>
     <loc>https://paper.prodi.com/histoire/</loc>
-    <lastmod>2026-08-07</lastmod>
+    <lastmod>2026-08-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://paper.prodi.com/en/history/</loc>
+    <lastmod>2026-08-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>

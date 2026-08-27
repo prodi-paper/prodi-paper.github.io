@@ -944,6 +944,11 @@ html,body{overflow-x:clip;}
 .fab-contact{position:fixed;bottom:24px;right:24px;width:52px;height:52px;border-radius:50%;background:#25D366;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(37,211,102,.4);z-index:var(--z-modal);transition:background .18s,transform .18s,box-shadow .18s,right .28s cubic-bezier(.4,0,.2,1);}
 body.drawer-open .fab-contact{right:444px;}
 .fab-contact:hover{background:#1ebe5d;transform:scale(1.08);box-shadow:0 6px 22px rgba(37,211,102,.55);}
+/* WhatsApp flottant — UNIQUEMENT sur le catalogue SANS PRIX (lead-view) en MOBILE,
+   comme la vitrine (PRODIX étant masqué en topbar-view, pas de chevauchement) */
+.wa-sticky{display:none;position:fixed;bottom:24px;right:24px;z-index:1000;width:48px;height:48px;background:#25D366;border-radius:50%;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(37,211,102,.4);transition:transform .2s,box-shadow .2s;color:#fff;text-decoration:none;}
+.wa-sticky:hover{transform:scale(1.1);box-shadow:0 6px 28px rgba(37,211,102,.55);}
+@media(max-width:768px){body.lead-view .wa-sticky{display:flex;}}
 
 .pcard{transition:border-color .22s,box-shadow .22s,transform .22s;}
 

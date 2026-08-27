@@ -32,16 +32,16 @@ const TS_WAIT = TR('Vérification anti-robot…','Checking you are human…');
   m.innerHTML=
     '<div class="lead-panel">'
     +'<button type="button" class="eq-close" onclick="leadClose()" aria-label="Fermer">✕</button>'
-    +'<div class="lead-visu" aria-hidden="true"></div>'
-    +'<div class="lead-right">'
-    +'<h3 class="lead-h">Vous êtes imprimeur, transformateur, distributeur ?</h3>'
-    +'<p class="lead-sub">Des solutions adaptées pour vous.</p>'
-    +'<form class="lead-form" id="lead-form" onsubmit="submitLead(event)" novalidate>'
-    +'<input type="text" id="l-nom" placeholder="Votre nom ou société" aria-label="Votre nom ou société" required>'
-    +'<input type="tel" id="l-tel" placeholder="Téléphone" aria-label="Téléphone" required minlength="6">'
-    +'<input type="text" id="l-msg" placeholder="Votre besoin : qualité, quantité…" aria-label="Votre besoin" required minlength="15">'
+    +'<div class="ct-header"><h2>'+TR('Commençons à travailler ensemble.','Let’s start working together.')+'</h2></div>'
+    +'<div class="lead-ctwrap">'
+    +'<form id="lead-form" onsubmit="submitLead(event)" novalidate>'
+    +'<div class="form-row">'
+    +'<div class="fg"><input type="text" id="l-nom" placeholder="'+TR('Votre nom ou société','Your name or company')+'" aria-label="'+TR('Votre nom ou société','Your name or company')+'" required></div>'
+    +'<div class="fg"><input type="tel" id="l-tel" placeholder="'+TR('Téléphone','Phone')+'" aria-label="'+TR('Téléphone','Phone')+'" required></div>'
+    +'</div>'
+    +'<div class="fg"><textarea id="l-msg" placeholder="'+TR('Message (facultatif)','Message (optional)')+'" aria-label="Message"></textarea></div>'
     +'<input type="text" id="l-hp" name="website" autocomplete="off" tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px;opacity:0;height:0;width:0;pointer-events:none;">'
-    +'<button type="submit" class="rappel-btn" id="l-submit">On vous rappelle</button>'
+    +'<button type="submit" class="btn-submit" id="l-submit">'+TR('On vous rappelle','Request a call back')+'</button>'
     +'</form></div></div>';
   document.body.appendChild(m);
 })();
@@ -63,14 +63,16 @@ function openCatalogue(){
   document.body.style.overflow='hidden';
   setTimeout(()=>document.getElementById('stock-gate-code')?.focus(),60);
 }
-function openStock(){
-  window.prodiTrack?.('cta_catalogue');
+function openStock(type){
+  window.prodiTrack?.('cta_catalogue', type?{type:String(type)}:undefined);
   // 26/08 (Ethan « on enlève le barrage du formulaire ») : « Voir le stock »
   // n'ouvre PLUS le popup lead — accès DIRECT au catalogue SANS PRIX. On pose
   // prodi_stock_ok qui (1) bypasse la porte à code du catalogue et (2) fait
   // masquer les prix via _leadMode. Les prix restent réservés au code PRODI2026.
+  // 27/08 : param optionnel `type` = nom d'affichage TYPE_MAP (ex. 'Offset',
+  // 'Kraft', 'Luxe') → le catalogue pré-sélectionne ce type via ?type= .
   try{localStorage.setItem('prodi_stock_ok','1');}catch(_){}
-  window.location.href='/catalogue/';
+  window.location.href='/catalogue/'+(type?('?type='+encodeURIComponent(type)):'');
 }
 function closeStockGate(){
   const g=document.getElementById('stock-gate'); if(!g)return;
@@ -131,7 +133,7 @@ function _leadBtnMode(wa){
     b.innerHTML=TR('Accéder au stock','Access the stock')+' <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-left:3px;" aria-hidden="true"><line x1="4" y1="12" x2="19" y2="12"></line><polyline points="13 6 19 12 13 18"></polyline></svg>';
     b.classList.remove('btn-wa');
   } else {
-    b.textContent=TR('On vous rappelle','Request a call back');
+    b.textContent=TR('Commencer','Get started');
     b.classList.remove('btn-wa');
   }
 }
@@ -269,7 +271,7 @@ async function submitContact(e) {
     setTimeout(()=>{location.href='/merci/';},1200);
   } catch(err) {
     btn.disabled = false;
-    btn.textContent = TR('On vous rappelle','Request a call back');
+    btn.textContent = TR('Commencer','Get started');
     alert(TR('Erreur — veuillez réessayer ou écrire à ethan@prodi.com','Something went wrong — please try again or email ethan@prodi.com'));
   }
 }
@@ -718,6 +720,9 @@ async function submitRappel(e){
      verso:['Trois feuillets : CB, CFB et CF','Rames prêtes à assembler en liasses','Séries spéciales impression digitale'],
      verso_en:['Three plies: CB, CFB and CF','Reams ready to collate into sets','Special series for digital printing']},
   ];
+  // Tuile → nom de type TYPE_MAP du catalogue (pour ?type=), afin d'ouvrir le
+  // catalogue pré-filtré sur ce papier. (Papier créations→Luxe, couché→Couché 2 faces)
+  const TILE_TYPE={ROFF:'Offset',RKRABRUN:'Kraft',R2SC:'Couché 2 faces',RBOA:'Carton couché',RLUX:'Luxe',RCAR:'Autocopiant'};
   wrap.innerHTML=TILES.map((t,i)=>{
     const ttl=TR(t.title,t.title_en||t.title);
     const verso=(PLANG==='en'&&t.verso_en)?t.verso_en:t.verso;
@@ -728,7 +733,7 @@ async function submitRappel(e){
         <div class="qtile-inner qtile-front">
           <h3 class="qtile-title">${esc(ttl)}</h3>
           <div class="qtile-btns">
-            <a href="./catalogue/" class="qtile-btn qtile-btn-white" onclick="window.prodiTrack?.('qualite_plus',{q:'${esc(t.code)}'});qtileFlip(${i},1);return false;">${esc(TR('En savoir +','Learn more'))}</a>
+            <a href="./catalogue/?type=${encodeURIComponent(TILE_TYPE[t.code]||'')}" class="qtile-btn qtile-btn-white" onclick="window.prodiTrack?.('qualite_stock',{q:'${esc(t.code)}'});openStock('${TILE_TYPE[t.code]||''}');return false;">${esc(TR('Voir +','See +'))}</a>
           </div>
         </div>
         <div class="qtile-inner qtile-backface">
@@ -749,15 +754,16 @@ async function submitRappel(e){
   const CARDS=[
     {code:'COL',  slug:'offset-couleur', title:'Offset couleur',    title_en:'Coloured offset', img:U+'photo-1716471330459-063b3baf247e'+P},
     {code:'BOU',  slug:'bouffant', title:'Bouffant',          title_en:'Bulky paper', img:U+'photo-1457369804613-52c61a468e7d'+P},
-    {code:'ADH',  slug:'papier-adhesif', title:'Adhésif',           title_en:'Self-adhesive', img:U+'photo-1569725730478-a2f4a1809bb4'+P},
+    {code:'ADH',  slug:'papier-adhesif', title:'Adhésif',           title_en:'Self-adhesive', img:U+'photo-1773525912464-d2640e7aff9c'+P},
     {code:'CUT',  slug:'ramette', title:'Ramette',           title_en:'Cut-size / reams', img:U+'photo-1573978828027-e830975e272c'+P},
     {code:'LINER',slug:'liner-testliner', title:'Liner / Testliner', title_en:'Liner / Testliner', img:U+'photo-1640193698858-31565d448f90'+P},
     {code:'FLEX', slug:'complexe-pe', title:'Complexe / PE',     title_en:'PE-coated / laminated', img:U+'photo-1677586883848-695b3ad692b4'+P},
     {code:'JRN',  slug:'papier-journal', en:'newsprint',           title:'Papier journal',   title_en:'Newsprint',     img:U+'photo-1504711434969-e33886168f5c'+P},
     {code:'CUIS', slug:'papier-cuisson', en:'baking-paper',        title:'Papier cuisson',   title_en:'Baking paper',  img:U+'photo-1509440159596-0249088772ff'+P},
-    {code:'THRM', slug:'papier-thermique', en:'thermal-paper',     title:'Papier thermique', title_en:'Thermal paper', img:U+'photo-1556742049-0cfed4f6a45d'+P},
-    {code:'THSD', slug:'thermo-soudable', en:'heat-sealable-paper', title:'Thermosoudable',  title_en:'Heat-sealable', img:U+'photo-1606787366850-de6330128bfc'+P},
-    {code:'MORE', title:'Voir tout le stock', title_en:'See all stock', img:U+'photo-1719529216596-d7c76431ee0d'+P, more:true},
+    {code:'THRM', slug:'papier-thermique', en:'thermal-paper',     title:'Papier thermique', title_en:'Thermal paper', img:U+'photo-1662001164155-2d04179a7b22'+P},
+    // MASQUÉ 27/08 (Ethan) — retirer le // pour réafficher :
+    // {code:'THSD', slug:'thermo-soudable', en:'heat-sealable-paper', title:'Thermosoudable',  title_en:'Heat-sealable', img:U+'photo-1606787366850-de6330128bfc'+P},
+    // {code:'MORE', title:'Voir tout le stock', title_en:'See all stock', img:U+'photo-1719529216596-d7c76431ee0d'+P, more:true},
   ];
   const cwrap=document.getElementById('qcards');
   if(cwrap){
@@ -771,17 +777,20 @@ async function submitRappel(e){
     <div class="qcard" onclick="window.prodiTrack?.('qualite_plus',{q:'${esc(c.code)}'});openStock();">
       <img src="${c.img}" alt="${esc(ct)}" loading="lazy">
       <span class="qcard-title">${esc(ct)}</span>
-      ${c.en?`<a class="qcard-btn" href="/en/${c.en}/" onclick="event.stopPropagation();window.prodiTrack?.('qualite_page',{q:'${esc(c.code)}'})">Learn more</a>`:`<button class="qcard-btn" type="button" onclick="event.stopPropagation();window.prodiTrack?.('qualite_stock',{q:'${esc(c.code)}'});openStock();">See in stock →</button>`}
+      ${c.en?`<a class="qcard-btn" href="/en/${c.en}/" onclick="event.stopPropagation();window.prodiTrack?.('qualite_page',{q:'${esc(c.code)}'})">See +</a>`:`<button class="qcard-btn" type="button" onclick="event.stopPropagation();window.prodiTrack?.('qualite_stock',{q:'${esc(c.code)}'});openStock();">See +</button>`}
     </div>`:`
     <div class="qcard" onclick="window.prodiTrack?.('qualite_plus',{q:'${esc(c.code)}'});openStock();">
       <img src="${c.img}" alt="${esc(ct)}" loading="lazy">
       <span class="qcard-title">${esc(ct)}</span>
-      <a class="qcard-btn" href="/${c.slug}/" onclick="event.stopPropagation();window.prodiTrack?.('qualite_page',{q:'${esc(c.code)}'})">En savoir +</a>
+      <a class="qcard-btn" href="/${c.slug}/" onclick="event.stopPropagation();window.prodiTrack?.('qualite_page',{q:'${esc(c.code)}'})">Voir +</a>
     </div>`)}).join('');
     // Boucle infinie : 3 copies des cartes, le scroll reste dans la copie
     // centrale — jamais de bout de piste, donc jamais de vide
     cwrap.innerHTML=html+html+html;
-    const setW=()=>{const c=cwrap.firstElementChild;return c?CARDS.length*(c.getBoundingClientRect().width+12):0;};
+    // ⚠️ offsetLeft (px LAYOUT, non zoomés) et PAS getBoundingClientRect (px visuels) :
+    // sous body{zoom} (≥1440px) les deux diffèrent et scrollLeft est en layout → sinon
+    // le bandeau se désaligne et la carte de gauche est coupée (27/08).
+    const setW=()=>{const c=cwrap.children[CARDS.length];return c?c.offsetLeft:0;};
     const recentre=()=>{
       const w=setW(), x=cwrap.scrollLeft;
       if(!w) return;
@@ -797,7 +806,7 @@ async function submitRappel(e){
     // de l'animation CSS qdotfill, à garder synchro)
     const dots=document.getElementById('qcards-dots');
     const PERIOD=4400, N=CARDS.length;
-    const step=()=>{const c=cwrap.firstElementChild;return c?c.getBoundingClientRect().width+12:512;};
+    const step=()=>{const a=cwrap.children[0],b=cwrap.children[1];return (a&&b)?b.offsetLeft-a.offsetLeft:512;};
     const curIdx=()=>((Math.round(cwrap.scrollLeft/step())%N)+N)%N;
     const still=matchMedia('(prefers-reduced-motion: reduce)').matches;
     let tmr=null, onScreen=false, lastIdx=-1;
@@ -807,17 +816,25 @@ async function submitRappel(e){
       dots.innerHTML=CARDS.map((c,j)=>
         `<button class="qdot${j===i?' on':''}${still?' still':''}" aria-label="${esc(c.title)}" onclick="qcardsGoto(${j})"></button>`).join('');
     }
+    // carte la PLUS PROCHE de la position de scroll (en offsetLeft = px layout,
+    // insensible au body{zoom}) → indice absolu dans la liste 3 copies
+    const nearestAbs=()=>{const cards=cwrap.children;let cur=0,best=Infinity;for(let ci=0;ci<cards.length;ci++){const d=Math.abs(cards[ci].offsetLeft-cwrap.scrollLeft);if(d<best){best=d;cur=ci;}}return cur;};
     function arm(){
       if(still||!dots) return;
       clearTimeout(tmr);
       tmr=setTimeout(()=>{
-        if(onScreen&&document.visibilityState==='visible') cwrap.scrollBy({left:step(),behavior:'smooth'});
-        else arm();
+        if(onScreen&&document.visibilityState==='visible'){
+          // avance vers l'offsetLeft EXACT de la carte suivante (pas scrollBy :
+          // sous body{zoom} le scroll-snap ne recale plus → scrollBy dérive et
+          // la carte de gauche finit coupée)
+          const cards=cwrap.children, cur=nearestAbs(), nx=cards[cur+1]||cards[cur];
+          cwrap.scrollTo({left:nx.offsetLeft,behavior:'smooth'});
+        } else arm();
       },PERIOD);
     }
     window.qcardsGoto=j=>{
-      const d=((j-curIdx())%N+N)%N;
-      cwrap.scrollBy({left:(d>N/2?d-N:d)*step(),behavior:'smooth'});
+      const c=cwrap.children[CARDS.length+j]||cwrap.children[j];
+      if(c) cwrap.scrollTo({left:c.offsetLeft,behavior:'smooth'});
     };
     cwrap.addEventListener('scroll',()=>{
       const i=curIdx();
@@ -1307,7 +1324,9 @@ function toggleSound(){
     var frUrl=alt('fr'), enUrl=alt('en');
     if(!frUrl || frUrl===canon) frUrl='/';
     if(!enUrl || enUrl===canon) enUrl='/en/';
-    var L={fr:{code:'FR',label:'Français',flag:'🇫🇷',url:frUrl},en:{code:'EN',label:'English',flag:'🇬🇧',url:enUrl}};
+    var FLAG_FR='<img src="/img/flag-fr.png" alt="Français">';
+    var FLAG_GB='<svg viewBox="0 0 60 40" preserveAspectRatio="none"><rect width="60" height="40" fill="#012169"/><path d="M0 0L60 40M60 0L0 40" stroke="#fff" stroke-width="8"/><path d="M0 0L60 40M60 0L0 40" stroke="#C8102E" stroke-width="4"/><path d="M30 0V40M0 20H60" stroke="#fff" stroke-width="13"/><path d="M30 0V40M0 20H60" stroke="#C8102E" stroke-width="7"/></svg>';
+    var L={fr:{code:'FR',label:'Français',flag:FLAG_FR,url:frUrl},en:{code:'EN',label:'English',flag:FLAG_GB,url:enUrl}};
     var me=L[cur], other=L[cur==='fr'?'en':'fr'];
     // retire les anciens liens de langue hardcodés (nav + menu mobile)
     document.querySelectorAll('.hd-nav a, .mob-menu a').forEach(function(a){

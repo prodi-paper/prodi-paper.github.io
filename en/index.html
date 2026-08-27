@@ -77,7 +77,7 @@ gtag('config', 'AW-18393110999');
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="dns-prefetch" href="https://bvcgpdoukhcatjibmvnb.supabase.co">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@600;700&family=DM+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/vitrine.css?v=321">
+<link rel="stylesheet" href="/vitrine.css?v=322">
 <style>
 .allp-sec{padding:64px 0;background:#f5f5f7;border-top:1px solid var(--hairline,#e0e0e5);}
 .allp-sec .sec-inner{max-width:1240px;margin:0 auto;padding:0 24px;}
@@ -101,6 +101,7 @@ gtag('config', 'AW-18393110999');
     <nav class="hd-nav">
       <a href="/catalogue/" id="nav-catalogue" onclick="openCatalogue();return false;">Catalogue</a>
       <a href="#apercu" id="nav-produits" onclick="showPage('home');setTimeout(()=>document.getElementById('apercu')?.scrollIntoView({behavior:'smooth'}),50);return false;">Products</a>
+      <a href="/en/history/">Our story</a>
       <a href="/">🇫🇷 Français</a>
     </nav>
     <div class="hd-divider"></div>
@@ -115,6 +116,7 @@ gtag('config', 'AW-18393110999');
 <div class="mob-menu" id="mob-menu">
   <a href="/catalogue/" onclick="openCatalogue();toggleMob();return false;">Catalogue</a>
   <a href="#apercu" onclick="showPage('home');toggleMob();setTimeout(()=>document.getElementById('apercu')?.scrollIntoView({behavior:'smooth'}),80);return false;">Products</a>
+  <a href="/en/history/">Our story</a>
   <a href="/">🇫🇷 Français</a>
   <div class="mob-sep"></div>
   <a href="#contact" onclick="showPage('contact');toggleMob();return false;" class="btn-cat">Contact →</a>
@@ -132,9 +134,12 @@ gtag('config', 'AW-18393110999');
           <h1>YOUR PAPER &amp; BOARD<br>SUPPLIER<br><em>SINCE 1991</em></h1>
           <p class="hero-tagline">STOCKLOTS &amp; PRODUCTION</p>
           <div class="hero-btns">
-            <a href="/catalogue/" onclick="openStock();return false;" class="btn-hero">See the stock</a>
-            <a href="#contact" onclick="showPage('contact');return false;" class="btn-hero-outline">Contact us</a>
+            <a href="/catalogue/" onclick="openStock();return false;" class="btn-hero">STOCK</a>
+            <a href="#contact" onclick="showPage('contact');return false;" class="btn-hero-outline">Book a call</a>
           </div>
+          <a class="hero-google" href="https://share.google/AABcjeteKcxkBGVKp" target="_blank" rel="noopener noreferrer" onclick="window.prodiTrack?.('google_review_click')" aria-label="Google Business reviews: 4.8 out of 5 stars">
+            <img src="/img/google-review.webp" alt="Google Business reviews: 4.8 out of 5 stars" width="210" height="84" loading="lazy">
+          </a>
         </div>
         <div class="hero-video-col">
           <div class="hero-video-wrap">
@@ -170,62 +175,70 @@ gtag('config', 'AW-18393110999');
   <!-- ── AMIENS WAREHOUSE ── -->
   <section class="depot-sec" id="depot">
     <div class="sec-inner">
-      <h2 class="depot-h" data-reveal>Prodiconseil at a glance.</h2>
+      <!-- titre « Prodiconseil at a glance. » retiré (coord. accueil FR 27/08) -->
       <div class="pcards-wrap" data-reveal data-d="1">
         <div class="pcards">
-          <div class="pcard pcard-video">
+          <div class="pcard-col">
             <div class="pcard-head">
               <div class="pcard-eyebrow">Warehouse</div>
               <div class="pcard-title">14,000 m² in Amiens 🇫🇷</div>
             </div>
-            <video id="depot-vid" muted loop playsinline preload="none" poster="/assets/depot-amiens-poster.jpg">
-              <source src="/assets/depot-amiens.mp4" type="video/mp4">
-            </video>
-            <button class="qtile-btn qtile-btn-red pcard-cta" type="button" onclick="window.prodiTrack?.('pcard',{q:'depot_contact'});showPage('contact')">CONTACT →</button>
+            <div class="pcard pcard-video">
+              <video id="depot-vid" muted loop playsinline preload="none" poster="/assets/depot-amiens-poster.jpg">
+                <source src="/assets/depot-amiens.mp4" type="video/mp4">
+              </video>
+              <button class="qtile-btn qtile-btn-red pcard-cta" type="button" onclick="window.prodiTrack?.('pcard',{q:'depot_contact'});showPage('contact')">Visit →</button>
+            </div>
           </div>
-          <div class="pcard pcard-flipcard" id="pcard-log">
-            <div class="pcard-flip">
-              <div class="pcard-face pcard-front">
-                <div class="pcard-head">
-                  <div class="pcard-eyebrow">Logistics</div>
-                  <div class="pcard-title">Loaded within 72h</div>
+          <div class="pcard-col">
+            <div class="pcard-head">
+              <div class="pcard-eyebrow">Logistics</div>
+              <div class="pcard-title">Loaded within 72h</div>
+            </div>
+            <div class="pcard pcard-flipcard" id="pcard-log">
+              <div class="pcard-flip">
+                <div class="pcard-face pcard-front">
+                  <img class="pcard-img" src="/img/carte_logistique.webp" alt="Container logistics" loading="lazy">
+                  <button class="qtile-btn qtile-btn-white pcard-cta" type="button" onclick="pcardFlip('log',1)">Learn more</button>
                 </div>
-                <img class="pcard-img" src="/img/carte_logistique.webp" alt="Container logistics" loading="lazy">
-                <button class="qtile-btn qtile-btn-white pcard-cta" type="button" onclick="pcardFlip('log',1)">Learn more</button>
-              </div>
-              <div class="pcard-face pcard-back">
-                <div class="pcard-back-h">Loaded within 72h</div>
-                <p>Order confirmed, truck loaded: your goods leave our Amiens warehouse within 24 to 48 working hours.</p>
-                <p>Full container, full truck or groupage — we arrange transport to your port or your door, in France and for export.</p>
-                <button class="qtile-btn qtile-btn-out pcard-back-btn" type="button" onclick="pcardFlip('log',0)">Back</button>
+                <div class="pcard-face pcard-back">
+                  <div class="pcard-back-h">Loaded within 72h</div>
+                  <p>Order confirmed, truck loaded: your goods leave our Amiens warehouse within 24 to 48 working hours.</p>
+                  <p>Full container, full truck or groupage — we arrange transport to your port or your door, in France and for export.</p>
+                  <button class="qtile-btn qtile-btn-out pcard-back-btn" type="button" onclick="pcardFlip('log',0)">Back</button>
+                </div>
               </div>
             </div>
           </div>
-          <div class="pcard pcard-flipcard" id="pcard-stock">
-            <div class="pcard-flip">
-              <div class="pcard-face pcard-front">
-                <div class="pcard-head">
-                  <div class="pcard-eyebrow">Stock</div>
-                  <div class="pcard-title">10,000+ T available</div>
+          <div class="pcard-col">
+            <div class="pcard-head">
+              <div class="pcard-eyebrow">Stock</div>
+              <div class="pcard-title">10,000+ T available</div>
+            </div>
+            <div class="pcard pcard-flipcard" id="pcard-stock">
+              <div class="pcard-flip">
+                <div class="pcard-face pcard-front">
+                  <img class="pcard-img" src="/img/carte_stock.webp" alt="Paper stock in the warehouse" loading="lazy">
+                  <button class="qtile-btn qtile-btn-red pcard-cta" type="button" onclick="window.prodiTrack?.('pcard',{q:'stock_voir'});openStock()">See the stock</button>
                 </div>
-                <img class="pcard-img" src="/img/carte_stock.webp" alt="Paper stock in the warehouse" loading="lazy">
-                <button class="qtile-btn qtile-btn-white pcard-cta" type="button" onclick="pcardFlip('stock',1)">Learn more</button>
-              </div>
-              <div class="pcard-face pcard-back">
-                <div class="pcard-back-h">10,000+ T available</div>
-                <p>More than 10,000 tonnes in permanent stock: offset, coated, kraft, board, carbonless… in reels as well as sheets.</p>
-                <p>Real stock, visible on our online catalogue, ready to ship — from one-off needs to industrial volumes.</p>
-                <button class="qtile-btn qtile-btn-out pcard-back-btn" type="button" onclick="pcardFlip('stock',0)">Back</button>
+                <div class="pcard-face pcard-back">
+                  <div class="pcard-back-h">10,000+ T available</div>
+                  <p>More than 10,000 tonnes in permanent stock: offset, coated, kraft, board, carbonless… in reels as well as sheets.</p>
+                  <p>Real stock, visible on our online catalogue, ready to ship — from one-off needs to industrial volumes.</p>
+                  <button class="qtile-btn qtile-btn-out pcard-back-btn" type="button" onclick="pcardFlip('stock',0)">Back</button>
+                </div>
               </div>
             </div>
           </div>
-          <div class="pcard" onclick="equipeOpen()" style="cursor:pointer;">
+          <div class="pcard-col">
             <div class="pcard-head">
               <div class="pcard-eyebrow">Leadership</div>
               <div class="pcard-title">30+ years of expertise</div>
             </div>
-            <img class="pcard-img" src="/img/carte_leadership.webp?v=2" alt="Forklift carrying a paper reel at the Prodiconseil warehouse" loading="lazy">
-            <button class="qtile-btn qtile-btn-white pcard-cta" type="button" onclick="equipeOpen()">See the team</button>
+            <div class="pcard" onclick="equipeOpen()" style="cursor:pointer;">
+              <img class="pcard-img" src="/img/carte_leadership.webp?v=2" alt="Forklift carrying a paper reel at the Prodiconseil warehouse" loading="lazy">
+              <button class="qtile-btn qtile-btn-white pcard-cta" type="button" onclick="equipeOpen()">See the team</button>
+            </div>
           </div>
         </div>
       </div>
@@ -276,7 +289,7 @@ gtag('config', 'AW-18393110999');
   </section>
 
   <!-- ── CALL-BACK BAND ── -->
-  <section class="rappel-sec" id="rappel">
+  <section class="rappel-sec" id="rappel" style="display:none;"><!-- bandeau rappel masqué (coord. accueil FR 27/08) -->
     <div class="sec-inner">
       <form class="rappel-band" id="rappel-form" data-reveal onsubmit="submitRappel(event)" novalidate>
         <div class="rappel-txt">A need?&nbsp;<b>Leave your number.</b></div>
@@ -288,29 +301,7 @@ gtag('config', 'AW-18393110999');
     </div>
   </section>
 
-  <!-- GEO -->
-  <section class="geo-sec" id="international">
-    <div class="sec-inner geo-apple">
-      <h2 class="geo-h" data-reveal>Our international presence</h2>
-      <div class="geo-card" id="geo-card" data-reveal data-d="1">
-        <div class="geo-flip">
-          <div class="geo-face geo-front">
-            <img class="geo-press" src="/img/presse_internationale.webp" alt="Prodiconseil in the international press" loading="lazy" width="1836" height="857">
-            <button type="button" class="qtile-btn qtile-btn-white geo-plus" onclick="geoFlip(1)">See more</button>
-          </div>
-          <div class="geo-face geo-backface">
-            <div class="geo-verso-txt">
-              <p>Since 1991, Prodiconseil has supplied printers, converters and traders worldwide — from the Maghreb to all of Africa, the Middle East, Eastern Europe and South America.</p>
-            </div>
-            <div class="qtile-btns">
-              <a href="#contact" class="qtile-btn qtile-btn-red" onclick="geoContact();return false;">Contact us →</a>
-              <button type="button" class="qtile-btn qtile-btn-out" onclick="geoFlip(0)">Back</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div><!-- /sec-inner -->
-  </section>
+  <!-- bloc « Our international presence » retiré du EN pour coordonner avec l'accueil FR (27/08) — pas de page /en/histoire/ où le déplacer -->
 
   <!-- ── CONTACT ── -->
   <section id="contact-section">
@@ -336,7 +327,7 @@ gtag('config', 'AW-18393110999');
               <div class="fg-msg" id="fg-msg-msg"></div>
             </div>
             <input type="text" id="f-hp" name="website" autocomplete="off" tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px;opacity:0;height:0;width:0;pointer-events:none;">
-            <button type="submit" class="btn-submit" id="f-submit">Request a call back</button>
+            <button type="submit" class="btn-submit" id="f-submit">Get started</button>
           </form>
           <div id="form-ok" class="form-ok">
             <div class="ok-box">
@@ -496,24 +487,25 @@ gtag('config', 'AW-18393110999');
 <div class="lead-modal" id="lead-modal" onclick="if(event.target===this)leadClose()">
   <div class="lead-panel">
     <button type="button" class="eq-close" onclick="leadClose()" aria-label="Close">✕</button>
-    <div class="lead-visu" aria-hidden="true">
+        <div class="ct-header">
+      <h2>Let’s start working together.</h2>
     </div>
-    <div class="lead-right">
-      <h3 class="lead-h">Are you a printer, converter or distributor?</h3>
-      <p class="lead-sub">Tailored offers for your business.</p>
-      <form class="lead-form" id="lead-form" onsubmit="submitLead(event)" novalidate>
-        <input type="text" id="l-nom" placeholder="Your name or company" aria-label="Your name or company" required>
-        <input type="tel" id="l-tel" placeholder="Phone" aria-label="Phone" required minlength="6">
-        <input type="text" id="l-msg" placeholder="Your need: grade, quantity…" aria-label="Your need" required minlength="15">
+    <div class="lead-ctwrap">
+      <form id="lead-form" onsubmit="submitLead(event)" novalidate>
+        <div class="form-row">
+          <div class="fg"><input type="text" id="l-nom" placeholder="Your name or company" aria-label="Your name or company" required></div>
+          <div class="fg"><input type="tel" id="l-tel" placeholder="Phone" aria-label="Phone" required></div>
+        </div>
+        <div class="fg"><textarea id="l-msg" placeholder="Message (optional)" aria-label="Message"></textarea></div>
         <input type="text" id="l-hp" name="website" autocomplete="off" tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px;opacity:0;height:0;width:0;pointer-events:none;">
-        <button type="submit" class="rappel-btn" id="l-submit">Request a call back</button>
+        <button type="submit" class="btn-submit" id="l-submit">Request a call back</button>
       </form>
     </div>
   </div>
 </div>
 
 <script src="/analytics.js?v=6"></script>
-<script src="/vitrine.js?v=186"></script>
+<script src="/vitrine.js?v=187"></script>
 <!-- WA STICKY -->
 <a href="https://wa.me/33649754915?text=Hello%2C%0AI%20would%20like%20to%20receive%20an%20offer%20for%20paper%20%2F%20board.%0AThank%20you" target="_blank" rel="noopener noreferrer" class="wa-sticky" title="WhatsApp" aria-label="Contact us on WhatsApp">
   <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>

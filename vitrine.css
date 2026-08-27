@@ -437,7 +437,7 @@ button{cursor:pointer;border:none;font-family:inherit;background:none;}
 /* carrousel horizontal apple.com : cartes 405×740 fixes, la 1re alignée sur la
    marge de contenu (même bord gauche que le titre), débord à droite */
 .pcards-wrap{width:100vw;margin-left:calc(50% - 50vw);margin-top:6px;}
-.pcards{display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;
+.pcards{display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;align-items:flex-start;
   scrollbar-width:none;-webkit-overflow-scrolling:touch;
   padding:4px calc(max(var(--pad),calc(50vw - 620px + 48px)) - 50px);
   scroll-padding-left:calc(max(var(--pad),calc(50vw - 620px + 48px)) - 50px);}
@@ -447,11 +447,13 @@ button{cursor:pointer;border:none;font-family:inherit;background:none;}
   .pcards{padding:4px var(--pad);scroll-padding-left:var(--pad);}
 }
 .pcards::-webkit-scrollbar{display:none;}
+.pcard-col{flex:0 0 372px;display:flex;flex-direction:column;scroll-snap-align:start;}
 .pcard{position:relative;overflow:hidden;background:#000;border-radius:48px;
-  flex:0 0 372px;aspect-ratio:372/680;scroll-snap-align:start;}
-.pcard-head{position:absolute;top:0;left:0;right:0;z-index:2;padding:26px 24px 0;text-align:left;}
-.pcard-eyebrow{font-size:17px;font-weight:600;color:#f5f5f7;}
-.pcard-title{font-size:26px;font-weight:700;letter-spacing:-.4px;line-height:1.2;color:#fff;margin-top:6px;
+  width:100%;aspect-ratio:372/612;}
+/* eyebrow + titre AU-DESSUS de la carte (hors image), texte foncé sur fond blanc */
+.pcard-head{padding:2px 8px 14px;text-align:left;}
+.pcard-eyebrow{font-size:17.85px;font-weight:600;color:var(--g2);}
+.pcard-title{font-size:31.2px;font-weight:700;letter-spacing:-.4px;line-height:1.2;color:var(--ink);margin-top:4px;
   white-space:nowrap;}
 @media(max-width:700px){
   /* cartes plus étroites en mobile : on laisse le titre se replier */
@@ -461,8 +463,8 @@ button{cursor:pointer;border:none;font-family:inherit;background:none;}
    (scopé .pcards : ne pas toucher aux .pcard-img du reste du site) */
 .pcards .pcard-img{position:absolute;inset:0;height:100%;width:100%;object-fit:cover;display:block;}
 .pcard-video video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
-.pcards .pcard::after{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;
-  background:linear-gradient(180deg,rgba(0,0,0,.62) 0%,rgba(0,0,0,0) 42%);}
+/* titre sorti de l'image → plus de dégradé sombre en haut */
+.pcards .pcard::after{content:none;}
 .pcard-plus{position:absolute;right:16px;bottom:16px;z-index:3;width:38px;height:38px;border-radius:50%;
   border:none;background:rgba(255,255,255,.92);color:#111;font-size:24px;line-height:1;
   display:flex;align-items:center;justify-content:center;cursor:pointer;
@@ -476,8 +478,7 @@ button{cursor:pointer;border:none;font-family:inherit;background:none;}
 .pcard-flip{position:absolute;inset:0;perspective:1100px;}
 .pcard-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
   transition:transform .55s cubic-bezier(.4,.1,.2,1);border-radius:inherit;overflow:hidden;}
-.pcard-front::after{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;
-  background:linear-gradient(180deg,rgba(0,0,0,.62) 0%,rgba(0,0,0,0) 42%);}
+.pcard-front::after{content:none;}
 /* verso structuré : titre en haut, texte, Retour en bas — ~90 % de la carte */
 .pcard-back{transform:rotateY(-180deg);pointer-events:none;background:#111113;color:#f5f5f7;
   display:flex;flex-direction:column;justify-content:flex-start;padding:34px 30px;text-align:left;}
@@ -514,8 +515,8 @@ button{cursor:pointer;border:none;font-family:inherit;background:none;}
   background:#fff;border:1px solid var(--border);border-radius:24px;
   padding:30px 30px 26px;margin:0;display:flex;flex-direction:column;gap:20px;
   box-shadow:0 10px 34px rgba(0,0,0,.05);}
-/* trait d'accent rouge en tête (même signature que le titre popup équipe) */
-.temoin-card::before{content:'';width:34px;height:4px;border-radius:99px;background:var(--red);}
+/* trait d'accent rouge retiré (demande Ethan 27/08) */
+.temoin-card::before{content:none;}
 .temoin-quote{font-family:'DM Sans',sans-serif;font-size:21.5px;font-weight:700;line-height:1.42;
   color:var(--ink);letter-spacing:-.4px;margin:0;}
 .temoin-who{font-size:15.5px;font-weight:600;color:var(--g2);margin-top:auto;}
@@ -586,7 +587,10 @@ button{cursor:pointer;border:none;font-family:inherit;background:none;}
 }
 .eq-group-h{font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--g3);}
 @media(max-width:700px){
-  .pcard{flex-basis:72vw;}
+  /* la colonne (item du carrousel) prend la largeur ; la carte garde
+     width:100% + aspect-ratio pour sa hauteur (sinon flex-basis en
+     flex-COLONNE écrasait la hauteur de la carte — régression 27/08) */
+  .pcard-col{flex-basis:80vw;}
 }
 .depot-row{display:grid;grid-template-columns:1fr 360px;gap:64px;align-items:center;}
 .depot-text-col .sec-h{margin-top:0;color:var(--ink);font-size:clamp(34px,4vw,56px);}
@@ -983,9 +987,9 @@ footer{background:#fff;border-top:1px solid #e8e8ed;}
 @media(prefers-reduced-motion:reduce){.hero-down{animation:none;}}
 /* Boutons hero au style des chips catégories : DM Sans, radius 12, rouge
    plein / blanc ombré (plus de contour noir ni d'uppercase) */
-.btn-hero{border-radius:999px;font-family:'DM Sans',sans-serif;font-size:17px;font-weight:700;letter-spacing:0;text-transform:none;padding:18px 44px;box-shadow:0 2px 10px rgba(254,0,0,.25);}
+.btn-hero{border-radius:999px;font-family:'Oswald',sans-serif;font-size:19px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;padding:18px 44px;box-shadow:0 2px 10px rgba(254,0,0,.25);}
 .btn-hero:hover{box-shadow:0 4px 16px rgba(254,0,0,.32);}
-.btn-hero-outline{border:1px solid #d2d2d7;border-radius:999px;background:rgba(255,255,255,.85);-webkit-backdrop-filter:blur(16px) saturate(170%);backdrop-filter:blur(16px) saturate(170%);box-shadow:var(--sh-sm);color:#1d1d1f;font-family:'DM Sans',sans-serif;font-size:17px;font-weight:700;letter-spacing:0;text-transform:none;padding:18px 44px;}
+.btn-hero-outline{border:1px solid #d2d2d7;border-radius:999px;background:rgba(255,255,255,.85);-webkit-backdrop-filter:blur(16px) saturate(170%);backdrop-filter:blur(16px) saturate(170%);box-shadow:var(--sh-sm);color:#1d1d1f;font-family:'Oswald',sans-serif;font-size:19px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;padding:18px 44px;}
 .btn-hero-outline:hover{background:rgba(255,255,255,.95);box-shadow:var(--sh-md);color:#1d1d1f;border-color:#b8b8bd;}
 /* Bouton qualité central rotatif + Voir plus à côté (rangée centrée) */
 .sc-cats{justify-content:center;}
@@ -1006,9 +1010,12 @@ footer{background:#fff;border-top:1px solid #e8e8ed;}
       tuiles quasi carrées, coins droits, gouttière 12px, texte centré en haut
       sur fond UNI (#f5f5f7 / noir), boutons juste sous le sous-titre,
       photo en bande pleine largeur qui occupe tout le bas ── */
-.qtiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;
+.qtiles{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;
   /* sortie du conteneur : quasi bord à bord comme la home apple.com */
   width:min(100vw - 24px,1720px);position:relative;left:50%;transform:translateX(-50%);}
+/* Tuiles « Nos qualités » (27/08) : 3 colonnes BORD À BORD sur desktop (~30% plus
+   petites que l'ancien 2-col), 2 colonnes en tablette, 1 colonne en mobile (≤900px). */
+@media(min-width:901px) and (max-width:1150px){.qtiles{grid-template-columns:1fr 1fr;}}
 .qtile{position:relative;overflow:hidden;background:#f5f5f7;display:flex;flex-direction:column;aspect-ratio:1/.68;}
 .qtile.dark{background:#000;}
 /* voile dégradé haut (blanc sur tuile claire, noir sur sombre) pour lire le texte sur la photo */
@@ -1056,7 +1063,7 @@ footer{background:#fff;border-top:1px solid #e8e8ed;}
 .qtile.dark.flipped::after{background:linear-gradient(180deg,rgba(0,0,0,.74) 0%,rgba(0,0,0,.5) 58%,rgba(0,0,0,.16) 88%);}
 @media(max-width:900px){
   .qtiles{grid-template-columns:1fr;}
-  .qtile{aspect-ratio:auto;min-height:365px;}
+  .qtile{aspect-ratio:auto;min-height:250px;}
   .qtile-inner{padding-top:42px;}
   /* verso plus haut que le recto en mobile : au flip, le VERSO (repassé dans
      le flux) donne la hauteur de la tuile — sinon boutons coupés */
@@ -1201,14 +1208,21 @@ footer{background:#f5f5f7;border-top:1px solid var(--border);padding:52px 0 30px
    gauche, contenu aligné à gauche avec le trait rouge signature à droite */
 /* overflow VISIBLE (le panneau du sélecteur pays doit pouvoir déborder) —
    c'est la photo qui porte son propre arrondi */
-.lead-panel{position:relative;background:#fff;border-radius:28px;max-width:780px;width:100%;
-  padding:0;display:grid;grid-template-columns:290px 1fr;
+.lead-panel{position:relative;background:#fff;border-radius:28px;max-width:560px;width:100%;
+  padding:0;display:grid;grid-template-columns:1fr;
   box-shadow:0 32px 90px rgba(0,0,0,.3);
   animation:eqPop .38s cubic-bezier(.2,.9,.3,1) both;}
-.lead-visu{position:relative;display:flex;align-items:flex-end;padding:24px;
-  border-radius:28px 0 0 28px;overflow:hidden;
-  background:linear-gradient(200deg,rgba(10,10,12,.12) 0%,rgba(10,10,12,.8) 100%),
-    url('img/carte_stock.webp') center/cover no-repeat;}
+/* photo du popup lead retirée (demande Ethan 27/08) */
+.lead-visu{display:none;}
+/* Popup lead = CALQUÉ sur le formulaire de contact du bas (27/08) : réutilise
+   .ct-header/.form-row/.fg/.btn-submit, juste re-cadré pour tenir dans la modale */
+#lead-modal .lead-panel{padding:40px 36px 32px;}
+#lead-modal .ct-header{max-width:none;margin:0;padding:0 0 20px;text-align:center;}
+#lead-modal .ct-header h2{font-size:clamp(24px,3vw,32px);line-height:1.05;}
+#lead-modal .lead-ctwrap{max-width:none;margin:0;padding:0;}
+#lead-modal .lead-ctwrap .fg:last-of-type{margin-bottom:14px;}
+#lead-modal .lead-ctwrap textarea{min-height:120px;}
+@media(max-width:640px){#lead-modal .lead-panel{padding:32px 22px 26px;}}
 .lead-visu-tags{display:flex;flex-direction:column;gap:9px;}
 .lead-visu-tags span{align-self:flex-start;background:rgba(255,255,255,.14);
   backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#fff;
@@ -1296,7 +1310,7 @@ footer{background:#f5f5f7;border-top:1px solid var(--border);padding:52px 0 30px
 @media(max-width:600px){.habt2-grid{grid-template-columns:1fr;}.habt2-imgcard{min-height:260px;}}
 /* popup lead +10 % (29/07 soir) — desktop seulement : sur mobile le zoom décale
    la zone tactile de la croix (bug iOS Safari), donc zoom neutralisé ≤640px */
-.lead-panel{zoom:1.1;}
+.lead-panel{zoom:1.43;} /* +30% (27/08) */
 @media(max-width:640px){.lead-panel{zoom:1;}}
 /* ── CONFIRMATION « Bien reçu. » : coche animée maison (remplace l'emoji ✅) ── */
 .ok-box{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0;
@@ -1366,10 +1380,11 @@ footer{background:#f5f5f7;border-top:1px solid var(--border);padding:52px 0 30px
 /* ─── SÉLECTEUR DE LANGUE (26/08) : pill drapeau+code+chevron, injectée par
    vitrine.js dans le header de toutes les pages. Hors .hd-nav → jamais masquée
    par la règle mobile qui cache la nav ─── */
-.lang-switch{position:relative;display:inline-flex;align-items:center;flex:0 0 auto;}
-.lang-btn{display:inline-flex;align-items:center;gap:6px;background:#1d1d1f;color:#fff;border:0;cursor:pointer;padding:7px 11px;border-radius:999px;font-family:inherit;font-size:12px;font-weight:700;letter-spacing:.4px;line-height:1;box-shadow:var(--sh-sm);transition:background .2s;}
-.lang-btn:hover{background:#000;}
-.lang-flag{font-size:14px;line-height:1;}
+.lang-switch{position:relative;display:inline-flex;align-items:center;flex:0 0 auto;margin-right:-10px;}
+.lang-btn{display:inline-flex;align-items:center;gap:6px;background:#f0f0f2;color:#1d1d1f;border:1px solid #e2e2e8;cursor:pointer;padding:7px 11px;border-radius:999px;font-family:inherit;font-size:12px;font-weight:700;letter-spacing:.4px;line-height:1;box-shadow:var(--sh-sm);transition:background .2s;}
+.lang-btn:hover{background:#e6e6ea;}
+.lang-flag{display:inline-block;width:26px;height:18px;border-radius:3px;overflow:hidden;line-height:0;flex:none;box-shadow:0 0 0 1px rgba(0,0,0,.38);}
+.lang-flag svg,.lang-flag img{display:block;width:100%;height:100%;object-fit:cover;}
 .lang-code{text-transform:uppercase;}
 .lang-chev{opacity:.85;transition:transform .2s;}
 .lang-switch.open .lang-chev{transform:rotate(180deg);}
@@ -1377,7 +1392,21 @@ footer{background:#f5f5f7;border-top:1px solid var(--border);padding:52px 0 30px
 .lang-switch.open .lang-menu{display:block;}
 .lang-opt{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;font-size:14px;font-weight:600;color:var(--ink,#222);text-decoration:none;white-space:nowrap;}
 .lang-opt:hover{background:#f2f2f5;color:var(--red,#FE0000);}
-.lang-menu .lang-flag{font-size:18px;}
+.lang-menu .lang-flag{width:24px;height:16px;box-shadow:0 0 0 1px rgba(0,0,0,.1);}
 /* mobile : pill compacte (drapeau + chevron seuls) pour laisser la place au
    burger (accueil) / à la nav (souspages) sur les petits écrans */
 @media(max-width:768px){.lang-btn{padding:7px 8px;gap:4px;}.lang-code{display:none;}.lang-menu{min-width:150px;}}
+
+/* ─── Header ULTRA-ÉPURÉ (27/08) : logo + sélecteur de langue seulement. Toute la
+   nav (Catalogue / Produits / Histoire), le bouton Contact, le séparateur et le
+   burger (dont le menu serait vide) sont masqués. Navigation via le hero (« Voir le
+   stock » / « Contact »), le footer et le sitemap → sans impact SEO (pages toujours
+   liées au footer). Scopé .hd / .mob-menu : le footer et les CTA .btn-cat de contenu
+   ne sont PAS touchés. ─── */
+.hd .hd-nav, .hd .hd-divider, .hd .btn-cat, .hd .hd-burger, .mob-menu{display:none !important;}
+
+/* ─── Badge avis Google (hero, sous les boutons Voir le stock / Nous contacter) ─── */
+.hero-google{display:inline-block;margin-top:24px;transition:opacity .2s;}
+.hero-google img{display:block;width:210px;height:auto;}
+.hero-google:hover{opacity:.85;}
+@media(max-width:768px){.hero-google{margin-top:20px;}.hero-google img{width:184px;}}
