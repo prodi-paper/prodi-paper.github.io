@@ -208,13 +208,17 @@ function showPage(id) {
 // ─── MOBILE MENU ───
 function toggleMob() {
   const m = document.getElementById('mob-menu');
+  if (!m) return;
   m.classList.toggle('open');
   document.getElementById('burger')?.setAttribute('aria-expanded', m.classList.contains('open') ? 'true' : 'false');
 }
 document.addEventListener('click', e => {
+  // #mob-menu / #burger n'existent que sur les pages à menu burger (accueil).
+  // Sur les sous-pages (contact, produits, pays, /en/…) m est null → sans ce
+  // garde-fou, m.classList levait une TypeError à CHAQUE clic sur la page.
   const m = document.getElementById('mob-menu');
   const b = document.getElementById('burger');
-  if (m.classList.contains('open') && !m.contains(e.target) && !b.contains(e.target)) {
+  if (m && m.classList.contains('open') && !m.contains(e.target) && !(b && b.contains(e.target))) {
     m.classList.remove('open');
   }
 });
