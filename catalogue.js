@@ -43,6 +43,10 @@ async function sbQ(path,opts={}){
     // 931597 grilles de protection (731 600 €/T), 898404/05/06 élastique et
     // fil masque (13 783 €/T, « pas logique du tout » dixit Ethan).
     +'&or=(ref.not.in.(Photo_931597,Photo_898404,Photo_898405,Photo_898406),ref.is.null)';
+  // Clients externes / accès sans prix : jamais de réservés (window._hideReserved).
+  // Exclut les liens client curés ?s=/?share= (offre figée = on n'y touche pas).
+  if(path.startsWith('products?')&&window._hideReserved&&!/[?&](s|share)=/.test(location.search))
+    path+='&reserve_client=is.null';
   const r=await fetch(SURL+'/rest/v1/'+path,{method:opts.method||'GET',headers:{...SB_H,...(opts.headers||{})},body:opts.body!=null?JSON.stringify(opts.body):undefined,signal:opts.signal});
   const txt=await r.text();const d=txt?JSON.parse(txt):null;
   const cr=r.headers.get('Content-Range');
@@ -171,6 +175,13 @@ function _updateGroupedToggleBtn(){
 let _leadMode=false;
 try{_leadMode=localStorage.getItem('prodi_stock_ok')==='1'&&localStorage.getItem('prodi_cat_ok')!=='1';}catch(_){}
 if(_leadMode){const _lv=()=>document.body.classList.add('lead-view');document.body?_lv():document.addEventListener('DOMContentLoaded',_lv);}
+// Clients externes (code dédié type BROTHER → flag prodi_client) + accès SANS
+// PRIX (lead) : catalogue LIMITÉ AU STOCK DISPONIBLE — les réservés
+// (reserve_client, posé par Sage) sont masqués (filtre ajouté dans sbQ, sauf
+// sur les liens curés ?s=). L'INTERNE (PRODI2026 → prodi_client effacé) voit tout.
+window._hideReserved=false;
+try{window._hideReserved=_leadMode||localStorage.getItem('prodi_client')==='1';}catch(_){}
+if(window._hideReserved){const _hr=()=>document.body.classList.add('hide-reserved');document.body?_hr():document.addEventListener('DOMContentLoaded',_hr);}
 // ── Toast MOBILE « Navigation PC recommandé » (26/08) : petit bandeau qui monte
 // du bas ~4 s, 1×/session, DANS LE STOCK (catalogue). Vue client ?s= exclue.
 // ?pchint=1 force l'affichage (test). ──
@@ -1064,6 +1075,11 @@ async function init(){
   buildMsdOptions('msd-laize-mob',LAIZE_OPTIONS,'Laizes',v=>v===LAIZE_AUTRES?'Autres laizes':v,'msd-laize');
   buildMsdOptions('msd-diametre-mob',DIAM_OPTIONS,'Diamètre',v=>v===DIAM_AUTRES?'Autres Ø':v,'msd-diametre');
   buildMsdOptions('msd-poids-mob',POIDS_OPTIONS,'Poids',undefined,'msd-poids');
+  // Laize/Ø/Poids en DOUBLE CURSEUR (28/08) dans « Filtres avancés » (desktop
+  // via _paintAdv) + tiroir mobile.
+  _initRangeSliderMenu('msd-laize-mob','laize');
+  _initRangeSliderMenu('msd-diametre-mob','diam');
+  _initRangeSliderMenu('msd-poids-mob','poids');
 
   // Pre-fill from URL params (coming from vitrine)
   const _urlParams = new URLSearchParams(window.location.search);
@@ -1386,6 +1402,125 @@ function _poidsTrancheOf(row){
 }
 function _poidsPg(t){
   return `and(weight.gte.${t.min},weight.lt.${t.max})`;
+}
+// ── LAIZE / DIAMÈTRE / POIDS en DOUBLE CURSEUR (28/08, façon Grammages) ──────
+// Remplacent les tranches à cases. Pilotent les champs cachés déjà branchés
+// (requête serveur + prédicat client + chips lrange/lgrange/wrange) :
+//   laize→f-lmin/f-lmax (width) · diam→f-longmin/f-longmax (longueur, bobines) ·
+//   poids→f-wmin/f-wmax (weight). Plage affichée en haut à droite (comme gram.).
+const _RS_CFG={
+  laize:{minField:'f-lmin',maxField:'f-lmax',unit:'mm',excludeKey:'msd-laize',all:'Toutes les laizes',bobineOnly:true,defLo:0,defHi:2500,step:10,rowVal:r=>+r.width||0},
+  diam:{minField:'f-longmin',maxField:'f-longmax',unit:'mm',excludeKey:'msd-diametre',all:'Tous les diamètres',bobineOnly:true,defLo:0,defHi:1600,step:10,rowVal:r=>(String(r.format||'')==='Bobine'?(+r.longueur||0):0)},
+  poids:{minField:'f-wmin',maxField:'f-wmax',unit:'kg',excludeKey:'msd-poids',all:'Tous les poids',bobineOnly:false,defLo:0,defHi:5000,step:10,rowVal:r=>+r.weight||+r.poids_net||0},
+};
+const _RS_MOB={laize:'msd-laize-mob',diam:'msd-diametre-mob',poids:'msd-poids-mob'};
+const _RS_DESK={laize:'sb-msd-laize',diam:'sb-msd-diametre',poids:'sb-msd-poids'}; // sections du rail (comme Grammages)
+const _rsBounds={laize:null,diam:null,poids:null}; // {lo,hi} adaptées au stock, ou null si aucune donnée
+// Texte de plage affiché à droite (comme Grammages) : plage COURANTE = sélection
+// si posée, sinon les bornes du stock. Vide seulement si aucune donnée.
+function _rsRangeText(key){
+  const cfg=_RS_CFG[key];const b=_rsBounds[key];
+  const vn=document.getElementById(cfg.minField)?.value||'';
+  const vx=document.getElementById(cfg.maxField)?.value||'';
+  const lo=vn||(b?b.lo:''),hi=vx||(b?b.hi:'');
+  if(lo===''&&hi==='')return '';
+  return lo+' – '+hi+' '+cfg.unit;
+}
+// « Sélection posée » (affichage gras) = un des champs min/max est renseigné.
+function _rsHasSel(key){
+  const cfg=_RS_CFG[key];
+  return !!(document.getElementById(cfg.minField)?.value||document.getElementById(cfg.maxField)?.value);
+}
+function _rsUpdateHeader(key){
+  const txt=_rsRangeText(key),sel=_rsHasSel(key);
+  const m=document.getElementById(_RS_MOB[key]);
+  if(m){const btn=m.querySelector('.msd-btn');if(btn){let bv=btn.querySelector('.gsl-btnval');if(!bv){bv=document.createElement('span');bv.className='gsl-btnval';btn.insertBefore(bv,btn.querySelector('.msd-arrow'));}bv.textContent=txt;btn.classList.toggle('has-sel',sel);}}
+  const rspan=document.getElementById('mgr-range-'+key); // plage dans le header de la section « Filtres avancés »
+  if(rspan)rspan.textContent=txt;
+}
+// Construit un double curseur dans `container` (innerHTML remplacé), branché sur
+// les champs cachés de la config `key`.
+function _buildRangeSlider(container,key){
+  const cfg=_RS_CFG[key];
+  const b=_rsBounds[key]||{lo:cfg.defLo,hi:cfg.defHi};
+  const LO=b.lo,HI=b.hi,PAS=cfg.step;
+  const fMin=document.getElementById(cfg.minField),fMax=document.getElementById(cfg.maxField);
+  container.innerHTML=
+    '<div class="gsl">'+
+    '<div class="gsl-val"></div>'+
+    '<div class="gsl-track"><div class="gsl-fill"></div>'+
+    '<input type="range" min="'+LO+'" max="'+HI+'" value="'+LO+'" step="'+PAS+'" data-role="min" aria-label="Minimum">'+
+    '<input type="range" min="'+LO+'" max="'+HI+'" value="'+HI+'" step="'+PAS+'" data-role="max" aria-label="Maximum"></div>'+
+    '<div class="gsl-bornes"><span>'+LO+' '+cfg.unit+'</span><span>'+HI+' '+cfg.unit+'</span></div></div>';
+  const wrap=container.querySelector('.gsl');
+  const iMin=wrap.querySelector('[data-role=min]'),iMax=wrap.querySelector('[data-role=max]');
+  const fill=wrap.querySelector('.gsl-fill'),lbl=wrap.querySelector('.gsl-val'),track=wrap.querySelector('.gsl-track');
+  const vn=+fMin?.value||0,vx=+fMax?.value||0;
+  iMin.value=vn?Math.min(HI,Math.max(LO,Math.round(vn/PAS)*PAS)):LO;
+  iMax.value=vx?Math.min(HI,Math.max(LO,Math.round(vx/PAS)*PAS)):HI;
+  function paint(){
+    let a=+iMin.value,c=+iMax.value;if(a>c){const t=a;a=c;c=t;}
+    fill.style.left=(a-LO)/(HI-LO)*100+'%';fill.style.right=(100-(c-LO)/(HI-LO)*100)+'%';
+    const plein=(a<=LO&&c>=HI);
+    lbl.textContent=plein?cfg.all:a+' – '+c+' '+cfg.unit;
+    return {a,c,plein};
+  }
+  function apply(){
+    const r=paint();
+    if(fMin)fMin.value=r.plein?'':r.a;
+    if(fMax)fMax.value=r.plein?'':r.c;
+    _rsUpdateHeader(key);
+    filterProducts();
+  }
+  const fromX=x=>{const r=track.getBoundingClientRect();if(!r.width)return LO;let v=LO+(x-r.left)/r.width*(HI-LO);v=Math.round(v/PAS)*PAS;return Math.min(HI,Math.max(LO,v));};
+  let drag=null;
+  track.addEventListener('pointerdown',e=>{e.preventDefault();const v=fromX(e.clientX);const dMin=Math.abs(v-+iMin.value),dMax=Math.abs(v-+iMax.value);drag=(dMin<dMax||(dMin===dMax&&v<+iMin.value))?iMin:iMax;drag.value=v;paint();try{track.setPointerCapture(e.pointerId);}catch(_){}});
+  track.addEventListener('pointermove',e=>{if(!drag)return;drag.value=fromX(e.clientX);paint();});
+  const endDrag=()=>{if(!drag)return;drag=null;apply();};
+  track.addEventListener('pointerup',endDrag);
+  track.addEventListener('pointercancel',endDrag);
+  iMin.addEventListener('input',paint);iMax.addEventListener('input',paint);
+  iMin.addEventListener('change',apply);iMax.addEventListener('change',apply);
+  paint();
+}
+// Injecte le curseur dans le .msd-panel d'un menu (rail desktop sb-msd-* OU
+// tiroir mobile msd-*-mob) — même composant que Grammages.
+function _initRangeSliderMenu(msdId,key){
+  const msd=document.getElementById(msdId);const panel=msd?msd.querySelector('.msd-panel'):null;
+  if(!panel)return;
+  panel.querySelectorAll('.msd-option,.msd-search-wrap,.msd-group-hdr').forEach(o=>o.remove());
+  panel.classList.add('msd-slider-panel');
+  _buildRangeSlider(panel,key);
+  _rsUpdateHeader(key);
+}
+// Bornes = min/max RÉELS du stock filtré (hors la plage elle-même) — comme _gslAdapt.
+function _rsAdapt(){
+  if(!_allProductsCache)return;
+  for(const key of Object.keys(_RS_CFG)){
+    const cfg=_RS_CFG[key];const vals=[];
+    for(const r of _allProductsCache){
+      if(!_matchesActiveFilters(r,cfg.excludeKey))continue;
+      const v=cfg.rowVal(r);if(v>0)vals.push(v);
+    }
+    if(!vals.length){_rsBounds[key]=null;continue;}
+    vals.sort((a,b)=>a-b);
+    const q=t=>vals[Math.min(vals.length-1,Math.floor(t*vals.length))];
+    const p005=q(0.005),p995=q(0.995);
+    let lo=(vals[0]<p005*0.6)?p005:vals[0];
+    let hi=(vals[vals.length-1]>p995*1.4)?p995:vals[vals.length-1];
+    lo=Math.floor(lo/cfg.step)*cfg.step;hi=Math.ceil(hi/cfg.step)*cfg.step;
+    if(hi<=lo)hi=lo+cfg.step;
+    _rsBounds[key]={lo,hi};
+  }
+  _rsRefreshOpen();
+}
+function _rsRefreshOpen(){
+  Object.keys(_RS_MOB).forEach(key=>{
+    const panel=document.querySelector('#'+_RS_MOB[key]+' .msd-panel.msd-slider-panel');
+    if(panel)_buildRangeSlider(panel,key);
+    _rsUpdateHeader(key);
+  });
+  if(window._advOpenSec&&['laize','diametre','poids'].includes(window._advOpenSec)&&window._paintAdv)window._paintAdv();
 }
 // Ordre usuel du stock (volumes réels ~20/07) : le menu Type s'affiche trié
 // par volume DÈS la construction, avant même l'arrivée des données de comptage
@@ -2082,12 +2217,18 @@ function _matchesActiveFilters(row, excludeKey){
     if(S.gn && +row.gsm<S.gn) return false;
     if(S.gx && +row.gsm>S.gx) return false;
   }
-  if(S.lminCm && +row.width<S.lminCm) return false;
-  if(S.lmaxCm && +row.width>S.lmaxCm) return false;
-  if(S.longmin && +row.longueur<S.longmin) return false;
-  if(S.longmax && +row.longueur>S.longmax) return false;
-  if(S.wmin && +row.weight<S.wmin) return false;
-  if(S.wmax && +row.weight>S.wmax) return false;
+  if(excludeKey!=='msd-laize'){
+    if(S.lminCm && +row.width<S.lminCm) return false;
+    if(S.lmaxCm && +row.width>S.lmaxCm) return false;
+  }
+  if(excludeKey!=='msd-diametre'){
+    if(S.longmin && +row.longueur<S.longmin) return false;
+    if(S.longmax && +row.longueur>S.longmax) return false;
+  }
+  if(excludeKey!=='msd-poids'){
+    if(S.wmin && +row.weight<S.wmin) return false;
+    if(S.wmax && +row.weight>S.wmax) return false;
+  }
   if(_photoFilter==='with' && !row.image_url) return false;
   if(_photoFilter==='without' && row.image_url) return false;
   if(_resaFilter==='with' && !row.reserve_client) return false;
@@ -2245,6 +2386,7 @@ function _refreshAllFacets(){
   _updateMsdFacetCounts('msd-diametre');
   _updateMsdFacetCounts('msd-poids');
   _gslAdapt();
+  _rsAdapt();
 }
 function _detailsFiltersSig(){
   // Signature of all filters EXCEPT msd-details — used to skip rebuild
@@ -3929,7 +4071,7 @@ function updateFilterChips(){
   if(lmin2||lmax2)chips.push({key:'lrange',label:'Laize'+' : '+(lmin2||'—')+' → '+(lmax2||'—')+' mm',clear:()=>{['f-lmin','f-lmax','f-lmin-fb','f-lmax-fb','f-lmin-mob','f-lmax-mob'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});filterProducts();}});
   const longmin2=document.getElementById('f-longmin')?.value||'';
   const longmax2=document.getElementById('f-longmax')?.value||'';
-  if(longmin2||longmax2)chips.push({key:'lgrange',label:'Longueur'+' : '+(longmin2||longmax2)+'mm',clear:()=>{['f-longmin','f-longmax','f-longmin-mob','f-longmax-mob'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});filterProducts();}});
+  if(longmin2||longmax2)chips.push({key:'lgrange',label:'Ø : '+(longmin2||'—')+' → '+(longmax2||'—')+' mm',clear:()=>{['f-longmin','f-longmax','f-longmin-mob','f-longmax-mob'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});filterProducts();}});
   const wmin2=document.getElementById('f-wmin')?.value||'';
   const wmax2=document.getElementById('f-wmax')?.value||'';
   if(wmin2||wmax2)chips.push({key:'wrange',label:'Poids : '+(wmin2||'—')+' → '+(wmax2||'—')+' kg',clear:()=>{['f-wmin','f-wmax','f-wmin-mob','f-wmax-mob'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});filterProducts();}});
@@ -5859,17 +6001,24 @@ if(_sharedMode)_sharedViewUI(true);
           ...(window._coulInAdv?[{id:'couleur',t:'Couleurs',n:msdState['msd-couleur'].size,rows:()=>couleurs.length?couleurs.map(v=>row('couleur',v,v,msdState['msd-couleur'].has(v))).join(''):'<div class="msd-option" style="opacity:.5;cursor:default;">Aucune couleur dans la sélection en cours</div>'}]:[]),
           ...(window._dimsInAdv?[{id:'format',t:'Dimensions',n:msdState['msd-format'].size,rows:()=>formats.length?formats.map(v=>row('format',v,v===FORMAT_AUTRES?'Autres dimensions':v,msdState['msd-format'].has(v))).join(''):'<div class="msd-option" style="opacity:.5;cursor:default;">Aucun format dans la sélection en cours</div>'}]:[]),
           {id:'mandrin',t:'Mandrin',n:msdState['msd-mandrin'].size,rows:()=>mandrins.length?mandrins.map(m=>row('mandrin',m,m+' mm',msdState['msd-mandrin'].has(m))).join(''):'<div class="msd-option" style="opacity:.5;cursor:default;">Aucun mandrin dans la sélection en cours</div>'},
-          {id:'laize',t:'Laizes',n:msdState['msd-laize'].size,rows:()=>laizes.length?laizes.map(v=>row('laize',v,v===LAIZE_AUTRES?'Autres laizes':v,msdState['msd-laize'].has(v))).join(''):'<div class="msd-option" style="opacity:.5;cursor:default;">Choisis d\'abord un type bobine</div>'},
-          {id:'diametre',t:'Diamètre',n:msdState['msd-diametre'].size,rows:()=>diams.length?diams.map(v=>row('diametre',v,v===DIAM_AUTRES?'Autres Ø':v,msdState['msd-diametre'].has(v))).join(''):'<div class="msd-option" style="opacity:.5;cursor:default;">Choisis d\'abord un type bobine</div>'},
-          {id:'poids',t:'Poids',n:msdState['msd-poids'].size,rows:()=>POIDS_OPTIONS.map(o=>row('poids',o,o,msdState['msd-poids'].has(o))).join('')},
+          {id:'laize',t:'Laizes',rng:'laize',rows:()=>_rsBounds.laize?'<div class="gsl-host" data-rskey="laize"></div>':'<div class="msd-option" style="opacity:.5;cursor:default;">Choisis d\'abord un type bobine</div>'},
+          {id:'diametre',t:'Diamètre',rng:'diam',rows:()=>_rsBounds.diam?'<div class="gsl-host" data-rskey="diam"></div>':'<div class="msd-option" style="opacity:.5;cursor:default;">Choisis d\'abord un type bobine</div>'},
+          {id:'poids',t:'Poids',rng:'poids',rows:()=>'<div class="gsl-host" data-rskey="poids"></div>'},
           {id:'photo',t:'Photo',n:_photoFilter?1:0,rows:()=>row('photo','with','Avec photo',_photoFilter==='with')+row('photo','without','Sans photo',_photoFilter==='without')},
           {id:'resa',t:'Réservation',n:_resaFilter?1:0,rows:()=>row('resa','with','Réservés',_resaFilter==='with')+row('resa','without','Dispo',_resaFilter==='without')},
           {id:'usine',t:'Réf usine',n:msdState['msd-usine'].size,rows:()=>`<div class="msd-search-wrap"><input class="msd-search-inp" id="adv-usine-q" type="text" placeholder="Rechercher…" autocomplete="off" value="${esc(window._advUsineQ||'')}"></div>`+usines.map(u=>row('usine',u,'Usine '+u,msdState['msd-usine'].has(u))).join('')},
         ];
         _faPn.innerHTML=secs.map(s=>{
           const open=window._advOpenSec===s.id;
-          return `<div class="msd-group-row${open?' open':''}" data-sec="${s.id}"><span>${s.t}</span><span class="mgr-right">${s.n?`<span class="mgr-nsel">${s.n}</span>`:''}<span class="mgr-arrow">›</span></span></div>`+(open?`<div class="adv-pop">${s.rows()}</div>`:'');
+          const right=s.rng
+            ? `<span class="mgr-range" id="mgr-range-${s.rng}">${esc(_rsRangeText(s.rng))}</span>`
+            : (s.n?`<span class="mgr-nsel">${s.n}</span>`:'');
+          return `<div class="msd-group-row${open?' open':''}" data-sec="${s.id}"><span>${s.t}</span><span class="mgr-right">${right}<span class="mgr-arrow">›</span></span></div>`+(open?`<div class="adv-pop">${s.rows()}</div>`:'');
         }).join('');
+        // Curseur Laize/Ø/Poids construit dans le popup ouvert (avant le calcul
+        // de hauteur pour que scrollHeight le prenne en compte).
+        const _rsHost=_faPn.querySelector('.adv-pop .gsl-host');
+        if(_rsHost)_buildRangeSlider(_rsHost,_rsHost.dataset.rskey);
         // Dropdown FLOTTANT (comme Type/Détails, 08/08) : le popup des options
         // s'ancre SOUS sa ligne en position absolue (#tb-adv = .msd position:relative),
         // il ne pousse plus le rail (avant : déplié inline = rail interminable).
@@ -7195,7 +7344,7 @@ function _editListPrompt(){
   const c=window.prompt('Code d\'accès pour modifier cette liste :');
   if(c==null)return; // annulé
   if(c.trim()!==_EDIT_CODE){toast('Code incorrect');return;}
-  try{localStorage.setItem('prodi_cat_ok','1');}catch(_){} // ouvre la porte + prix
+  try{localStorage.setItem('prodi_cat_ok','1');localStorage.removeItem('prodi_client');}catch(_){} // interne : porte + prix + voit les réservés
   let url;
   if(_shareCode){
     url=window.location.origin+'/catalogue/?edit='+encodeURIComponent(_shareCode);
