@@ -46,6 +46,37 @@ const TS_WAIT = TR('Vérification anti-robot…','Checking you are human…');
   document.body.appendChild(m);
 })();
 
+// ─── FORMULAIRE CONTACT injecté sur les SOUS-PAGES (29/08) : EXACTEMENT le même
+// formulaire que l'accueil (mêmes ids f-nom/f-tel/f-msg/f-hp → submitContact,
+// ccInit('f-tel') et la validation le reprennent tels quels). Injecté AVANT ces
+// initialisations (haut du fichier) → câblage automatique. La page d'origine est
+// tracée à l'envoi (quantite_souhaitee = « Contact vitrine — /chemin/ »).
+// Skip si un #contact-form existe déjà (accueil/contact/produits) ou hors sous-page. ───
+(function(){
+  if(!document.body)return;
+  if(document.getElementById('contact-form'))return;
+  if(!document.body.classList.contains('souspage'))return;
+  var sec=document.createElement('section');
+  sec.id='contact-section';
+  sec.innerHTML=
+    '<div class="ct-header"><h2 data-reveal>'+TR('Commençons à travailler ensemble.','Let’s start working together.')+'</h2></div>'
+    +'<div class="ct-wrap"><div data-reveal data-d="1"><div id="contact-form-wrap">'
+    +'<form id="contact-form" onsubmit="submitContact(event)">'
+    +'<div class="form-row">'
+    +'<div class="fg"><input type="text" id="f-nom" placeholder="'+TR('Votre nom ou société','Your name or company')+'" aria-label="'+TR('Votre nom ou société','Your name or company')+'" required><div class="fg-msg" id="fg-msg-nom"></div></div>'
+    +'<div class="fg"><input type="tel" id="f-tel" placeholder="'+TR('Téléphone','Phone')+'" aria-label="'+TR('Téléphone','Phone')+'" required><div class="fg-msg" id="fg-msg-tel"></div></div>'
+    +'</div>'
+    +'<div class="fg"><textarea id="f-msg" placeholder="'+TR('Message (facultatif)','Message (optional)')+'" aria-label="'+TR('Message (facultatif)','Message (optional)')+'"></textarea><div class="fg-msg" id="fg-msg-msg"></div></div>'
+    +'<input type="text" id="f-hp" name="website" autocomplete="off" tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px;opacity:0;height:0;width:0;pointer-events:none;">'
+    +'<button type="submit" class="btn-submit" id="f-submit">'+TR('Commencer','Get started')+'</button>'
+    +'</form>'
+    +'<div id="form-ok" class="form-ok"><div class="ok-box"><svg class="ok-check" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="25"/><path d="M14 27l8 8 16-16"/></svg><div class="ok-t">'+TR('Bien reçu.','Got it.')+'</div><div class="ok-s">'+TR('On vous rappelle sous 24 h.','We’ll call you back within 24h.')+'</div></div></div>'
+    +'</div></div></div>';
+  var footer=document.querySelector('footer');
+  if(footer&&footer.parentNode)footer.parentNode.insertBefore(sec,footer);
+  else document.body.appendChild(sec);
+})();
+
 // ─── STOCK ACCESS GATE ───
 const STOCK_CODE = 'prodi2026';
 // ─── NAV « Catalogue » = porte à CODE historique (clients : PRODI2026,
@@ -260,13 +291,13 @@ async function submitContact(e) {
     const r = await fetch(SURL+'/rest/v1/proforma_requests', {
       method:'POST',
       headers:{'apikey':SKEY,'Authorization':'Bearer '+SKEY,'Content-Type':'application/json','Prefer':'return=minimal'},
-      body: JSON.stringify({nom, societe:soc, email, telephone:tel, message:msg, quantite_souhaitee:'Contact vitrine', statut:'vitrine_contact'})
+      body: JSON.stringify({nom, societe:soc, email, telephone:tel, message:msg, quantite_souhaitee:'Contact vitrine — '+location.pathname, statut:'vitrine_contact'})
     });
     // Un 4xx (RLS, message trop long…) affichait quand même « envoyé » et le
     // lead était perdu en silence.
     if(!r.ok) throw new Error('HTTP '+r.status);
     try{sessionStorage.setItem('lead_done','1');}catch(_){}
-    window.prodiTrack?.('contact_envoye');
+    window.prodiTrack?.('contact_envoye',{page:location.pathname});
     // Le push vers Bitrix24 se fait CÔTÉ SERVEUR (trigger Postgres pg_net sur
     // proforma_requests, statut vitrine_contact) : le webhook CRM n'apparaît
     // plus jamais dans le code public. Ne JAMAIS remettre d'URL Bitrix ici.
