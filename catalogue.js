@@ -5766,6 +5766,10 @@ const _shareCode=new URLSearchParams(window.location.search).get('s');
 // natif sur une étiquette PDF imprimée par prodi_arrivages. À l'arrivée on
 // pré-ouvre la fiche détail du produit correspondant.
 const _refParam=new URLSearchParams(window.location.search).get('ref');
+// ?edit=<code|_local> — « Modifier » depuis la vue client : rouvre une liste
+// partagée dans le CATALOGUE de travail (avec prix), sélection pré-remplie.
+// N'active PAS le mode vue client (pas de ?s=) → catalogue normal + panier chargé.
+const _editParam=new URLSearchParams(window.location.search).get('edit');
 let _sharedMode=!!_shareParam||!!_shareCode;
 // Vue client (lien partagé) : pas de panneau filtres — pilotée par .shared-view
 function _sharedViewUI(on){document.body.classList.toggle('shared-view',on);}
@@ -6733,6 +6737,9 @@ window.addEventListener('load',async()=>{
     }catch(e){ _sharedMode=false;_sharedViewUI(false);_loadingProducts=true;window._ctnDone?.(); _doFilter(); }
   } else if(_shareParam){
     loadSharedQuote();
+  } else if(_editParam){
+    // « Modifier » : catalogue normal + panier pré-rempli depuis la liste.
+    _loadEditList(_editParam);
   } else if(_refParam){
     // Scan QR étiquette → ouvre direct la fiche produit. Le catalogue charge
     // normalement en arrière-plan pour la navigation post-scan.
@@ -7176,6 +7183,56 @@ async function ouvrirLienClient(){
   }catch(e){toast('Erreur création du lien');return;}
   try{await navigator.clipboard.writeText(url);}catch(_){}
   window.open(url,'_blank');
+}
+// ── « Modifier » (crayon) de la vue client (?s=) ──────────────────────────
+// Rouvre la liste partagée dans le CATALOGUE de travail (avec prix), sélection
+// pré-remplie, prête à retravailler. Gardé par le code interne (le même que la
+// porte du catalogue — cf catalogue/index.html PWD, vitrine.js,
+// invitation/index.html : constantes à garder synchro si on change le code).
+const _EDIT_CODE='PRODI2026';
+function _editListPrompt(){
+  const c=window.prompt('Code d\'accès pour modifier cette liste :');
+  if(c==null)return; // annulé
+  if(c.trim()!==_EDIT_CODE){toast('Code incorrect');return;}
+  try{localStorage.setItem('prodi_cat_ok','1');}catch(_){} // ouvre la porte + prix
+  let url;
+  if(_shareCode){
+    url=window.location.origin+'/catalogue/?edit='+encodeURIComponent(_shareCode);
+  }else{
+    // Lien legacy ?share= (refs en clair, sans code court) : on passe la
+    // sélection courante par sessionStorage (même onglet/origine → conservée
+    // à la navigation vers /catalogue/).
+    try{sessionStorage.setItem('prodi_edit_refs',cart.map(x=>x.ref).filter(Boolean).join(','));}catch(_){}
+    url=window.location.origin+'/catalogue/?edit=_local';
+  }
+  window.location.href=url;
+}
+// Boot du catalogue avec ?edit= : résout le code → refs → remplit le panier et
+// ouvre le tiroir « Ma Liste ». Le catalogue tourne en mode NORMAL (grille +
+// prix), pas en vue client.
+async function _loadEditList(code){
+  try{
+    let refs='';
+    if(code==='_local'){
+      try{refs=sessionStorage.getItem('prodi_edit_refs')||'';sessionStorage.removeItem('prodi_edit_refs');}catch(_){}
+    }else{
+      const r=await sbQ('shared_carts?code=eq.'+encodeURIComponent(code)+'&select=cart_ids&limit=1');
+      refs=(r.data&&r.data[0])?r.data[0].cart_ids:'';
+    }
+    const refList=(refs||'').split(',').map(s=>s.trim()).filter(Boolean);
+    if(!refList.length){toast('Liste introuvable ou expirée');return;}
+    const pr=await sbQ('products?ref=in.('+refList.map(encodeURIComponent).join(',')+')&select=*&limit=400&order=gsm.asc');
+    if(!pr.data||!pr.data.length){toast('Liste introuvable ou expirée');return;}
+    const units=pr.data.map(rowToUi);
+    cart=units.map(p=>({id:p.id,name:p.name,ref:p.ref,type:p.type,qualite:p.qualite||null,details:p.details||null,grammage:p.grammage,largeur:p.largeur,format:p.format,poids_net:p.poids_net,price:p.price||null,img:p.image_url||null,couleur:p.couleur||null,usine:p.usine||null,zone:p.zone||null,emplacement:p.emplacement||null,allee:p.allee||null}));
+    try{localStorage.setItem('prodi_cart',JSON.stringify(cart));}catch(_){}
+    updateCartBadge();
+    // Reflète l'état « ajouté » (+/−) sur les cartes déjà rendues par l'init.
+    const pg=document.getElementById('pgrid');
+    if(pg&&pg._lastList&&pg._lastList.length)render(pg._lastList);
+    openCartDrawer();
+    toast('✏️ Liste rouverte — '+cart.length+' produit'+(cart.length>1?'s':'')+' prêts à retravailler',4200);
+  }catch(e){toast('Erreur à l\'ouverture de la liste');}
 }
 // « Partager » du tiroir : crée le lien client (?s=) et l'OUVRE directement
 // dans un nouvel onglet (vue client, intro + thème Apple) — demande Ethan 20/07.

@@ -95,7 +95,7 @@ gtag('config', 'AW-18393110999');
 <link rel="preconnect" href="https://images.weserv.nl">
 <link rel="dns-prefetch" href="https://stock.prodi.net">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/catalogue.css?v=846">
+<link rel="stylesheet" href="/catalogue.css?v=847">
 <!-- EmailJS : chargé À LA DEMANDE par _ejsReady() (perf 18/07) -->
 </head>
 <body>
@@ -235,6 +235,13 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
         <div class="offre-menu" id="offre-menu" role="menu" aria-label="Offres par qualité de papier"></div>
       </div>
       <div class="cart-wrap">
+        <!-- Bouton « Modifier » (crayon) : UNIQUEMENT en vue client (?s=) via CSS
+             body.shared-view. Demande le code interne puis rouvre la liste dans
+             le catalogue de travail (avec prix), sélection pré-remplie. -->
+        <button class="btn-head" id="edit-list-btn" onclick="_editListPrompt()" title="Modifier cette liste dans le catalogue (accès interne)">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+          <span class="edit-list-txt">Modifier</span>
+        </button>
         <button class="btn-head btn-head-panier" onclick="openCartDrawer()" id="cart-btn" title="Ma Liste">
           <img src="/img/truck2.png" alt="" style="height:28px;width:auto;flex-shrink:0;">
           <span class="btn-panier-txt" style="font-size:19px;font-weight:800;">Liste</span>
@@ -992,7 +999,7 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
 <div class="spin-bg" id="spinner"><div class="spin"></div></div>
 
 <script src="/analytics.js?v=6"></script>
-<script src="/catalogue.js?v=784"></script>
+<script src="/catalogue.js?v=785"></script>
 <!-- Fiches techniques & certificats (interne, bouton header + panneau) -->
 <script src="/fiches.js?v=6" defer></script>
 <!-- Traqueur de perf, inerte sans ?perf=1 (voir perf-hud.js) -->

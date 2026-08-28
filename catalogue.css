@@ -1243,6 +1243,13 @@ body.shared-view .rbar-count,body.shared-view .header-search-group,body.shared-v
 body.shared-view #cart-btn .btn-panier-txt{display:inline !important;font-size:18.5px !important;font-weight:700 !important;color:#1d1d1f !important;}
 /* Téléphone (26/08) : bouton Excel de la vue client = LOGO SEUL, sans « Télécharger ». */
 @media(max-width:768px){body.shared-view #cart-btn .btn-panier-txt{display:none !important;}}
+/* Bouton « Modifier » (crayon) : caché partout SAUF en vue client (?s=) où il
+   rouvre la liste dans le catalogue de travail après saisie du code interne. */
+#edit-list-btn{display:none;}
+body.shared-view #edit-list-btn{display:inline-flex !important;align-items:center;gap:6px;height:34px;padding:0 14px;border-radius:999px;background:#fff;border:1.5px solid #d2d2d7;color:#1d1d1f;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;flex-shrink:0;}
+body.shared-view #edit-list-btn:hover{border-color:#1d1d1f;}
+/* Téléphone : crayon seul (comme le bouton Excel), sans le mot « Modifier ». */
+@media(max-width:768px){body.shared-view #edit-list-btn{padding:0 11px;}body.shared-view #edit-list-btn .edit-list-txt{display:none;}}
 body.shared-view .logo-full{display:block !important;}
 body.shared-view .logo-mob{display:none !important;}
 body.shared-view .pbig-list{display:flex;flex-direction:column;gap:14px;}
