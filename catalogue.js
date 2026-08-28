@@ -4848,7 +4848,7 @@ function toggleSelectAll(btn){
     // Add all not yet in cart
     currentList.forEach(p=>{
       if(!cart.find(x=>x.id===+p.id)){
-        cart.push({id:p.id,name:p.name,ref:p.ref,type:p.type,qualite:p.qualite||null,details:p.details||null,grammage:p.grammage,largeur:p.largeur,format:p.format,poids_net:p.poids_net,price:p.price||null,img:p.image_url||null,couleur:p.couleur||null,usine:p.usine||null,zone:p.zone||null,emplacement:p.emplacement||null,allee:p.allee||null});
+        cart.push({id:p.id,name:p.name,ref:p.ref,type:p.type,qualite:p.qualite||null,details:p.details||null,grammage:p.grammage,largeur:p.largeur,format:p.format,poids_net:p.poids_net,price:p.price||null,img:p.image_url||null,couleur:p.couleur||null,usine:p.usine||null,zone:p.zone||null,emplacement:p.emplacement||null,allee:p.allee||null,reserve_client:p.reserve_client||null});
         const lb=document.getElementById('ladd-'+p.id);
         if(lb){lb.classList.add('added');lb.innerHTML=_ICO_TRASH;}
         const cb=document.getElementById('cadd-'+p.id);
@@ -5078,7 +5078,7 @@ function addToCart(id,productObj){
     toast('🗑️ Retiré de la liste');
     return;
   }
-  cart.push({id:p.id,name:p.name,ref:p.ref,type:p.type,qualite:p.qualite||null,details:p.details||null,grammage:p.grammage,largeur:p.largeur,format:p.format,poids_net:p.poids_net,price:p.price||null,img:p.image_url||null,couleur:p.couleur||null,usine:p.usine||null,zone:p.zone||null,emplacement:p.emplacement||null,allee:p.allee||null});
+  cart.push({id:p.id,name:p.name,ref:p.ref,type:p.type,qualite:p.qualite||null,details:p.details||null,grammage:p.grammage,largeur:p.largeur,format:p.format,poids_net:p.poids_net,price:p.price||null,img:p.image_url||null,couleur:p.couleur||null,usine:p.usine||null,zone:p.zone||null,emplacement:p.emplacement||null,allee:p.allee||null,reserve_client:p.reserve_client||null});
   localStorage.setItem('prodi_cart',JSON.stringify(cart));
   updateCartBadge();
   const caddBtn=document.getElementById('cadd-'+id);
@@ -6480,7 +6480,7 @@ async function loadSharedQuote(idsOverride){
 
   window._sharedProducts=products;
   // Auto-populate client's selection with shared products
-  cart=units.map(p=>({id:p.id,name:p.name,ref:p.ref,type:p.type,qualite:p.qualite||null,details:p.details||null,grammage:p.grammage,largeur:p.largeur,format:p.format,poids_net:p.poids_net,price:p.price||null,img:p.image_url||null,couleur:p.couleur||null,usine:p.usine||null,zone:p.zone||null,emplacement:p.emplacement||null,allee:p.allee||null}));
+  cart=units.map(p=>({id:p.id,name:p.name,ref:p.ref,type:p.type,qualite:p.qualite||null,details:p.details||null,grammage:p.grammage,largeur:p.largeur,format:p.format,poids_net:p.poids_net,price:p.price||null,img:p.image_url||null,couleur:p.couleur||null,usine:p.usine||null,zone:p.zone||null,emplacement:p.emplacement||null,allee:p.allee||null,reserve_client:p.reserve_client||null}));
   localStorage.setItem('prodi_cart',JSON.stringify(cart));
   updateCartBadge();
   renderDrawer();
@@ -6574,6 +6574,7 @@ function renderDrawer(){
     const qkg=p.qty_kg??(p.poids_net||0);
     const step=Math.max(1,Math.round(p.poids_net||100));
     const _pFull=all.find(x=>x.id===+p.id)||p;
+    const _resaClient=p.reserve_client||_pFull.reserve_client||null; // cadenas orange si réservé (Sage)
     const _qualite=p.qualite||_pFull.qualite||null;
     const _details=p.details||_pFull.details||null;
     const ciTitle=formatProductTitle(_qualite,p.name);
@@ -6590,7 +6591,7 @@ function renderDrawer(){
     return`<div class="ci" id="ci-${numId(p.id)}" onclick="_ciOpenDetail(${numId(p.id)})" style="cursor:pointer">
       <div class="ci-img">${imgHtml}</div>
       <div class="ci-body">
-        ${(()=>{const _fmtQ=_estFormat(_pFull);const _dimv=_fmtQ?(_pFull.largeur&&_pFull.longueur?mmToCm(Math.min(_pFull.largeur,_pFull.longueur))+' × '+mmToCm(Math.max(_pFull.largeur,_pFull.longueur))+' <small>mm</small>':(_pFull.largeur?mmToCm(_pFull.largeur)+' <small>mm</small>':'—')):(_pFull.largeur?mmToCm(_pFull.largeur)+' <small>mm</small>':'—');const _c=(cap,val)=>`<div class="cie-cell"><div class="cie-cap">${cap}</div><div class="cie-val">${val}</div></div>`;const _prix=_priceMode&&_pFull.price?_ccyNum(_pFull.price*1000)+' '+_ccyUnit():null;const _cpSvg='<svg width="10" height="10" viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.6"/><path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';const _refCell=`<div class="cie-cell cie-ref"${_prix?'':' style="grid-column:span 2"'}${lot?` onclick="event.stopPropagation();navigator.clipboard.writeText(${attrJs(lot)}).then(()=>toast('📋 Réf. copiée'))"`:''}><div class="cie-cap">${'RÉFÉRENCE'}</div><div class="cie-val">${lot?esc(lot)+_cpSvg:'—'}</div></div>`;const _prixCell=_prix?`<div class="cie-cell cie-prix"><div class="cie-cap">PRIX</div><div class="cie-val">${esc(_prix)}</div></div>`:'';return `<div class="cie-grid cie-g4"><div class="cie-cell cie-title"><span class="cie-title-txt">${esc(ciTitle)}</span><button class="ci-rm cie-rm" onclick="event.stopPropagation();removeFromCart(${numId(p.id)})" aria-label="${'Retirer'}">${_trashSvg}</button></div>${_c('GRAMMAGE',p.grammage?esc(p.grammage)+' <small>g/m²</small>':'—')+_c(_fmtQ?'DIMENSIONS':'LAIZE',_dimv)+_c('COULEUR',esc(_pFull.couleur||p.couleur||'—'))+_c('POIDS',qkg?esc(Math.round(qkg).toLocaleString('fr-FR'))+' <small>kgs</small>':'—')}${_refCell}${_prixCell}</div>`;})()}
+        ${(()=>{const _fmtQ=_estFormat(_pFull);const _dimv=_fmtQ?(_pFull.largeur&&_pFull.longueur?mmToCm(Math.min(_pFull.largeur,_pFull.longueur))+' × '+mmToCm(Math.max(_pFull.largeur,_pFull.longueur))+' <small>mm</small>':(_pFull.largeur?mmToCm(_pFull.largeur)+' <small>mm</small>':'—')):(_pFull.largeur?mmToCm(_pFull.largeur)+' <small>mm</small>':'—');const _c=(cap,val)=>`<div class="cie-cell"><div class="cie-cap">${cap}</div><div class="cie-val">${val}</div></div>`;const _prix=_priceMode&&_pFull.price?_ccyNum(_pFull.price*1000)+' '+_ccyUnit():null;const _cpSvg='<svg width="10" height="10" viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.6"/><path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';const _refCell=`<div class="cie-cell cie-ref"${_prix?'':' style="grid-column:span 2"'}${lot?` onclick="event.stopPropagation();navigator.clipboard.writeText(${attrJs(lot)}).then(()=>toast('📋 Réf. copiée'))"`:''}><div class="cie-cap">${'RÉFÉRENCE'}</div><div class="cie-val">${lot?esc(lot)+_cpSvg:'—'}</div></div>`;const _prixCell=_prix?`<div class="cie-cell cie-prix"><div class="cie-cap">PRIX</div><div class="cie-val">${esc(_prix)}</div></div>`:'';const _lockHtml=_resaClient?`<span class="cie-lock" title="Réservé${typeof _resaClient==='string'?' — '+esc(_resaClient):''}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ea8600" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>`:'';return `<div class="cie-grid cie-g4"><div class="cie-cell cie-title">${_lockHtml}<span class="cie-title-txt">${esc(ciTitle)}</span><button class="ci-rm cie-rm" onclick="event.stopPropagation();removeFromCart(${numId(p.id)})" aria-label="${'Retirer'}">${_trashSvg}</button></div>${_c('GRAMMAGE',p.grammage?esc(p.grammage)+' <small>g/m²</small>':'—')+_c(_fmtQ?'DIMENSIONS':'LAIZE',_dimv)+_c('COULEUR',esc(_pFull.couleur||p.couleur||'—'))+_c('POIDS',qkg?esc(Math.round(qkg).toLocaleString('fr-FR'))+' <small>kgs</small>':'—')}${_refCell}${_prixCell}</div>`;})()}
       </div>
       <div class="ci-confirm" id="ci-confirm-${numId(p.id)}" onclick="event.stopPropagation()">
         <span>${'Retirer cet article\u00a0?'}</span>
@@ -7224,7 +7225,7 @@ async function _loadEditList(code){
     const pr=await sbQ('products?ref=in.('+refList.map(encodeURIComponent).join(',')+')&select=*&limit=400&order=gsm.asc');
     if(!pr.data||!pr.data.length){toast('Liste introuvable ou expirée');return;}
     const units=pr.data.map(rowToUi);
-    cart=units.map(p=>({id:p.id,name:p.name,ref:p.ref,type:p.type,qualite:p.qualite||null,details:p.details||null,grammage:p.grammage,largeur:p.largeur,format:p.format,poids_net:p.poids_net,price:p.price||null,img:p.image_url||null,couleur:p.couleur||null,usine:p.usine||null,zone:p.zone||null,emplacement:p.emplacement||null,allee:p.allee||null}));
+    cart=units.map(p=>({id:p.id,name:p.name,ref:p.ref,type:p.type,qualite:p.qualite||null,details:p.details||null,grammage:p.grammage,largeur:p.largeur,format:p.format,poids_net:p.poids_net,price:p.price||null,img:p.image_url||null,couleur:p.couleur||null,usine:p.usine||null,zone:p.zone||null,emplacement:p.emplacement||null,allee:p.allee||null,reserve_client:p.reserve_client||null}));
     try{localStorage.setItem('prodi_cart',JSON.stringify(cart));}catch(_){}
     updateCartBadge();
     // Reflète l'état « ajouté » (+/−) sur les cartes déjà rendues par l'init.

@@ -1237,7 +1237,12 @@ body.shared-view .body-wrap{grid-template-columns:1fr !important;max-width:none 
    droite (#cart-btn sans texte = filet de secours si le popup d'accueil
    _excelPopup a été fermé). Compteur, champs Réf, Album/Usine/Offre et icônes
    mobiles masqués. */
-body.shared-view .rbar-count,body.shared-view .header-search-group,body.shared-view #album-wrap,body.shared-view #fab-wrap,body.shared-view #offre-wrap,body.shared-view #cart-clear-btn,body.shared-view .mob-search-head,body.shared-view .mob-filter-head{display:none !important;}
+body.shared-view .header-search-group,body.shared-view #album-wrap,body.shared-view #fab-wrap,body.shared-view #offre-wrap,body.shared-view #cart-clear-btn,body.shared-view .mob-search-head,body.shared-view .mob-filter-head{display:none !important;}
+/* Vue client (?s=) : tonnage + compteur AFFICHÉS dans le header (28/08 Ethan) —
+   « 12 bobines • 6 formats • 15.0 t ». Visible ordi ET mobile. */
+body.shared-view .rbar-count{display:block !important;margin-left:16px !important;font-family:'DM Sans',sans-serif;font-size:14.5px;font-weight:600;color:#1d1d1f;white-space:nowrap;}
+body.shared-view .rbar-count #rbar-tons{font-weight:800;}
+@media(max-width:768px){body.shared-view .rbar-count{display:block !important;margin-left:10px !important;font-size:12.5px;}}
 /* 18/08 (Ethan) : « Télécharger » AFFICHÉ à gauche du logo Excel (annule
    l'icône seule du 10/08) — le libellé est posé en JS (vue client). */
 body.shared-view #cart-btn .btn-panier-txt{display:inline !important;font-size:18.5px !important;font-weight:700 !important;color:#1d1d1f !important;}
@@ -2733,6 +2738,8 @@ body.apple-view .cie-g4 .cie-title{grid-column:1/-1;font-size:14.5px;font-weight
 body.apple-view .cie-g4 .cie-title-txt{flex:1;min-width:0;}
 body.apple-view .cie-g4 .cie-rm{min-width:0;min-height:0;width:auto;height:auto;margin:0;padding:0;flex-shrink:0;color:var(--red);}
 body.apple-view .cie-g4 .cie-rm:hover{color:#cc0000;}
+/* Cadenas ORANGE dans la carte du tiroir « Ma Liste » quand l'article est réservé (28/08). */
+.cie-lock{display:inline-flex;align-items:center;flex-shrink:0;color:#ea8600;line-height:0;}
 body.apple-view .cie-g4 .cie-ref{cursor:pointer;}
 body.apple-view .cie-g4 .cie-ref:hover{background:#f6f6f4;}
 body.apple-view .cie-g4 .cie-ref .cie-val{font-family:monospace;display:flex;align-items:center;gap:4px;}
