@@ -95,7 +95,7 @@ gtag('config', 'AW-18393110999');
 <link rel="preconnect" href="https://images.weserv.nl">
 <link rel="dns-prefetch" href="https://stock.prodi.net">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/catalogue.css?v=845">
+<link rel="stylesheet" href="/catalogue.css?v=846">
 <!-- EmailJS : chargé À LA DEMANDE par _ejsReady() (perf 18/07) -->
 </head>
 <body>
@@ -140,7 +140,11 @@ html.cat-unlocked #cat-gate{display:none !important;}
 </div>
 <script>
 (function(){
-  var PWD='PRODI2026'; /* ← MOT DE PASSE du catalogue — changer ici */
+  var PWD='PRODI2026'; /* ← MOT DE PASSE interne du catalogue — changer ici */
+  /* Codes CLIENTS additionnels → même accès complet AVEC prix que l'interne.
+     Révocables indépendamment de PRODI2026 (retirer de la liste = coupé).
+     Insensibles à la casse. Ajouter/retirer un code ici. */
+  var PWD_CLIENTS=['BROTHER'];
   if(document.documentElement.classList.contains('cat-unlocked'))return;
   function boot(){
     var g=document.getElementById('cat-gate'),f=document.getElementById('cat-gate-form'),i=document.getElementById('cat-gate-input'),err=document.getElementById('cat-gate-err');
@@ -148,7 +152,8 @@ html.cat-unlocked #cat-gate{display:none !important;}
     setTimeout(function(){try{i.focus();}catch(e){}},60);
     f.addEventListener('submit',function(e){
       e.preventDefault();
-      if(i.value.trim()===PWD){try{localStorage.setItem('prodi_cat_ok','1');}catch(e){}document.documentElement.classList.add('cat-unlocked');}
+      var v=i.value.trim();
+      if(v===PWD||PWD_CLIENTS.indexOf(v.toUpperCase())>=0){try{localStorage.setItem('prodi_cat_ok','1');}catch(e){}document.documentElement.classList.add('cat-unlocked');}
       else{err.textContent='Mot de passe incorrect';var card=g.querySelector('.cat-gate-card');card.classList.remove('cat-gate-shake');void card.offsetWidth;card.classList.add('cat-gate-shake');i.select();}
     });
   }
@@ -650,6 +655,10 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
     </div>
   </div>
   <div class="drawer-footer" id="drawer-footer" style="display:none">
+    <button class="da-copy-link da-copy-top" onclick="copyCartLink(this)" title="Copier le lien de la sélection">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+      <span>Copier le lien</span>
+    </button>
     <div class="drawer-actions">
       <button class="da-action" id="btn-excel-list" onclick="exportListExcelTest(this).catch(()=>toast('Erreur export'))" title="Télécharger le Excel de la sélection">
         <svg width="18" height="18" viewBox="0 0 32 32" style="flex-shrink:0;"><rect x="9" y="2" width="21" height="14" rx="3.5" fill="#8bd47e"/><rect x="20" y="2" width="10" height="14" rx="3.5" fill="#b9e695"/><path d="M9 9h17.5A3.5 3.5 0 0 1 30 12.5V26.5a3.5 3.5 0 0 1-3.5 3.5H12.5A3.5 3.5 0 0 1 9 26.5Z" fill="#2f9e55"/><rect x="2" y="12" width="16" height="16" rx="3.5" fill="#185c37"/><path d="M6.4 16.5h2.7l1.8 3.2 1.8-3.2h2.7l-3.1 4.7 3.2 4.8h-2.8l-1.8-3.3-1.9 3.3H6.2l3.2-4.8z" fill="#fff"/></svg>
