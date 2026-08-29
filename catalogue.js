@@ -1075,11 +1075,22 @@ async function init(){
   buildMsdOptions('msd-laize-mob',LAIZE_OPTIONS,'Laizes',v=>v===LAIZE_AUTRES?'Autres laizes':v,'msd-laize');
   buildMsdOptions('msd-diametre-mob',DIAM_OPTIONS,'Diamètre',v=>v===DIAM_AUTRES?'Autres Ø':v,'msd-diametre');
   buildMsdOptions('msd-poids-mob',POIDS_OPTIONS,'Poids',undefined,'msd-poids');
-  // Laize/Ø/Poids en DOUBLE CURSEUR (28/08) dans « Filtres avancés » (desktop
-  // via _paintAdv) + tiroir mobile.
+  // Laize/Ø/Poids = DUPLICATION du curseur Grammages : sections du RAIL (accordéon
+  // .gsl-open, mêmes markup + CSS que Grammages) + tiroir mobile.
+  _initRangeSliderMenu('sb-msd-laize','laize');
+  _initRangeSliderMenu('sb-msd-diametre','diam');
+  _initRangeSliderMenu('sb-msd-poids','poids');
   _initRangeSliderMenu('msd-laize-mob','laize');
   _initRangeSliderMenu('msd-diametre-mob','diam');
   _initRangeSliderMenu('msd-poids-mob','poids');
+  // Accordéon desktop identique à Grammages : clic titre = déplie le curseur en
+  // place (mobile ≤768px garde le dropdown toggleMsd).
+  ['sb-msd-laize','sb-msd-diametre','sb-msd-poids'].forEach(id=>{
+    const g=document.getElementById(id),btn=g&&g.querySelector('.msd-btn');
+    if(btn){btn.setAttribute('onclick','');btn.onclick=e=>{e.stopPropagation();
+      if(window.matchMedia('(max-width: 768px)').matches){toggleMsd(id);}
+      else{g.classList.toggle('gsl-open');}};}
+  });
 
   // Pre-fill from URL params (coming from vitrine)
   const _urlParams = new URLSearchParams(window.location.search);
@@ -1433,10 +1444,13 @@ function _rsHasSel(key){
 }
 function _rsUpdateHeader(key){
   const txt=_rsRangeText(key),sel=_rsHasSel(key);
-  const m=document.getElementById(_RS_MOB[key]);
-  if(m){const btn=m.querySelector('.msd-btn');if(btn){let bv=btn.querySelector('.gsl-btnval');if(!bv){bv=document.createElement('span');bv.className='gsl-btnval';btn.insertBefore(bv,btn.querySelector('.msd-arrow'));}bv.textContent=txt;btn.classList.toggle('has-sel',sel);}}
-  const rspan=document.getElementById('mgr-range-'+key); // plage dans le header de la section « Filtres avancés »
-  if(rspan)rspan.textContent=txt;
+  [_RS_DESK[key],_RS_MOB[key]].forEach(id=>{
+    const m=document.getElementById(id);if(!m)return;
+    const btn=m.querySelector('.msd-btn');if(!btn)return;
+    let bv=btn.querySelector('.gsl-btnval');
+    if(!bv){bv=document.createElement('span');bv.className='gsl-btnval';btn.insertBefore(bv,btn.querySelector('.msd-arrow'));}
+    bv.textContent=txt;btn.classList.toggle('has-sel',sel);
+  });
 }
 // Construit un double curseur dans `container` (innerHTML remplacé), branché sur
 // les champs cachés de la config `key`.
@@ -1515,12 +1529,13 @@ function _rsAdapt(){
   _rsRefreshOpen();
 }
 function _rsRefreshOpen(){
-  Object.keys(_RS_MOB).forEach(key=>{
-    const panel=document.querySelector('#'+_RS_MOB[key]+' .msd-panel.msd-slider-panel');
-    if(panel)_buildRangeSlider(panel,key);
+  Object.keys(_RS_CFG).forEach(key=>{
+    [_RS_DESK[key],_RS_MOB[key]].forEach(id=>{
+      const panel=document.querySelector('#'+id+' .msd-panel.msd-slider-panel');
+      if(panel)_buildRangeSlider(panel,key);
+    });
     _rsUpdateHeader(key);
   });
-  if(window._advOpenSec&&['laize','diametre','poids'].includes(window._advOpenSec)&&window._paintAdv)window._paintAdv();
 }
 // Ordre usuel du stock (volumes réels ~20/07) : le menu Type s'affiche trié
 // par volume DÈS la construction, avant même l'arrivée des données de comptage
@@ -1737,8 +1752,14 @@ function formatProductTitle(qualite, fallback){
 // <body> (il reste position:fixed, MÊME position à l'écran, mais échappe overflow
 // ET stacking → passe au-dessus de tout) ; on le remet à sa place à la fermeture,
 // AVANT tout _flushFacetsApresFermeture (qui interroge le panneau via son .msd).
+// Menus du tiroir qui s'ouvrent INLINE (accordéon, juste dessous) au lieu de la
+// feuille du bas — 29/08 Ethan : réservé aux menus à peu de choix. Les gros
+// (Type/Détails/Couleurs/Réf usine) gardent la feuille du bas.
+const _MSD_INLINE=['msd-grammage-mob','msd-mandrin-mob','msd-laize-mob','msd-diametre-mob','msd-poids-mob'];
+function _msdIsInline(panel){const m=panel&&panel.closest&&panel.closest('.msd');return !!(m&&_MSD_INLINE.includes(m.id));}
 function _msdReparentOpen(panel){
   if(!panel||panel._msdHome) return;
+  if(_msdIsInline(panel)) return; // reste dans le tiroir en accordéon (pas de feuille)
   panel._msdHome={p:panel.parentNode,n:panel.nextSibling};
   const mob = window.matchMedia('(max-width:768px)').matches;
   if(mob){
@@ -1776,11 +1797,13 @@ function toggleMsd(id) {
   // sur `width:auto !important` (Type déborde du rail, Détails trop étroit). On
   // force donc la largeur en INLINE !important pour battre ce CSS et rester
   // contenu dans le rail comme les menus Couleur/Mandrin.
-  if(!isOpen){
+  if(!isOpen && !_msdIsInline(panel)){
     const r=btn.getBoundingClientRect(),z=_zf();
     panel.style.top=((r.bottom+4)/z)+'px';
     panel.style.left=(r.left/z)+'px';
     panel.style.setProperty('width',(r.width/z)+'px','important');
+  } else if(_msdIsInline(panel)){ // accordéon inline : pas de positionnement fixe
+    panel.style.top=panel.style.left='';panel.style.removeProperty('width');
   }
   // Close all
   document.querySelectorAll('.msd-panel.show').forEach(p => p.classList.remove('show'));
@@ -1885,15 +1908,15 @@ let _resaFilter=''; // '' | 'with' (réservés) | 'without' (sans réservé)
 function toggleResaPill(btn){
   const val=btn.dataset.resa||'with';
   _resaFilter=(_resaFilter===val)?'':val;
-  document.querySelectorAll('.fpill-resa').forEach(b=>b.classList.toggle('active',_resaFilter===(b.dataset.resa||'with')));
+  // cible pilules (.fpill-resa, .active) ET options de menu (.msd-option, .selected)
+  document.querySelectorAll('[data-resa]').forEach(b=>{const on=_resaFilter===(b.dataset.resa||'with');b.classList.toggle('active',on);b.classList.toggle('selected',on);});
   filterProducts();
 }
 let _photoFilter=''; // '' | 'with' | 'without'
 function togglePhotoPill(btn){
   const val=btn.dataset.photo;
-  const willSelect=(_photoFilter!==val);
-  _photoFilter=willSelect?val:'';
-  document.querySelectorAll('.fpill-photo').forEach(b=>b.classList.toggle('active',_photoFilter===b.dataset.photo));
+  _photoFilter=(_photoFilter!==val)?val:'';
+  document.querySelectorAll('[data-photo]').forEach(b=>{const on=_photoFilter===b.dataset.photo;b.classList.toggle('active',on);b.classList.toggle('selected',on);});
   filterProducts();
 }
 let _formatFilter=''; // '' | 'Bobine' | 'Palette'
@@ -2819,9 +2842,40 @@ document.getElementById('sort-sel')?.addEventListener('change',()=>{_sortTouched
 let _lastQueryP=null; // clauses+tri de la dernière requête catalogue
 let _loadingMore=false;
 // SCROLL INFINI (topbar, 18/07) : la page suivante s'ajoute toute seule.
+// Enrichit un groupe (lot ×N) en proto UI — partagé entre la 1re page
+// (_fetchAndRender) et le scroll infini du mode groupé (_loadMore).
+function _groupToUi(g){
+  if(g.count>1&&_groupQty[g.gid]==null)_groupQty[g.gid]=g.count;
+  return {...g._proto,_grpCount:g.count,_grpTotalWeight:g.totalWeight,
+    _grpMandrins:Array.from(g.mandrins),_grpDepots:Array.from(g.depots),
+    _grpUsines:Array.from(g.usines),_grpUnitIds:g.units.map(u=>u.id),
+    _grpKey:g.gid,_grpProtoId:g.proto_id};
+}
 async function _loadMore(){
-  if(_loadingMore||_sharedMode||_featuredMode||_groupedMode||!_lastQueryP)return;
+  if(_loadingMore||_sharedMode||_featuredMode||!_lastQueryP)return;
   if(_viewMode!=='grid')return;
+  // Mode groupé (défaut) : tous les groupes sont déjà en cache client (_groupsList)
+  // → on ajoute la tranche de groupes suivante SANS requête serveur (instantané).
+  if(_groupedMode){
+    if(!_groupsList||!_groupsList.length||all.length>=_groupsList.length)return;
+    _loadingMore=true;
+    try{
+      const _fresh=_groupsList.slice(all.length,all.length+PAGE).map(_groupToUi);
+      if(_fresh.length){
+        all=all.concat(_fresh);
+        const g=document.getElementById('pgrid');
+        if(g&&g._lastList){
+          g._lastList=all;
+          _rcCartIds=new Set(cart.map(x=>+x.id));
+          _rcGrpByGid=new Map(_groupsList.map(gr=>[gr.gid,gr]));
+          g.insertAdjacentHTML('beforeend',_fresh.map(_renderCatalogueCard).join(''));
+        }else{render(all);}
+        currentPage=Math.max(currentPage,Math.ceil(all.length/PAGE)||1);
+        _updatePager();
+      }
+    }catch(_){}finally{_loadingMore=false;}
+    return;
+  }
   if(all.length<PAGE)return; // première page incomplète = tout est là
   if(_totalCount&&all.length>=_totalCount)return;
   _loadingMore=true;
@@ -3866,21 +3920,8 @@ async function _fetchAndRender(token){
       const _gOff=(currentPage-1)*PAGE;
       const _pageGroups=_groupsList.slice(_gOff,_gOff+PAGE);
       // Construit `all` à partir des protos enrichis
-      all=_pageGroups.map(g=>{
-        // Default qty = max disponible (le client veut tout par défaut)
-        if(g.count>1&&_groupQty[g.gid]==null)_groupQty[g.gid]=g.count;
-        return {
-          ...g._proto,
-          _grpCount:g.count,
-          _grpTotalWeight:g.totalWeight,
-          _grpMandrins:Array.from(g.mandrins),
-          _grpDepots:Array.from(g.depots),
-          _grpUsines:Array.from(g.usines),
-          _grpUnitIds:g.units.map(u=>u.id),
-          _grpKey:g.gid,
-          _grpProtoId:g.proto_id
-        };
-      });
+      // Default qty = max disponible (le client veut tout par défaut) — géré dans _groupToUi
+      all=_pageGroups.map(_groupToUi);
       _totalCount=_groupedTotalCount;
       _groupedUnitCount=_allUi.length;
       _maxKnownPage=Math.max(1,Math.ceil(_totalCount/PAGE)||1);
@@ -3924,8 +3965,12 @@ async function _fetchAndRender(token){
   // entre le logo Prodiconseil et les boutons de droite
   (function(){
     let ht=document.getElementById('head-tons');
-    if(!ht){const hi=document.querySelector('.header-inner');const ll=hi&&hi.querySelector('.logo-link');
-      if(ll){ht=document.createElement('div');ht.id='head-tons';ll.insertAdjacentElement('afterend',ht);}}
+    if(!ht){
+      const r2=document.getElementById('mob-hdr-r2'); // header mobile 2 lignes : tonnage à gauche de la L2
+      if(r2){ht=document.createElement('div');ht.id='head-tons';r2.insertBefore(ht,r2.firstChild);}
+      else{const hi=document.querySelector('.header-inner');const ll=hi&&hi.querySelector('.logo-link');
+        if(ll){ht=document.createElement('div');ht.id='head-tons';ll.insertAdjacentElement('afterend',ht);}}
+    }
     if(ht){const _t=_totalWeightKg/1000;ht.innerHTML=_t>0?`<b>${_t>=100?Math.round(_t).toLocaleString('fr-FR'):_t.toFixed(1).replace('.',',')}</b> t`:'';}
   })();
   const cn=document.getElementById('correction-note');
@@ -3944,6 +3989,7 @@ async function _fetchAndRender(token){
   Object.entries(counters).forEach(([msd,el])=>{const c=document.getElementById(el);if(c){const n=msdState[msd]?.size||0;c.textContent=n;c.style.display=n?'':'none';}});
 
   updateFilterChips();
+  _loadingProducts=false; // fetch terminé → un résultat vide affiche « Aucun résultat », plus le spinner
   render(all);
   renderEquivBanner();
   updateTilesActiveState();
@@ -3978,6 +4024,9 @@ function _updatePager(){
     const pagerTop=document.getElementById('pager-top');
     if(!pager)return;
     if(_sharedMode){pager.style.display='none';if(pagerTop)pagerTop.style.display='none';return;}
+    // Vue grille (groupé ou non) = scroll infini → pas de pager (conservé en vue liste).
+    if(_viewMode==='grid'){pager.style.display='none';if(pagerTop)pagerTop.style.display='none';return;}
+    pager.style.display='';if(pagerTop)pagerTop.style.display='';
     const isLast=all.length<PAGE||(_totalCount>0&&currentPage*PAGE>=_totalCount);
     if(isLast&&currentPage===1){
       // Definitively only one page — ignore any stale _maxKnownPage
@@ -4323,18 +4372,20 @@ function _renderCatalogueCard(p){
       // Vue client (20/08) : PAS de prix sur la carte — cohérent avec la fiche et
       // avec « jamais de prix en vue client » (le _sharedMode a été retiré de la
       // condition : le prix ne s'affiche plus que dans le catalogue interne _priceMode).
-      const prixCell=`<div class="sc-cell sc-det-row sc-price-main" style="grid-column:span 2;"><div class="sc-val sc-price-val">${_priceMode?prixVal:''}</div>${_addBtn}</div>`;
+      // USINE retirée de la carte (29/08 Ethan) — visible seulement dans la fiche.
+      // Ligne du bas = PRIX (gauche) | séparation | bouton + (droite), 2 cellules.
+      const prixCell=`<div class="sc-cell sc-price-main" style="grid-column:span 2;"><div class="sc-val sc-price-val">${_priceMode?prixVal:''}</div></div>`;
+      const addCell=`<div class="sc-cell sc-price-main sc-price-add" style="grid-column:span 2;">${_addBtn}</div>`;
       const foot='';
       return`<div class="pcard sc-card" onclick="openDetail(${numId(p.id)})">
         <div class="pcard-img">${imgHtml}${resaOverlay}${p.promo?'<div class="pcard-promo-overlay">PROMO</div>':''}
           ${_refClean?`<span class="pbig-ref">${esc(_refClean.toUpperCase())}</span>`:''}
-          ${_usineLbl?`<span class="pbig-usine">USINE ${esc(_usineLbl)}</span>`:''}
           ${_isGroup?`<span class="sc-count">× ${numId(p._grpCount)}</span>`:''}
         </div>
         <div class="sc-body">
           <div class="sc-grid has-prix">
             <div class="sc-cell sc-title" style="grid-column:span 4;">${esc(formatProductTitle(p.qualite,p.type))}</div>
-            ${detRow}${cells}${usineCell}${prixCell}
+            ${detRow}${cells}${prixCell}${addCell}
           </div>
           ${foot}
         </div>
@@ -4510,8 +4561,8 @@ function render(list){
       <div class="empty-svg">
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       </div>
-      <div class="empty-lbl">${_fi?'Vous cherchez par filtre ?':'Aucun résultat'}</div>
-      <div class="empty-sub">${_fi?`"${esc(document.getElementById('search-input')?.value||'')}" correspond à un filtre — utilisez le panneau de gauche.`:'Essayez d\'élargir vos filtres.'}</div>
+      <div class="empty-lbl">${_fi?'Vous cherchez par filtre ?':'Rien trouvé'}</div>
+      <div class="empty-sub">${_fi?`"${esc(document.getElementById('search-input')?.value||'')}" correspond à un filtre — utilisez le panneau de gauche.`:'Essayez d\'autres filtres.'}</div>
       ${filterHints}
       <button class="btn-empty-reset" style="margin-top:8px" onclick="resetFilters()">${'↺ Réinitialiser'}</button>
     </div>`;
@@ -4946,9 +4997,11 @@ function updateCartBadge(){
     const txt=btn.querySelector('.btn-panier-txt');
     const ico=btn.querySelector('.cart-share-ico');
     if(ico)ico.style.display='none';
-    if(txt){txt.style.display='';txt.textContent='Ma Liste';}
+    // « Ma commande » partout (mobile + ordi, 29/08 Ethan).
+    const _cartLbl='Ma commande';
+    if(txt){txt.style.display='';txt.textContent=_cartLbl;}
     btn.style.removeProperty('display');
-    btn.title='Ma Liste';
+    btn.title=_cartLbl;
     btn.onclick=()=>openCartDrawer();
     const clr=document.getElementById('cart-clear-btn');
     if(clr)clr.style.display=cart.length>0?'inline-flex':'none';
@@ -6001,24 +6054,14 @@ if(_sharedMode)_sharedViewUI(true);
           ...(window._coulInAdv?[{id:'couleur',t:'Couleurs',n:msdState['msd-couleur'].size,rows:()=>couleurs.length?couleurs.map(v=>row('couleur',v,v,msdState['msd-couleur'].has(v))).join(''):'<div class="msd-option" style="opacity:.5;cursor:default;">Aucune couleur dans la sélection en cours</div>'}]:[]),
           ...(window._dimsInAdv?[{id:'format',t:'Dimensions',n:msdState['msd-format'].size,rows:()=>formats.length?formats.map(v=>row('format',v,v===FORMAT_AUTRES?'Autres dimensions':v,msdState['msd-format'].has(v))).join(''):'<div class="msd-option" style="opacity:.5;cursor:default;">Aucun format dans la sélection en cours</div>'}]:[]),
           {id:'mandrin',t:'Mandrin',n:msdState['msd-mandrin'].size,rows:()=>mandrins.length?mandrins.map(m=>row('mandrin',m,m+' mm',msdState['msd-mandrin'].has(m))).join(''):'<div class="msd-option" style="opacity:.5;cursor:default;">Aucun mandrin dans la sélection en cours</div>'},
-          {id:'laize',t:'Laizes',rng:'laize',rows:()=>_rsBounds.laize?'<div class="gsl-host" data-rskey="laize"></div>':'<div class="msd-option" style="opacity:.5;cursor:default;">Choisis d\'abord un type bobine</div>'},
-          {id:'diametre',t:'Diamètre',rng:'diam',rows:()=>_rsBounds.diam?'<div class="gsl-host" data-rskey="diam"></div>':'<div class="msd-option" style="opacity:.5;cursor:default;">Choisis d\'abord un type bobine</div>'},
-          {id:'poids',t:'Poids',rng:'poids',rows:()=>'<div class="gsl-host" data-rskey="poids"></div>'},
           {id:'photo',t:'Photo',n:_photoFilter?1:0,rows:()=>row('photo','with','Avec photo',_photoFilter==='with')+row('photo','without','Sans photo',_photoFilter==='without')},
           {id:'resa',t:'Réservation',n:_resaFilter?1:0,rows:()=>row('resa','with','Réservés',_resaFilter==='with')+row('resa','without','Dispo',_resaFilter==='without')},
           {id:'usine',t:'Réf usine',n:msdState['msd-usine'].size,rows:()=>`<div class="msd-search-wrap"><input class="msd-search-inp" id="adv-usine-q" type="text" placeholder="Rechercher…" autocomplete="off" value="${esc(window._advUsineQ||'')}"></div>`+usines.map(u=>row('usine',u,'Usine '+u,msdState['msd-usine'].has(u))).join('')},
         ];
         _faPn.innerHTML=secs.map(s=>{
           const open=window._advOpenSec===s.id;
-          const right=s.rng
-            ? `<span class="mgr-range" id="mgr-range-${s.rng}">${esc(_rsRangeText(s.rng))}</span>`
-            : (s.n?`<span class="mgr-nsel">${s.n}</span>`:'');
-          return `<div class="msd-group-row${open?' open':''}" data-sec="${s.id}"><span>${s.t}</span><span class="mgr-right">${right}<span class="mgr-arrow">›</span></span></div>`+(open?`<div class="adv-pop">${s.rows()}</div>`:'');
+          return `<div class="msd-group-row${open?' open':''}" data-sec="${s.id}"><span>${s.t}</span><span class="mgr-right">${s.n?`<span class="mgr-nsel">${s.n}</span>`:''}<span class="mgr-arrow">›</span></span></div>`+(open?`<div class="adv-pop">${s.rows()}</div>`:'');
         }).join('');
-        // Curseur Laize/Ø/Poids construit dans le popup ouvert (avant le calcul
-        // de hauteur pour que scrollHeight le prenne en compte).
-        const _rsHost=_faPn.querySelector('.adv-pop .gsl-host');
-        if(_rsHost)_buildRangeSlider(_rsHost,_rsHost.dataset.rskey);
         // Dropdown FLOTTANT (comme Type/Détails, 08/08) : le popup des options
         // s'ancre SOUS sa ligne en position absolue (#tb-adv = .msd position:relative),
         // il ne pousse plus le rail (avant : déplié inline = rail interminable).
@@ -6956,7 +6999,11 @@ function updateFilterVisibility(){
   const _selTypes=[...(msdState['msd-type']||new Set())];
   const _isR=v=>v==='Offset Couleur'||v==='Dossier Couleur'||(typeof v==='string'&&v[0]==='R');
   const _dimsBefore=!!window._dimsInAdv;
-  window._dimsInAdv=_selTypes.length>0&&_selTypes.every(_isR);
+  // Dimensions vit dans « Filtres avancés » DÈS qu'elle n'est pas dans la barre
+  // principale — donc aussi à l'arrivée sans filtre (landing) et en bobine seule.
+  // (29/08 Ethan) — avant : seulement pour une sélection 100 % R*.
+  const _forceR=_selTypes.length>0&&_selTypes.every(_isR);
+  window._dimsInAdv=!(unlocked && !onlyBobine && !_forceR);
   // 21/07 (Ethan) : le menu COULEURS ne reste dans la barre que pour les 3
   // familles couleur (RCOL offset/dossier, SCOL) — sinon il vit dans Filtres
   // avancés (colorer un offset blanc = cas rare, la barre respire).
@@ -6980,10 +7027,13 @@ function updateFilterVisibility(){
   const fbLaizeLbl=document.getElementById('fb-laize-lbl');
   if(fbLaizeLbl) fbLaizeLbl.textContent=laizeLbl;
   // Sidebar
-  show('sb-sec-longueur', unlocked && !onlyPalette);
+  // Laize/Ø (curseurs façon Grammages) : visibles DÈS L'ARRIVÉE sur le catalogue
+  // (29/08 Ethan) — plus de condition `unlocked`. Cachés seulement si la sélection
+  // est 100 % formats (onlyPalette), où laize/Ø n'ont pas de sens.
+  show('sb-sec-longueur', !onlyPalette);
   show('sb-sec-mandrin',  showMandrin);
-  show('sb-sec-format',   unlocked && !onlyBobine && !window._dimsInAdv);
-  show('sb-sec-laize',    unlocked && !onlyPalette);
+  show('sb-sec-format',   !window._dimsInAdv);
+  show('sb-sec-laize',    !onlyPalette);
   const sbLbl=document.getElementById('sb-laize-lbl');
   if(sbLbl) sbLbl.firstChild.textContent=laizeLbl+' ';
   // Mobile drawer

@@ -661,12 +661,27 @@ html,body{overflow-x:clip;}
   .trust-track{display:flex;width:max-content;animation:trust-scroll 24s linear infinite;}
   .trust-inner{flex-shrink:0;width:max-content;padding:0 32px;justify-content:flex-start;overflow:visible;max-width:none;}
   .trust-inner-dup{display:flex !important;}
-  /* Logo */
-  .logo-full{display:none;}
-  .logo-mob{display:block;height:34px;}
-  /* Logo RETIRÉ du header mobile du catalogue (Ethan 26/08) — la vue client
-     (?s=) garde le sien via les règles body.shared-view plus bas. */
-  body:not(.shared-view) .logo-link{display:none !important;}
+  /* HEADER MOBILE 2 LIGNES (29/08 Ethan) : L1 = logo « Prodiconseil » (gauche) |
+     €/$ + « Ma commande » (droite) ; L2 = tonnage (gauche) | Filtres (droite). */
+  .logo-full{display:block;height:26px;}
+  .logo-mob{display:none;}
+  body:not(.shared-view) .logo-link{display:flex !important;align-items:center;flex-shrink:0;}
+  /* header-inner en BLOCK hauteur AUTO (bat le display:grid mobile de topbar-view
+     ~l.2137 via une spécificité supérieure) → les 2 lignes s'empilent. */
+  body.topbar-view:not(.shared-view) header{background:#fff !important;border-bottom:1px solid var(--border) !important;box-shadow:none !important;-webkit-backdrop-filter:none !important;backdrop-filter:none !important;}
+  body.topbar-view:not(.shared-view) .header-inner{display:block !important;height:auto !important;padding:6px 12px !important;grid-template-areas:none !important;background:#fff !important;-webkit-backdrop-filter:none !important;backdrop-filter:none !important;box-shadow:none !important;border-radius:0 !important;max-width:none !important;}
+  #mob-hdr-r1,#mob-hdr-r2{display:flex;align-items:center;justify-content:space-between;width:100%;box-sizing:border-box;gap:8px;min-width:0;}
+  #mob-hdr-r1{margin-bottom:5px;overflow:hidden;min-height:0;max-height:80px;transition:max-height .3s ease,opacity .22s ease,margin-bottom .3s ease;}
+  /* Scroll vers le bas : la ligne logo se REPLIE en douceur (header = tonnage+Filtres) */
+  body.hdr-collapsed:not(.shared-view) #mob-hdr-r1{max-height:0 !important;opacity:0 !important;margin-bottom:0 !important;pointer-events:none;}
+  /* Tiroir mobile : PAS de plage à droite des sliders (Grammages/Laizes/Ø/Poids)
+     — rien à droite comme Couleurs/Mandrin (29/08 Ethan). */
+  #msd-grammage-mob .gsl-btnval,#msd-laize-mob .gsl-btnval,#msd-diametre-mob .gsl-btnval,#msd-poids-mob .gsl-btnval{display:none !important;}
+  .mob-hdr-left{display:flex;align-items:center;gap:9px;min-width:0;}
+  body:not(.shared-view) #mob-hdr-r1 #cart-btn{width:auto !important;padding:0 9px !important;height:34px;gap:5px;flex-shrink:0;}
+  body:not(.shared-view) #mob-hdr-r1 #cart-btn img{height:18px !important;}
+  body:not(.shared-view) #mob-hdr-r1 #cart-btn .btn-panier-txt{display:inline !important;font-size:12.5px !important;font-weight:700;white-space:nowrap;color:#1d1d1f !important;}
+  body:not(.shared-view) #mob-hdr-r1 .ccy-seg{flex-shrink:0;}
   /* Header right group: icons only, no text */
   .hright{gap:8px;margin-left:auto;}
   .live-pill-hright{display:none;}
@@ -815,6 +830,8 @@ html,body{overflow-x:clip;}
 .fd-head{padding:10px 16px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 .fd-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;}
 .fd-close{width:30px;height:30px;border:1.5px solid var(--border);border-radius:50%;background:var(--white);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
+/* Croix du tiroir à GAUCHE (29/08 Ethan) : order:-1 la place avant le logo/titre */
+#filter-drawer .fd-close{order:-1;margin-right:8px;flex-shrink:0;}
 .fd-reset{margin-left:auto;margin-right:10px;background:none;border:none;color:var(--gray);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;padding:6px 10px;border-radius:6px;transition:color .15s,background .15s;}
 .fd-reset:hover,.fd-reset:active{color:var(--red);background:var(--red-light,rgba(254,0,0,.06));}
 .fd-body{flex:1;overflow-y:auto;padding:12px 16px;}
@@ -833,6 +850,19 @@ html,body{overflow-x:clip;}
 #filter-drawer .fd-section-body{padding-bottom:0 !important;margin-top:0 !important;}
 #filter-drawer .fd-section .msd-btn{border:none !important;background:#fff !important;box-shadow:var(--sh-sm);border-radius:14px !important;padding:13px 16px !important;font-size:16px;font-weight:700;}
 #filter-drawer .fd-section .format-pills .fpill{border-radius:12px;box-shadow:var(--sh-sm);}
+/* Photo / Réservation = ACCORDÉON avec options cochables (29/08 Ethan), comme les
+   autres menus du tiroir : header = carte .msd-btn, corps = options .msd-option. */
+#filter-drawer .fd-acc .fd-acc-head{width:100% !important;}
+#filter-drawer .fd-acc .fd-acc-head .msd-arrow svg{transition:transform .2s ease;}
+#filter-drawer .fd-acc .fd-acc-body{display:none;padding:6px 2px 0;}
+#filter-drawer .fd-acc.fd-acc-open .fd-acc-body{display:block;}
+#filter-drawer .fd-acc.fd-acc-open .fd-acc-head .msd-arrow svg{transform:rotate(180deg);}
+#filter-drawer .fd-acc-body .msd-option{display:flex;align-items:center;gap:12px;padding:12px 12px;border-radius:12px;cursor:pointer;font-size:16px;font-weight:700;color:#1d1d1f;}
+#filter-drawer .fd-acc-body .msd-option:active{background:rgba(0,0,0,.05);}
+#filter-drawer .fd-acc-body .msd-option .msd-check{width:22px;height:22px;border:2px solid #c7c7cc;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#fff;}
+#filter-drawer .fd-acc-body .msd-option .msd-check svg{opacity:0;}
+#filter-drawer .fd-acc-body .msd-option.selected .msd-check{background:#1d1d1f;border-color:#1d1d1f;}
+#filter-drawer .fd-acc-body .msd-option.selected .msd-check svg{opacity:1;}
 #filter-drawer .fd-section .fd-section-head{padding:0 0 6px;}
 #filter-drawer .fd-adv-hdr{padding:14px 4px 8px;}
 .fd-foot{padding:12px 16px;border-top:1px solid var(--border);flex-shrink:0;}
@@ -931,8 +961,9 @@ html,body{overflow-x:clip;}
   /* Reset asymmetric body-wrap padding (was 16px 24px 16px 0 for desktop sidebar) */
   .body-wrap{padding:0 !important;max-width:100% !important;}
   .body-wrap>div:last-child{padding:0 !important;min-width:0;}
-  /* Filet de sécurité contre tout débordement horizontal (mot long dans une cellule, grid blowout, etc.) */
-  html,body{overflow-x:hidden;}
+  /* Filet anti-débordement horizontal. ⚠️ CLIP et pas HIDDEN : hidden crée un
+     conteneur de défilement qui CASSE le position:sticky du header (29/08). */
+  html,body{overflow-x:clip;}
   /* Force le grid à pouvoir shrink — sans `minmax(0,1fr)`, le `auto` minimum d'une 1fr peut faire déborder à cause du contenu min-content d'une carte */
   .pgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;padding:0 16px;}
   .pcard{min-width:0;}
@@ -1086,7 +1117,7 @@ body.drawer-open .fab-contact{right:444px;}
   #vt-toggle{padding:6px 10px;}
   .rbar-sel{width:46px;font-size:0;padding:7px 4px;}
   .rbar-sel option{font-size:13px;color:var(--ink);}
-  body{overflow-x:hidden;}
+  body{overflow-x:clip;}
 
   /* GRILLE + CARTES PRODUITS (la grille est déjà 1fr 1fr à <=768) */
   .pcard-img{height:200px;}
@@ -1126,7 +1157,7 @@ body.drawer-open .fab-contact{right:444px;}
   .d-actions{position:sticky;bottom:0;background:#fff;margin:auto -16px 0;padding:10px 16px calc(10px + env(safe-area-inset-bottom));border-top:1.5px solid var(--border);z-index:5;box-shadow:0 -6px 12px -8px rgba(0,0,0,.08);}
   .btn-cart-det{padding:12px 16px;font-size:14px;}
   /* X close en haut-droite flottant sur la modale, visible sur image OU sur body */
-  .dclose{position:absolute;top:10px;right:10px;width:36px;height:36px;font-size:14px;z-index:12;background:rgba(255,255,255,.92);color:var(--ink);border:1.5px solid var(--border);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:var(--sh-md);}
+  .dclose{position:absolute;top:10px;left:10px;width:36px;height:36px;font-size:14px;z-index:12;background:rgba(255,255,255,.92);color:var(--ink);border:1.5px solid var(--border);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:var(--sh-md);}
   .dclose:hover{background:var(--ink);border-color:var(--ink);color:#fff;}
 
   /* MODALES SECONDAIRES (proforma, share, askp, compare) */
@@ -1161,7 +1192,7 @@ body.drawer-open .fab-contact{right:444px;}
 .img-lightbox{position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:9999;display:none;align-items:center;justify-content:center;padding:env(safe-area-inset-top,16px) 12px env(safe-area-inset-bottom,16px);cursor:zoom-out;animation:ilb-fade .15s ease-out;}
 .img-lightbox.show{display:flex;}
 .img-lightbox img{max-width:100%;max-height:100%;object-fit:contain;user-select:none;-webkit-user-drag:none;cursor:zoom-out;}
-.ilb-close{position:absolute;top:max(16px,env(safe-area-inset-top,16px));right:16px;width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.14);border:none;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:background .15s;z-index:2;}
+.ilb-close{position:absolute;top:max(16px,env(safe-area-inset-top,16px));left:16px;width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.14);border:none;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:background .15s;z-index:2;}
 .ilb-close:hover{background:rgba(255,255,255,.26);}
 @keyframes ilb-fade{from{opacity:0;}to{opacity:1;}}
 
@@ -1427,7 +1458,7 @@ body.shared-view .det-etq,body.apple-view .det-etq{border-radius:0;border:none;b
 body.shared-view .det-etq-cell,body.apple-view .det-etq-cell{border-width:1px;}
 body.shared-view .det-reste,body.apple-view .det-reste{padding:10px 16px 4px;margin-top:0;}
 body.shared-view .d-actions,body.apple-view .d-actions{padding:10px 16px 16px;}
-body.shared-view .dhead-actions,body.apple-view .dhead-actions{position:absolute;top:12px;right:12px;z-index:12;}
+body.shared-view .dhead-actions,body.apple-view .dhead-actions{position:absolute;top:12px;left:12px;z-index:12;}
 body.shared-view .dprice-row,body.apple-view .dprice-row{padding:0 16px;}
 .det-etq-wrap .det-etq-val{white-space:normal;overflow:visible;text-overflow:clip;font-size:17px;line-height:1.3;font-weight:700;}
 .sc-wrap .sc-val{white-space:normal;overflow:hidden;text-overflow:clip;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:11.5px;line-height:1.25;}
@@ -1469,7 +1500,7 @@ body.shared-view .modal-bg.show .dmod-nav,body.apple-view .modal-bg.show .dmod-n
 body.shared-view .dmod-prev,body.apple-view .dmod-prev{left:calc(50% - 400px);}
 body.shared-view .dmod-next,body.apple-view .dmod-next{right:calc(50% - 400px);}
 @media(max-width:900px){body.shared-view .dmod-prev,body.apple-view .dmod-prev{left:8px;}body.shared-view .dmod-next,body.apple-view .dmod-next{right:8px;}}
-body.shared-view .dhead-actions,body.apple-view .dhead-actions{position:absolute;top:12px;right:12px;z-index:9999;}
+body.shared-view .dhead-actions,body.apple-view .dhead-actions{position:absolute;top:12px;left:12px;z-index:9999;}
 body.shared-view .dhead-actions .dclose,body.apple-view .dhead-actions .dclose{background:#fff;width:44px;height:44px;box-shadow:0 4px 14px rgba(0,0,0,.25);}
 body.shared-view .dmodal .d-actions,body.apple-view .dmodal .d-actions{display:none;}
 body.shared-view .det-reste,body.apple-view .det-reste{padding:2px 16px 3px;line-height:1.1;}
@@ -1529,13 +1560,13 @@ body.apple-view .det-reste,body.shared-view .det-reste{height:25px;padding-top:0
 body.apple-view .det-etq-cell:not(.det-etq-sub) > .det-etq-val,body.shared-view .det-etq-cell:not(.det-etq-sub) > .det-etq-val{overflow:visible;line-height:1.3;}
 /* Apple : cran au-dessus (+5 % de carte accepté) */
 body.apple-view .sc-cell{padding:8px 8px;}
-body.apple-view .sc-cap{font-size:10.5px;}
+body.apple-view .sc-cap{font-size:10px;}
 body.apple-view .sc-val{font-size:21px;}
-body.apple-view .sc-val small{font-size:12px;}
+body.apple-view .sc-val small{font-size:11.4px;}
 body.apple-view .sc-title{font-size:21px;padding:13px 14px 9px;}
-body.apple-view .sc-wrap .sc-val{font-size:15.5px;}
+body.apple-view .sc-wrap .sc-val{font-size:14.7px;}
 body.apple-view .sc-cell{padding:8px 5px 8px 8px;}
-body.apple-view .sc-val{font-size:19.5px;letter-spacing:-.5px;}
+body.apple-view .sc-val{font-size:18.5px;letter-spacing:-.5px;}
 body.apple-view .sc-cell{border-top:1px solid #c9c9ce;border-left:1px solid #c9c9ce;}
 body.apple-view .det-etq{border-top:1px solid #c9c9ce;}
 body.apple-view .det-etq-cell{border-top:1px solid #c9c9ce;border-left:1px solid #c9c9ce;}
@@ -1631,7 +1662,7 @@ body.apple-view #det-usine-num{font-size:13px !important;font-weight:700 !import
 #shared-tabs button:not(.on):hover{color:#000;}
 /* Popup récap : gabarit modale Apple */
 .recap-card{text-align:left;position:relative;padding:36px 40px 30px;}
-.recap-x{position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;background:#e8e8ed;border:none;color:#4b4b4f;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;}
+.recap-x{position:absolute;top:16px;left:16px;width:36px;height:36px;border-radius:50%;background:#e8e8ed;border:none;color:#4b4b4f;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;}
 .recap-x:hover{background:#dededf;}
 .recap-eyebrow{font-size:14px;font-weight:600;color:var(--g2);margin-bottom:10px;}
 .recap-stats{justify-content:flex-start;}
@@ -1719,7 +1750,9 @@ body.topbar-view .msd-panel{width:auto !important;min-width:230px;max-width:340p
 body.topbar-view .body-wrap>div:last-child{padding:12px 0 0;}
 }
 @media(min-width:769px){
-body.topbar-view .pgrid{grid-template-columns:repeat(5,1fr);max-width:var(--gab);margin-left:auto;margin-right:auto;gap:8px;} /* 4→5 (17/08, rail réduit à 270px) */
+body.topbar-view .pgrid{grid-template-columns:repeat(4,1fr);max-width:var(--gab);margin-left:auto;margin-right:auto;gap:8px;} /* PORTABLE/MacBook = 4 cartes (29/08 Ethan) */
+/* Grand écran externe (≥1800px) = 5 cartes ; portable reste à 4 (29/08 Ethan) */
+@media(min-width:1800px){body.topbar-view .pgrid{grid-template-columns:repeat(5,1fr);}}
 /* Grand écran : 5 cartes MAX par rangée (demande Ethan 20/08 — le zoom global gère le reste) */
 @media(min-width:2100px){body.topbar-view .pgrid{grid-template-columns:repeat(5,1fr);}body.shared-view .pgrid{grid-template-columns:repeat(5,1fr);}}
 /* Perf CLS desktop : quand on quitte le hero pour la grille, la bascule est
@@ -1772,6 +1805,9 @@ body.apple-view .sc-add svg{display:none;}
 body.apple-view .sc-add::before{content:'+';font-size:21px;font-weight:500;color:#fff;font-family:'DM Sans',sans-serif;line-height:1;}
 body.apple-view .sc-add:hover{background:#000;border-color:#000;}
 body.apple-view .sc-add.added{background:#FE0000;border-color:#FE0000;}
+/* Cellule + de la carte (29/08) : bouton centré dans sa case (droite) */
+body.apple-view .pgrid .sc-card .sc-price-add{justify-content:center !important;}
+body.apple-view .pgrid .sc-card .sc-price-add .sc-add{margin-left:0 !important;}
 /* 17/08 (Ethan) : + devient POUBELLE quand l'article est dans la liste (re-clic = retire). */
 body.apple-view .sc-add.added::before{content:'';width:17px;height:17px;background:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23fff'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpolyline%20points='3%206%205%206%2021%206'/%3E%3Cpath%20d='M19%206v14a2%202%200%200%201-2%202H7a2%202%200%200%201-2-2V6m3%200V4a2%202%200%200%201%202-2h4a2%202%200%200%201%202%202v2'/%3E%3Cline%20x1='10'%20y1='11'%20x2='10'%20y2='17'/%3E%3Cline%20x1='14'%20y1='11'%20x2='14'%20y2='17'/%3E%3C/svg%3E") center/contain no-repeat;}
 
@@ -1942,8 +1978,7 @@ body.apple-view .sc-add:hover::before{color:#fff;}
 body.apple-view .sc-count{background:rgba(255,255,255,.78);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);color:#1d1d1f;font-size:12px;font-weight:600;box-shadow:var(--sh-sm);}
 /* badge RESERVE : pastille blanche translucide, texte ambre — plus discret */
 body.apple-view .pcard-resa-overlay{background:rgba(255,255,255,.78);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);color:#b45309;font-size:10.5px;font-weight:700;letter-spacing:.5px;box-shadow:var(--sh-sm);padding:5px 10px;}
-/* topbar : filtre Poids dans « Filtres avancés » (masqué du rail) */
-body.topbar-view .filters-panel .fg:has(#sb-msd-poids){display:none !important;}
+/* Poids = section du rail (curseur comme Grammages) — visible */
 /* Ref article / Max : champs gris Apple, lisibles dans la capsule blanche */
 body.apple-view:not(.shared-view) #f-refmin-top,body.apple-view:not(.shared-view) #f-refmax-top{background:#fff !important;border:1px solid #e0e0e5 !important;box-shadow:var(--sh-sm) !important;}
 body.apple-view #f-refmin-top::placeholder,body.apple-view #f-refmax-top::placeholder{color:var(--g2);}
@@ -1956,6 +1991,7 @@ body.apple-view .pcard-resa-overlay{font-size:11px;padding:5.5px 10.5px;}
 body.topbar-view .filters-panel .fg:has(#sb-msd-details){order:5;}
 /* Grammages JUSTE au-dessus de Filtres avancés (08/08) : entre Détails(5) et tb-adv(9) */
 body.topbar-view .filters-panel .fg:has(#sb-msd-grammage){order:7;}
+body.topbar-view .filters-panel .fg:has(#sb-msd-laize),body.topbar-view .filters-panel .fg:has(#sb-msd-diametre),body.topbar-view .filters-panel .fg:has(#sb-msd-poids){order:10;}
 /* Dimensions (quand elle remonte dans la barre) APRÈS Détails (08/08) */
 body.topbar-view .filters-panel .fg:has(#sb-msd-format){order:6;}
 body.topbar-view .filters-panel .fg:has(#sb-msd-usine){display:none !important;}
@@ -2199,8 +2235,22 @@ body.topbar-view .phero-panel-head{display:none !important;}
   body.topbar-view .sc-cell{padding:4px 5px !important;}
   body.topbar-view .sc-add{width:26px;height:26px;}
   body.topbar-view .sc-add::before{font-size:16px;}
+  /* + des cartes = MÊME style que l'ordi (cercle BLANC + ombre, « + » noir) — 29/08 Ethan */
+  body.apple-view .pgrid .sc-card .sc-price-main .sc-add{border:none !important;background:#fff !important;box-shadow:0 2px 9px rgba(0,0,0,.19) !important;}
+  body.apple-view .pgrid .sc-card .sc-price-main .sc-add::before{font-weight:700 !important;color:#1d1d1f !important;}
+  body.apple-view .pgrid .sc-card .sc-price-main .sc-add.added{background:#FE0000 !important;}
   body.topbar-view .sc-count{font-size:10px;padding:3px 8px;}
   body.topbar-view .pcard-promo-overlay,body.topbar-view .pcard-resa-overlay{font-size:9px;padding:4px 8px;}
+  /* Rétrécissage cartes MOBILE (29/08 Ethan) = même logique que desktop, hauteurs
+     de lignes fixes + réduites (polices mobiles plus petites → lignes plus courtes) */
+  body.apple-view .pgrid .sc-card .sc-grid{grid-template-rows:none !important;}
+  body.apple-view .pgrid .sc-card .sc-cell{height:26px !important;min-height:0 !important;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;padding-top:0 !important;padding-bottom:0 !important;}
+  body.apple-view .pgrid .sc-card .sc-cell:not(.sc-det-only):not(.sc-price-main) .sc-val{line-height:1 !important;flex-shrink:0 !important;}
+  body.apple-view .pgrid .sc-card .sc-cell.sc-title{height:22px !important;line-height:22px !important;display:block !important;}
+  body.apple-view .pgrid .sc-card .sc-cell.sc-det-only{height:17px !important;flex-direction:row !important;align-items:center;}
+  body.apple-view .pgrid .sc-card .sc-cell.sc-price-usine{height:29px !important;flex-direction:row !important;align-items:center;justify-content:flex-start;gap:6px;}
+  body.apple-view .pgrid .sc-card .sc-cell.sc-price-main{height:29px !important;flex-direction:row !important;align-items:center;justify-content:flex-start;gap:8px;}
+  body.apple-view .pgrid .sc-card .sc-price-main .sc-add{margin-left:auto !important;flex:0 0 auto;}
   /* popup tonnage */
   body.topbar-view #tonnage-bg>div{padding:22px !important;border-radius:18px !important;}
 }
@@ -2210,8 +2260,7 @@ body.topbar-view .phero-panel-head{display:none !important;}
   body.topbar-view .phero-card{width:220px;}
   body.topbar-view .phero-panel{max-width:94vw;}
 }
-/* topbar : Laizes et Diamètre dans « Filtres avancés » (masqués du rail) */
-body.topbar-view .filters-panel .fg:has(#sb-msd-laize),body.topbar-view .filters-panel .fg:has(#sb-msd-diametre){display:none !important;}
+/* Laizes/Diamètre = sections du rail (curseurs comme Grammages) — visibilité « bobines seules » via updateFilterVisibility */
 /* accueil : pastille panda retiree (19/07) */
 body.topbar-view .phero-logo{display:none !important;}
 
@@ -2517,19 +2566,19 @@ body.saisie-basse .pxdot.on.still::after{animation:none;}
   body.topbar-view .pgrid{max-width:none !important;margin:0 !important;}
   /* Hauteur UNIFORME des lignes de carte : 55px, titre 45px (demande Ethan) */
   body.apple-view .pgrid .sc-card .sc-grid{grid-template-rows:none !important;}
-  body.apple-view .pgrid .sc-card .sc-cell{height:45px !important;min-height:0 !important;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;}
+  body.apple-view .pgrid .sc-card .sc-cell{height:30px !important;min-height:0 !important;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;}
   /* Valeurs de carte : line-height assez ample pour ne pas rogner le haut des
      glyphes (ex. « Argent ») malgré overflow:hidden (ellipsis) — 08/08 Ethan */
-  body.apple-view .pgrid .sc-card .sc-cell:not(.sc-det-only):not(.sc-price-main) .sc-val{line-height:1.25 !important;flex-shrink:0 !important;}
+  body.apple-view .pgrid .sc-card .sc-cell:not(.sc-det-only):not(.sc-price-main) .sc-val{line-height:1 !important;flex-shrink:0 !important;}
   body.apple-view .pgrid .sc-card .sc-cell:not(.sc-det-only):not(.sc-price-main) .sc-cap{flex-shrink:0 !important;}
-  body.apple-view .pgrid .sc-card .sc-cell.sc-title{height:35px !important;display:block !important;line-height:35px !important;padding-top:0 !important;padding-bottom:0 !important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  body.apple-view .pgrid .sc-card .sc-cell.sc-det-only{height:35px !important;display:flex !important;flex-direction:row !important;align-items:center;min-width:0 !important;overflow:hidden;}
+  body.apple-view .pgrid .sc-card .sc-cell.sc-title{height:26px !important;display:block !important;line-height:26px !important;padding-top:0 !important;padding-bottom:0 !important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  body.apple-view .pgrid .sc-card .sc-cell.sc-det-only{height:22px !important;display:flex !important;flex-direction:row !important;align-items:center;min-width:0 !important;overflow:hidden;}
   body.apple-view .pgrid .sc-card .sc-cell.sc-det-only .sc-val{min-width:0;flex:1;display:block !important;-webkit-line-clamp:unset !important;white-space:nowrap !important;overflow:hidden;text-overflow:ellipsis;}
   /* Ligne PRIX en CELLULES GRID (span 2) : USINE (gauche) | PRIX + bouton (droite),
      alignées PILE sur les colonnes du dessus (COULEUR/POIDS) grâce au grid. */
-  body.apple-view .pgrid .sc-card .sc-cell.sc-price-usine{height:35px !important;padding:2px 5px 2px 8px !important;display:flex !important;flex-direction:row !important;align-items:center !important;justify-content:flex-start;gap:7px;overflow:hidden;}
-  body.apple-view .pgrid .sc-card .sc-cell.sc-price-main{height:35px !important;padding:2px 3px 2px 8px !important;display:flex !important;flex-direction:row !important;align-items:center !important;justify-content:flex-start;gap:12px;}
-  body.apple-view .pgrid .sc-card .sc-price-val{font-size:20px !important;font-weight:800 !important;line-height:1 !important;}
+  body.apple-view .pgrid .sc-card .sc-cell.sc-price-usine{height:26px !important;padding:2px 5px 2px 8px !important;display:flex !important;flex-direction:row !important;align-items:center !important;justify-content:flex-start;gap:7px;overflow:hidden;}
+  body.apple-view .pgrid .sc-card .sc-cell.sc-price-main{height:26px !important;padding:2px 3px 2px 8px !important;display:flex !important;flex-direction:row !important;align-items:center !important;justify-content:flex-start;gap:12px;}
+  body.apple-view .pgrid .sc-card .sc-price-val{font-size:19px !important;font-weight:800 !important;line-height:1 !important;}
   /* + de carte = MÊME design que le + de la barre outils (#add-page-btn) :
      cercle blanc, pas de bordure, ombre var(--sh-md), + gras noir (08/08 Ethan). */
   /* + INVERSÉ (17/08 Ethan) : fond noir, signe blanc ; en liste = rouge + poubelle */
@@ -2582,6 +2631,19 @@ body.saisie-basse .pxdot.on.still::after{animation:none;}
   body.topbar-view #sb-msd-grammage .gsl-bornes{display:none !important;}
   body.topbar-view #sb-msd-grammage .msd-panel{position:static !important;inset:auto !important;display:none !important;width:100% !important;min-width:0 !important;max-width:none !important;transform:none !important;box-shadow:none !important;border:none !important;padding:4px 2px 0 !important;margin:0 !important;background:transparent !important;}
   body.topbar-view #sb-msd-grammage.gsl-open .msd-panel{display:block !important;}
+  /* Laize / Ø / Poids = DUPLICATION exacte de l'accordéon-curseur Grammages (29/08) */
+  body.topbar-view #sb-msd-laize .msd-btn,body.topbar-view #sb-msd-diametre .msd-btn,body.topbar-view #sb-msd-poids .msd-btn{pointer-events:auto;background:transparent !important;box-shadow:none !important;border:none !important;font-weight:700;cursor:pointer;}
+  body.topbar-view #sb-msd-laize .gsl-btnval,body.topbar-view #sb-msd-diametre .gsl-btnval,body.topbar-view #sb-msd-poids .gsl-btnval{display:none !important;}
+  body.topbar-view #sb-msd-laize.gsl-open .gsl-btnval,body.topbar-view #sb-msd-diametre.gsl-open .gsl-btnval,body.topbar-view #sb-msd-poids.gsl-open .gsl-btnval{display:inline !important;margin-left:auto;padding-right:8px !important;font-size:13.5px;font-weight:700;color:#48484a;white-space:nowrap;}
+  body.topbar-view #sb-msd-grammage .msd-btn-label,body.topbar-view #sb-msd-laize .msd-btn-label,body.topbar-view #sb-msd-diametre .msd-btn-label,body.topbar-view #sb-msd-poids .msd-btn-label{flex:0 0 auto;white-space:nowrap;}
+  body.topbar-view #sb-msd-laize .msd-btn .msd-arrow,body.topbar-view #sb-msd-diametre .msd-btn .msd-arrow,body.topbar-view #sb-msd-poids .msd-btn .msd-arrow{display:inline-block;background:none !important;width:auto !important;height:auto !important;flex:none !important;font-size:0 !important;transform:none !important;}
+  body.topbar-view #sb-msd-laize .gsl-val,body.topbar-view #sb-msd-diametre .gsl-val,body.topbar-view #sb-msd-poids .gsl-val{display:none;}
+  body.topbar-view #sb-msd-laize .gsl-bornes,body.topbar-view #sb-msd-diametre .gsl-bornes,body.topbar-view #sb-msd-poids .gsl-bornes{display:none !important;}
+  body.topbar-view #sb-msd-laize .msd-panel,body.topbar-view #sb-msd-diametre .msd-panel,body.topbar-view #sb-msd-poids .msd-panel{position:static !important;inset:auto !important;display:none !important;width:100% !important;min-width:0 !important;max-width:none !important;transform:none !important;box-shadow:none !important;border:none !important;padding:4px 2px 0 !important;margin:0 !important;background:transparent !important;}
+  body.topbar-view #sb-msd-laize.gsl-open .msd-panel,body.topbar-view #sb-msd-diametre.gsl-open .msd-panel,body.topbar-view #sb-msd-poids.gsl-open .msd-panel{display:block !important;}
+  body.topbar-view .filters-panel #sb-msd-laize,body.topbar-view .filters-panel #sb-msd-diametre,body.topbar-view .filters-panel #sb-msd-poids{border:1px solid rgba(0,0,0,.05);border-radius:12px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.10);margin:0;}
+  body.topbar-view .filters-panel #sb-msd-laize .msd-btn,body.topbar-view .filters-panel #sb-msd-diametre .msd-btn,body.topbar-view .filters-panel #sb-msd-poids .msd-btn{border:none !important;background:transparent !important;box-shadow:none !important;border-radius:11px !important;padding:9px 14px !important;margin:0 !important;width:100% !important;}
+  body.topbar-view .filters-panel #sb-msd-laize .msd-panel,body.topbar-view .filters-panel #sb-msd-diametre .msd-panel,body.topbar-view .filters-panel #sb-msd-poids .msd-panel{margin:0 !important;padding:0 5px 6px !important;background:transparent !important;}
 }
 
 /* ── Segment BOBINE|FORMAT harmonisé partout sur le dessin « contour noir »
@@ -2868,3 +2930,34 @@ body.lead-view #album-wrap,body.lead-view #fiche-wrap{display:none !important;}
 /* Toast MOBILE « Navigation PC recommandé » (26/08) — dans le stock, monte du bas */
 #pc-hint{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translate(-50%,160%);background:#1d1d1f;color:#fff;padding:11px 18px;border-radius:999px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;box-shadow:0 10px 34px rgba(0,0,0,.3);z-index:9500;display:flex;align-items:center;gap:9px;white-space:nowrap;max-width:calc(100vw - 24px);opacity:0;pointer-events:none;transition:transform .42s cubic-bezier(.32,.72,0,1),opacity .42s;}
 #pc-hint.show{transform:translate(-50%,0);opacity:1;}
+
+/* Case prix « Ajouter + » (29/08 Ethan) : plus de pilule — TOUTE la case fait
+   bouton, le .sc-add la remplit (texte « Ajouter » + signe « + » à côté, sans
+   fond ni bordure). L'état « dans la liste » garde la poubelle rouge (re-clic = retire). */
+body.apple-view .pgrid .sc-card .sc-price-main.sc-price-add{cursor:pointer;transition:background .15s;}
+/* État « déjà dans la liste » : la case redevient transparente (poubelle rouge visible). */
+body.apple-view .pgrid .sc-card .sc-price-main.sc-price-add:has(.sc-add.added){background:transparent !important;}
+body.apple-view .pgrid .sc-card .sc-price-main.sc-price-add .sc-add:not(.added){width:100% !important;min-width:0 !important;height:100% !important;padding:0 !important;border:none !important;background:transparent !important;box-shadow:none !important;border-radius:0 !important;justify-content:flex-start !important;}
+/* Défaut = clair + texte foncé ; SURVOL = fond NOIR + texte blanc (inversion). */
+body.apple-view .pgrid .sc-card .sc-price-main.sc-price-add:hover{background:#1d1d1f !important;}
+body.apple-view .pgrid .sc-card .sc-price-main.sc-price-add .sc-add:not(.added):hover{background:transparent !important;box-shadow:none !important;}
+body.apple-view .pgrid .sc-card .sc-price-main.sc-price-add .sc-add:not(.added)::before{content:'Ajouter +' !important;font-family:'DM Sans',sans-serif !important;font-size:15.5px !important;font-weight:800 !important;color:#1d1d1f !important;letter-spacing:.2px;line-height:1.2;}
+body.apple-view .pgrid .sc-card .sc-price-main.sc-price-add:hover .sc-add:not(.added)::before{color:#fff !important;}
+body.apple-view .pgrid .sc-card .sc-price-main.sc-price-add .sc-add.added{width:28px !important;padding:0 !important;}
+/* Prix + « Ajouter + » alignés à GAUCHE dans leur case (29/08 Ethan). */
+body.apple-view .pgrid .sc-card .sc-cell.sc-price-main:not(.sc-price-add){justify-content:flex-start !important;}
+/* Cartes catalogue à bords CARRÉS (29/08 Ethan) — carte + grille interne
+   (.sc-grid a un border-radius:0 0 17px 17px + overflow:hidden qui arrondissait
+   le BAS des cartes / rognait le bouton foncé). Pas la vue client ?s=. */
+body.apple-view:not(.shared-view) .pgrid .pcard,
+body.apple-view:not(.shared-view) .pgrid .sc-grid{border-radius:0 !important;}
+/* Fond de page en BLANC derrière les cartes (29/08 Ethan, validé) — le panneau de filtres repasse en gris clair plus bas. */
+html:has(body.apple-view:not(.shared-view)),
+body.apple-view:not(.shared-view),
+body.apple-view:not(.shared-view) .body-wrap,
+body.topbar-view:not(.shared-view) .body-wrap>div:not(.sidebar-col),
+body.apple-view:not(.shared-view) #results-bar,
+body.apple-view:not(.shared-view) .rbar-inner,
+body.apple-view:not(.shared-view) footer{background:#fff !important;}
+/* Gris clair DERRIÈRE le panneau de filtres (rail desktop) — cartes restent blanches (29/08 Ethan). */
+body.topbar-view:not(.shared-view) .body-wrap>.sidebar-col{background:#f5f5f7 !important;}
