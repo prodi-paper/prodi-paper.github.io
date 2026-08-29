@@ -1107,11 +1107,17 @@ async function init(){
   }
   const _urlType = _urlParams.get('type');
   if(_urlType && Object.prototype.hasOwnProperty.call(TYPE_MAP, _urlType)){
-    msdState['msd-type'].add(_urlType);
-    document.querySelectorAll('#msd-type .msd-option').forEach(o => {
-      if(o.dataset.val === _urlType) o.classList.add('selected');
+    // msdState['msd-type'] contient des CODES Sage (ROFF, SOFF…), pas des
+    // libellés : le nom TYPE_MAP reçu de la vitrine (?type=Offset) doit être
+    // traduit en ses codes bobine+format, sinon la requête part en
+    // quality=in.(Offset) → zéro résultat.
+    const _urlCodes = TYPE_MAP[_urlType];
+    _urlCodes.forEach(c => msdState['msd-type'].add(c));
+    document.querySelectorAll('#msd-type .msd-option, #sb-msd-type .msd-option, #msd-type-mob .msd-option').forEach(o => {
+      if(_urlCodes.includes(o.dataset.val)) o.classList.add('selected');
     });
     updateMsdBtn('msd-type');
+    updateFilterVisibility();
   }
 
   // type tiles disabled

@@ -456,8 +456,10 @@ button{cursor:pointer;border:none;font-family:inherit;background:none;}
 .pcard-title{font-size:31.2px;font-weight:700;letter-spacing:-.4px;line-height:1.2;color:var(--ink);margin-top:4px;
   white-space:nowrap;}
 @media(max-width:700px){
-  /* cartes plus étroites en mobile : on laisse le titre se replier */
-  .pcard-title{white-space:normal;}
+  /* cartes plus étroites en mobile : titre sur UNE ligne, drapeau compris
+     (taille fluide au lieu du repli — sinon le 🇫🇷 seul passait dessous
+     et décalait la carte vs ses voisines) */
+  .pcard-title{white-space:nowrap;font-size:min(31.2px,6vw);}
 }
 /* image PLEIN CADRE comme la carte vidéo, dégradé sombre en haut sous le texte
    (scopé .pcards : ne pas toucher aux .pcard-img du reste du site) */

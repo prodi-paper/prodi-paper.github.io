@@ -794,12 +794,18 @@ async function submitRappel(e){
     {code:'LINER',slug:'liner-testliner', title:'Liner / Testliner', title_en:'Liner / Testliner', img:U+'photo-1640193698858-31565d448f90'+P},
     {code:'FLEX', slug:'complexe-pe', title:'Complexe / PE',     title_en:'PE-coated / laminated', img:U+'photo-1677586883848-695b3ad692b4'+P},
     {code:'JRN',  slug:'papier-journal', en:'newsprint',           title:'Papier journal',   title_en:'Newsprint',     img:U+'photo-1504711434969-e33886168f5c'+P},
-    {code:'CUIS', slug:'papier-cuisson', en:'baking-paper',        title:'Papier cuisson',   title_en:'Baking paper',  img:U+'photo-1509440159596-0249088772ff'+P},
-    {code:'THRM', slug:'papier-thermique', en:'thermal-paper',     title:'Papier thermique', title_en:'Thermal paper', img:U+'photo-1662001164155-2d04179a7b22'+P},
+    // MASQUÉ 30/08 (Ethan) — familles sans stock catalogue, retirer le // pour réafficher :
+    // {code:'CUIS', slug:'papier-cuisson', en:'baking-paper',        title:'Papier cuisson',   title_en:'Baking paper',  img:U+'photo-1509440159596-0249088772ff'+P},
+    // {code:'THRM', slug:'papier-thermique', en:'thermal-paper',     title:'Papier thermique', title_en:'Thermal paper', img:U+'photo-1662001164155-2d04179a7b22'+P},
     // MASQUÉ 27/08 (Ethan) — retirer le // pour réafficher :
     // {code:'THSD', slug:'thermo-soudable', en:'heat-sealable-paper', title:'Thermosoudable',  title_en:'Heat-sealable', img:U+'photo-1606787366850-de6330128bfc'+P},
     // {code:'MORE', title:'Voir tout le stock', title_en:'See all stock', img:U+'photo-1719529216596-d7c76431ee0d'+P, more:true},
   ];
+  // Carte bandeau → nom de type TYPE_MAP du catalogue (mêmes clés que TILE_TYPE) :
+  // le clic sur la carte ouvre le catalogue pré-filtré sur la famille (bobines+formats).
+  // CUIS/THRM sans type : 0 réf RCUI au catalogue et l'unique RTHERM (sans photo)
+  // est masquée par le tri « Arrivage » (image_url not null) → grille vide sinon.
+  const CARD_TYPE={COL:'Couleur',BOU:'Bouffant',ADH:'Adhésif',CUT:'Ramette',LINER:'Liner',FLEX:'Complexe',JRN:'Journal',CUIS:'',THRM:'',THSD:''};
   const cwrap=document.getElementById('qcards');
   if(cwrap){
     // EN : ces qualités secondaires n'ont pas de page produit anglaise → le
@@ -809,12 +815,12 @@ async function submitRappel(e){
       <img src="${c.img}" alt="${esc(ct)}" loading="lazy">
       <button class="qcard-btn" type="button" onclick="event.stopPropagation();window.prodiTrack?.('qualite_stock',{q:'${esc(c.code)}'});openStock();">${esc(TR('Voir tout le stock →','See all stock →'))}</button>
     </div>`:(PLANG==='en'?`
-    <div class="qcard" onclick="window.prodiTrack?.('qualite_plus',{q:'${esc(c.code)}'});openStock();">
+    <div class="qcard" onclick="window.prodiTrack?.('qualite_plus',{q:'${esc(c.code)}'});openStock('${CARD_TYPE[c.code]||''}');">
       <img src="${c.img}" alt="${esc(ct)}" loading="lazy">
       <span class="qcard-title">${esc(ct)}</span>
-      ${c.en?`<a class="qcard-btn" href="/en/${c.en}/" onclick="event.stopPropagation();window.prodiTrack?.('qualite_page',{q:'${esc(c.code)}'})">See +</a>`:`<button class="qcard-btn" type="button" onclick="event.stopPropagation();window.prodiTrack?.('qualite_stock',{q:'${esc(c.code)}'});openStock();">See +</button>`}
+      ${c.en?`<a class="qcard-btn" href="/en/${c.en}/" onclick="event.stopPropagation();window.prodiTrack?.('qualite_page',{q:'${esc(c.code)}'})">See +</a>`:`<button class="qcard-btn" type="button" onclick="event.stopPropagation();window.prodiTrack?.('qualite_stock',{q:'${esc(c.code)}'});openStock('${CARD_TYPE[c.code]||''}');">See +</button>`}
     </div>`:`
-    <div class="qcard" onclick="window.prodiTrack?.('qualite_plus',{q:'${esc(c.code)}'});openStock();">
+    <div class="qcard" onclick="window.prodiTrack?.('qualite_plus',{q:'${esc(c.code)}'});openStock('${CARD_TYPE[c.code]||''}');">
       <img src="${c.img}" alt="${esc(ct)}" loading="lazy">
       <span class="qcard-title">${esc(ct)}</span>
       <a class="qcard-btn" href="/${c.slug}/" onclick="event.stopPropagation();window.prodiTrack?.('qualite_page',{q:'${esc(c.code)}'})">Voir +</a>
