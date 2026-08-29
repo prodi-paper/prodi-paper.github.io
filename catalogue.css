@@ -2961,3 +2961,28 @@ body.apple-view:not(.shared-view) .rbar-inner,
 body.apple-view:not(.shared-view) footer{background:#fff !important;}
 /* Gris clair DERRIÈRE le panneau de filtres (rail desktop) — cartes restent blanches (29/08 Ethan). */
 body.topbar-view:not(.shared-view) .body-wrap>.sidebar-col{background:#f5f5f7 !important;}
+
+/* ── ACCUEIL CATALOGUE : rangées horizontales par qualité (29/08 Ethan) ── */
+#quality-rows{display:none;}
+body.landing-rows #quality-rows{display:block;}
+body.landing-rows #pgrid,body.landing-rows #pager,body.landing-rows #scroll-sentinel{display:none !important;}
+/* Accueil (rangées) : barre + / tonnage / tri masquée — elle apparaît dès qu'on filtre. */
+body.landing-rows #desk-toolbar{display:none !important;}
+.qrow-sec{margin:0 0 22px;}
+.qrow-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:0 2px 8px;}
+.qrow-title{font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:34px;letter-spacing:.5px;color:#1d1d1f;margin:0;line-height:1;}
+.qrow-title .qrow-sub{font-family:'DM Sans',sans-serif;font-weight:600;font-size:16px;letter-spacing:0;color:#1d1d1f;}
+.qrow-more{background:none;border:none;color:#1d1d1f;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;padding:4px;white-space:nowrap;flex-shrink:0;}
+.qrow-more:hover{color:#000;text-decoration:underline;}
+.qrow-scroll.pgrid{display:flex !important;align-items:flex-start !important;gap:12px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;padding:2px 2px 10px;grid-template-columns:none !important;}
+.qrow-scroll.pgrid::-webkit-scrollbar{height:8px;}
+.qrow-scroll.pgrid::-webkit-scrollbar-thumb{background:#d2d2d7;border-radius:99px;}
+.qrow-scroll.pgrid::-webkit-scrollbar-track{background:transparent;}
+.qrow-scroll .pcard{flex:0 0 212px;width:212px;scroll-snap-align:start;content-visibility:visible !important;contain-intrinsic-size:auto !important;}
+.qrow-scroll .pcard .pcard-img{height:172px;}
+@media(max-width:768px){
+  .qrow-title{font-size:29px;}
+  .qrow-title .qrow-sub{font-size:14px;}
+  .qrow-scroll .pcard{flex:0 0 166px;width:166px;}
+  .qrow-scroll .pcard .pcard-img{height:150px;}
+}

@@ -102,6 +102,10 @@ let all=[],cur=null;
 // premier ») : atterrissage PAR DÉFAUT = GRILLE triée « Arrivage : plus récents ».
 // Tuiles qualités uniquement via ?tuiles=1 ; ancien hero plein écran via ?hero=1.
 window._SAISIE_BASSE=/[?&]tuiles=1/.test(location.search);
+let _landingRows=false; // accueil catalogue = rangées horizontales par qualité
+let _lastFiltreSig=''; // dernier état de filtre tracké (anti-doublon analytics)
+let _landingUnitsById=new Map(); // id→produit des cartes de l'accueil (repli addToCart/_grpFindOnPage)
+let _groupsListIsLanding=false;  // true quand _groupsList = liste ACCUEIL (pas la grille) → bloque _loadMore groupé
 const PAGE=40; let currentPage=1,_totalCount=0,_reqToken=0,_lastCorrections=[],_isFirstLoad=true,_featuredMode=false;
 // ─── MODE REGROUPÉ ───
 // Groupe les unités physiques par (qualité+couleur+détails+gsm+laize+format).
@@ -1129,6 +1133,15 @@ async function init(){
   _updateGroupedToggleBtn();
   _refreshAllFacets();
   await _doFilter();
+  // Accueil catalogue = rangées horizontales par qualité (sauf hero / recherche / filtre / vue client).
+  if(!_sharedMode && !_featuredMode && !window._SAISIE_BASSE && !_anyFilterActive()){
+    _landingRows=true;
+    const _ok=await _renderQualityRows();
+    // Re-vérif APRÈS l'await : si l'utilisateur a filtré pendant le chargement (race),
+    // ou si aucune rangée n'a pu être construite, on reste sur la grille.
+    if(_ok && _landingRows && !_anyFilterActive()) _showLandingRows(true);
+    else _landingRows=false;
+  }
   _updateToggleBtn();
 }
 
@@ -2838,7 +2851,7 @@ function parseSearchQuery(raw){
   return res;
 }
 
-document.getElementById('sort-sel')?.addEventListener('change',()=>{_sortTouched=true;});
+document.getElementById('sort-sel')?.addEventListener('change',()=>{_sortTouched=true;window.prodiTrack?.('tri',{v:document.getElementById('sort-sel')?.value||''});});
 let _lastQueryP=null; // clauses+tri de la dernière requête catalogue
 let _loadingMore=false;
 // SCROLL INFINI (topbar, 18/07) : la page suivante s'ajoute toute seule.
@@ -2852,11 +2865,13 @@ function _groupToUi(g){
     _grpKey:g.gid,_grpProtoId:g.proto_id};
 }
 async function _loadMore(){
+  if(_landingRows)return; // accueil (rangées) : pas de scroll infini de grille
   if(_loadingMore||_sharedMode||_featuredMode||!_lastQueryP)return;
   if(_viewMode!=='grid')return;
   // Mode groupé (défaut) : tous les groupes sont déjà en cache client (_groupsList)
   // → on ajoute la tranche de groupes suivante SANS requête serveur (instantané).
   if(_groupedMode){
+    if(_groupsListIsLanding)return; // _groupsList = liste accueil (transition Voir plus) → pas d'append périmé
     if(!_groupsList||!_groupsList.length||all.length>=_groupsList.length)return;
     _loadingMore=true;
     try{
@@ -3386,7 +3401,77 @@ function _anyFilterActive(){
   const ids=['f-gmin','f-gmax','f-lmin','f-lmax','f-longmin','f-longmax','f-wmin','f-wmax','f-refmin','f-refmax','f-usine','f-zone-num','f-zone-let','f-ref-code','f-pmin','f-pmax'];
   return ids.some(id=>{const e=document.getElementById(id);return e&&String(e.value||'').trim();});
 }
+// ── ACCUEIL CATALOGUE : rangées horizontales par QUALITÉ ─────────────────────
+// 1 rangée = 1 famille TYPE_MAP (bobine+format mélangés), triées par tonnage
+// décroissant ; produits = derniers arrivages (réf desc) ; « Voir plus » ouvre
+// le stock filtré sur la famille. Les cartes portent la classe `pgrid` → elles
+// héritent de tout le style des cartes du catalogue.
+function _showLandingRows(on){
+  const rows=document.getElementById('quality-rows'); if(rows)rows.style.display=on?'':'none';
+  const grid=document.getElementById('pgrid'); if(grid)grid.style.display=on?'none':'';
+  const pager=document.getElementById('pager'); if(pager&&on)pager.style.display='none';
+  const sent=document.getElementById('scroll-sentinel'); if(sent)sent.style.display=on?'none':'';
+  document.body.classList.toggle('landing-rows',on);
+}
+async function _renderQualityRows(){
+  const cont=document.getElementById('quality-rows'); if(!cont)return false;
+  const rows=await _loadAllProducts();
+  if(!_landingRows) return false; // filtré pendant le chargement → ne pas écraser la grille
+  const refN=u=>parseInt(String(u.ref||'').replace(/\D/g,''),10)||0;
+  const isReserved=u=>u.reserve_client!=null&&String(u.reserve_client).trim()!=='';
+  const units=rows.map(rowToUi).filter(u=>!(isReserved(u)&&refN(u)>=950000));
+  const codeToFam={};
+  Object.keys(TYPE_MAP).forEach(fam=>{(TYPE_MAP[fam]||[]).forEach(c=>{if(!(c in codeToFam))codeToFam[c]=fam;});});
+  // Assemblage en LOTS ×N (même groupProducts que le mode groupé), puis regroupement par famille.
+  const groups=groupProducts(units);
+  const refNg=g=>Math.max(0,...g.units.map(refN)); // récence d'un lot = réf max
+  const byFam={};
+  groups.forEach(g=>{const fam=codeToFam[g._proto&&g._proto.qualite];if(!fam)return;(byFam[fam]=byFam[fam]||[]).push(g);});
+  const famList=Object.keys(byFam).map(fam=>({fam,groups:byFam[fam],tons:byFam[fam].reduce((s,g)=>s+(g.totalWeight||0),0)/1000}))
+    .filter(f=>f.tons>=OFFRE_MIN_TONS).sort((a,b)=>b.tons-a.tons);
+  if(!famList.length) return false; // rien à montrer → on garde la grille de repli, pas de page blanche
+  const PER_ROW=12;
+  const shown=[];
+  famList.forEach(f=>{f.top=f.groups.slice().sort((a,b)=>refNg(b)-refNg(a)).slice(0,PER_ROW);shown.push(...f.top);});
+  _groupsList=shown; _groupsListIsLanding=true; // _grpRound / addGroupToCart / openDetail ; flag = liste accueil
+  _rcCartIds=new Set(cart.map(x=>+x.id));
+  _rcGrpByGid=new Map(shown.map(g=>[g.gid,g]));
+  // Registre id→produit des cartes de l'accueil : addToCart & _grpFindOnPage l'utilisent
+  // en REPLI car ces lots/protos ne sont PAS dans `all` (les 40 protos de la grille).
+  _landingUnitsById=new Map();
+  shown.forEach(g=>g.units.forEach(u=>_landingUnitsById.set(+u.id,u)));
+  const FAM_LABEL={'Couleur':'Offset couleur'}; // libellé d'affichage ; le filtre garde le nom de famille
+  // 2-3 détails les PLUS fréquents dans la qualité (tags Détails canoniques).
+  const topDetails=f=>{
+    const cnt={};
+    f.groups.forEach(g=>g.units.forEach(u=>_detailTagsOf(u.details).forEach(t=>{cnt[t]=(cnt[t]||0)+1;})));
+    return Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]).slice(0,3);
+  };
+  cont.innerHTML=famList.map(f=>{
+    const cards=f.top.map(_groupToUi).map(_renderCatalogueCard).join('');
+    const dets=topDetails(f);
+    const sub=dets.length?' <span class="qrow-sub">— '+esc(dets.join(', '))+' …</span>':'';
+    return '<section class="qrow-sec"><div class="qrow-head">'+
+      '<h2 class="qrow-title">'+esc(FAM_LABEL[f.fam]||f.fam)+sub+'</h2>'+
+      '<button class="qrow-more" onclick="_qrowVoirPlus('+attrJs(f.fam)+')">Voir plus ›</button></div>'+
+      '<div class="pgrid qrow-scroll">'+cards+'</div></section>';
+  }).join('');
+  try{window.prodiTrack?.('qrow_vue',{n:famList.length,top:famList.slice(0,6).map(f=>f.fam)});}catch(_){}
+  return true;
+}
+function _qrowVoirPlus(fam){
+  window.prodiTrack?.('qrow_voir_plus',{q:fam});
+  _landingRows=false;_showLandingRows(false);
+  const codes=TYPE_MAP[fam]||[fam];
+  codes.forEach(c=>msdState['msd-type'].add(c));
+  document.querySelectorAll('#msd-type .msd-option,#sb-msd-type .msd-option,#msd-type-mob .msd-option').forEach(o=>{if(codes.includes(o.dataset.val))o.classList.add('selected');});
+  updateMsdBtn('msd-type');
+  if(typeof updateFilterVisibility==='function')updateFilterVisibility();
+  filterProducts();
+  try{window.scrollTo({top:0,behavior:'smooth'});}catch(_){window.scrollTo(0,0);}
+}
 function filterProducts(){
+  if(_landingRows){_landingRows=false;_showLandingRows(false);}
   // Tous les filtres enlevés (et tri jamais touché) → retour à la PAGE DE
   // BASE (vitrine des arrivages récents), pas au catalogue trié brut (18/07).
   _featuredMode=!_sortTouched&&!_anyFilterActive()&&!window._SAISIE_BASSE;
@@ -3891,7 +3976,7 @@ async function _fetchAndRender(token){
         _allUnitsCache=_allUi;
         _allUnitsCacheKey=_cacheKey;
       }
-      _groupsList=groupProducts(_allUi);
+      _groupsList=groupProducts(_allUi); _groupsListIsLanding=false; // grille : groupes reconstruits
       _groupedTotalCount=_groupsList.length;
       // Tri des groupes selon le sort sélectionné (cohérent avec serveur).
       // Primaire : format (Bobine < Feuille < Palette) pour garder bobines globalement avant formats.
@@ -3952,6 +4037,18 @@ async function _fetchAndRender(token){
   // individual products (_groupedUnitCount) instead of the number of groups —
   // otherwise the user sees the post-grouping fiche count, which is misleading.
   const _displayCount=_groupedMode?_groupedUnitCount:_totalCount;
+  // Traqueur FILTRE (max data 29/08) : à chaque état de filtre distinct, on envoie
+  // le résumé (types/couleurs/mandrins/grammage/réf) + le nombre de résultats.
+  // Lecture DIRECTE de msdState + DOM (indépendante des variables locales de _doFilter).
+  try{ if(_anyFilterActive()){
+    const _mv=id=>[...(msdState[id]||[])];
+    const _gv=id=>document.getElementById(id)?.value||'';
+    const _rmn=_gv('f-refmin-top')||_gv('f-refmin'), _rmx=_gv('f-refmax-top')||_gv('f-refmax');
+    const _fsig=JSON.stringify([_mv('msd-type'),_mv('msd-couleur'),_mv('msd-mandrin'),_mv('msd-details'),_gv('f-gmin'),_gv('f-gmax'),_rmn,_rmx,!!_photoFilter,!!_resaFilter]);
+    if(_fsig!==_lastFiltreSig){_lastFiltreSig=_fsig;
+      window.prodiTrack?.('filtre',{types:_mv('msd-type').slice(0,8),coul:_mv('msd-couleur').slice(0,6),mand:_mv('msd-mandrin').slice(0,6),det:_mv('msd-details').slice(0,6),g:[_gv('f-gmin'),_gv('f-gmax')],ref:[_rmn,_rmx],photo:_photoFilter||null,resa:_resaFilter||null,n:_displayCount});
+    }
+  } else _lastFiltreSig=''; }catch(_){}
   const _st=document.getElementById('s-ton');if(_st&&_displayCount)_st.textContent=_displayCount.toLocaleString('fr-FR')+' produits';
   // Update results bar
   const rbarRefs=document.getElementById('rbar-refs');
@@ -4646,7 +4743,7 @@ function _updateDetNav(){
   if(nextin)nextin.disabled=atEnd;
 }
 async function openDetail(id){
-  try{const _tp=(_detList().find(x=>x.id===+id)||all.find(x=>x.id===+id));window.prodiTrack?.('fiche_vue',{ref:_tp?.ref});}catch(e){}
+  try{const _tp=(_detList().find(x=>x.id===+id)||all.find(x=>x.id===+id));window.prodiTrack?.('fiche_vue',{ref:_tp?.ref,q:_tp?.qualite||null,src:_landingRows?'accueil':(_sharedMode?'client':'grille')});}catch(e){}
   const list=_detList();
   let idx=list.findIndex(x=>x.id===+id);
   // Source list n'a pas le produit (édge: cart change pendant la session) → fallback sur `all`
@@ -5060,7 +5157,9 @@ function toggleSelectAll(btn){
 // ─── Helpers mode regroupé ───
 function _grpFindOnPage(gid){
   // gid → produit "proto" sur la page courante (avec _grpUnitIds, _grpCount, etc.)
-  return all.find(x=>x._grpKey===gid);
+  // Repli ACCUEIL (rangées) : les lots n'y sont pas dans `all` → on reconstruit le
+  // proto depuis _groupsList (peuplé par _renderQualityRows).
+  return all.find(x=>x._grpKey===gid) || (function(){const g=(_groupsList||[]).find(x=>x.gid===gid);return g?_groupToUi(g):null;})();
 }
 function _grpComputeWeight(gid,qty){
   const grp=_groupsList.find(g=>g.gid===gid);
@@ -5258,7 +5357,7 @@ function _refreshGrpPopover(gid){
 // Sans lui, un produit hors vue faisait un return silencieux alors que le
 // scanner affichait "Ajouté".
 function addToCart(id,productObj){
-  const p=productObj||all.find(x=>x.id===+id);if(!p)return;
+  const p=productObj||all.find(x=>x.id===+id)||_landingUnitsById.get(+id);if(!p)return; // repli accueil (rangées)
   const alreadyIn=cart.find(x=>x.id===+id);
   if(!alreadyIn)window.prodiTrack?.('panier_ajout',{ref:p.ref});
   const mab=document.getElementById('modal-add-btn');
@@ -7561,6 +7660,7 @@ async function _fetchImgB64(url){
 }
 async function exportListExcelTest(btn){
   if(!cart.length){toast('Liste vide — ajoutez des produits d\'abord');return;}
+  window.prodiTrack?.('excel_export',{nb:cart.length,mode:_sharedMode?'client':'catalogue'});
   const span=btn&&btn.querySelector?btn.querySelector('span'):null;
   const prev=span?span.textContent:null;
   if(span)span.textContent='…';
