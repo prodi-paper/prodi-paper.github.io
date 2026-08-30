@@ -8533,3 +8533,82 @@ function _buildSharedInfo(list){
   window.addEventListener('resize',kick);
   kick();
 })();
+
+// ─── POPUP LEAD 60 s (30/08, Ethan) : bloc JUMEAU de celui de vitrine.js —
+// même chrono de session `prodi_t0` : le visiteur qui file dans le catalogue
+// avant T+60 s voit le popup ICI. Cible = visiteurs « Voir le stock »
+// (_leadMode) et navigation directe. Exclus : vue client ?s=/share, clients à
+// code (prodi_cat_ok), équipe interne, lead déjà envoyé, déjà vu cette
+// session, campagnes display fantômes, et porte à code encore affichée
+// (jamais de popup par-dessus la porte). Hook test : /catalogue/?popup=1. ───
+(function(){
+  try{
+    if(/[?&](s|share)=/.test(location.search)) return;
+    const force=/[?&]popup=1/.test(location.search);
+    if(!force){
+      if(sessionStorage.getItem('lead_popup')==='1') return;
+      if(sessionStorage.getItem('lead_done')==='1') return;
+      if(localStorage.getItem('prodi_cat_ok')==='1') return;
+      if(localStorage.getItem('prodi_team')==='1') return;
+      if(/^(localhost|127\.)/.test(location.hostname)) return;
+      const u=(JSON.parse(sessionStorage.getItem('prodi_attr')||'{}').u)||'';
+      if(/google\/cpc\/(21032511575|21510151591|23579081242)/.test(u)) return;
+    }
+    let t0=Date.now();
+    try{
+      const s=+sessionStorage.getItem('prodi_t0');
+      if(s) t0=s; else sessionStorage.setItem('prodi_t0',String(t0));
+    }catch(_){}
+    let _clpT0=0;
+    const ouvrir=()=>{
+      if(!document.documentElement.classList.contains('cat-unlocked')) return;
+      if(document.getElementById('cat-lead-pop')) return;
+      const w=document.createElement('div');
+      w.id='cat-lead-pop';
+      w.style.cssText='position:fixed;inset:0;z-index:99000;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:20px;';
+      w.innerHTML=
+        '<div style="background:#fff;border-radius:20px;box-shadow:0 16px 44px rgba(0,0,0,.2);max-width:400px;width:100%;padding:30px 26px 24px;position:relative;box-sizing:border-box;font-family:\'DM Sans\',system-ui,sans-serif;">'
+        +'<button type="button" id="clp-x" aria-label="Fermer" style="position:absolute;top:12px;left:12px;border:0;background:#f0f0f4;border-radius:50%;width:30px;height:30px;font-size:15px;cursor:pointer;color:#1d1d1f;">✕</button>'
+        +'<div style="font-weight:800;font-size:20px;color:#1d1d1f;text-align:center;letter-spacing:-.3px;margin:8px 0 16px;">Commençons à travailler ensemble.</div>'
+        +'<form id="clp-form" novalidate>'
+        +'<input type="text" id="clp-nom" placeholder="Votre nom ou société" style="width:100%;box-sizing:border-box;border:1px solid #d2d2d7;border-radius:10px;padding:12px 13px;font-size:16px;margin-bottom:9px;font-family:inherit;">'
+        +'<input type="tel" id="clp-tel" placeholder="Téléphone" style="width:100%;box-sizing:border-box;border:1px solid #d2d2d7;border-radius:10px;padding:12px 13px;font-size:16px;margin-bottom:9px;font-family:inherit;">'
+        +'<textarea id="clp-msg" placeholder="Message (facultatif)" rows="2" style="width:100%;box-sizing:border-box;border:1px solid #d2d2d7;border-radius:10px;padding:12px 13px;font-size:16px;margin-bottom:4px;font-family:inherit;resize:vertical;"></textarea>'
+        +'<input type="text" id="clp-hp" name="website" autocomplete="off" tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px;opacity:0;height:0;width:0;">'
+        +'<div id="clp-err" style="color:#c00;font-size:13px;min-height:17px;margin:2px 0 4px;"></div>'
+        +'<button type="submit" style="width:100%;border:0;background:#1d1d1f;color:#fff;border-radius:999px;padding:13px;font-size:15.5px;font-weight:700;cursor:pointer;font-family:inherit;">On vous rappelle</button>'
+        +'</form></div>';
+      document.body.appendChild(w);
+      _clpT0=Date.now();
+      window.prodiTrack?.('lead_popup_vue',{p2:'catalogue'});
+      try{sessionStorage.setItem('lead_popup','1');}catch(_){}
+      const fermer=(sent)=>{
+        if(!sent){
+          const f=id=>{const x=document.getElementById(id);return x&&x.value.trim()?1:0;};
+          window.prodiTrack?.('lead_abandon',{mode:'popup_cat',nom:f('clp-nom'),tel:f('clp-tel'),msg:f('clp-msg'),secs:Math.min(Math.round((Date.now()-_clpT0)/1000),600)});
+        }
+        w.remove();
+      };
+      document.getElementById('clp-x').onclick=()=>fermer(false);
+      w.addEventListener('click',e=>{if(e.target===w)fermer(false);});
+      document.getElementById('clp-form').onsubmit=async e=>{
+        e.preventDefault();
+        if(document.getElementById('clp-hp')?.value) return;
+        const nom=document.getElementById('clp-nom').value.trim();
+        const tel=document.getElementById('clp-tel').value.trim();
+        const msg=document.getElementById('clp-msg').value.trim();
+        const err=document.getElementById('clp-err');
+        const digits=(tel.match(/\d/g)||[]).length;
+        const lettres=(nom.match(/\p{L}/gu)||[]).length;
+        if(lettres<3){err.textContent='Entrez votre nom complet.';window.prodiTrack?.('form_err',{f:'clp-form',e:'nom'});return;}
+        if(digits<8||digits>15){err.textContent='Entrez un numéro de téléphone valide.';window.prodiTrack?.('form_err',{f:'clp-form',e:'tel'});return;}
+        await sbQ('proforma_requests',{method:'POST',body:{nom:nom,telephone:tel,message:'Demande de rappel (popup catalogue) — '+(msg||'(sans message)'),statut:'vitrine_contact'},headers:{'Prefer':'return=minimal'}}).catch(()=>{});
+        try{sessionStorage.setItem('lead_done','1');}catch(_){}
+        window.prodiTrack?.('contact_envoye',{via:'popup_cat'});
+        w.firstElementChild.innerHTML='<div style="text-align:center;padding:26px 8px;"><div style="font-size:42px;color:#21a366;">✓</div><div style="font-weight:800;font-size:19px;color:#1d1d1f;margin-top:6px;">Bien reçu.</div><div style="color:#86868b;font-size:14px;margin-top:4px;">On vous rappelle sous 24 h.</div></div>';
+        setTimeout(()=>fermer(true),2200);
+      };
+    };
+    setTimeout(ouvrir,force?800:Math.max(1500,60000-(Date.now()-t0)));
+  }catch(_){}
+})();

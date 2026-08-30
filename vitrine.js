@@ -485,41 +485,45 @@ function ccInit(inputId){
 }
 ccInit('f-tel');ccInit('l-tel');ccInit('r-tel');
 
-// ─── POPUP LEAD : une fois par session. Accueil = quand on a DÉPASSÉ la
-// section produits (#apercu sortie par le haut) ; page /produits/ = après 8 s ───
+// ─── POPUP LEAD : une fois par session, 60 s après l'ARRIVÉE SUR LE SITE
+// (30/08, Ethan — remplace le « 20 s de page » limité accueil//produits/) :
+// chrono de SESSION `prodi_t0` partagé avec le catalogue — le popup s'affiche
+// là où le visiteur se trouve à T+60 s, quelle que soit la page (catalogue
+// compris, via le bloc jumeau de catalogue.js). Exclus : équipe interne
+// (mêmes règles qu'analytics.js), lead déjà envoyé, déjà vu cette session,
+// campagnes display fantômes google/cpc/2103…&co (80/83 abandons sans rien
+// remplir sur 7 j = ce trafic ne remplit jamais, autant ne pas le harceler). ───
 (function(){
   const modal=document.getElementById('lead-modal');
   if(!modal) return;
   // ?stock=1 : arrivée depuis « Catalogue »/« Voir le stock » d'une sous-page
   // sans popup → ouvrir la porte stock direct
   if(location.search.indexOf('stock=1')>-1){ setTimeout(()=>openStock(),500); return; }
-  // ?popup=1 : forcer l'affichage (test) malgré le verrou de session
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')leadClose();});
+  // ?popup=1 : forcer l'affichage (test) malgré verrous et exclusions
   const force=location.search.indexOf('popup=1')>-1;
-  try{ if(!force&&sessionStorage.getItem('lead_popup')==='1') return; }catch(_){}
-  let done=false;
   const ouvrir=()=>{
-    if(done) return; done=true;
+    if(modal.classList.contains('open')) return;
     _leadBtnMode(false);
     modal.classList.add('open'); document.body.style.overflow='hidden';
     window.prodiTrack?.('lead_popup_vue');
     try{sessionStorage.setItem('lead_popup','1');}catch(_){}
   };
   if(force){ setTimeout(ouvrir,800); return; }
-  const hero=document.querySelector('.hero');
-  if(document.getElementById('page-home')&&hero){
-    // accueil : 20 s après avoir DÉPASSÉ le hero (5 s → 20 s le 17/08 : le
-    // trafic Ads peu engagé remplissait le popup trop tôt)
-    const obs=new IntersectionObserver(es=>{
-      if(!es[0].isIntersecting){
-        obs.disconnect(); setTimeout(ouvrir,20000);
-      }
-    },{threshold:0});
-    obs.observe(hero);
-  } else if(document.getElementById('apercu')){
-    // page /produits/ : après 20 s
-    setTimeout(ouvrir,20000);
-  }
-  document.addEventListener('keydown',e=>{if(e.key==='Escape')leadClose();});
+  try{
+    if(sessionStorage.getItem('lead_popup')==='1') return;
+    if(sessionStorage.getItem('lead_done')==='1') return;
+    if(localStorage.getItem('prodi_team')==='1') return;
+    if(/^(localhost|127\.)/.test(location.hostname)) return;
+    const u=(JSON.parse(sessionStorage.getItem('prodi_attr')||'{}').u)||'';
+    if(/google\/cpc\/(21032511575|21510151591|23579081242)/.test(u)) return;
+  }catch(_){}
+  let t0=Date.now();
+  try{
+    const s=+sessionStorage.getItem('prodi_t0');
+    if(s) t0=s; else sessionStorage.setItem('prodi_t0',String(t0));
+  }catch(_){}
+  setTimeout(ouvrir,Math.max(1500,60000-(Date.now()-t0)));
 })();
 function leadClose(){
   const m=document.getElementById('lead-modal');
