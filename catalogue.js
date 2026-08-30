@@ -3048,6 +3048,7 @@ async function _openTonnage(){
   _qtyModal(dispo,(t,k,mode)=>{
     const pool=pools[mode&&pools[mode]?mode:def];
     if(k==null||!pool||!pool.list.length){_tonnagePick(t);return;}
+    const _mAvant=cart.length;
     let added=0,sum=0;
     pool.list.slice(0,k).forEach(u=>{
       if(cart.find(x=>x.id===+u.id))return;
@@ -3059,6 +3060,7 @@ async function _openTonnage(){
     if(typeof _updateAddPageBtn==='function')_updateAddPageBtn();
     const pg=document.getElementById('pgrid');render((pg&&pg._lastList)||all);
     toast(added?('✓ '+added+' articles · '+(sum/1000).toFixed(1)+' t ajoutés'):'Déjà tout en liste');
+    _trackMasse('quantite',_mAvant);
   },{cum:defCum,seg:m=>{const p2=pools[m];return p2&&p2.cum.length?{cum:p2.cum}:null;}});
 }
 // + d'un LOT (×N) : même popup, borné au lot — le curseur avance par unités
@@ -3094,6 +3096,7 @@ async function _tonnagePick(tonnes){
       if(target!==Infinity&&rows.reduce((s,x)=>s+(+x.weight||0),0)>=target*1.3)break;
     }
   }catch(_){toast('Erreur réseau');return;}
+  const _mAvant=cart.length;
   let sum=0,added=0;
   for(const rw of rows){
     if(cart.find(x=>x.id===+rw.id))continue;
@@ -3113,6 +3116,7 @@ async function _tonnagePick(tonnes){
   // (classe .added → CSS .sc-add.added::before) — comme le chemin pool (20/08).
   const _pg=document.getElementById('pgrid');if(_pg&&_pg._lastList)render(_pg._lastList);
   toast(added?('✓ '+added+' articles · '+(sum/1000).toFixed(1)+' t ajoutés — bouton Liste en haut'):'Rien à ajouter (déjà tout en liste ?)',5000);
+  _trackMasse('tonnage',_mAvant);
 }
 // ── BOUTON OFFRE (22/07) : offres PRÊTES À ENVOYER par qualité de papier.
 // Le menu montre directement les sélections préfaites (≈ un container 26,5 t
@@ -3386,6 +3390,7 @@ async function _offreGo(o,units,usine){
   if(typeof _updateAddPageBtn==='function')_updateAddPageBtn();
   const pg=document.getElementById('pgrid');if(pg&&pg._lastList)render(pg._lastList);
   window.prodiTrack?.('offre_preset',{pool:_offrePool,label:o.label,code:o.code,forme:o.forme,usine:usine||null,nb:cart.length});
+  _trackMasse('offre',0);
   toast('✓ Offre '+o.label+(usine?' · usine '+usine:'')+' · '+o.forme.toLowerCase()+' · '+cart.length+' articles');
   await openClientLink(); // crée le lien ?s= et OUVRE la vue client — prête à envoyer
   // L'offre est JETABLE : la liste ne servait qu'à fabriquer le lien — on la
@@ -5243,6 +5248,7 @@ function addGroupToCart(gid){
     toast(`${targetIds.length} produit${targetIds.length>1?'s':''} retiré${targetIds.length>1?'s':''}`);
     return;
   }
+  const _mAvant=cart.length;
   let added=0;
   targetIds.forEach(id=>{
     if(cart.find(x=>x.id===+id))return;
@@ -5255,6 +5261,7 @@ function addGroupToCart(gid){
   _grpRefreshAddedState(gid,true);
   if(added)toast(`${added} produit${added>1?'s':''} ajouté${added>1?'s':''} à la liste`);
   else toast('Déjà ajoutés');
+  _trackMasse('lot',_mAvant);
 }
 function _grpRefreshAddedState(gid,isAdded){
   const sel=`[data-gid="${CSS.escape(gid)}"]`;
@@ -5362,6 +5369,16 @@ function _refreshGrpPopover(gid){
 // scanner QR → produit trouvé dans le cache complet mais absent de `all`).
 // Sans lui, un produit hors vue faisait un return silencieux alors que le
 // scanner affichait "Ajouté".
+// Trace les ajouts EN MASSE avec la liste des réfs (panier_ajout ne loggue que
+// le + unitaire) : une liste vidée par erreur redevient reconstructible depuis
+// site_events (vécu 30/08 : 83 articles perdus, seuls 41 ajouts unitaires tracés).
+function _trackMasse(via,avant){
+  try{
+    const refs=cart.slice(avant).map(x=>x.ref).filter(Boolean);
+    if(!refs.length)return;
+    window.prodiTrack?.('panier_ajout_masse',{via,n:refs.length,refs:refs.join(',').slice(0,4800)});
+  }catch(_){}
+}
 function addToCart(id,productObj){
   const p=productObj||all.find(x=>x.id===+id)||_landingUnitsById.get(+id);if(!p)return; // repli accueil (rangées)
   const alreadyIn=cart.find(x=>x.id===+id);
@@ -5425,6 +5442,7 @@ function addPageToCart(){
     renderDrawer();_updateAddPageBtn();
     return;
   }
+  const _mAvant=cart.length;
   let added=0;
   targets.forEach(u=>{
     if(cart.find(x=>x.id===+u.id))return;
@@ -5441,6 +5459,7 @@ function addPageToCart(){
     if(p._grpKey)_grpRefreshAddedState(p._grpKey,true);
   });
   toast(`${added} produit${added>1?'s':''} ajouté${added>1?'s':''} à la liste`);
+  _trackMasse('page',_mAvant);
   renderDrawer();_updateAddPageBtn();
 }
 
@@ -7696,7 +7715,10 @@ async function exportListExcelTest(btn){
       const longueur=f.longueur??p.longueur??'';
       const mandrin=f.noyau??f.mandrin??p.noyau??'';
       const poids=Math.round(p.poids_net??f.poids_net??0)||0;
-      const prixKg=(p.price??f.price)||0;
+      // Vue client (?s=) / accès lead : les prix ne sortent PAS dans l'Excel
+      // (fuite vécue 30/08 : l'écran masquait les prix mais le xlsx les donnait)
+      // → colonnes PRIX/MONTANT en « SUR DEMANDE » (chemin prix vide existant).
+      const prixKg=_priceMode?((p.price??f.price)||0):0;
       return {
         isBobine,
         ref:String(p.ref||f.ref||'').replace(/^Photo_/i,''),
