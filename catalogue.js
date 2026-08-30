@@ -96,7 +96,7 @@ function _fitCardImg(img){
 const attrJs = s => esc(JSON.stringify(String(s ?? '')));
 // numId: coerce id to integer for use in onclick handlers (prevents JS injection if id is non-numeric string)
 const numId = v => Number.isFinite(+v) ? +v : 0;
-const WA='33609997407';
+const WA='33632096840';
 let all=[],cur=null;
 // 08/08 (Ethan « enlève les tuiles, je veux voir les derniers arrivages en
 // premier ») : atterrissage PAR DÉFAUT = GRILLE triée « Arrivage : plus récents ».
@@ -7974,7 +7974,7 @@ async function exportListExcelTest(btn){
         ['Contacts : ',18,true,NOIR,true],
         ['Véronique ELBILIA : Whatsapp :  + 33 6 09 46 77 48 / ve@prodi.com',18,true,NOIR,false],
         ['Julien CARON : Whatsapp :   +33 6 20 25 85 83 / vente@prodi.com',18,true,NOIR,false],
-        ['Service client : Whatsapp :  + 33 6 09 99 74 07 / clients@prodi.com',18,true,NOIR,false],
+        ['Service client : Whatsapp :  + 33 6 32 09 68 40 / clients@prodi.com',18,true,NOIR,false],
         ['Site : www.prodi.com ',16,false,BLEU_LIEN,true],
       ];
       let r=4;
@@ -8450,8 +8450,8 @@ function _buildSharedInfo(list){
     </div>
     <div class="si-card">
       <div class="si-title">Une question ?</div>
-      <a class="si-btn si-wa" href="https://wa.me/33609997407" target="_blank" rel="noopener noreferrer" onclick="window.prodiTrack?.('whatsapp_click',{via:'shared'})">WhatsApp</a>
-      <a class="si-btn" href="tel:+33609997407" onclick="window.prodiTrack?.('tel_click',{via:'shared'})">+33 6 09 99 74 07</a>
+      <a class="si-btn si-wa" href="https://wa.me/33632096840" target="_blank" rel="noopener noreferrer" onclick="window.prodiTrack?.('whatsapp_click',{via:'shared'})">WhatsApp</a>
+      <a class="si-btn" href="tel:+33632096840" onclick="window.prodiTrack?.('tel_click',{via:'shared'})">+33 6 32 09 68 40</a>
       <a class="si-btn" href="mailto:ethan@prodi.com" onclick="window.prodiTrack?.('email_click',{via:'shared'})">ethan@prodi.com</a>
       <div class="si-row" style="color:#999"><span>Lun – Ven · 9h – 18h</span></div>
     </div>
@@ -8496,4 +8496,40 @@ function _buildSharedInfo(list){
   document.addEventListener('mouseout',e=>{
     if(peek&&e.target.closest&&e.target.closest('.plist-thumb'))peek.style.display='none';
   });
+})();
+
+/* ── ZÉBRAGE GRILLE (30/08 Ethan) : une rangée de cartes sur deux sur fond
+   gris clair, comme l'accueil par qualités. Colonnes fluides + scroll infini
+   → impossible en nth-child pur : on peint le fond de #pgrid en dégradé
+   MULTI-BANDES, une bande par rangée impaire aux positions EXACTES mesurées
+   (⚠️ pas de motif répété à pas fixe : content-visibility:auto donne aux
+   rangées non rendues leur taille estimée 540px ≠ réelle → dérive, vécu).
+   Recalcul via ResizeObserver (resize, appends, photos, rendus cv). ── */
+(function(){
+  const g=document.getElementById('pgrid');
+  if(!g)return;
+  let raf=0;
+  const paint=()=>{
+    raf=0;
+    const cards=g.querySelectorAll(':scope > .pcard');
+    if(cards.length<2){g.style.backgroundImage='';return;}
+    // rangées = groupes d'offsetTop ; bas de rangée = max(bas des cartes)
+    const rows=new Map();
+    cards.forEach(c=>{const t=c.offsetTop,b=t+c.offsetHeight;const cur=rows.get(t);if(cur===undefined||b>cur)rows.set(t,b);});
+    const tops=[...rows.keys()].sort((a,b)=>a-b);
+    if(tops.length<2){g.style.backgroundImage='';return;}
+    const stops=[];
+    for(let i=1;i<tops.length;i+=2){ // 2e, 4e, 6e… rangée
+      const gapAv=(tops[i]-rows.get(tops[i-1]))/2;           // demi-gouttière au-dessus
+      const gapAp=i+1<tops.length?(tops[i+1]-rows.get(tops[i]))/2:gapAv; // en dessous
+      const a=Math.round(tops[i]-gapAv), b=Math.round(rows.get(tops[i])+gapAp);
+      stops.push('transparent '+a+'px, #f0f0f4 '+a+'px, #f0f0f4 '+b+'px, transparent '+b+'px');
+    }
+    g.style.backgroundImage='linear-gradient(to bottom, transparent 0px, '+stops.join(', ')+')';
+    g.style.backgroundPosition='';g.style.backgroundSize='';g.style.backgroundRepeat='';
+  };
+  const kick=()=>{if(!raf)raf=requestAnimationFrame(paint);};
+  try{new ResizeObserver(kick).observe(g);}catch(_){window.addEventListener('load',kick);}
+  window.addEventListener('resize',kick);
+  kick();
 })();

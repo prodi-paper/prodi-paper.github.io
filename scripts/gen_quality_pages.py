@@ -338,7 +338,7 @@ def build(slug, c):
     cards_html = ""
     for h3, p, ch in c["cards"]:
         cards_html += ('\n        <div class="gp-card">\n          <h3>'+html.escape(h3)+'</h3>\n          <p>'+html.escape(p)+'</p>\n          <div class="gp-chips">'+chips(ch)+'\n          </div>\n        </div>')
-    wa_url = "https://wa.me/33649754915?text="+_u("Bonjour Ethan,\nJe voudrais recevoir une offre pour du papier / carton.\nMerci")
+    wa_url = "https://wa.me/33632096840"
     return TEMPLATE.replace("@@TITLE@@", html.escape(c["title"])) \
         .replace("@@DESC@@", html.escape(c["desc"])) \
         .replace("@@URL@@", url) \
@@ -499,7 +499,7 @@ TEMPLATE = '''<!DOCTYPE html>
     <div class="ft2-col">
       <div class="ft2-h">Nous joindre</div>
       <a href="@@WAURL@@" target="_blank" rel="noopener noreferrer">WhatsApp</a>
-      <a href="tel:+33609997407">+33 6 09 99 74 07</a>
+      <a href="tel:+33632096840">+33 6 32 09 68 40</a>
       <a href="mailto:contact@prodi.com">contact@prodi.com</a>
     </div>
   </div>

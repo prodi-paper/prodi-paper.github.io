@@ -2980,6 +2980,11 @@ body.landing-rows #desk-toolbar{display:none !important;}
 .qrow-scroll.pgrid::-webkit-scrollbar-track{background:transparent;}
 .qrow-scroll .pcard{flex:0 0 212px;width:212px;scroll-snap-align:start;content-visibility:visible !important;contain-intrinsic-size:auto !important;}
 .qrow-scroll .pcard .pcard-img{height:172px;}
+/* Zébrage (30/08) : une rangée sur deux sur fond gris clair — marges négatives
+   = le panneau gris déborde du gabarit sans décaler le contenu (titres alignés
+   entre rangées grises et blanches) */
+#quality-rows .qrow-sec:nth-child(even){background:#f0f0f4;
+  padding:14px 14px 4px;margin-left:-14px;margin-right:-14px;}
 @media(max-width:768px){
   .qrow-title{font-size:29px;}
   .qrow-title .qrow-sub{font-size:14px;}
