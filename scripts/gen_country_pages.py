@@ -5,7 +5,7 @@ villes, ports et ZONES INDUSTRIELLES réelles par pays. Idempotent."""
 import os, html, json, urllib.parse
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CSS_V = "324"; JS_V = "190"
+CSS_V = "325"; JS_V = "190"
 
 WA = "33632096840"
 WA_SVG = ('<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'
@@ -236,7 +236,7 @@ def build(slug, d):
     url = "https://paper.prodi.com/"+slug+"/"
     ports_villes = d["ports"] + [c for c in d["cities"] if c not in d["ports"]]
     wa_txt = "Bonjour Ethan,\nJe voudrais recevoir une offre pour du papier / carton.\nMerci"
-    wa_url = "https://wa.me/"+WA
+    wa_url = "https://wa.me/"+WA+"?text=Welcome%20!"
     # cartes
     cards = ""
     cards += ('\n        <div class="gp-card">\n          <h3>Ports &amp; villes desservis</h3>\n          <p>Nous expédions vers les principaux ports et livrons dans tout le pays.</p>\n          <div class="gp-chips">'+chips(ports_villes)+'\n          </div>\n        </div>')

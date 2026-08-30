@@ -5,7 +5,7 @@ par page, même gabarit que les pages pays (souspage). Idempotent : réécrit.""
 import os, html
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CSS_V = "324"; JS_V = "190"
+CSS_V = "325"; JS_V = "190"
 
 STYLE = """.geopage{padding-top:64px;}
 .geopage .sec-inner{padding-top:14px;padding-bottom:56px;}
@@ -338,7 +338,7 @@ def build(slug, c):
     cards_html = ""
     for h3, p, ch in c["cards"]:
         cards_html += ('\n        <div class="gp-card">\n          <h3>'+html.escape(h3)+'</h3>\n          <p>'+html.escape(p)+'</p>\n          <div class="gp-chips">'+chips(ch)+'\n          </div>\n        </div>')
-    wa_url = "https://wa.me/33632096840"
+    wa_url = "https://wa.me/33632096840?text=Welcome%20!"
     return TEMPLATE.replace("@@TITLE@@", html.escape(c["title"])) \
         .replace("@@DESC@@", html.escape(c["desc"])) \
         .replace("@@URL@@", url) \

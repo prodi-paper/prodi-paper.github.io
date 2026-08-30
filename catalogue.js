@@ -8450,7 +8450,7 @@ function _buildSharedInfo(list){
     </div>
     <div class="si-card">
       <div class="si-title">Une question ?</div>
-      <a class="si-btn si-wa" href="https://wa.me/33632096840" target="_blank" rel="noopener noreferrer" onclick="window.prodiTrack?.('whatsapp_click',{via:'shared'})">WhatsApp</a>
+      <a class="si-btn si-wa" href="https://wa.me/33632096840?text=Welcome%20!" target="_blank" rel="noopener noreferrer" onclick="window.prodiTrack?.('whatsapp_click',{via:'shared'})">WhatsApp</a>
       <a class="si-btn" href="tel:+33632096840" onclick="window.prodiTrack?.('tel_click',{via:'shared'})">+33 6 32 09 68 40</a>
       <a class="si-btn" href="mailto:ethan@prodi.com" onclick="window.prodiTrack?.('email_click',{via:'shared'})">ethan@prodi.com</a>
       <div class="si-row" style="color:#999"><span>Lun – Ven · 9h – 18h</span></div>

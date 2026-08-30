@@ -446,6 +446,13 @@ button{cursor:pointer;border:none;font-family:inherit;background:none;}
   .depot-h{margin-left:0;}
   .pcards{padding:4px var(--pad);scroll-padding-left:var(--pad);}
 }
+@media(min-width:881px){
+  /* Desktop : PAS d'aimantation — le débord scrollable (~300px pour 4 cartes)
+     est plus court que le premier cran de snap (~390px) → aucun point d'arrêt
+     valide, Safari rejette tout glissement et ressort le rail à 0 (vécu 30/08).
+     Le snap reste utile en mobile (cartes 80vw, large débord). */
+  .pcards{scroll-snap-type:none;}
+}
 .pcards::-webkit-scrollbar{display:none;}
 .pcard-col{flex:0 0 372px;display:flex;flex-direction:column;scroll-snap-align:start;}
 .pcard{position:relative;overflow:hidden;background:#000;border-radius:48px;
