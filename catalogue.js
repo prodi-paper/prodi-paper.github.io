@@ -4485,15 +4485,18 @@ function _renderCatalogueCard(p){
       const prixCell=`<div class="sc-cell sc-price-main" style="grid-column:span 2;"><div class="sc-val sc-price-val">${_priceMode?prixVal:''}</div></div>`;
       const addCell=`<div class="sc-cell sc-price-main sc-price-add" style="grid-column:span 2;">${_addBtn}</div>`;
       const foot='';
+      // Rangée du bas OMISE quand elle n'a rien à montrer (vue client sans prix
+      // et sans crayon retrait) — elle sortait en bande blanche vide (31/08 mobile).
+      const _basVide=!_addBtn&&!_priceMode;
       return`<div class="pcard sc-card" onclick="openDetail(${numId(p.id)})">
         <div class="pcard-img">${imgHtml}${resaOverlay}${p.promo?'<div class="pcard-promo-overlay">PROMO</div>':''}
           ${_refClean?`<span class="pbig-ref">${esc(_refClean.toUpperCase())}</span>`:''}
           ${_isGroup?`<span class="sc-count">× ${numId(p._grpCount)}</span>`:''}
         </div>
         <div class="sc-body">
-          <div class="sc-grid has-prix">
+          <div class="sc-grid${_basVide?'':' has-prix'}">
             <div class="sc-cell sc-title" style="grid-column:span 4;">${esc(formatProductTitle(p.qualite,p.type))}</div>
-            ${detRow}${cells}${prixCell}${addCell}
+            ${detRow}${cells}${_basVide?'':prixCell+addCell}
           </div>
           ${foot}
         </div>
