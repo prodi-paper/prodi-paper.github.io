@@ -663,14 +663,19 @@ html,body{overflow-x:clip;}
   .trust-inner-dup{display:flex !important;}
   /* HEADER MOBILE 2 LIGNES (29/08 Ethan) : L1 = logo « Prodiconseil » (gauche) |
      €/$ + « Ma commande » (droite) ; L2 = tonnage (gauche) | Filtres (droite). */
-  .logo-full{display:block;height:26px;}
+  .logo-full{display:block;height:24.7px;} /* 30/08 : -5% (place liberee par « Panier ») */
   .logo-mob{display:none;}
   body:not(.shared-view) .logo-link{display:flex !important;align-items:center;flex-shrink:0;}
   /* header-inner en BLOCK hauteur AUTO (bat le display:grid mobile de topbar-view
      ~l.2137 via une spécificité supérieure) → les 2 lignes s'empilent. */
   body.topbar-view:not(.shared-view) header{background:#fff !important;border-bottom:1px solid var(--border) !important;box-shadow:none !important;-webkit-backdrop-filter:none !important;backdrop-filter:none !important;}
-  body.topbar-view:not(.shared-view) .header-inner{display:block !important;height:auto !important;padding:6px 12px !important;grid-template-areas:none !important;background:#fff !important;-webkit-backdrop-filter:none !important;backdrop-filter:none !important;box-shadow:none !important;border-radius:0 !important;max-width:none !important;}
+  body.topbar-view:not(.shared-view) .header-inner{display:block !important;height:auto !important;padding:0 12px 6px !important;grid-template-areas:none !important;background:#fff !important;-webkit-backdrop-filter:none !important;backdrop-filter:none !important;box-shadow:none !important;border-radius:0 !important;max-width:none !important;}
   #mob-hdr-r1,#mob-hdr-r2{display:flex;align-items:center;justify-content:space-between;width:100%;box-sizing:border-box;gap:8px;min-width:0;}
+  /* 30/08 : bandeau tonnage/Filtres gris clair comme le zebrage */
+  #mob-hdr-r1{height:43px;align-items:center;} /* 30/08 : ligne logo 43px / grise 45px */
+  #mob-hdr-r2{background:#f0f0f4;margin:-5px -20px -7px;padding:0 20px;height:45px;box-sizing:border-box;width:auto;position:relative;justify-content:flex-end;align-items:center;}
+  #mob-hdr-r2 #mob-filtres-btn{height:34px !important;}
+  #mob-hdr-r2 #head-tons{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);margin:0;} /* 30/08 : tonnage centre */
   #mob-hdr-r1{margin-bottom:5px;overflow:hidden;min-height:0;max-height:80px;transition:max-height .3s ease,opacity .22s ease,margin-bottom .3s ease;}
   /* Scroll vers le bas : la ligne logo se REPLIE en douceur (header = tonnage+Filtres) */
   body.hdr-collapsed:not(.shared-view) #mob-hdr-r1{max-height:0 !important;opacity:0 !important;margin-bottom:0 !important;pointer-events:none;}
@@ -680,7 +685,23 @@ html,body{overflow-x:clip;}
   .mob-hdr-left{display:flex;align-items:center;gap:9px;min-width:0;}
   body:not(.shared-view) #mob-hdr-r1 #cart-btn{width:auto !important;padding:0 9px !important;height:34px;gap:5px;flex-shrink:0;}
   body:not(.shared-view) #mob-hdr-r1 #cart-btn img{height:18px !important;}
-  body:not(.shared-view) #mob-hdr-r1 #cart-btn .btn-panier-txt{display:inline !important;font-size:12.5px !important;font-weight:700;white-space:nowrap;color:#1d1d1f !important;}
+  /* 30/08 : « Ma commande » redessine en VRAI bouton (pilule noire + panier blanc) ;
+     la ligne 1 est serree (euro-dollar + logo + pilule > 350px) -> zoom leger sur
+     le toggle devise pour que rien ne se chevauche */
+  #mob-hdr-r1 #ccy-wrap{zoom:.8;}
+  #mob-hdr-r1 .mob-hdr-left{min-width:0;flex:1;display:flex;align-items:center;}
+  #mob-hdr-r1 .mob-hdr-left .logo-link{margin:0 auto;} /* 30/08 : logo centre dans l'espace libre */
+  /* ecrans etroits (iPhone mini/SE 375px) : encore un cran plus compact */
+  @media(max-width:385px){
+    #mob-hdr-r1 #ccy-wrap{zoom:.72;}
+    .logo-full{height:21.5px !important;}
+    body:not(.shared-view) #mob-hdr-r1 #cart-btn .btn-panier-txt{font-size:11px !important;}
+    body:not(.shared-view) #mob-hdr-r1 #cart-btn{padding:0 9px !important;}
+  }
+  body:not(.shared-view) #mob-hdr-r1 #cart-btn{background:#fff !important;border:1.5px solid #d2d2d7 !important;box-shadow:0 1px 6px rgba(0,0,0,.06) !important;border-radius:999px !important;height:34px !important;padding:0 13px !important;display:inline-flex !important;align-items:center;gap:6px;flex-shrink:0;}
+  body:not(.shared-view) #mob-hdr-r1 #cart-btn img{display:none !important;}
+  body:not(.shared-view) #mob-hdr-r1 #cart-btn::before{content:'';width:17px;height:17px;flex-shrink:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231d1d1f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 8V6a4 4 0 0 1 8 0v2'/%3E%3Cpath d='M4.5 8h15l-1.2 12a2 2 0 0 1-2 1.8H7.7a2 2 0 0 1-2-1.8L4.5 8z'/%3E%3C/svg%3E") center/contain no-repeat;}
+  body:not(.shared-view) #mob-hdr-r1 #cart-btn .btn-panier-txt{display:inline !important;font-size:15px !important;font-weight:800;white-space:nowrap;color:#1d1d1f !important;}
   body:not(.shared-view) #mob-hdr-r1 .ccy-seg{flex-shrink:0;}
   /* Header right group: icons only, no text */
   .hright{gap:8px;margin-left:auto;}
@@ -2247,7 +2268,11 @@ body.topbar-view .phero-panel-head{display:none !important;}
   body.apple-view .pgrid .sc-card .sc-cell{height:26px !important;min-height:0 !important;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;padding-top:0 !important;padding-bottom:0 !important;}
   body.apple-view .pgrid .sc-card .sc-cell:not(.sc-det-only):not(.sc-price-main) .sc-val{line-height:1 !important;flex-shrink:0 !important;}
   body.apple-view .pgrid .sc-card .sc-cell.sc-title{height:22px !important;line-height:22px !important;display:block !important;}
-  body.apple-view .pgrid .sc-card .sc-cell.sc-det-only{height:17px !important;flex-direction:row !important;align-items:center;}
+  body.apple-view .pgrid .sc-card .sc-cell.sc-det-only{height:21px !important;padding-top:4px !important;flex-direction:row !important;align-items:center;min-width:0 !important;overflow:hidden;} /* 30/08 : detail descendu de 4px (padding, pas margin — une marge laissait voir le fond zebre) */
+  /* 30/08 : detail sur UNE ligne + ellipse en mobile (la regle n'existait qu'en
+     desktop -> le texte passait sur 2 lignes et chevauchait la grille) */
+  body.apple-view .pgrid .sc-card .sc-cell.sc-det-only .sc-val{min-width:0;flex:1;display:block !important;-webkit-line-clamp:unset !important;white-space:nowrap !important;overflow:hidden;text-overflow:ellipsis;}
+  body.apple-view .pgrid .sc-card .sc-cell.sc-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;display:block !important;}
   body.apple-view .pgrid .sc-card .sc-cell.sc-price-usine{height:29px !important;flex-direction:row !important;align-items:center;justify-content:flex-start;gap:6px;}
   body.apple-view .pgrid .sc-card .sc-cell.sc-price-main{height:29px !important;flex-direction:row !important;align-items:center;justify-content:flex-start;gap:8px;}
   body.apple-view .pgrid .sc-card .sc-price-main .sc-add{margin-left:auto !important;flex:0 0 auto;}
@@ -2970,14 +2995,15 @@ body.landing-rows #pgrid,body.landing-rows #pager,body.landing-rows #scroll-sent
 body.landing-rows #desk-toolbar{display:none !important;}
 .qrow-sec{margin:0 0 22px;}
 .qrow-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:0 2px 8px;}
-.qrow-title{font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:34px;letter-spacing:.5px;color:#1d1d1f;margin:0;line-height:1;}
+.qrow-title{font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:34px;letter-spacing:.5px;color:#1d1d1f;margin:0;line-height:1.15;flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .qrow-title .qrow-sub{font-family:'DM Sans',sans-serif;font-weight:600;font-size:16px;letter-spacing:0;color:#1d1d1f;}
 .qrow-more{background:none;border:none;color:#1d1d1f;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;padding:4px;white-space:nowrap;flex-shrink:0;}
 .qrow-more:hover{color:#000;text-decoration:underline;}
 .qrow-scroll.pgrid{display:flex !important;align-items:flex-start !important;gap:12px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;padding:2px 2px 10px;grid-template-columns:none !important;}
-.qrow-scroll.pgrid::-webkit-scrollbar{height:8px;}
-.qrow-scroll.pgrid::-webkit-scrollbar-thumb{background:#d2d2d7;border-radius:99px;}
-.qrow-scroll.pgrid::-webkit-scrollbar-track{background:transparent;}
+/* 30/08 : barre de défilement MASQUÉE (mobile + ordi) — le débord des cartes
+   suffit à comprendre qu'on peut glisser */
+.qrow-scroll.pgrid{scrollbar-width:none;-ms-overflow-style:none;}
+.qrow-scroll.pgrid::-webkit-scrollbar{display:none;height:0;}
 .qrow-scroll .pcard{flex:0 0 212px;width:212px;scroll-snap-align:start;content-visibility:visible !important;contain-intrinsic-size:auto !important;}
 .qrow-scroll .pcard .pcard-img{height:172px;}
 /* Zébrage (30/08) : une rangée sur deux sur fond gris clair — marges négatives
@@ -2986,8 +3012,22 @@ body.landing-rows #desk-toolbar{display:none !important;}
 #quality-rows .qrow-sec:nth-child(even){background:#f0f0f4;
   padding:14px 14px 4px;margin-left:-14px;margin-right:-14px;}
 @media(max-width:768px){
+  /* 30/08 : la zone produits mobile n'a AUCUN padding latéral -> titres/cartes
+     colles au bord (mesure 0-2px). 14px ici + les marges -14px du zebrage se
+     compensent : bande grise plein bord, contenus alignes a 14px. */
+  #quality-rows{padding:0 14px;}
+  /* 30/08 (test Ethan) : CONTOUR de la photo aligne sur l'etiquette */
+  body.apple-view .pgrid .sc-card .pcard-img{border:1px solid #c9c9ce;border-bottom:none;border-radius:0;box-sizing:border-box;background:#fff;}
   .qrow-title{font-size:29px;}
   .qrow-title .qrow-sub{font-size:14px;}
   .qrow-scroll .pcard{flex:0 0 166px;width:166px;}
   .qrow-scroll .pcard .pcard-img{height:150px;}
+}
+
+/* 30/08 : lignes header mobile visuellement EGALES — 14px de blanc au-dessus
+   du logo (8px header + 6px header-inner) faisaient paraitre la ligne 1 plus
+   haute que la ligne grise (40px chacune). En fin de fichier pour la cascade. */
+@media(max-width:768px){
+  body:not(.shared-view) header{padding-top:2px !important;}
+  body:not(.shared-view) .header-inner{padding-top:0 !important;}
 }

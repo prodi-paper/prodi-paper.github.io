@@ -95,7 +95,7 @@ gtag('config', 'AW-18393110999');
 <link rel="preconnect" href="https://images.weserv.nl">
 <link rel="dns-prefetch" href="https://stock.prodi.net">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/catalogue.css?v=893">
+<link rel="stylesheet" href="/catalogue.css?v=894">
 <!-- EmailJS : chargé À LA DEMANDE par _ejsReady() (perf 18/07) -->
 </head>
 <body>
@@ -303,7 +303,7 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
     '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><circle cx="8" cy="6" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="16" cy="12" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="8" cy="18" r="2" fill="currentColor" stroke="none"/></svg>' +
     '<span class="mob-filtres-txt">Filtres</span></button>';
   // Le camion « Liste » devient « Ma commande »
-  var cTxt = cart.querySelector('.btn-panier-txt'); if (cTxt) { cTxt.textContent = 'Ma commande'; cTxt.style.display = ''; }
+  var cTxt = cart.querySelector('.btn-panier-txt'); if (cTxt) { cTxt.textContent = 'Panier'; cTxt.style.display = ''; }
   // Ligne 1 : €/$ + logo (gauche) | Ma commande (droite)
   var r1 = document.createElement('div'); r1.id = 'mob-hdr-r1'; r1.className = 'mob-hdr-row';
   var r1l = document.createElement('div'); r1l.className = 'mob-hdr-left';
@@ -1022,7 +1022,7 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
 <div class="spin-bg" id="spinner"><div class="spin"></div></div>
 
 <script src="/analytics.js?v=6"></script>
-<script src="/catalogue.js?v=808"></script>
+<script src="/catalogue.js?v=809"></script>
 <!-- Fiches techniques & certificats (interne, bouton header + panneau) -->
 <script src="/fiches.js?v=6" defer></script>
 <!-- Traqueur de perf, inerte sans ?perf=1 (voir perf-hud.js) -->

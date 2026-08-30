@@ -590,7 +590,7 @@ button{cursor:pointer;border:none;font-family:inherit;background:none;}
 .eq-foot{margin-top:34px;display:flex;justify-content:center;}
 .eq-foot .qtile-btn{font-size:16.5px;padding:12px 26px;text-decoration:none;}
 @media(max-width:520px){
-  .eq-panel{padding:44px 22px 30px;border-radius:24px;}
+  .eq-panel{padding:68px 22px 30px;border-radius:24px;}
   .eq-row{flex-direction:column;}
   .eq-groups{grid-template-columns:1fr;}
 }

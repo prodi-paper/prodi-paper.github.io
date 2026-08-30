@@ -5101,7 +5101,7 @@ function updateCartBadge(){
     const ico=btn.querySelector('.cart-share-ico');
     if(ico)ico.style.display='none';
     // « Ma commande » partout (mobile + ordi, 29/08 Ethan).
-    const _cartLbl='Ma commande';
+    const _cartLbl='Panier';
     if(txt){txt.style.display='';txt.textContent=_cartLbl;}
     btn.style.removeProperty('display');
     btn.title=_cartLbl;
