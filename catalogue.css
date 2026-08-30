@@ -3038,8 +3038,8 @@ body.landing-rows #desk-toolbar{display:none !important;}
    (« GRAMMAGE/DIMENSIONS/963 × 1005 » sortaient tronqués). */
 @media(max-width:768px){
   body.shared-view .logo-full{height:26px !important;}
-  body.shared-view .rbar-count{font-size:11px !important;margin-left:8px !important;}
+  body.shared-view .rbar-count{font-size:10.5px !important;margin-left:6px !important;}
   body.shared-view .pgrid .sc-card .sc-cap{font-size:8.5px !important;letter-spacing:.2px !important;}
-  body.shared-view .pgrid .sc-card .sc-cell .sc-val{font-size:13px !important;}
+  body.shared-view .pgrid .sc-card .sc-cell .sc-val{font-size:12px !important;}
   body.shared-view .pgrid .sc-card .sc-det-only .sc-val{font-size:12px !important;}
 }
