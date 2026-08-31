@@ -8,7 +8,7 @@ on:
   workflow_dispatch: # permet de lancer manuellement
 
 permissions:
-  contents: read
+  contents: write  # les pages /stock/ régénérées sont commitées par le workflow
 
 concurrency:
   group: import-stock
@@ -72,6 +72,28 @@ jobs:
         env:
           SUPABASE_MGMT_TOKEN: ${{ secrets.SUPABASE_MGMT_TOKEN }}
         run: python3 scripts/verify_photos.py
+
+      # Pages /stock/ statiques SANS PRIX (SEO) : régénérées depuis le stock du
+      # jour, commitées seulement si le contenu a changé, puis ping IndexNow.
+      - name: Regenerate /stock/ pages (SEO, sans prix)
+        if: steps.idempotence.outputs.skip != 'true'
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          set -euo pipefail
+          python3 scripts/gen_stock_pages.py
+          git config user.name "stock-bot"
+          git config user.email "stock-bot@users.noreply.github.com"
+          git add stock/ sitemap.xml
+          if git diff --cached --quiet; then
+            echo "Stock inchangé — pas de commit."
+          else
+            git commit -m "Stock pages : refresh quotidien ($(date -u +%F))"
+            git pull --rebase origin main || true
+            git push
+            python3 scripts/indexnow_ping.py || true
+          fi
 
       # Alerte email si une étape précédente a échoué. Canal INDÉPENDANT de Gmail
       # (Resend) : si l'App Password Gmail saute — la panne la plus fréquente —
