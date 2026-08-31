@@ -321,7 +321,7 @@ def chips(items):
     return "".join('\n            <span class="gp-chip">'+html.escape(x)+'</span>' for x in items)
 
 def build(slug, c):
-    url = "https://paper.prodi.com/"+slug+"/"
+    url = "https://prodi.com/"+slug+"/"
     t = c["t"]
     # cross-links vers les autres qualités
     others = [(s, PAGES[s]["t"]) for s in ORDER if s != slug]
@@ -371,7 +371,7 @@ TEMPLATE = '''<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://stock.prodi.net https://paper.prodi.com https://prodi-paper.github.io https://images.unsplash.com; connect-src 'self' https://api.country.is https://bvcgpdoukhcatjibmvnb.supabase.co https://api.emailjs.com https://cdn.jsdelivr.net; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://stock.prodi.net https://prodi.com https://prodi-paper.github.io https://images.unsplash.com; connect-src 'self' https://api.country.is https://bvcgpdoukhcatjibmvnb.supabase.co https://api.emailjs.com https://cdn.jsdelivr.net; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <link rel="icon" type="image/png" href="/img/panda.png">
@@ -385,11 +385,11 @@ TEMPLATE = '''<!DOCTYPE html>
 <meta property="og:url" content="@@URL@@">
 <meta property="og:title" content="@@OGTITLE@@">
 <meta property="og:description" content="@@DESC@@">
-<meta property="og:image" content="https://paper.prodi.com/img/og-card.jpg">
+<meta property="og:image" content="https://prodi.com/img/og-card.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="@@OGTITLE@@">
 <meta name="twitter:description" content="@@DESC@@">
-<meta name="twitter:image" content="https://paper.prodi.com/img/og-card.jpg">
+<meta name="twitter:image" content="https://prodi.com/img/og-card.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@600;700&family=DM+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -399,8 +399,8 @@ TEMPLATE = '''<!DOCTYPE html>
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
   "itemListElement": [
-    {"@type": "ListItem", "position": 1, "name": "Accueil", "item": "https://paper.prodi.com/"},
-    {"@type": "ListItem", "position": 2, "name": "Produits", "item": "https://paper.prodi.com/produits/"},
+    {"@type": "ListItem", "position": 1, "name": "Accueil", "item": "https://prodi.com/"},
+    {"@type": "ListItem", "position": 2, "name": "Produits", "item": "https://prodi.com/produits/"},
     {"@type": "ListItem", "position": 3, "name": "@@BREAD@@", "item": "@@URL@@"}
   ]
 }

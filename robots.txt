@@ -4,4 +4,4 @@ Disallow: /catalogue/
 Disallow: /invitation/
 Disallow: /intelligence/
 
-Sitemap: https://paper.prodi.com/sitemap.xml
+Sitemap: https://prodi.com/sitemap.xml

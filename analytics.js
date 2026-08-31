@@ -7,7 +7,7 @@
 // window.prodiTrack(event, props) pour les événements métier — toujours
 // fire-and-forget : l'analytics ne doit JAMAIS casser ni ralentir le site.
 //
-// Équipe Prodi : ouvrir une fois paper.prodi.com/?team → l'appareil est marqué
+// Équipe Prodi : ouvrir une fois prodi.com/?team → l'appareil est marqué
 // `interne` à vie, ses visites sont exclues des stats visiteurs.
 // ─────────────────────────────────────────────────────────────────────────────
 (function () {

@@ -7411,7 +7411,7 @@ function _setScanStatus(s){const el=document.getElementById('scan-status');if(el
 function _extractScanRef(text){
   let s=String(text||'').trim();
   // Si URL : d'abord le paramètre ?ref= (format des QR d'étiquettes Prodi
-  // Arrivages : https://paper.prodi.com/?ref=Photo_990892 — le path est "/",
+  // Arrivages : https://prodi.com/?ref=Photo_990892 — le path est "/",
   // donc le fallback segment ne suffit pas), sinon le dernier segment de path.
   if(/^https?:\/\//i.test(s)){
     try{

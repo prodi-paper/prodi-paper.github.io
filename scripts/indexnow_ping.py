@@ -9,7 +9,7 @@ Usage : python3 scripts/indexnow_ping.py
 """
 import os, re, json, glob, urllib.request, urllib.error
 
-HOST = "paper.prodi.com"
+HOST = "prodi.com"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # La clé = le nom du fichier <hex>.txt à la racine du repo (32 hex chars).
