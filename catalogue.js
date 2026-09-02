@@ -6880,13 +6880,21 @@ function renderDrawer(){
   document.getElementById('drawer-total').textContent=fmt(ton);
   const _dic=document.getElementById('drawer-items-count');if(_dic)_dic.textContent=cart.length+' '+('produit'+(cart.length>1?'s':''));
   const prRow=document.getElementById('drawer-price-row');
+  const pptRow=document.getElementById('drawer-ppt-row');
   if(prRow){
     if(_priceMode){
       const _totalEst=cart.reduce((s,p)=>{const _f=all.find(x=>x.id===+p.id)||p;return s+(p.qty_kg??(p.poids_net||0))*(_f.price||0);},0);
       prRow.style.display=_totalEst?'':'none';
       const prVal=document.getElementById('drawer-price-val');
       if(prVal)prVal.textContent=_ccyNum(_totalEst)+' '+_ccySym();
-    } else { prRow.style.display='none'; }
+      if(pptRow){
+        // moyenne pondérée de la sélection, en €/T base (conversion + dizaine via _ccyNum)
+        const _ppt=(_totalEst&&ton)?_totalEst/(ton/1000):0;
+        pptRow.style.display=_ppt?'':'none';
+        const pptVal=document.getElementById('drawer-ppt-val');
+        if(pptVal)pptVal.textContent=_ccyNum(_ppt)+' '+_ccyUnit();
+      }
+    } else { prRow.style.display='none'; if(pptRow)pptRow.style.display='none'; }
   }
   footer.style.display='block';
   items.innerHTML=cart.map(p=>{
