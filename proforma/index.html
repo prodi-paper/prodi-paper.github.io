@@ -116,6 +116,13 @@
     <h1>Proforma express 🐼</h1>
     <p class="sub">Remplis à gauche, le document se construit à droite. « Générer » = numéro + archive + impression PDF.</p>
 
+    <h2>Document</h2>
+    <div class="row2">
+      <div><label>Langue du document</label><select id="c-lang" onchange="langChange()"><option value="fr">Français</option><option value="en">English</option></select></div>
+      <div><label>Devise</label><select id="c-dev" onchange="devChange()"><option value="eur">€ Euro</option><option value="usd">$ Dollar US</option></select></div>
+    </div>
+    <div class="sub" id="taux-info" style="margin:5px 0 0"></div>
+
     <h2>Client</h2>
     <label>Nom / société (tel qu'affiché sur le document)</label>
     <textarea id="c-nom" rows="2" placeholder="STE KOUMA PAPIER&#10;ABIDJAN — CÔTE D'IVOIRE"></textarea>
@@ -133,7 +140,7 @@
       <div><label>Incoterm</label><select id="c-inco"><option>CFR</option><option>CIF</option><option>FOB</option><option>EX WORKS</option><option>DAP</option></select></div>
       <div><label>Lieu (port / ville)</label><input id="c-lieu" placeholder="ex. ACCRA"></div>
     </div>
-    <label>Montant fret (€)</label><input id="c-fret" type="number" min="0" step="100" value="0">
+    <label>Montant fret (<span class="devsym">€</span>)</label><input id="c-fret" type="number" min="0" step="100" value="0">
     <div class="row2">
       <div><label>Pays d'origine</label><input id="c-orig" value="FRANCE"></div>
       <div><label>Pays de provenance</label><input id="c-prov" value="FRANCE"></div>
@@ -181,79 +188,79 @@
           SARL au Capital de 516 000 EUR - Siret : 382445922<br>
           NAF 4676Z - TVA FR50 382 445922 RCS CRETEIL
         </div>
-        <div class="mentions">
+        <div class="mentions" data-t="exo">
           Exonération de TVA :<br>
           Export hors UE: Article 262, I du CGI<br>
           Livraison intracommunautaire: Article 262 ter, I du CGI
         </div>
-        <div class="rouge">
+        <div class="rouge" data-t="rouge">
           Valable 10 jours sauf vente entre temps<br>
           La confirmation de commande suivra
         </div>
-        <div class="titre">Offre de prix (Euros)</div>
-        <div class="commercial">Votre commercial : <span id="p-comm"></span></div>
+        <div class="titre" id="p-titre">Offre de prix (Euros)</div>
+        <div class="commercial"><span data-t="comm">Votre commercial :</span> <span id="p-comm"></span></div>
         <table class="ndr">
-          <tr><th>NUMERO</th><th>DATE</th><th>REFERENCE</th></tr>
+          <tr><th data-t="numero">NUMERO</th><th data-t="date">DATE</th><th data-t="reference">REFERENCE</th></tr>
           <tr><td id="p-num">—</td><td id="p-date"></td><td id="p-ref"></td></tr>
         </table>
       </div>
       <div class="hd-r">
         <div class="client" id="p-client">CLIENT</div>
-        <div class="refint">Ref. Interne : <span id="p-refint"></span></div>
-        <div class="rc">N° intra./RC : <span id="p-rc"></span></div>
+        <div class="refint"><span data-t="refint">Ref. Interne :</span> <span id="p-refint"></span></div>
+        <div class="rc"><span data-t="rc">N° intra./RC :</span> <span id="p-rc"></span></div>
         <div class="box-livr">
-          <div class="t">Conditions de livraison</div>
+          <div class="t" data-t="livr">Conditions de livraison</div>
           <div class="v">
             <div id="p-inco"></div>
             <div id="p-lieu"></div>
-            <div class="paysbox">Pays d'origine : <span id="p-orig"></span><br>Pays de provenance : <span id="p-prov"></span></div>
+            <div class="paysbox"><span data-t="orig">Pays d'origine :</span> <span id="p-orig"></span><br><span data-t="prov">Pays de provenance :</span> <span id="p-prov"></span></div>
           </div>
         </div>
       </div>
     </div>
 
     <table class="corps">
-      <tr><th class="lref">Référence</th><th>Désignation</th><th class="lqte">PN (kg)</th><th class="lpu">P.U (€)</th><th class="lmt">Montant HT (€)</th></tr>
+      <tr><th class="lref" data-t="c_ref">Référence</th><th data-t="c_des">Désignation</th><th class="lqte" data-t="c_pn">PN (kg)</th><th class="lpu" id="th-pu">P.U (€)</th><th class="lmt" id="th-mt">Montant HT (€)</th></tr>
       <tbody id="p-lignes"></tbody>
       <tr class="fill"><td></td><td></td><td></td><td></td><td></td></tr>
     </table>
 
     <div class="souscorps">
       <div>
-        <div>REFERENCE USINE : <span id="p-usine"></span></div>
-        <div>MONTANT FOB : <span id="p-fob"></span> €</div>
-        <div>MONTANT DU FRET : <span id="p-fret"></span> €</div>
-        <div>MONTANT COÛT ET FRET : <span id="p-cf"></span> €</div>
+        <div><span data-t="usine">REFERENCE USINE :</span> <span id="p-usine"></span></div>
+        <div><span data-t="fob">MONTANT FOB :</span> <span id="p-fob"></span> <span class="devsym">€</span></div>
+        <div><span data-t="fret">MONTANT DU FRET :</span> <span id="p-fret"></span> <span class="devsym">€</span></div>
+        <div><span data-t="cf">MONTANT COÛT ET FRET :</span> <span id="p-cf"></span> <span class="devsym">€</span></div>
       </div>
       <div>
-        <div>CODE DOUANIER : <span id="p-douane"></span></div>
-        <div>TOLÉRANCE +/- 10%</div>
+        <div><span data-t="douane">CODE DOUANIER :</span> <span id="p-douane"></span></div>
+        <div data-t="tol">TOLÉRANCE +/- 10%</div>
       </div>
     </div>
 
     <div class="totflex">
       <div class="tampon"><b>PRODICONSEIL</b><br>9 promenée Jeanne Hachette<br>94200 Ivry sur Seine - France<br>Tél. : +33 (0)1 46 72 03 69<br>SARL au capital de 516 000 € — RCS Créteil B382445922<br>N° CEE FR 50 382 445 922 — APE 4676Z</div>
       <table class="tot">
-        <tr><th>Total HT</th><th>Total TTC</th><th>Poids Total (kg)</th><th class="netl">NET A PAYER</th></tr>
+        <tr><th data-t="ht">Total HT</th><th data-t="ttc">Total TTC</th><th data-t="poids">Poids Total (kg)</th><th class="netl" data-t="net">NET A PAYER</th></tr>
         <tr><td id="p-ht"></td><td id="p-ttc"></td><td id="p-poids"></td><td class="net" id="p-net"></td></tr>
       </table>
     </div>
 
     <div class="paiebox">
-      <div class="paie"><b>CONDITIONS DE PAIEMENT :</b><div id="p-paie-lignes"></div></div>
-      <div class="banqcli">Banque du client :</div>
+      <div class="paie"><b data-t="paie">CONDITIONS DE PAIEMENT :</b><div id="p-paie-lignes"></div></div>
+      <div class="banqcli" data-t="banqcli">Banque du client :</div>
     </div>
 
     <div class="basflex">
       <table class="banques">
-        <tr><th style="text-align:left">BANQUE PRODICONSEIL</th><th>CODE</th><th>GUICHET</th><th>COMPTE</th><th>RIB</th></tr>
+        <tr><th style="text-align:left" data-t="bank">BANQUE PRODICONSEIL</th><th data-t="bcode">CODE</th><th data-t="bguichet">GUICHET</th><th data-t="bcompte">COMPTE</th><th data-t="brib">RIB</th></tr>
         <tr><td>BNP PARIBAS - ILE DE FRANCE EST ENTREPRISES (02511)<br>IBAN : FR 76 3000 4008 3400 0100 1743 986 - SWIFT : BNPAFRPPIFE</td><td>30004</td><td>00834</td><td>00010017439</td><td>86</td></tr>
         <tr><td>BANQUE POPULAIRE - BP RIVES CA TOLBIAC (00118)<br>IBAN : FR 76 1020 7000 1304 0130 5290 161 - SWIFT : CCBPFRPPMTG</td><td>10207</td><td>00013</td><td>04013052901</td><td>61</td></tr>
         <tr><td>SOCIETE GENERALE - SG IVRY SUR SEINE (04240)<br>IBAN : FR 76 3000 3042 4000 0209 3161 041 - SWIFT : SOGEFRPP</td><td>30003</td><td>04240</td><td>00020931610</td><td>41</td></tr>
       </table>
       <div class="engage">
-        <div>Je confirme mon accord sur cette proforma et les conditions de vente :<br>Je m'engage à payer tous les frais et taxes s'il y avait un retard, une annulation hors du pays de départ des marchandises.</div>
-        <div class="rsc">RENVOYER SIGNÉ ET CACHETÉ</div>
+        <div data-t="engage">Je confirme mon accord sur cette proforma et les conditions de vente :<br>Je m'engage à payer tous les frais et taxes s'il y avait un retard, une annulation hors du pays de départ des marchandises.</div>
+        <div class="rsc" data-t="rsc">RENVOYER SIGNÉ ET CACHETÉ</div>
       </div>
     </div>
   </div></div>
@@ -283,9 +290,91 @@ const MODELES={
 let lignes=[];
 let numero=null;
 
-const eur=n=>n.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2});
+// ── Langue + devise du DOCUMENT (le formulaire reste en français) ──
+let LANG='fr',DEV='eur',USD=null; // USD = taux BCE EUR→USD du jour
+const SYM=()=>DEV==='usd'?'$':'€';
+const I18N={
+  exo:{fr:'Exonération de TVA :<br>Export hors UE: Article 262, I du CGI<br>Livraison intracommunautaire: Article 262 ter, I du CGI',
+       en:'VAT exemption:<br>Export outside the EU: Article 262, I of the French CGI<br>Intra-Community supply: Article 262 ter, I of the French CGI'},
+  rouge:{fr:'Valable 10 jours sauf vente entre temps<br>La confirmation de commande suivra',
+         en:'Valid 10 days subject to prior sale<br>Order confirmation to follow'},
+  comm:{fr:'Votre commercial :',en:'Your sales contact:'},
+  numero:{fr:'NUMERO',en:'NUMBER'},date:{fr:'DATE',en:'DATE'},reference:{fr:'REFERENCE',en:'REFERENCE'},
+  refint:{fr:'Ref. Interne :',en:'Internal ref.:'},
+  rc:{fr:'N° intra./RC :',en:'VAT No. / Reg.:'},
+  livr:{fr:'Conditions de livraison',en:'Delivery terms'},
+  orig:{fr:"Pays d'origine :",en:'Country of origin:'},
+  prov:{fr:'Pays de provenance :',en:'Country of dispatch:'},
+  c_ref:{fr:'Référence',en:'Reference'},c_des:{fr:'Désignation',en:'Description'},c_pn:{fr:'PN (kg)',en:'Net wt (kg)'},
+  usine:{fr:'REFERENCE USINE :',en:'MILL REFERENCE:'},
+  fob:{fr:'MONTANT FOB :',en:'FOB AMOUNT:'},
+  fret:{fr:'MONTANT DU FRET :',en:'FREIGHT AMOUNT:'},
+  cf:{fr:'MONTANT COÛT ET FRET :',en:'COST AND FREIGHT AMOUNT:'},
+  douane:{fr:'CODE DOUANIER :',en:'HS CODE:'},
+  tol:{fr:'TOLÉRANCE +/- 10%',en:'TOLERANCE +/- 10%'},
+  ht:{fr:'Total HT',en:'Total excl. VAT'},ttc:{fr:'Total TTC',en:'Total incl. VAT'},
+  poids:{fr:'Poids Total (kg)',en:'Total weight (kg)'},net:{fr:'NET A PAYER',en:'NET PAYABLE'},
+  paie:{fr:'CONDITIONS DE PAIEMENT :',en:'PAYMENT TERMS:'},
+  banqcli:{fr:'Banque du client :',en:"Customer's bank:"},
+  bank:{fr:'BANQUE PRODICONSEIL',en:'PRODICONSEIL BANK'},
+  bcode:{fr:'CODE',en:'CODE'},bguichet:{fr:'GUICHET',en:'BRANCH'},bcompte:{fr:'COMPTE',en:'ACCOUNT'},brib:{fr:'RIB',en:'KEY'},
+  engage:{fr:"Je confirme mon accord sur cette proforma et les conditions de vente :<br>Je m'engage à payer tous les frais et taxes s'il y avait un retard, une annulation hors du pays de départ des marchandises.",
+          en:'I confirm my agreement with this proforma and the sales terms:<br>I undertake to pay all costs and taxes in the event of a delay or cancellation outside the country of departure of the goods.'},
+  rsc:{fr:'RENVOYER SIGNÉ ET CACHETÉ',en:'RETURN SIGNED AND STAMPED'},
+  titre_eur:{fr:'Offre de prix (Euros)',en:'Price offer (Euros)'},
+  titre_usd:{fr:'Offre de prix (Dollars US)',en:'Price offer (US Dollars)'},
+  v5050a:{fr:'VIREMENT AVANT EXPEDITION',en:'BANK TRANSFER BEFORE SHIPMENT'},
+  v5050b:{fr:'VIREMENT AVANT ENVOI DE DOCUMENTS',en:'BANK TRANSFER BEFORE DOCUMENTS'},
+};
+
+function applyLang(){
+  document.querySelectorAll('[data-t]').forEach(el=>{el.innerHTML=I18N[el.dataset.t][LANG];});
+  document.getElementById('p-titre').textContent=I18N[DEV==='usd'?'titre_usd':'titre_eur'][LANG];
+  document.getElementById('th-pu').textContent=(LANG==='en'?'Unit price':'P.U')+' ('+SYM()+')';
+  document.getElementById('th-mt').textContent=(LANG==='en'?'Amount':'Montant HT')+' ('+SYM()+')';
+  document.querySelectorAll('.devsym').forEach(el=>el.textContent=SYM());
+}
+function langChange(){LANG=document.getElementById('c-lang').value;applyLang();maj();}
+function devChange(){
+  const nv=document.getElementById('c-dev').value;
+  if(nv===DEV)return;
+  DEV=nv;
+  // proposer la conversion des prix saisis au taux du jour (sinon libellés seuls)
+  const aDesPrix=lignes.some(l=>l.pu)||(+document.getElementById('c-fret').value>0);
+  if(USD&&aDesPrix){
+    const r=nv==='usd'?USD:1/USD;
+    const msg=nv==='usd'
+      ?'Convertir les prix saisis en dollars au taux du jour (1 € = '+USD.toFixed(4)+' $) ?\n\n« Annuler » = garder les chiffres tels quels (prix déjà en $).'
+      :'Reconvertir les prix saisis en euros (1 € = '+USD.toFixed(4)+' $) ?\n\n« Annuler » = garder les chiffres tels quels (prix déjà en €).';
+    if(confirm(msg)){
+      lignes.forEach(l=>{if(l.pu)l.pu=Math.round(l.pu*r*1000)/1000;});
+      const f=document.getElementById('c-fret');
+      if(+f.value>0)f.value=Math.round(+f.value*r);
+      renderForm();
+    }
+  }
+  applyLang();maj();
+}
+// taux BCE EUR→USD via frankfurter.dev (⚠️ pas frankfurter.APP : 301), caché 1 jour
+(async function(){
+  const el=document.getElementById('taux-info');
+  try{
+    const d=new Date().toISOString().slice(0,10);
+    const c=JSON.parse(localStorage.getItem('prodi_prof_usd')||'null');
+    if(c&&c.d===d){USD=c.v;}
+    else{
+      const r=await fetch('https://api.frankfurter.dev/v1/latest?base=EUR&symbols=USD');
+      USD=(await r.json()).rates.USD;
+      localStorage.setItem('prodi_prof_usd',JSON.stringify({d,v:USD}));
+    }
+    el.textContent='Taux BCE du jour : 1 € = '+USD.toFixed(4)+' $';
+  }catch(e){el.textContent='Taux $ indisponible (hors ligne) — bascule $ sans conversion auto.';}
+})();
+
+const _loc=()=>LANG==='en'?'en-US':'fr-FR';
+const eur=n=>n.toLocaleString(_loc(),{minimumFractionDigits:2,maximumFractionDigits:2});
 const kg=n=>String(Math.round(n)); // PN entier sans séparateur, comme Sage (« 12090 »)
-const pu3=n=>n.toLocaleString('fr-FR',{minimumFractionDigits:3,maximumFractionDigits:3}); // P.U « 0,580 »
+const pu3=n=>n.toLocaleString(_loc(),{minimumFractionDigits:3,maximumFractionDigits:3}); // P.U « 0,580 »
 
 function addModele(k){
   const m=MODELES[k];
@@ -304,7 +393,7 @@ function renderForm(){
       </div>
       <label>Désignation</label>
       <textarea rows="3" oninput="lignes[${i}].des=this.value;maj()">${esc(l.des)}</textarea>
-      <label>Prix unitaire (€/kg)</label>
+      <label>Prix unitaire (${SYM()}/kg)</label>
       <input type="number" min="0" step="0.01" value="${l.pu}" oninput="lignes[${i}].pu=+this.value;maj()">
     </div>`).join('');
 }
@@ -348,15 +437,15 @@ function maj(){
   document.getElementById('p-fob').textContent=t.total?eur(t.fob):'';
   document.getElementById('p-fret').textContent=t.fret>0?eur(t.fret):'';
   document.getElementById('p-cf').textContent=t.total?eur(t.total):'';
-  document.getElementById('p-ht').textContent=eur(t.total)+' €';
-  document.getElementById('p-ttc').textContent=eur(t.total)+' €';
+  document.getElementById('p-ht').textContent=eur(t.total)+' '+SYM();
+  document.getElementById('p-ttc').textContent=eur(t.total)+' '+SYM();
   document.getElementById('p-poids').textContent=kg(t.poids);
-  document.getElementById('p-net').textContent=eur(t.total)+' €';
+  document.getElementById('p-net').textContent=eur(t.total)+' '+SYM();
   // conditions de paiement : 50/50 Sage ou texte libre
   const mode=document.getElementById('c-paiemode').value;
   document.getElementById('paie-libre-wrap').style.display=mode==='libre'?'':'none';
   document.getElementById('p-paie-lignes').innerHTML=mode==='5050'
-    ?`<div>${eur(t.total/2)}&nbsp;&nbsp;VIREMENT AVANT EXPEDITION</div><div>${eur(t.total/2)}&nbsp;&nbsp;VIREMENT AVANT ENVOI DE DOCUMENTS</div>`
+    ?`<div>${eur(t.total/2)}&nbsp;&nbsp;${I18N.v5050a[LANG]}</div><div>${eur(t.total/2)}&nbsp;&nbsp;${I18N.v5050b[LANG]}</div>`
     :`<div>${eur(t.total)}&nbsp;&nbsp;${esc(v('c-paie'))}</div>`;
 }
 
@@ -378,7 +467,7 @@ async function generer(){
   const t=totaux();
   fetch(SURL+'/rest/v1/proformas',{method:'POST',
     headers:{apikey:ANON,Authorization:'Bearer '+ANON,'Content-Type':'application/json',Prefer:'return=minimal'},
-    body:JSON.stringify({numero,client:{nom:document.getElementById('c-nom').value,rc:document.getElementById('c-rc').value,lieu:document.getElementById('c-lieu').value,orig:document.getElementById('c-orig').value,prov:document.getElementById('c-prov').value,usine:document.getElementById('c-usine').value,douane:document.getElementById('c-douane').value,paie:document.getElementById('c-paiemode').value},
+    body:JSON.stringify({numero,client:{nom:document.getElementById('c-nom').value,rc:document.getElementById('c-rc').value,lieu:document.getElementById('c-lieu').value,orig:document.getElementById('c-orig').value,prov:document.getElementById('c-prov').value,usine:document.getElementById('c-usine').value,douane:document.getElementById('c-douane').value,paie:document.getElementById('c-paiemode').value,devise:DEV,langue:LANG},
       lignes,incoterm:document.getElementById('c-inco').value,fret:t.fret,
       totaux:{fob:t.fob,total:t.total,poids:t.poids}})}).catch(()=>{});
   ok.textContent='✓ '+numero+' — enregistrée. Impression…';
