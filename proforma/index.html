@@ -103,7 +103,9 @@
     body{background:#fff;}
     .panel,.pagenum{display:none!important;}
     .wrap{padding:0;display:block;}
-    .sheet{box-shadow:none;width:auto;min-height:auto;padding:0;zoom:1!important;}
+    /* 1mm de retrait à droite : sans lui, le bord droit des tableaux (border-collapse)
+       tombe PILE sur la limite de zone imprimable et Chrome le rogne à moitié */
+    .sheet{box-shadow:none;width:auto;min-height:auto;padding:0 1mm 0 0;zoom:1!important;}
     @page{size:A4;margin:7mm 10mm;}
   }
 </style>
