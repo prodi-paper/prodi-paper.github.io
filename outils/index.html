@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prodi · Outils internes</title>
+<meta name="robots" content="noindex, nofollow">
+<style>
+  :root{ --rouge:#FE0000; --noir:#1d1d1f; --gris:#86868b; --ligne:#e0e0e5; --fond:#F5F3EE; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--fond);color:var(--noir);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased;font-size:16px;line-height:1.5}
+  header.app{display:flex;align-items:center;gap:14px;padding:18px 26px;background:#fff;
+    border-bottom:1px solid var(--ligne);position:sticky;top:0;z-index:10}
+  header.app img{height:30px}
+  header.app span{font-weight:700;letter-spacing:-.2px}
+  main{max-width:980px;margin:0 auto;padding:38px 22px 70px}
+  h1{font-size:30px;font-weight:800;letter-spacing:-.5px;margin:0}
+  .sous{color:var(--gris);font-size:15px;margin:8px 0 30px}
+  .grille{display:grid;grid-template-columns:repeat(auto-fill,minmax(285px,1fr));gap:16px}
+  a.outil{display:flex;gap:15px;align-items:flex-start;background:#fff;border-radius:18px;
+    padding:20px;text-decoration:none;color:inherit;box-shadow:0 1px 2px rgba(0,0,0,.05);
+    border:1px solid rgba(0,0,0,.03);transition:transform .14s,box-shadow .14s}
+  a.outil:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(0,0,0,.09)}
+  a.outil:active{transform:scale(.99)}
+  .ico{font-size:30px;line-height:1;flex:none;margin-top:2px}
+  .outil b{font-size:16.5px;letter-spacing:-.2px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .outil p{margin:4px 0 0;font-size:13.5px;color:var(--gris);line-height:1.45}
+  .fleche{margin-left:auto;color:#c7c7cc;font-size:18px;flex:none;align-self:center}
+  .badge{font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
+    color:#b7791f;background:#fdf5e6;border-radius:999px;padding:2.5px 8px}
+  .badge.ext{color:#0369a1;background:#e8f2fa}
+  .sect{font-size:12.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--gris);margin:34px 0 13px}
+  .sect:first-of-type{margin-top:0}
+  footer{text-align:center;color:#b0b0b5;font-size:12.5px;padding:0 20px 40px}
+  @media (min-width:561px){ body{zoom:1.15} }
+  @media (max-width:560px){
+    header.app span{display:none}
+    main{padding:24px 14px 50px}
+    h1{font-size:24px}
+    .grille{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<!-- ── PORTE CODE D'ACCÈS (même mécanique que /catalogue/ : localStorage
+     'prodi_cat_ok' partagé — déjà validé ailleurs = pas de re-saisie.
+     Code = constante PWD ci-dessous (garder SYNCHRO avec catalogue + vitrine). -->
+<script>(function(){try{if(localStorage.getItem('prodi_cat_ok')==='1')document.documentElement.classList.add('cat-unlocked');}catch(e){document.documentElement.classList.add('cat-unlocked');}})();</script>
+<style>
+#cat-gate{position:fixed;inset:0;z-index:100000;background:#F5F3EE;display:flex;align-items:center;justify-content:center;padding:24px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
+html.cat-unlocked #cat-gate{display:none !important;}
+.cat-gate-card{background:#fff;border-radius:20px;box-shadow:0 16px 44px rgba(0,0,0,.16);padding:38px 34px 28px;width:100%;max-width:370px;text-align:center;box-sizing:border-box;}
+.cat-gate-logo{height:32px;margin-bottom:16px;}
+.cat-gate-t{font-size:22px;font-weight:800;color:#1d1d1f;letter-spacing:-.3px;}
+.cat-gate-s{font-size:13.5px;color:#86868b;margin:7px 0 20px;line-height:1.4;}
+#cat-gate-form{display:flex;flex-direction:column;gap:10px;}
+#cat-gate-input{height:46px;border:1.5px solid #e0e0e5;border-radius:12px;padding:0 16px;font-size:16px;outline:none;box-sizing:border-box;text-align:center;}
+#cat-gate-input:focus{border-color:#1d1d1f;}
+#cat-gate-form button{height:46px;border:none;border-radius:12px;background:#1d1d1f;color:#fff;font-size:16px;font-weight:700;cursor:pointer;}
+#cat-gate-form button:active{transform:scale(.98);}
+.cat-gate-err{color:#FE0000;font-size:13px;font-weight:600;min-height:17px;margin-top:11px;}
+.cat-gate-shake{animation:catShake .34s;}
+@keyframes catShake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+</style>
+<div id="cat-gate">
+  <div class="cat-gate-card">
+    <img src="/img/logo.png" alt="Prodiconseil" class="cat-gate-logo">
+    <div class="cat-gate-t">Accès réservé</div>
+    <div class="cat-gate-s">Outils internes Prodiconseil.<br>Entrez le code d'accès pour continuer.</div>
+    <form id="cat-gate-form" autocomplete="off">
+      <input type="password" id="cat-gate-input" placeholder="Code d'accès" autocomplete="off" spellcheck="false">
+      <button type="submit">Confirmer</button>
+    </form>
+    <div class="cat-gate-err" id="cat-gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){
+  var PWD='PRODI2026'; /* ← même code que catalogue/vitrine — changer ensemble */
+  if(document.documentElement.classList.contains('cat-unlocked'))return;
+  function boot(){
+    var g=document.getElementById('cat-gate'),f=document.getElementById('cat-gate-form'),i=document.getElementById('cat-gate-input'),err=document.getElementById('cat-gate-err');
+    if(!f)return;
+    setTimeout(function(){try{i.focus();}catch(e){}},60);
+    f.addEventListener('submit',function(e){
+      e.preventDefault();
+      if(i.value.trim()===PWD){try{localStorage.setItem('prodi_cat_ok','1');}catch(e){}document.documentElement.classList.add('cat-unlocked');}
+      else{err.textContent='Code incorrect';var card=g.querySelector('.cat-gate-card');card.classList.remove('cat-gate-shake');void card.offsetWidth;card.classList.add('cat-gate-shake');i.select();}
+    });
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})();
+</script>
+
+<header class="app">
+  <img src="/img/logo.png" alt="Prodiconseil">
+  <span>Outils internes</span>
+</header>
+
+<main>
+  <h1>Les outils Prodi</h1>
+  <p class="sous">Tous les accessoires maison, au même endroit. Réservé à l'équipe.</p>
+
+  <div class="sect">Commerce</div>
+  <div class="grille">
+    <a class="outil" href="/catalogue/">
+      <span class="ico">📦</span>
+      <span><b>Catalogue stock</b>
+      <p>Tout le stock en ligne : filtres, PRODIX, vue client partageable, offres Excel.</p></span>
+      <span class="fleche">›</span>
+    </a>
+    <a class="outil" href="/proforma/">
+      <span class="ico">🧾</span>
+      <span><b>Proforma express</b>
+      <p>Générateur de proforma PDF — français/anglais, euros/dollars.</p></span>
+      <span class="fleche">›</span>
+    </a>
+    <a class="outil" href="/invitation/">
+      <span class="ico">✉️</span>
+      <span><b>Invitations</b>
+      <p>Courriers d'invitation professionnels, Word et PDF prêts à envoyer.</p></span>
+      <span class="fleche">›</span>
+    </a>
+    <a class="outil" href="/brochure/">
+      <span class="ico">📖</span>
+      <span><b>Brochure 2026</b>
+      <p>La plaquette Prodi en flipbook, 18 pages à feuilleter et partager.</p></span>
+      <span class="fleche">›</span>
+    </a>
+  </div>
+
+  <div class="sect">Achats &amp; logistique</div>
+  <div class="grille">
+    <a class="outil" href="/fret/">
+      <span class="ico">🚢</span>
+      <span><b>Cotations fret <span class="badge">Prototype</span></b>
+      <p>Demandes de prix transport par pays, comparatif des transporteurs, historique.</p></span>
+      <span class="fleche">›</span>
+    </a>
+    <a class="outil" href="/intelligence/">
+      <span class="ico">🗂️</span>
+      <span><b>Intelligence</b>
+      <p>Les offres fournisseurs archivées, consultables et téléchargeables.</p></span>
+      <span class="fleche">›</span>
+    </a>
+  </div>
+
+  <div class="sect">Entrepôt</div>
+  <div class="grille">
+    <a class="outil" href="https://stock.prodi.net" target="_blank" rel="noopener">
+      <span class="ico">📲</span>
+      <span><b>Arrivages <span class="badge ext">stock.prodi.net</span></b>
+      <p>Saisie des arrivages sur iPad, étiquettes, albums photo, assistant IA.</p></span>
+      <span class="fleche">›</span>
+    </a>
+    <a class="outil" href="https://stock.prodi.net/preparation" target="_blank" rel="noopener">
+      <span class="ico">✅</span>
+      <span><b>Préparation <span class="badge ext">stock.prodi.net</span></b>
+      <p>Picking des bons de préparation par vague, coches partagées entre iPads.</p></span>
+      <span class="fleche">›</span>
+    </a>
+  </div>
+</main>
+
+<footer>Prodiconseil — outils internes · prodi.com/outils/</footer>
+
+</body>
+</html>
