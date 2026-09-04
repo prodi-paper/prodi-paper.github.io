@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prodi · Cotations fret — prototype</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header>
+  <div class="h-in">
+    <div class="h-brand"><b>PRODI</b><span>Cotations fret</span></div>
+    <span class="proto-pill">Prototype · aucun envoi réel</span>
+    <nav>
+      <button class="tab on" data-view="nouvelle" onclick="go('nouvelle')">Nouvelle demande</button>
+      <button class="tab" data-view="demandes" onclick="go('demandes')">Demandes</button>
+      <button class="tab" data-view="historique" onclick="go('historique')">Historique pays</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <!-- ══ Vue : nouvelle demande ══ -->
+  <section class="view on" id="view-nouvelle">
+    <div class="page-head">
+      <div>
+        <h1>Nouvelle demande de prix</h1>
+        <p>Choisis le pays, le site écrit le mail et l'envoie à chaque transporteur concerné — individuellement.</p>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <div class="f-row">
+          <label>Pays de destination</label>
+          <div class="pays-pick">
+            <span class="pp-flag" id="pp-flag">🌍</span>
+            <input type="text" id="f-pays" placeholder="Tape un pays…" autocomplete="off"
+                   oninput="filterPays()" onfocus="filterPays()">
+            <div class="pp-list" id="pp-list"></div>
+          </div>
+        </div>
+        <div class="f-grid">
+          <div class="f-row">
+            <label>Tonnage</label>
+            <input type="number" id="f-tonnage" value="22" min="1" oninput="regenMail()">
+          </div>
+          <div class="f-row">
+            <label>Incoterm souhaité</label>
+            <select id="f-incoterm" onchange="regenMail()">
+              <option>CFR</option><option>CIF</option><option>FOB</option><option>EXW</option><option>DAP</option>
+            </select>
+          </div>
+        </div>
+        <div class="f-row">
+          <label>Marchandise</label>
+          <input type="text" id="f-detail" value="Bobines de papier, 1 container 20'" oninput="regenMail()">
+        </div>
+        <div class="f-row">
+          <label>Transporteurs ciblés <span class="mut" style="text-transform:none;font-weight:500" id="f-nb"></span></label>
+          <div class="chips" id="f-cibles"><span class="chips-empty">Choisis d'abord un pays</span></div>
+        </div>
+        <div class="f-row">
+          <label>En copie systématique</label>
+          <div class="chips" id="f-cc"></div>
+        </div>
+        <button class="btn btn-red" id="f-send" onclick="envoyer()" disabled>
+          Envoyer la demande <span id="f-send-n"></span>
+        </button>
+      </div>
+
+      <div class="mail-card">
+        <div class="mail-head">
+          <h3>Aperçu du mail</h3>
+          <button class="btn-ghost btn" onclick="regenMail(true)" title="Autre formulation">↻ Reformuler</button>
+        </div>
+        <div class="mail-meta" id="mail-meta"></div>
+        <div class="mail-body" id="mail-body">Choisis un pays pour générer le mail…</div>
+        <div class="mail-note">✍️ Le texte change à chaque envoi (formulation générée par IA) — chaque transporteur reçoit son propre mail, jamais de destinataires groupés.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ Vue : liste des demandes ══ -->
+  <section class="view" id="view-demandes">
+    <div class="page-head">
+      <div>
+        <h1>Demandes envoyées</h1>
+        <p>Chaque demande regroupe les réponses des transporteurs — clique pour comparer.</p>
+      </div>
+    </div>
+    <div class="dem-list" id="dem-list"></div>
+  </section>
+
+  <!-- ══ Vue : détail d'une demande ══ -->
+  <section class="view" id="view-detail">
+    <button class="back" onclick="go('demandes')">← Toutes les demandes</button>
+    <div id="detail-body"></div>
+  </section>
+
+  <!-- ══ Vue : historique pays ══ -->
+  <section class="view" id="view-historique">
+    <div class="page-head">
+      <div>
+        <h1>Historique par pays</h1>
+        <p>La mémoire des prix : évolution, meilleur transporteur, taux de réponse.</p>
+      </div>
+      <div style="min-width:230px">
+        <div class="pays-pick">
+          <span class="pp-flag" id="hp-flag">🌍</span>
+          <input type="text" id="h-pays" placeholder="Choisir un pays…" autocomplete="off"
+                 oninput="filterPaysH()" onfocus="filterPaysH()">
+          <div class="pp-list" id="hp-list"></div>
+        </div>
+      </div>
+    </div>
+    <div id="histo-body"><div class="card empty">Choisis un pays pour voir son historique de prix.</div></div>
+  </section>
+
+</main>
+
+<footer>Prototype interne Prodi — données fictives, aucun mail n'est envoyé. · L'envoi réel (ethan@prodi.com), la lecture des réponses et l'extraction des prix seront branchés ensuite.</footer>
+
+<div id="toasts"></div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
