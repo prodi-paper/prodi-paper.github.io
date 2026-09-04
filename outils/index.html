@@ -17,7 +17,7 @@
   header.app span{font-weight:700;letter-spacing:-.2px}
   main{max-width:680px;margin:0 auto;padding:40px 22px 70px}
   .btns{display:flex;flex-direction:column;gap:13px}
-  a.outil{display:flex;align-items:center;gap:14px;width:100%;background:#fff;border-radius:16px;
+  a.outil{display:flex;align-items:center;width:100%;background:#fff;border-radius:16px;
     padding:17px 22px;text-decoration:none;color:inherit;font-weight:700;font-size:17px;
     letter-spacing:-.2px;box-shadow:0 1px 2px rgba(0,0,0,.05);border:1px solid rgba(0,0,0,.03);
     transition:transform .14s,box-shadow .14s}
@@ -39,7 +39,7 @@
 <!-- ── PORTE CODE D'ACCÈS (même mécanique que /catalogue/ : localStorage
      'prodi_cat_ok' partagé — déjà validé ailleurs = pas de re-saisie.
      Code = constante PWD ci-dessous (garder SYNCHRO avec catalogue + vitrine). -->
-<script>(function(){try{if(localStorage.getItem('prodi_cat_ok')==='1')document.documentElement.classList.add('cat-unlocked');}catch(e){document.documentElement.classList.add('cat-unlocked');}})();</script>
+<script>(function(){try{if(localStorage.getItem('prodi_cat_ok')==='1'){document.documentElement.classList.add('cat-unlocked');localStorage.setItem('prodi_prof_ok','1');localStorage.setItem('prodi_offres_code','PRODI2026');}}catch(e){document.documentElement.classList.add('cat-unlocked');}})();</script>
 <style>
 #cat-gate{position:fixed;inset:0;z-index:100000;background:#F5F3EE;display:flex;align-items:center;justify-content:center;padding:24px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
 html.cat-unlocked #cat-gate{display:none !important;}
@@ -78,7 +78,7 @@ html.cat-unlocked #cat-gate{display:none !important;}
     setTimeout(function(){try{i.focus();}catch(e){}},60);
     f.addEventListener('submit',function(e){
       e.preventDefault();
-      if(i.value.trim()===PWD){try{localStorage.setItem('prodi_cat_ok','1');}catch(e){}document.documentElement.classList.add('cat-unlocked');}
+      if(i.value.trim()===PWD){try{localStorage.setItem('prodi_cat_ok','1');localStorage.setItem('prodi_prof_ok','1');localStorage.setItem('prodi_offres_code',PWD);}catch(e){}document.documentElement.classList.add('cat-unlocked');}
       else{err.textContent='Code incorrect';var card=g.querySelector('.cat-gate-card');card.classList.remove('cat-gate-shake');void card.offsetWidth;card.classList.add('cat-gate-shake');i.select();}
     });
   }
@@ -93,13 +93,13 @@ html.cat-unlocked #cat-gate{display:none !important;}
 
 <main>
   <div class="btns">
-    <a class="outil" href="/catalogue/"><span class="ico">📦</span>Catalogue stock</a>
-    <a class="outil" href="/proforma/"><span class="ico">🧾</span>Proforma express</a>
-    <a class="outil" href="/invitation/"><span class="ico">✉️</span>Invitations</a>
-    <a class="outil" href="/brochure/"><span class="ico">📖</span>Brochure 2026</a>
-    <a class="outil" href="/fret/"><span class="ico">🚢</span>Cotations fret</a>
-    <a class="outil" href="/intelligence/"><span class="ico">🗂️</span>Intelligence</a>
-    <a class="outil" href="https://prodi-arrivages.vercel.app" target="_blank" rel="noopener"><span class="ico">📲</span>Logistique dépôt</a>
+    <a class="outil" href="/catalogue/">Catalogue</a>
+    <a class="outil" href="/proforma/">Proforma</a>
+    <a class="outil" href="/invitation/">Invitations</a>
+    <a class="outil" href="/brochure/">Brochure</a>
+    <a class="outil" href="/fret/">Cotations fret</a>
+    <a class="outil" href="/intelligence/">Offres</a>
+    <a class="outil" href="https://prodi-arrivages.vercel.app" target="_blank" rel="noopener">Logistique dépôt</a>
   </div>
 </main>
 
