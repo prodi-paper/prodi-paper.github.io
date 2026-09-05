@@ -792,5 +792,22 @@ async function telechargerPDF() {
   (await construireLettrePDF(d)).save(`INVITATION ${d.civilite}${d.nom}.pdf`);
 }
 </script>
+<script>
+// Préremplissage par lien (serveur MCP prodi-mcp) : /invitation/#d=<base64url JSON>
+// {civilite, prenom, nom, societe, passeport, debut, fin} — dates YYYY-MM-DD
+(function(){
+  try{
+    var m=location.hash.match(/[#&]d=([A-Za-z0-9_-]+)/); if(!m) return;
+    var s=atob(m[1].replace(/-/g,'+').replace(/_/g,'/'));
+    var j=JSON.parse(decodeURIComponent(escape(s)));
+    var set=function(id,v){var el=document.getElementById(id); if(el&&v!=null&&v!=='') el.value=v;};
+    if(j.civilite){var c=/^m(me|adame)/i.test(String(j.civilite).trim())?'Mme':'M.';set('civilite',c);}
+    set('prenom',j.prenom); set('nom',j.nom); set('societe',j.societe); set('passeport',j.passeport);
+    var okIso=function(v){return v&&/^\d{4}-\d{2}-\d{2}$/.test(v);};
+    if(okIso(j.debut)) poserDate('date_debut',j.debut);
+    if(okIso(j.fin)) poserDate('date_fin',j.fin);
+  }catch(e){console.warn('prefill',e);}
+})();
+</script>
 </body>
 </html>
