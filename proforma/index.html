@@ -504,7 +504,10 @@ renderForm();maj();fitSheet();
     var j=JSON.parse(decodeURIComponent(escape(s)));
     var set=function(id,v){var el=document.getElementById(id); if(el&&v!=null&&v!=='') el.value=v;};
     set('c-nom',j.nom); set('c-rc',j.rc); set('c-orig',j.orig); set('c-prov',j.prov);
-    set('c-paie',j.paie);
+    set('c-usine',j.usine); set('c-douane',j.douane); set('c-comm',j.comm);
+    set('c-refint',j.refint); set('c-ref',j.refc);
+    if(j.paiemode){var pm=document.getElementById('c-paiemode'); pm.value=j.paiemode; pm.dispatchEvent(new Event('change'));}
+    if(j.paie){var pm2=document.getElementById('c-paiemode'); pm2.value='libre'; pm2.dispatchEvent(new Event('change')); set('c-paie',j.paie);}
     if(j.fret!=null) set('c-fret',j.fret);
     if(j.inco){
       var sel=document.getElementById('c-inco');
