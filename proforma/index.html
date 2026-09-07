@@ -68,6 +68,7 @@
   .sheet{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   .paiebox,.basflex,.totflex,.souscorps,table.tot,.tampon{break-inside:avoid;page-break-inside:avoid;}
   .desig{white-space:pre-wrap;}
+  .desig .desred{color:#e00000;font-weight:700;}
   /* bloc sous le tableau (toujours affiché, comme Sage) : réf usine + ventilation fret | code douanier + tolérance */
   .souscorps{display:flex;gap:26mm;margin:1.5mm 0 0 12mm;font-size:8.8pt;}
   .souscorps div{margin-bottom:.5mm;}
@@ -400,6 +401,8 @@ function renderForm(){
     </div>`).join('');
 }
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// marqueur !!texte!! dans une désignation = texte en ROUGE GRAS sur la feuille
+const desHtml=s=>esc(s).replace(/!!([\s\S]+?)!!/g,'<span class="desred">$1</span>');
 
 function totaux(){
   // Logique Sage (cf. DE42827) : les P.U des lignes sont FRET INCLUS (CFR) —
@@ -426,7 +429,7 @@ function maj(){
   document.getElementById('p-date').textContent=new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'2-digit'});
   document.getElementById('p-num').textContent=numero||'—';
   document.getElementById('p-lignes').innerHTML=lignes.map(l=>`
-    <tr><td class="lref">${esc(l.code)}</td><td class="desig">${esc(l.des)}</td>
+    <tr><td class="lref">${esc(l.code)}</td><td class="desig">${desHtml(l.des)}</td>
     <td class="lqte">${l.qte?kg(l.qte):''}</td><td class="lpu">${l.pu?pu3(l.pu):''}</td>
     <td class="lmt">${l.qte&&l.pu?eur(l.qte*l.pu):''}</td></tr>`).join('');
   // zone de remplissage : rétrécit quand il y a beaucoup de lignes (1 page)
