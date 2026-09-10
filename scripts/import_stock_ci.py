@@ -27,7 +27,7 @@ MGMT_TOKEN = os.environ["SUPABASE_MGMT_TOKEN"]
 # service_role bypasses RLS — required for DELETE/INSERT since RLS hardening (2026-05-01)
 SERVICE_ROLE = os.environ["SUPABASE_SERVICE_ROLE"]
 
-ALL_KEYS = ['quality','color','details','gsm','width','longueur','noyau','weight','price','ref','usine','emplacement','zone','format','image_url','source','reserve_client','reserve_piece','promo','date_arrivee']
+ALL_KEYS = ['quality','color','details','gsm','width','longueur','noyau','weight','pbrut','price','ref','usine','emplacement','zone','format','image_url','source','reserve_client','reserve_piece','promo','date_arrivee']
 
 DRY_RUN = '--dry' in sys.argv
 
@@ -247,6 +247,7 @@ def parse_dov(files):
             'longueur': int(longueur) if longueur else None,
             'noyau': int(num(g(row, 'MANDRIN')) or 0) or None,
             'weight': num(g(row, 'PNET')),
+            'pbrut': num(g(row, 'PBRUT')),
             'price': prix,
             'usine': extract_usine(clean(g(row, 'EMPLACEMENT'))),
             'emplacement': emplacement,
