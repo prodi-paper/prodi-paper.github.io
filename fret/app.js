@@ -118,45 +118,37 @@ function pickDestPort(id) {
 }
 function filterPaysH() { buildPaysList($('h-pays'), $('hp-list'), 'pickPaysH'); }
 
-/* départ : pays */
+/* départ : bouton Dépôt (adresse fixe) OU case libre pays/ville/port */
+const DEPOT_ADRESSE = '80610 SAINT-OUEN (FRANCE)';
+const provTexte = p => p.pays ? `${p.nom}, ${p.pays}` : p.nom;
+function depotChange() {
+  if ($('f-depot').checked) {
+    $('f-prov').value = '';
+    $('pv-flag').textContent = '🌍';
+  }
+  regenMail();
+}
+function provInput() {
+  if ($('f-prov').value.trim()) $('f-depot').checked = false;   // taper = quitter le dépôt
+  filterProv();
+}
 function filterProv() {
   const q = $('f-prov').value.trim().toLowerCase();
-  const hits = PAYS_PROV.filter(p => p.nom.toLowerCase().includes(q));
-  const exact = PAYS_PROV.find(p => p.nom.toLowerCase() === q);
+  const hits = PROV_SUGG.filter(p => provTexte(p).toLowerCase().includes(q));
+  const exact = PROV_SUGG.find(p => p.nom.toLowerCase() === q || provTexte(p).toLowerCase() === q);
   $('pv-flag').textContent = exact ? exact.flag : '🌍';
   $('pv-list').innerHTML = hits.map(p =>
-    `<button class="pp-item" onmousedown="pickProv('${p.code}')"><span class="f">${p.flag}</span> ${p.nom}</button>`
+    `<button class="pp-item" onmousedown="pickProv('${p.code}')"><span class="f">${p.flag}</span> ${provTexte(p)}</button>`
   ).join('') || LIBRE;
   $('pv-list').classList.add('open');
   regenMail();
 }
 function pickProv(code) {
-  const p = PAYS_PROV.find(x => x.code === code);
-  $('f-prov').value = p.nom;
+  const p = PROV_SUGG.find(x => x.code === code);
+  $('f-prov').value = provTexte(p);
   $('pv-flag').textContent = p.flag;
+  $('f-depot').checked = false;
   $('pv-list').classList.remove('open');
-  regenMail();
-}
-/* départ : port */
-function filterProvPort() {
-  const q = $('f-prov-port').value.trim().toLowerCase();
-  const hits = PORTS_PROV.filter(p => p.nom.toLowerCase().includes(q));
-  $('pvp-list').innerHTML = hits.map(p =>
-    `<button class="pp-item" onmousedown="pickProvPort('${p.code}')">
-       <span class="f">${p.flag}</span> ${p.nom}
-       <span class="z">${p.pays}</span>
-     </button>`).join('') || LIBRE;
-  $('pvp-list').classList.add('open');
-  regenMail();
-}
-function pickProvPort(code) {
-  const p = PORTS_PROV.find(x => x.code === code);
-  $('f-prov-port').value = p.nom;
-  if (!$('f-prov').value.trim()) {
-    $('f-prov').value = p.pays;
-    $('pv-flag').textContent = p.flag;
-  }
-  $('pvp-list').classList.remove('open');
   regenMail();
 }
 document.addEventListener('click', e => {
@@ -264,7 +256,7 @@ function genMail() {
   // « Port, Pays » si les deux cases sont remplies, sinon ce qu'il y a
   const destTxt = [$('f-pays-port').value.trim(), $('f-pays').value.trim()].filter(Boolean).join(', ');
   if (!destTxt) return null;
-  const prov = [$('f-prov-port').value.trim(), $('f-prov').value.trim()].filter(Boolean).join(', ');
+  const prov = $('f-depot').checked ? DEPOT_ADRESSE : $('f-prov').value.trim();
   const client = $('f-client').value.trim();
   const num = $('f-num').value.trim();
   const nb = Math.max(1, +$('f-nb-cont').value || 1);
@@ -355,7 +347,7 @@ async function confirmerEnvoi() {
       destination: [$('f-pays-port').value.trim(), $('f-pays').value.trim()].filter(Boolean).join(', '),
       client: $('f-client').value.trim(),
       numero: $('f-num').value.trim(),
-      provenance: [$('f-prov-port').value.trim(), $('f-prov').value.trim()].filter(Boolean).join(', '),
+      provenance: $('f-depot').checked ? DEPOT_ADRESSE : $('f-prov').value.trim(),
       nbCont: Math.max(1, +$('f-nb-cont').value || 1),
       taille: tailleVal(),
       marchandise: marchandiseVal(),
