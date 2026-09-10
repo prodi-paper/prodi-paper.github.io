@@ -8656,9 +8656,15 @@ async function exportAlbumPdf(){
   let host=null;
   try{
     await _h2pLoad();
+    // ⚠️ html2canvas dessine l'élément AVEC ses offsets de layout : un conteneur
+    // à left:-9999px sort du canvas → PDF BLANC (vécu 10/09). Le conteneur doit
+    // être VISIBLE à (0,0) → overlay plein écran le temps de la génération
+    // (l'utilisateur voit l'album défiler, ça fait feedback de progression).
     host=document.createElement('div');
-    host.style.cssText='position:absolute;left:-9999px;top:0;width:210mm;background:#fff';
-    host.innerHTML='<style>'+_albumCss()+'</style>'+_albumPages();
+    host.style.cssText='position:fixed;inset:0;z-index:99998;background:#f5f5f7;overflow:auto;padding:14px 0 40px';
+    host.innerHTML='<style>'+_albumCss()+'</style>'
+      +'<div style="position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:99999;background:#1d1d1f;color:#fff;font-weight:700;font-size:14px;padding:10px 18px;border-radius:999px;box-shadow:0 6px 20px rgba(0,0,0,.25)">Génération du PDF en cours…</div>'
+      +'<div id="alb-inner" style="width:210mm;margin:0 auto;background:#fff;box-shadow:0 4px 22px rgba(0,0,0,.13)">'+_albumPages()+'</div>';
     document.body.appendChild(host);
     await new Promise(res=>{
       const im=[].slice.call(host.querySelectorAll('img'));
@@ -8673,7 +8679,7 @@ async function exportAlbumPdf(){
       html2canvas:{scale:2,useCORS:true,logging:false,backgroundColor:'#fff'},
       jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
       pagebreak:{mode:['css']}
-    }).from(host).save();
+    }).from(host.querySelector('#alb-inner')).save();
     host.remove();host=null;
     window.prodiTrack?.('album_pdf',{n:cart.length});
     toast('Album PDF téléchargé');
