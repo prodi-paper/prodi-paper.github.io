@@ -3875,13 +3875,13 @@ async function _fetchAndRender(token){
   else if(s==='price_asc'||s==='prix_asc')p.set('order','format.asc.nullslast,price.asc.nullslast,id.asc');
   else if(s==='price_desc'||s==='prix_desc')p.set('order','format.asc.nullslast,price.desc.nullslast,id.asc');
   else if(s==='ref_asc'||s==='ref_desc'){
-    // "Arrivage" = vraies bobines en stock (refs numériques Photo_NNNNNN avec photo
-    // réelle). On exclut PM/FAB/DU + on force image_url not null pour atterrir
-    // direct sur le stock physique sans noise "photos/fabrication sur demande".
+    // "Arrivage" = vraies bobines en stock (refs numériques Photo_NNNNNN).
+    // On exclut PM/FAB/DU. 10/09 (Ethan) : les SANS PHOTO restent visibles —
+    // le forçage image_url not null cachait ~350 réfs/179 t du tri par défaut
+    // (le filtre Photo avec/sans reste dispo dans Filtres avancés).
     p.append('ref','not.ilike.Photo_PM%');
     p.append('ref','not.ilike.Photo_FAB%');
     p.append('ref','not.ilike.Photo_DU%');
-    if(_photoFilter!=='with')p.append('image_url','not.is.null');
     p.set('order',s==='ref_asc'
       ? 'format.asc.nullslast,ref.asc.nullslast,id.asc'
       : 'format.asc.nullslast,ref.desc.nullslast,id.asc');
