@@ -94,7 +94,9 @@ function pickDest(code) {
 /* destination : port */
 function filterPaysPort() {
   const q = $('f-pays-port').value.trim().toLowerCase();
-  const hits = DEST_PORTS.filter(p => p.nom.toLowerCase().includes(q)).slice(0, 12);
+  // pays déjà choisi → ne proposer QUE ses ports ; sinon tous
+  const base = selPays ? DEST_PORTS.filter(p => p.code === selPays) : DEST_PORTS;
+  const hits = base.filter(p => p.nom.toLowerCase().includes(q)).slice(0, 12);
   $('ppp-list').innerHTML = hits.map(p =>
     `<button class="pp-item" onmousedown="pickDestPort('${p.id}')">
        <span class="f">${p.flag}</span> ${p.nom}
