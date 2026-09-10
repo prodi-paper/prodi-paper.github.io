@@ -8569,17 +8569,22 @@ function _buildSharedInfo(list){
 
 
 // ─── ALBUM PHOTO PDF (10/09, Ethan) : bouton « Album PDF » du tiroir Panier —
-// génère l'album de la sélection au format validé : A4, 2 colonnes, 4 cartes/
-// page, photo plein cadre 91 mm, bandeau BOBINE|FORMAT — QUALITÉ + réf grise,
-// GRAMMAGE|LAIZE (ou DIMENSIONS) puis COULEUR|POIDS NET. Sans prix ni usine.
-// Logo Prodiconseil répété en haut de chaque page (thead = print header group).
-// Ouvre un onglet qui lance l'impression une fois les photos chargées
-// (→ « Enregistrer au format PDF » dans le dialogue).
-function exportAlbumPdf(){
-  if(!cart.length){toast('Liste vide');return;}
+// TÉLÉCHARGE directement l'album de la sélection (html2pdf.js lazy-loadé
+// depuis jsdelivr, SRI pinné, CSP déjà ouverte à cdn.jsdelivr.net).
+// Format validé sur maquette : A4 portrait, 4 cartes/page (2×2), photo plein
+// cadre 91 mm, bandeau BOBINE|FORMAT — QUALITÉ + réf grise, GRAMMAGE|LAIZE
+// (ou DIMENSIONS) puis COULEUR|POIDS NET — sans prix/usine/détails
+// (envoyable client). Logo Prodiconseil en haut de CHAQUE page (pagination
+// manuelle : 1 div .alb-page par page PDF, page-break-after css).
+// ⚠️ CANVAS : toutes les photos passent par images.weserv.nl (CORS *) avec
+// crossorigin=anonymous — un repli direct stock.prodi.net TEINTERAIT le
+// canvas et casserait le save() → repli photo = /img/no-photo.png (même
+// origine) UNIQUEMENT. Échec CDN/génération → repli fenêtre d'impression
+// (_albumImpression, ancien flux).
+function _albumCards(){
   const NOPH=location.origin+'/img/no-photo.png';
-  const cell=(c,v)=>`<div class="cell"><div class="cap">${c}</div><div class="val">${v}</div></div>`;
-  const cards=cart.map(p=>{
+  const cell=(c,v)=>`<div class="alb-cell"><div class="alb-cap">${c}</div><div class="alb-val">${v}</div></div>`;
+  return cart.map(p=>{
     const f=all.find(x=>x.id===+p.id)||p;
     const isF=_estFormat(f);
     const lab=String(QUALITE_LABELS[f.qualite]||f.qualite||'').toUpperCase();
@@ -8591,47 +8596,106 @@ function exportAlbumPdf(){
     let coul=String(f.couleur||p.couleur||'—');
     coul=coul.charAt(0).toUpperCase()+coul.slice(1).toLowerCase();
     const orig=f.image_url?safeUrl(f.image_url):'';
-    const imgHtml=orig
-      ?`<img src="${imgThumb(orig,900)}" onerror="if(!this._o){this._o=1;this.src='${orig}';}else{this.src='${esc(NOPH)}';}">`
-      :`<img src="${esc(NOPH)}">`;
-    return `<div class="card"><div class="ph">${imgHtml}</div>`
-      +`<div class="titre"><span>${isF?'FORMAT':'BOBINE'} — ${esc(lab)}</span><span class="tref">${esc(ref)}</span></div>`
-      +`<div class="grid">${cell('GRAMMAGE',f.grammage?esc(f.grammage)+' g/m²':'—')
+    const src=orig?imgThumb(orig,900):NOPH;
+    return `<div class="alb-card"><div class="alb-ph"><img crossorigin="anonymous" src="${src}" onerror="this.onerror=null;this.src='${esc(NOPH)}'"></div>`
+      +`<div class="alb-titre"><span>${isF?'FORMAT':'BOBINE'} — ${esc(lab)}</span><span class="alb-tref">${esc(ref)}</span></div>`
+      +`<div class="alb-grid2">${cell('GRAMMAGE',f.grammage?esc(f.grammage)+' g/m²':'—')
         +cell(isF?'DIMENSIONS':'LAIZE',esc(dim))
         +cell('COULEUR',esc(coul))
         +cell('POIDS NET',kg?Math.round(kg).toLocaleString('fr-FR')+' kgs':'—')}</div></div>`;
-  }).join('');
+  });
+}
+function _albumCss(){
+  return `.alb-page{width:210mm;height:296mm;padding:9mm;box-sizing:border-box;background:#fff;overflow:hidden;page-break-after:always;font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;color:#1d1d1f}
+.alb-page:last-child{page-break-after:auto}
+.alb-logo{height:9mm;display:block;margin-bottom:4mm}
+.alb-grid{display:grid;grid-template-columns:1fr 1fr;gap:5mm}
+.alb-card{border:1.4px solid #111;display:flex;flex-direction:column;background:#fff}
+.alb-ph{height:91mm;background:#f0f0f4;overflow:hidden;border-bottom:1.4px solid #111}
+.alb-ph img{width:100%;height:100%;object-fit:cover;display:block}
+.alb-titre{display:flex;justify-content:space-between;align-items:baseline;gap:3mm;font-weight:800;font-size:12.5px;padding:2.2mm 2.6mm;border-bottom:1.1px solid #111;letter-spacing:.2px}
+.alb-tref{color:#6e6e73;font-size:10.5px;font-weight:700;letter-spacing:.4px}
+.alb-grid2{display:grid;grid-template-columns:1fr 1fr}
+.alb-cell{padding:1.5mm 2.6mm 1.7mm;border-right:1.1px solid #111;border-bottom:1.1px solid #111}
+.alb-cell:nth-child(2n){border-right:none}
+.alb-cell:nth-last-child(-n+2){border-bottom:none}
+.alb-cap{font-size:7.6px;letter-spacing:.6px;color:#6e6e73;font-weight:600}
+.alb-val{font-size:12.5px;font-weight:800;margin-top:.4mm}`;
+}
+function _albumPages(){
+  const cards=_albumCards(),pages=[];
+  for(let i=0;i<cards.length;i+=4)
+    pages.push(`<div class="alb-page"><img class="alb-logo" src="${esc(location.origin+'/img/logo.png')}"><div class="alb-grid">${cards.slice(i,i+4).join('')}</div></div>`);
+  return pages.join('');
+}
+let _h2pP=null;
+function _h2pLoad(){
+  if(window.html2pdf)return Promise.resolve();
+  if(_h2pP)return _h2pP;
+  _h2pP=new Promise((res,rej)=>{
+    const s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.3/dist/html2pdf.bundle.min.js';
+    s.integrity='sha384-1Rq385dzyHeeImKREXc2dTf1lhBKJHL8YR6phOUkikTCsUwGgDyWRoGv8KVG2+qY';
+    s.crossOrigin='anonymous';
+    s.onload=()=>res();
+    s.onerror=()=>{_h2pP=null;rej(new Error('cdn html2pdf'));};
+    document.head.appendChild(s);
+  });
+  return _h2pP;
+}
+async function exportAlbumPdf(){
+  if(!cart.length){toast('Liste vide');return;}
+  const btn=document.getElementById('btn-pdf-album');
+  const lbl=btn?btn.querySelector('span'):null;
+  const old=lbl?lbl.textContent:'';
+  if(btn)btn.disabled=true;
+  if(lbl)lbl.textContent='Génération…';
+  let host=null;
+  try{
+    await _h2pLoad();
+    host=document.createElement('div');
+    host.style.cssText='position:absolute;left:-9999px;top:0;width:210mm;background:#fff';
+    host.innerHTML='<style>'+_albumCss()+'</style>'+_albumPages();
+    document.body.appendChild(host);
+    await new Promise(res=>{
+      const im=[].slice.call(host.querySelectorAll('img'));
+      let n=im.length;if(!n)return res();
+      const t=setTimeout(res,12000);
+      im.forEach(i=>{const one=()=>{if(--n<=0){clearTimeout(t);res();}};
+        if(i.complete)one();else{i.onload=one;i.onerror=one;}});
+    });
+    await html2pdf().set({
+      margin:0,filename:'Album photo Prodiconseil.pdf',
+      image:{type:'jpeg',quality:.86},
+      html2canvas:{scale:2,useCORS:true,logging:false,backgroundColor:'#fff'},
+      jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+      pagebreak:{mode:['css']}
+    }).from(host).save();
+    host.remove();host=null;
+    window.prodiTrack?.('album_pdf',{n:cart.length});
+    toast('Album PDF téléchargé');
+  }catch(e){
+    if(host)host.remove();
+    _albumImpression(); // repli : le flux impression marche toujours
+  }finally{
+    if(btn)btn.disabled=false;
+    if(lbl)lbl.textContent=old;
+  }
+}
+// Repli : onglet + window.print() (flux d'origine, → « Enregistrer en PDF »).
+function _albumImpression(){
   const html=`<!doctype html><html><head><meta charset="utf-8"><title>Album photo Prodiconseil</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;800&display=swap" rel="stylesheet">
-<style>
-@page{size:A4;margin:9mm}
-body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;margin:0;color:#1d1d1f}
-table.doc{width:100%;border-collapse:collapse}table.doc td{padding:0}
-thead{display:table-header-group}.hd{padding:0 0 4mm}.plogo{height:9mm;display:block}
-.wrap{display:grid;grid-template-columns:1fr 1fr;gap:5mm}
-.card{border:1.4px solid #111;break-inside:avoid;display:flex;flex-direction:column}
-.ph{height:91mm;background:#f0f0f4;overflow:hidden;border-bottom:1.4px solid #111}
-.ph img{width:100%;height:100%;object-fit:cover;display:block}
-.titre{display:flex;justify-content:space-between;align-items:baseline;gap:3mm;font-weight:800;font-size:12.5px;padding:2.2mm 2.6mm;border-bottom:1.1px solid #111;letter-spacing:.2px}
-.tref{color:#6e6e73;font-size:10.5px;font-weight:700;letter-spacing:.4px}
-.grid{display:grid;grid-template-columns:1fr 1fr}
-.cell{padding:1.5mm 2.6mm 1.7mm;border-right:1.1px solid #111;border-bottom:1.1px solid #111}
-.cell:nth-child(2n){border-right:none}
-.cell:nth-last-child(-n+2){border-bottom:none}
-.cap{font-size:7.6px;letter-spacing:.6px;color:#6e6e73;font-weight:600}
-.val{font-size:12.5px;font-weight:800;margin-top:.4mm}
-@media screen{body{background:#f5f5f7;padding:10mm}table.doc{max-width:200mm;margin:0 auto;display:block}}
-</style></head><body>
-<table class="doc"><thead><tr><td class="hd"><img class="plogo" src="${esc(location.origin+'/img/logo.png')}"></td></tr></thead>
-<tbody><tr><td><div class="wrap">${cards}</div></td></tr></tbody></table>
+<style>@page{size:A4;margin:0}body{margin:0}${_albumCss()}
+@media screen{body{background:#f5f5f7}.alb-page{margin:0 auto 10mm;box-shadow:0 2px 12px rgba(0,0,0,.12)}}</style></head>
+<body>${_albumPages()}
 <script>(function(){var im=[].slice.call(document.images),n=im.length;
 function go(){setTimeout(function(){window.print()},350)}
 if(!n)return go();var t=setTimeout(go,9000);
 im.forEach(function(i){function one(){if(--n<=0){clearTimeout(t);go()}}
-if(i.complete)one();else{i.onload=one;i.onerror=one}})})()<\/script>
-</body></html>`;
+if(i.complete)one();else{i.onload=one;i.onerror=one}})})()<\/script></body></html>`;
   const w=window.open('','_blank');
   if(!w){toast('Autorisez les fenêtres pop-up pour générer le PDF');return;}
   w.document.open();w.document.write(html);w.document.close();
-  window.prodiTrack?.('album_pdf',{n:cart.length});
+  window.prodiTrack?.('album_pdf',{n:cart.length,via:'print'});
 }
