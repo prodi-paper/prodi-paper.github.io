@@ -59,16 +59,19 @@ main{max-width:1180px;margin:0 auto;padding:30px 20px 70px}
 .f-row{margin-bottom:18px}
 .f-row label{display:block;font-weight:700;font-size:15px;color:var(--encre);margin-bottom:7px}
 .f-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.f-grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px}
+.f-grid4 .pays-pick input{padding-left:44px;padding-right:8px}
+.f-grid4 input::placeholder{font-size:14px}
 input[type=text],input[type=email],input[type=number],select,textarea{width:100%;border:1px solid var(--ligne);border-radius:var(--radius-sm);
   padding:18px 16px;background:#fff;outline:none;transition:border-color .15s;font-size:18px}
 input:focus,select:focus,textarea:focus{border-color:var(--rouge)}
-input::placeholder{color:var(--gris2)}
+input::placeholder{color:var(--encre);font-weight:700}
 
 .stepper{display:flex;align-items:stretch;border:1px solid var(--ligne);border-radius:var(--radius-sm);background:#fff;overflow:hidden}
 .stepper:focus-within{border-color:var(--rouge)}
-.stepper input{flex:none;width:72px;min-width:0;border:none !important;border-radius:0;text-align:left;-moz-appearance:textfield;padding-right:0;font-size:19px}
+.stepper input{flex:none;width:64px;min-width:0;border:none !important;border-radius:0;text-align:left;-moz-appearance:textfield;padding-right:0;font-size:22px;font-weight:700}
 .stepper input::-webkit-outer-spin-button,.stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
-.st-suffix{flex:1;display:flex;align-items:center;color:var(--gris);font-size:19px;user-select:none}
+.st-suffix{flex:1;display:flex;align-items:center;color:var(--encre);font-size:22px;font-weight:700;user-select:none}
 .st-btn{width:25%;font-size:26px;font-weight:600;color:var(--encre);border-left:1px solid var(--ligne);transition:.15s;
   display:flex;align-items:center;justify-content:center}
 .st-btn:hover{background:var(--fond)}
@@ -224,6 +227,7 @@ footer{max-width:1180px;margin:0 auto;padding:0 20px 40px;color:var(--gris2);fon
 
 @media(max-width:860px){
   .f-grid{grid-template-columns:1fr}
+  .f-grid4{grid-template-columns:1fr 1fr}
   .h-in{padding:10px 14px;gap:10px;flex-wrap:wrap}
   .h-sub{display:none}
   nav{margin-left:auto}

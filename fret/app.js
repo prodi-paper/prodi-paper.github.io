@@ -59,54 +59,104 @@ function buildPaysList(input, listEl, onPick) {
      </button>`).join('') || '<div class="pp-item mut">Aucun pays</div>';
   listEl.classList.add('open');
 }
-/* Destination LIBRE : pays ou port, le mail reprend le texte tel quel.
-   Suggestions = tous les pays + tous les ports (DEST_SUGG) ; un port choisi
-   insère le PORT, un pays choisi insère le PAYS. Hors liste : 🌍 + texte brut. */
-const destTexte = s => s.id.startsWith('c_') ? s.nom : `${s.nom}, ${s.sub}`;   // port → « Port, Pays »
+/* ── 4 cases : PAYS/PORT départ + PAYS/PORT destination, texte libre partout.
+   Choisir un port remplit aussi la case pays si elle est vide. ── */
+const LIBRE = '<div class="pp-item mut">Texte libre — partira tel quel</div>';
+function majEnvoiActif() {
+  $('f-send').disabled = !($('f-pays').value.trim() || $('f-pays-port').value.trim());
+}
+
+/* destination : pays */
 function filterPays() {
   const q = $('f-pays').value.trim().toLowerCase();
-  const hits = DEST_SUGG.filter(s => destTexte(s).toLowerCase().includes(q)).slice(0, 12);
-  $('pp-list').innerHTML = hits.map(s =>
-    `<button class="pp-item" onmousedown="pickDest('${s.id}')">
-       <span class="f">${s.flag}</span> ${s.nom}
-       <span class="z">${s.sub}</span>
-     </button>`).join('') || '<div class="pp-item mut">Aucune suggestion — le texte partira tel quel</div>';
-  $('pp-list').classList.add('open');
-  const exact = DEST_SUGG.find(s => s.nom.toLowerCase() === q || destTexte(s).toLowerCase() === q);
+  const hits = PAYS.filter(p => p.nom.toLowerCase().includes(q));
+  const exact = PAYS.find(p => p.nom.toLowerCase() === q);
   selPays = exact ? exact.code : null;
   $('pp-flag').textContent = exact ? exact.flag : '🌍';
-  $('f-send').disabled = !q;
+  $('pp-list').innerHTML = hits.map(p =>
+    `<button class="pp-item" onmousedown="pickDest('${p.code}')">
+       <span class="f">${p.flag}</span> ${p.nom}
+       <span class="z">${ZONES[p.zone]}</span>
+     </button>`).join('') || LIBRE;
+  $('pp-list').classList.add('open');
+  majEnvoiActif();
   regenMail();
 }
-function pickDest(id) {
-  const s = DEST_SUGG.find(x => x.id === id);
-  $('f-pays').value = destTexte(s);
-  selPays = s.code;
-  $('pp-flag').textContent = s.flag;
+function pickDest(code) {
+  const p = paysByCode(code);
+  $('f-pays').value = p.nom;
+  selPays = code;
+  $('pp-flag').textContent = p.flag;
   $('pp-list').classList.remove('open');
-  $('f-send').disabled = false;
+  majEnvoiActif();
+  regenMail();
+}
+/* destination : port */
+function filterPaysPort() {
+  const q = $('f-pays-port').value.trim().toLowerCase();
+  const hits = DEST_PORTS.filter(p => p.nom.toLowerCase().includes(q)).slice(0, 12);
+  $('ppp-list').innerHTML = hits.map(p =>
+    `<button class="pp-item" onmousedown="pickDestPort('${p.id}')">
+       <span class="f">${p.flag}</span> ${p.nom}
+       <span class="z">${p.pays}</span>
+     </button>`).join('') || LIBRE;
+  $('ppp-list').classList.add('open');
+  majEnvoiActif();
+  regenMail();
+}
+function pickDestPort(id) {
+  const s = DEST_PORTS.find(x => x.id === id);
+  $('f-pays-port').value = s.nom;
+  if (!$('f-pays').value.trim()) {
+    $('f-pays').value = s.pays;
+    selPays = s.code;
+    $('pp-flag').textContent = s.flag;
+  }
+  $('ppp-list').classList.remove('open');
+  majEnvoiActif();
   regenMail();
 }
 function filterPaysH() { buildPaysList($('h-pays'), $('hp-list'), 'pickPaysH'); }
 
-/* picker départ : pays OU port (inséré « Port, Pays »), texte libre sinon */
-const provTexte = p => p.pays ? `${p.nom}, ${p.pays}` : p.nom;
+/* départ : pays */
 function filterProv() {
   const q = $('f-prov').value.trim().toLowerCase();
-  const hits = PROV_SUGG.filter(p => provTexte(p).toLowerCase().includes(q));
-  const exact = PROV_SUGG.find(p => p.nom.toLowerCase() === q || provTexte(p).toLowerCase() === q);
+  const hits = PAYS_PROV.filter(p => p.nom.toLowerCase().includes(q));
+  const exact = PAYS_PROV.find(p => p.nom.toLowerCase() === q);
   $('pv-flag').textContent = exact ? exact.flag : '🌍';
   $('pv-list').innerHTML = hits.map(p =>
-    `<button class="pp-item" onmousedown="pickProv('${p.code}')"><span class="f">${p.flag}</span> ${provTexte(p)}</button>`
-  ).join('') || '<div class="pp-item mut">Aucune suggestion — le texte partira tel quel</div>';
+    `<button class="pp-item" onmousedown="pickProv('${p.code}')"><span class="f">${p.flag}</span> ${p.nom}</button>`
+  ).join('') || LIBRE;
   $('pv-list').classList.add('open');
   regenMail();
 }
 function pickProv(code) {
-  const p = PROV_SUGG.find(x => x.code === code);
-  $('f-prov').value = provTexte(p);
+  const p = PAYS_PROV.find(x => x.code === code);
+  $('f-prov').value = p.nom;
   $('pv-flag').textContent = p.flag;
   $('pv-list').classList.remove('open');
+  regenMail();
+}
+/* départ : port */
+function filterProvPort() {
+  const q = $('f-prov-port').value.trim().toLowerCase();
+  const hits = PORTS_PROV.filter(p => p.nom.toLowerCase().includes(q));
+  $('pvp-list').innerHTML = hits.map(p =>
+    `<button class="pp-item" onmousedown="pickProvPort('${p.code}')">
+       <span class="f">${p.flag}</span> ${p.nom}
+       <span class="z">${p.pays}</span>
+     </button>`).join('') || LIBRE;
+  $('pvp-list').classList.add('open');
+  regenMail();
+}
+function pickProvPort(code) {
+  const p = PORTS_PROV.find(x => x.code === code);
+  $('f-prov-port').value = p.nom;
+  if (!$('f-prov').value.trim()) {
+    $('f-prov').value = p.pays;
+    $('pv-flag').textContent = p.flag;
+  }
+  $('pvp-list').classList.remove('open');
   regenMail();
 }
 document.addEventListener('click', e => {
@@ -209,10 +259,11 @@ function incoChange(cb) {
 /* ── génération du mail (variantes aléatoires — en prod : API Claude) ── */
 const pick = arr => arr[Math.floor(Math.random() * arr.length)];
 function genMail() {
-  const destTxt = $('f-pays').value.trim();
+  // « Port, Pays » si les deux cases sont remplies, sinon ce qu'il y a
+  const destTxt = [$('f-pays-port').value.trim(), $('f-pays').value.trim()].filter(Boolean).join(', ');
   if (!destTxt) return null;
   const client = $('f-client').value.trim();
-  const prov = $('f-prov').value.trim();   // vide = on ne parle que de la destination
+  const prov = [$('f-prov-port').value.trim(), $('f-prov').value.trim()].filter(Boolean).join(', ');
   const nb = Math.max(1, +$('f-nb-cont').value || 1);
   const taille = tailleVal();
   const march = marchandiseVal().toLowerCase().replace(' + ', ' et ');
@@ -268,7 +319,7 @@ function renderMail() {
   $('mail-zone').value = mailCustom ?? m.texte;
 }
 function ouvrirMail() {
-  if (!$('f-pays').value.trim()) return;
+  if ($('f-send').disabled) return;
   renderMail();
   $('mail-fond').classList.add('ouvert');
   $('mail-zone').scrollTop = 0;
@@ -302,10 +353,10 @@ async function confirmerEnvoi() {
     const ref = 'FR-' + nextRef++;
     demandes.push({
       ref, pays: selPays,
-      destination: $('f-pays').value.trim(),
+      destination: [$('f-pays-port').value.trim(), $('f-pays').value.trim()].filter(Boolean).join(', '),
       client: $('f-client').value.trim(),
       numero: $('f-num').value.trim(),
-      provenance: $('f-prov').value.trim(),
+      provenance: [$('f-prov-port').value.trim(), $('f-prov').value.trim()].filter(Boolean).join(', '),
       nbCont: Math.max(1, +$('f-nb-cont').value || 1),
       taille: tailleVal(),
       marchandise: marchandiseVal(),

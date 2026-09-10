@@ -93,12 +93,11 @@ const PORTS_DEST_EXTRA = [
   { code: 'EG', port: 'Damiette' },
   { code: 'IN', port: 'Mundra' },
 ];
-const DEST_SUGG = [
-  ...PAYS.map(p => ({ id: 'c_' + p.code, code: p.code, nom: p.nom, flag: p.flag, sub: ZONES[p.zone] })),
-  ...PAYS.map(p => ({ id: 'p_' + p.code, code: p.code, nom: p.port, flag: p.flag, sub: p.nom })),
+const DEST_PORTS = [
+  ...PAYS.map(p => ({ id: 'p_' + p.code, code: p.code, nom: p.port, flag: p.flag, pays: p.nom })),
   ...PORTS_DEST_EXTRA.map((e, i) => {
     const p = PAYS.find(x => x.code === e.code);
-    return { id: 'x_' + i, code: e.code, nom: e.port, flag: p.flag, sub: p.nom };
+    return { id: 'x_' + i, code: e.code, nom: e.port, flag: p.flag, pays: p.nom };
   }),
 ];
 
