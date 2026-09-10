@@ -177,6 +177,7 @@ function renderDest() {
 }
 function ajouterEmail(cible) {
   ajoutCible = cible;
+  $('cc-titre').textContent = cible === 'to' ? 'Ajouter un destinataire' : 'Ajouter un email en copie';
   $('cc-err').classList.remove('on');
   $('cc-input').value = '';
   $('cc-fond').classList.add('ouvert');

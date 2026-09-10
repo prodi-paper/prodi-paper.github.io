@@ -47,9 +47,6 @@ main{max-width:1180px;margin:0 auto;padding:30px 20px 70px}
 .actions{display:flex;gap:14px;margin-top:20px}
 .actions button,.mp-actions button{border-radius:10px;font-size:17px;font-weight:600;padding:15px;
   display:flex;align-items:center;justify-content:center;gap:10px}
-.btn-modif{flex:1;background:#fff;border:1.5px solid var(--bleu);color:var(--bleu)}
-.btn-modif:hover{background:#eff4ff}
-.btn-modif[disabled]{opacity:.4;cursor:not-allowed}
 .btn-envoi{flex:3;background:var(--rouge);border:1px solid var(--rouge);color:#fff}
 .btn-envoi:hover{background:var(--rouge-d)}
 .btn-envoi:active{transform:translateY(1px)}
