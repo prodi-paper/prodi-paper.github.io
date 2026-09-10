@@ -258,46 +258,46 @@ function incoChange(cb) {
 
 /* ── génération du mail (variantes aléatoires — en prod : API Claude) ── */
 const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+/* Gabarit UNIQUE (base : modèle maison Prodi), pensé pour être transféré
+   tel quel par Zouhir aux transporteurs. Les lignes vides disparaissent. */
 function genMail() {
   // « Port, Pays » si les deux cases sont remplies, sinon ce qu'il y a
   const destTxt = [$('f-pays-port').value.trim(), $('f-pays').value.trim()].filter(Boolean).join(', ');
   if (!destTxt) return null;
-  const client = $('f-client').value.trim();
   const prov = [$('f-prov-port').value.trim(), $('f-prov').value.trim()].filter(Boolean).join(', ');
+  const client = $('f-client').value.trim();
+  const num = $('f-num').value.trim();
   const nb = Math.max(1, +$('f-nb-cont').value || 1);
   const taille = tailleVal();
   const march = marchandiseVal().toLowerCase().replace(' + ', ' et ');
   const inco = incotermVal();
+  const poids = taille === '40' ? 26 : 25;   // tonnage max papier approximatif
   const ref = 'FR-' + nextRef;
-  const cargo = `${nb} container${nb > 1 ? 's' : ''} ${taille}' de ${march}`;
 
-  const objet = pick([
-    `Demande de cotation — ${destTxt} — Réf ${ref}`,
-    `Cotation transport ${destTxt} — Réf ${ref}`,
-    `Prix fret vers ${destTxt} — Réf ${ref}`,
-  ]);
-  const trajet = prov ? `${prov} → ${destTxt}` : `vers ${destTxt}`;
-  const intro = pick([
-    `Merci de nous transmettre le coût d'un transport ${trajet}.`,
-    `Pourriez-vous nous transmettre le coût d'un transport ${trajet} ?`,
-    `Nous souhaiterions connaître le coût d'un transport ${trajet}.`,
-  ]);
-  const corps = pick([
-    `Il s'agit de ${cargo}, en ${inco}.`,
-    `Marchandise : ${cargo}. Incoterm souhaité : ${inco}.`,
-    `${cargo.charAt(0).toUpperCase() + cargo.slice(1)} ; cotation ${inco} si possible.`,
-  ]);
-  const num = $('f-num').value.trim();
-  const cli = (client || num) ? `Client : ${[client, num].filter(Boolean).join(' — ')}.\n` : '';
-  const fin = pick([
-    `Merci de préciser le transit time et la validité de l'offre.`,
-    `Pouvez-vous nous indiquer également le délai de transit ?`,
-    `Dans l'idéal avec le prochain départ possible et le transit time.`,
-  ]);
-  const bye = pick(['Bien cordialement,', 'Cordialement,', 'Merci d\'avance,']);
-  // Mail pensé pour être transféré tel quel par Zouhir aux transporteurs :
-  // pas de « Zouhir » dans le salut, pas de signature nominative.
-  return { ref, objet, texte: `Bonjour,\n\n${intro}\n${cli}${corps}\n${fin}\n\n${bye}` };
+  const objet = `Cotation fret — ${destTxt} — Réf ${ref}`;
+
+  const lignes = [];
+  if (prov) lignes.push(`– Lieu de chargement : ${prov}`);
+  lignes.push(`– Lieu de livraison : ${destTxt}`);
+  lignes.push(`– Marchandise : papier en ${march} (sous famille HS 48)`);
+  lignes.push(`– Incoterm : ${inco}`);
+  const cliTxt = client ? `${client}${num ? ` (n° ${num})` : ''}` : (num ? `n° ${num}` : '');
+  if (cliTxt) lignes.push(`– Client : ${cliTxt}`);
+  lignes.push(`– Motif de la demande : commande ferme`);
+
+  const texte =
+`Bonjour,
+
+Pourriez-vous, s'il vous plaît, nous faire parvenir votre cotation pour : ${nb} x ${taille}' (poids approximatif : ${poids} tonnes par container)
+
+${lignes.join('\n')}
+
+Merci d'indiquer le transit time et la validité de l'offre.
+
+Merci par avance.
+
+Cordialement,`;
+  return { ref, objet, texte };
 }
 
 /* ── popup mail : aperçu + édition (façon /invitation/) ── */
@@ -325,7 +325,7 @@ function ouvrirMail() {
   $('mail-zone').scrollTop = 0;
 }
 function fermerMail() { $('mail-fond').classList.remove('ouvert'); }
-function reformuler() { mailCustom = null; renderMail(); }
+function resetMail() { mailCustom = null; renderMail(); }
 
 /* ── envoi RÉEL via prodi-arrivages (canal ethan@ de /api/notify) ──
    Depuis localhost, le serveur redirige tout sur ethan@ sans cc (mode test). */
