@@ -236,7 +236,8 @@ function genMail() {
     `Marchandise : ${cargo}. Incoterm souhaité : ${inco}.`,
     `${cargo.charAt(0).toUpperCase() + cargo.slice(1)} ; cotation ${inco} si possible.`,
   ]);
-  const cli = client ? `Client : ${client}.\n` : '';
+  const num = $('f-num').value.trim();
+  const cli = (client || num) ? `Client : ${[client, num].filter(Boolean).join(' — ')}.\n` : '';
   const fin = pick([
     `Merci de préciser le transit time et la validité de l'offre.`,
     `Pouvez-vous nous indiquer également le délai de transit ?`,
@@ -303,6 +304,7 @@ async function confirmerEnvoi() {
       ref, pays: selPays,
       destination: $('f-pays').value.trim(),
       client: $('f-client').value.trim(),
+      numero: $('f-num').value.trim(),
       provenance: $('f-prov').value.trim(),
       nbCont: Math.max(1, +$('f-nb-cont').value || 1),
       taille: tailleVal(),
@@ -425,7 +427,7 @@ function renderDetail(ref) {
     <div class="page-head">
       <div>
         <h1>${p.flag} ${p.nom} <span class="ref mono" style="font-size:15px;color:var(--mut2)">${d.ref}</span></h1>
-        <p>${d.client ? 'Client : ' + d.client + ' · ' : ''}${d.marchandise} · ${d.nbCont} × ${d.taille}' · ${d.incoterm} · ${d.provenance ? d.provenance + ' → ' : ''}${d.destination || p.nom} · envoyée ${relTime(d.date)}</p>
+        <p>${d.client ? 'Client : ' + d.client + (d.numero ? ' — ' + d.numero : '') + ' · ' : ''}${d.marchandise} · ${d.nbCont} × ${d.taille}' · ${d.incoterm} · ${d.provenance ? d.provenance + ' → ' : ''}${d.destination || p.nom} · envoyée ${relTime(d.date)}</p>
       </div>
     </div>
     <div class="stat-row">
