@@ -20,12 +20,15 @@
     background: var(--fond); color: var(--encre);
     min-height: 100vh; display: flex; flex-direction: column; align-items: center;
   }
+  /* header standard des 3 outils (/proforma/, /invitation/, /fret/) */
   header.app {
     width: 100%; background: #fff; border-bottom: 1px solid var(--ligne);
-    padding: 14px 20px; display: flex; align-items: center; gap: 12px;
+    position: sticky; top: 0; z-index: 50;
   }
-  header.app img { height: 26px; }
-  header.app span { font-size: 14px; color: var(--gris); }
+  .h-in { max-width: 1180px; margin: 0 auto; padding: 14px 20px; display: flex; align-items: center; gap: 14px; }
+  .logo-lien { display: flex; align-items: center; }
+  .h-in img { height: 31px; }
+  .h-sub { font-size: 17px; color: var(--gris); }
   main { width: 100%; max-width: 900px; padding: 32px 20px 56px; }
 
   .card { background: #fff; border: 1px solid var(--ligne); border-radius: 12px; padding: 24px; }
@@ -63,7 +66,7 @@
   .btn-word .badge { color: #2b579a; font-size: 17px; font-family: Georgia, serif; }
   .btn-pdf .badge { color: #d93025; font-size: 9px; letter-spacing: .2px; }
 
-  .histo-btn { margin-left: auto; font-size: 15px; padding: 8px 16px; border-radius: 8px; }
+  .histo-btn { margin-left: auto; font-size: 18px; padding: 10px 19px; border-radius: 10px; }
   #histo-fond {
     display: none; position: fixed; inset: 0; background: rgba(0,0,0,.35);
     z-index: 10; align-items: flex-start; justify-content: center; padding: 60px 16px;
@@ -158,9 +161,11 @@
      le mobile garde sa taille (déjà plein écran) */
   @media (min-width: 561px) {
     body { zoom: 1.3; }
+    /* le header reste à taille standard (identique /proforma/ et /fret/) malgré le zoom global */
+    header.app { zoom: calc(1 / 1.3); }
   }
   @media (max-width: 560px) {
-    header.app span { display: none; }
+    .h-sub { display: none; }
     main { padding: 20px 12px 40px; }
     .card { padding: 18px; }
   }
@@ -221,9 +226,11 @@ html.cat-unlocked #cat-gate{display:none !important;}
 </script>
 
 <header class="app">
-  <img src="assets/logo.png" alt="Prodiconseil">
-  <span>Invitations professionnelles</span>
-  <button class="histo-btn" onclick="ouvrirHisto()">Historique</button>
+  <div class="h-in">
+    <a href="./" class="logo-lien" title="Recharger"><img src="assets/logo.png" alt="Prodiconseil"></a>
+    <span class="h-sub">Invitations professionnelles</span>
+    <button class="histo-btn" onclick="ouvrirHisto()">Historique</button>
+  </div>
 </header>
 
 <div id="histo-fond" onclick="fermerHisto()">

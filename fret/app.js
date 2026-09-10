@@ -166,13 +166,13 @@ let ajoutCible = 'cc';   // le popup ajoute en À ou en Cc
 
 function renderDest() {
   $('f-to-chips').innerHTML =
-    `<span class="chip to">✓ ${DEST_FRET}</span>` +
+    `<span class="chip to">${DEST_FRET}</span>` +
     TO_EXTRA.map(c =>
-      `<button type="button" class="chip cc${toActifs.has(c) ? '' : ' off'}" onclick="toggleTo('${c}')">${toActifs.has(c) ? '✓ ' : ''}${c}</button>`).join('') +
+      `<button type="button" class="chip cc${toActifs.has(c) ? '' : ' off'}" onclick="toggleTo('${c}')">${c}</button>`).join('') +
     `<button type="button" class="chip add" onclick="ajouterEmail('to')">+ Ajouter un email</button>`;
   $('f-cc-chips').innerHTML =
     CC_INTERNE.map(c =>
-      `<button type="button" class="chip cc${ccActifs.has(c) ? '' : ' off'}" onclick="toggleCc('${c}')">${ccActifs.has(c) ? '✓ ' : ''}${c}</button>`).join('') +
+      `<button type="button" class="chip cc${ccActifs.has(c) ? '' : ' off'}" onclick="toggleCc('${c}')">${c}</button>`).join('') +
     `<button type="button" class="chip add" onclick="ajouterEmail('cc')">+ Ajouter un email</button>`;
 }
 function ajouterEmail(cible) {

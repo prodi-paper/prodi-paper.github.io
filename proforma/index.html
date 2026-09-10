@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
-<title>Générateur de proforma — Prodiconseil</title>
+<title>Proforma — Prodiconseil</title>
 <link rel="icon" type="image/png" href="/img/panda.png">
 <!-- DM Sans = police de la FEUILLE A4 uniquement (fidélité au document Sage) ;
      l'interface utilise la police système, comme /invitation/ et /fret/ -->
@@ -22,32 +22,46 @@
 
   /* ── header (mêmes repères que /invitation/ et /fret/) ── */
   header.app{background:#fff;border-bottom:1px solid var(--ligne);position:sticky;top:0;z-index:50;}
-  .h-in{max-width:1720px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:12px;}
-  .h-in img{height:26px;}
-  .h-sub{font-size:14px;color:var(--gris);}
-  .histo-btn{margin-left:auto;font-size:15px;padding:8px 16px;border-radius:8px;border:1px solid var(--ligne);
+  /* header à taille STANDARD — identique /invitation/ et /fret/ (eux zooment
+     leur body ×1,3 mais excluent le header via zoom 1/1.3 : ne pas « rattraper ») */
+  .h-in{max-width:1180px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:14px;}
+  .logo-lien{display:flex;align-items:center;}
+  .h-in img{height:31px;}
+  .h-sub{font-size:17px;color:var(--gris);}
+  .histo-btn{margin-left:auto;font-size:18px;padding:10px 19px;border-radius:10px;border:1px solid var(--ligne);
     background:#fff;color:var(--encre);cursor:pointer;font-family:inherit;transition:.15s;}
   .histo-btn:hover{border-color:var(--gris);background:var(--fond);}
 
-  .wrap{display:flex;gap:18px;padding:18px;align-items:flex-start;max-width:1720px;margin:0 auto;}
+  /* gabarit /fret/ : main 1180px, formulaire 900px centré, zoom 1.3 desktop */
+  .wrap{display:flex;gap:18px;padding:30px 20px 70px;align-items:flex-start;justify-content:center;max-width:1180px;margin:0 auto;}
 
-  /* ── Panneau formulaire ── */
-  .panel{width:460px;flex-shrink:0;background:#fff;border:1px solid var(--ligne);border-radius:12px;padding:22px;
-    position:sticky;top:70px;max-height:calc(100vh - 88px);overflow-y:auto;}
-  .panel .sub{font-size:13px;color:var(--gris);margin:0 0 6px;line-height:1.45;}
-  .panel h2{font-size:15.5px;font-weight:700;margin:20px 0 8px;letter-spacing:-.01em;}
-  .panel label{display:block;font-size:14px;font-weight:600;color:var(--encre);margin:10px 0 5px;}
+  /* ── Panneau formulaire (mêmes cotes que .form-wrap/.card de /fret/) ── */
+  .panel{width:100%;max-width:900px;background:#fff;border:1px solid var(--ligne);border-radius:12px;padding:24px;}
+  @media (min-width:861px){body:not(.apercu) .panel{zoom:1.3;}}
+  .panel .sub{font-size:14px;color:var(--gris);margin:0 0 6px;line-height:1.45;}
+  .panel h2{font-size:17px;font-weight:700;margin:22px 0 10px;letter-spacing:-.01em;}
+  .panel label{display:block;font-size:15px;font-weight:700;color:var(--encre);margin:12px 0 6px;}
   .panel input,.panel textarea,.panel select{width:100%;border:1px solid var(--ligne);border-radius:9px;
-    padding:11px 13px;font-family:inherit;font-size:16px;color:var(--encre);background:#fff;outline:none;transition:border-color .15s;}
+    padding:14px 14px;font-family:inherit;font-size:18px;color:var(--encre);background:#fff;outline:none;transition:border-color .15s;}
   .panel input:focus,.panel textarea:focus,.panel select:focus{border-color:var(--rouge);}
-  .panel textarea{resize:vertical;min-height:58px;}
-  .row2{display:flex;gap:10px;}
+  .panel textarea{resize:vertical;min-height:64px;}
+  .row2{display:flex;gap:14px;}
   .row2>*{flex:1;min-width:0;}
+  .panel .row2{margin-bottom:14px;}
+  .ligne .row2{margin-bottom:0;}
+  .ligne textarea{margin-bottom:10px;}
 
   /* pilules à coche (mécanique /fret/) — langue + devise */
   .check-row{display:flex;gap:8px;}
+  /* mini-segments FR|EN et €|$ (10/09) : deux cases jointes, choix unique */
+  .seg2{display:flex;border:1px solid var(--ligne);border-radius:9px;overflow:hidden;flex:none;}
+  .panel .seg2 .check{flex:none;border:none;border-radius:0;padding:9px 14px;font-size:14px;font-weight:700;margin:0;background:#fff;color:var(--gris);}
+  .panel .seg2 .check+.check{border-left:1px solid var(--ligne);}
+  .panel .seg2 .check:has(input:checked){border:none;border-left:1px solid var(--ligne);background:#eff4ff;color:#1d4ed8;}
+  .panel .seg2 .check:first-child:has(input:checked){border-left:none;}
+  .seg2 .check input:checked+span::before{content:"";margin:0;}
   .panel .check{flex:1;display:flex;align-items:center;justify-content:center;border:1px solid var(--ligne);
-    border-radius:9px;padding:11px 8px;font-weight:600;font-size:15px;cursor:pointer;background:#fff;color:var(--gris);
+    border-radius:9px;padding:14px 14px;font-weight:600;font-size:19px;cursor:pointer;background:#fff;color:var(--gris);
     user-select:none;transition:border-color .15s,background .15s;margin:0;}
   .panel .check:hover{border-color:var(--gris);}
   .panel .check:has(input:checked){border:1.5px solid var(--bleu);background:#eff4ff;color:#1d4ed8;font-weight:700;}
@@ -56,17 +70,20 @@
   .check span{white-space:nowrap;}
 
   .ligne{border:1px solid var(--ligne);border-radius:10px;padding:12px;margin-bottom:10px;background:var(--fond);position:relative;}
-  .ligne .del{position:absolute;top:6px;right:8px;border:none;background:none;color:var(--rouge);font-size:16px;cursor:pointer;padding:2px 6px;}
-  .modeles{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
-  .modeles button{border:1px solid var(--ligne);background:#fff;border-radius:999px;padding:7px 13px;font-size:13px;
+  /* croix à DROITE, centrée sur la rangée Désignation, sans chevaucher le texte */
+  .ligne .del{position:absolute;top:22px;right:16px;border:none;background:none;color:var(--rouge);font-size:16px;cursor:pointer;padding:2px 6px;line-height:1;}
+  .ligne textarea{padding-right:38px;}
+  .modeles{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+  .modeles button{border:1px solid var(--ligne);background:#fff;border-radius:999px;padding:9px 16px;font-size:14.5px;
     font-weight:600;color:var(--encre);cursor:pointer;font-family:inherit;transition:.15s;}
   .modeles button:hover{border-color:var(--gris);}
 
   .btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;border:none;border-radius:10px;
-    padding:15px;font-size:17px;font-weight:600;cursor:pointer;margin-top:12px;font-family:inherit;}
-  .btn-red{background:var(--rouge);color:#fff;border:1px solid var(--rouge);}
-  .btn-red:hover{background:var(--rouge-d);}
+    padding:16px;font-size:18px;font-weight:600;cursor:pointer;margin-top:12px;font-family:inherit;}
+  .btn-red{background:#b30b00;color:#fff;border:1px solid #b30b00;} /* rouge Acrobat, comme le bouton PDF de /invitation/ */
+  .btn-red:hover{background:#8f0900;}
   .btn-red:active{transform:translateY(1px);}
+  .btn-red svg{flex:none;}
   .btn-ghost{background:#fff;border:1px solid var(--ligne);color:var(--encre);font-size:15px;padding:12px;}
   .btn-ghost:hover{border-color:var(--gris);background:var(--fond);}
   .num-ok{font-size:13.5px;color:#0a7d33;font-weight:700;margin-top:10px;text-align:center;}
@@ -91,7 +108,7 @@
   .histo-vide{color:var(--gris);font-size:15px;padding:12px 0;}
 
   /* ── Feuille A4 (INTOUCHÉE — fidèle au modèle Sage DE42827, DM Sans conservée) ── */
-  .sheetbox{flex:1;display:flex;justify-content:center;}
+  .sheetbox{flex:none;display:flex;justify-content:center;}
   .sheet{width:210mm;min-height:297mm;background:#fff;box-shadow:0 4px 22px rgba(0,0,0,.13);padding:9mm 10mm;font-family:'DM Sans',sans-serif;font-size:9.2pt;line-height:1.25;color:#111;position:relative;}
   .sheet .pagenum{position:absolute;top:5mm;right:10mm;font-size:8.5pt;}
   .hd{display:flex;justify-content:space-between;}
@@ -150,23 +167,17 @@
   .engage{width:52mm;border:1px solid #111;font-size:7.6pt;padding:1.5mm;display:flex;flex-direction:column;justify-content:space-between;}
   .engage .rsc{font-weight:700;text-align:center;margin-top:2mm;}
 
-  /* grand écran : formulaire agrandi (esprit zoom 1.3 de /invitation/ et /fret/,
-     borné pour que feuille + formulaire tiennent côte à côte) */
-  @media (min-width:1560px){
-    .panel{zoom:1.15;top:61px;max-height:calc((100vh - 88px)/1.15);}
-  }
   /* ── Téléphone / tablette étroite : formulaire au-dessus, feuille réduite à l'écran ── */
-  @media (max-width:900px){
+  @media (max-width:860px){
     .h-sub{display:none;}
-    .wrap{flex-direction:column;padding:10px;gap:14px;}
-    .panel{width:100%;position:static;max-height:none;overflow:visible;}
+    .wrap{padding:20px 14px 60px;}
+    .row2{flex-direction:column;gap:14px;}
     .sheetbox{width:100%;justify-content:flex-start;overflow:hidden;}
   }
   /* ── Mode DEUX TEMPS (10/09, Ethan) : formulaire seul d'abord, la feuille
      n'apparaît qu'au « Générer » — comme /invitation/ et /fret/ ── */
   body:not(.apercu) .sheetbox{display:none;}
   body:not(.apercu) .wrap{justify-content:center;}
-  body:not(.apercu) .panel{width:560px;position:static;max-height:none;}
   #apercu-bar{display:none;gap:10px;width:100%;max-width:210mm;margin:0 auto;}
   body.apercu #apercu-bar{display:flex;}
   body.apercu .panel{display:none;}
@@ -239,7 +250,7 @@ html.cat-unlocked #cat-gate{display:none !important;}
 
 <header class="app">
   <div class="h-in">
-    <img src="/img/logo.png" alt="Prodiconseil">
+    <a href="./" class="logo-lien" title="Recharger"><img src="/img/logo.png" alt="Prodiconseil"></a>
     <span class="h-sub">Proforma express</span>
     <button class="histo-btn" onclick="ouvrirHisto()">Historique</button>
   </div>
@@ -253,7 +264,7 @@ html.cat-unlocked #cat-gate{display:none !important;}
       <b>Dernières proformas</b>
       <button onclick="fermerHisto()">Fermer</button>
     </div>
-    <p class="histo-note">Générées depuis cet appareil. Clique pour recharger le document — « Réimprimer » garde son numéro, « Générer » en crée un nouveau.</p>
+    <p class="histo-note">Générées depuis cet appareil. Clique pour rouvrir le document — « Imprimer / PDF » garde son numéro, « ← Modifier » puis « Générer » en crée un nouveau.</p>
     <div id="histo-liste"></div>
   </div>
 </div>
@@ -267,78 +278,62 @@ html.cat-unlocked #cat-gate{display:none !important;}
 
   <!-- ═══ FORMULAIRE ═══ -->
   <div class="panel">
-    <p class="sub">Remplis le formulaire puis « Générer » : le document s'affiche à la fin (numéro + archive + impression PDF).</p>
-
-    <h2>Document</h2>
-    <div class="row2">
-      <div>
-        <label>Langue</label>
-        <div class="check-row" id="pill-lang">
-          <label class="check"><input type="radio" name="pill-l" checked onchange="pillLang('fr')"><span>Français</span></label>
-          <label class="check"><input type="radio" name="pill-l" onchange="pillLang('en')"><span>English</span></label>
-        </div>
-      </div>
-      <div>
-        <label>Devise</label>
-        <div class="check-row" id="pill-dev">
-          <label class="check"><input type="radio" name="pill-d" checked onchange="pillDev('eur')"><span>€ Euro</span></label>
-          <label class="check"><input type="radio" name="pill-d" onchange="pillDev('usd')"><span>$ US</span></label>
-        </div>
-      </div>
-    </div>
     <select id="c-lang" hidden onchange="langChange()"><option value="fr">Français</option><option value="en">English</option></select>
     <select id="c-dev" hidden onchange="devChange()"><option value="eur">€ Euro</option><option value="usd">$ Dollar US</option></select>
-    <div class="sub" id="taux-info" style="margin:8px 0 0"></div>
 
-    <h2>Client</h2>
-    <label>Nom / société (tel qu'affiché sur le document)</label>
-    <textarea id="c-nom" rows="2" placeholder="STE KOUMA PAPIER&#10;ABIDJAN — CÔTE D'IVOIRE"></textarea>
     <div class="row2">
-      <div><label>N° intra. / RC</label><input id="c-rc" placeholder="(optionnel)"></div>
-      <div><label>Votre commercial</label><input id="c-comm" placeholder="Véronique ELBILIA"></div>
+      <div><textarea id="c-nom" rows="1" placeholder="CLIENT" style="min-height:0;"></textarea></div>
+      <div><input id="c-lieu" list="ports-dest" placeholder="PORT DE DESTINATION" oninput="fretPropose()" onchange="fretPropose()">
+        <datalist id="ports-dest"></datalist>
+      </div>
     </div>
-    <div class="row2">
-      <div><label>Réf. interne</label><input id="c-refint" value="PRO25"></div>
-      <div><label>Référence (encadré)</label><input id="c-ref" placeholder="(optionnel)"></div>
-    </div>
+    <!-- champs retirés du formulaire (10/09) — inputs cachés conservés : le
+         préremplissage MCP et les lignes de la feuille (dont « PRO25 ») marchent toujours -->
+    <input id="c-comm" type="hidden">
+    <input id="c-rc" type="hidden">
+    <input id="c-refint" type="hidden" value="PRO25">
+    <input id="c-ref" type="hidden">
 
-    <h2>Livraison</h2>
-    <div class="row2">
-      <div><label>Incoterm</label><select id="c-inco"><option>CFR</option><option>CIF</option><option>FOB</option><option>EX WORKS</option><option>DAP</option></select></div>
-      <div><label>Lieu (port / ville)</label><input id="c-lieu" placeholder="ex. ACCRA"></div>
-    </div>
-    <label>Montant fret (<span class="devsym">€</span>)</label><input id="c-fret" type="number" min="0" step="100" value="0">
-    <div class="row2">
-      <div><label>Pays d'origine</label><input id="c-orig" value="FRANCE"></div>
-      <div><label>Pays de provenance</label><input id="c-prov" value="FRANCE"></div>
-    </div>
-    <div class="row2">
-      <div><label>Référence usine</label><input id="c-usine" placeholder="(optionnel)"></div>
-      <div><label>Code douanier</label><input id="c-douane" placeholder="(optionnel)"></div>
-    </div>
+    <!-- champs retirés du formulaire (10/09) — cachés, la feuille garde
+         FRANCE/FRANCE et le préremplissage MCP peut toujours les poser -->
+    <input id="c-orig" type="hidden" value="FRANCE">
+    <input id="c-prov" type="hidden" value="FRANCE">
+    <input id="c-usine" type="hidden">
+    <input id="c-douane" type="hidden">
 
-    <h2>Lignes</h2>
-    <div class="modeles">
-      <button onclick="addModele('GROFF')">+ Offset GROFF</button>
-      <button onclick="addModele('GRCAR')">+ Couché GRCAR</button>
-      <button onclick="addModele('GSCOL')">+ Duplex GSCOL</button>
-      <button onclick="addModele('')">+ Ligne vide</button>
-    </div>
     <div id="lignes"></div>
+    <div class="modeles" style="align-items:center;">
+      <button onclick="addModele('')">+ Ajouter une ligne</button>
+      <span style="flex:1;"></span>
+      <div class="seg2" id="pill-lang">
+        <label class="check"><input type="radio" name="pill-l" checked onchange="pillLang('fr')"><span>FR</span></label>
+        <label class="check"><input type="radio" name="pill-l" onchange="pillLang('en')"><span>EN</span></label>
+      </div>
+      <div class="seg2" id="pill-dev">
+        <label class="check"><input type="radio" name="pill-d" checked onchange="pillDev('eur')"><span>€</span></label>
+        <label class="check"><input type="radio" name="pill-d" onchange="pillDev('usd')"><span>$</span></label>
+      </div>
+    </div>
 
-    <h2>Paiement</h2>
-    <label>Conditions de paiement</label>
+    <!-- livraison (déplacée en bas, près du paiement — 10/09) -->
+    <div class="row2">
+      <div><select id="c-inco"><option>CFR</option><option>CIF</option><option>FOB</option><option>EX WORKS</option><option>DAP</option></select></div>
+      <div><input id="c-fret" type="number" min="0" step="100" placeholder="MONTANT DU FRET (€)"></div>
+    </div>
+
     <select id="c-paiemode">
       <option value="5050">Virement 50 % avant expédition / 50 % avant documents</option>
+      <option value="100av">Virement 100 % avant expédition</option>
+      <option value="3070" selected>30 % à la commande / 70 % avant documents</option>
+      <option value="cad">100 % contre documents à vue (CAD)</option>
+      <option value="lc">Lettre de crédit irrévocable à vue (L/C)</option>
       <option value="libre">Texte libre (100 % du montant)</option>
     </select>
     <div id="paie-libre-wrap" style="display:none;margin-top:6px">
-      <label>Texte (après le montant)</label>
       <input id="c-paie" value="CONTRE DOCUMENTS A VUE">
     </div>
 
-    <button class="btn btn-red" onclick="generer()">Générer → numéro + PDF</button>
-    <button class="btn btn-ghost" onclick="montrerApercu();setTimeout(()=>window.print(),350)">Réimprimer sans nouveau numéro</button>
+    <button class="btn btn-red" onclick="generer()"><svg viewBox="0 0 60 58.5" width="30" height="29" aria-hidden="true"><path d="M48.2 33.9C47 32.6 44.7 32 41.4 32c-1.8 0-3.7.2-5.5.5-1.2-1.1-2.2-2.4-3.2-3.7-.7-1-1.4-2-2-3.1 1-2.8 1.6-5.8 1.8-8.8 0-2.7-1.1-5.6-4.1-5.6-1 0-2 .6-2.5 1.5-1.3 2.2-.8 6.7 1.3 11.4-.7 2.1-1.5 4.2-2.4 6.5-.8 2-1.7 3.9-2.8 5.7-3.1 1.2-9.6 4.2-10.2 7.5-.2 1 .1 2 .9 2.6.7.6 1.7 1 2.7.9 3.9 0 7.8-5.4 10.5-10.1 1.5-.5 3-1 4.6-1.4 1.7-.4 3.3-.8 4.8-1.1 4.2 3.6 7.9 4.2 9.7 4.2 2.5 0 3.5-1.1 3.8-2 .4-1.1.2-2.3-.6-3.1zm-2.7 1.9c-.1.7-.9 1.2-1.9 1.2-.3 0-.6 0-.9-.1-2-.5-3.9-1.5-5.5-2.8 1.3-.2 2.7-.3 4-.3.9 0 1.8.1 2.7.2.9.2 1.9.6 1.6 1.8zM27.6 13.7c.2-.3.5-.5.9-.6 1 0 1.2 1.1 1.2 2.1-.1 2.3-.5 4.5-1.2 6.7-1.7-4.3-1.5-7.2-.9-8.2zm5.6 19.2c-1.1.2-2.2.5-3.3.8-.8.2-1.6.5-2.5.7.4-.9.8-1.8 1.2-2.6.5-1.1.9-2.2 1.3-3.3.4.6.7 1.1 1.1 1.6.7 1 1.5 1.9 2.2 2.8zm-12.1 5.8c-2.5 4-5 6.6-6.4 6.6-.2 0-.5-.1-.6-.2-.3-.2-.4-.6-.3-.9.2-1.5 3.1-3.6 7.3-5.5z" fill="#fff"/></svg>PDF</button>
     <div class="num-ok" id="genok"></div>
   </div>
 
@@ -482,6 +477,9 @@ const I18N={
   titre_usd:{fr:'Offre de prix (Dollars US)',en:'Price offer (US Dollars)'},
   v5050a:{fr:'VIREMENT AVANT EXPEDITION',en:'BANK TRANSFER BEFORE SHIPMENT'},
   v5050b:{fr:'VIREMENT AVANT ENVOI DE DOCUMENTS',en:'BANK TRANSFER BEFORE DOCUMENTS'},
+  vcmd:{fr:'VIREMENT A LA COMMANDE',en:'BANK TRANSFER AT ORDER'},
+  vcad:{fr:'CONTRE DOCUMENTS A VUE (CAD)',en:'CASH AGAINST DOCUMENTS AT SIGHT'},
+  vlc:{fr:'PAR LETTRE DE CREDIT IRREVOCABLE A VUE',en:'BY IRREVOCABLE LETTER OF CREDIT AT SIGHT'},
 };
 
 function applyLang(){
@@ -490,8 +488,49 @@ function applyLang(){
   document.getElementById('th-pu').textContent=(LANG==='en'?'Unit price':'P.U')+' ('+SYM()+')';
   document.getElementById('th-mt').textContent=(LANG==='en'?'Amount':'Montant HT')+' ('+SYM()+')';
   document.querySelectorAll('.devsym').forEach(el=>el.textContent=SYM());
+  const cf=document.getElementById('c-fret');
+  if(cf)cf.placeholder='MONTANT DU FRET ('+SYM()+')';
 }
 // pilules langue/devise → pilotent les <select> cachés (compatible préremplissage MCP)
+// ─── FRET PROPOSÉ PAR PORT (10/09, Ethan — repris du système /fret/) :
+// taper un port de destination connu préremplit « Montant du fret » avec le
+// prix de référence par container 20'. Proposition NON destructive : on ne
+// remplace jamais une valeur saisie à la main (suivi via data-auto).
+const FRET_PORTS=[
+  ['Casablanca','Maroc',880],['Tanger Med','Maroc',880],
+  ['Alger','Algérie',1010],['Oran','Algérie',1010],
+  ['Radès','Tunisie',940],['Sfax','Tunisie',940],
+  ['Dakar','Sénégal',1420],['Abidjan',"Côte d'Ivoire",1510],
+  ['Tema','Ghana',1580],['Lagos','Nigeria',1720],['Douala','Cameroun',1650],
+  ['Conakry','Guinée',1560],['Lomé','Togo',1540],
+  ['Valence','Espagne',620],['Barcelone','Espagne',620],['Algésiras','Espagne',620],
+  ['Leixões','Portugal',680],['Gênes','Italie',710],['Hambourg','Allemagne',760],
+  ['Gdańsk','Pologne',830],['Constanța','Roumanie',950],['Le Pirée','Grèce',900],
+  ['Istanbul','Turquie',1050],['Mersin','Turquie',1050],['Izmir','Turquie',1050],
+  ['Alexandrie','Égypte',1150],['Port-Saïd','Égypte',1150],['Damiette','Égypte',1150],
+  ['Beyrouth','Liban',1250],['Jebel Ali','Émirats',1500],
+  ['Nhava Sheva','Inde',1650],['Mundra','Inde',1650],
+];
+(function(){
+  const dl=document.getElementById('ports-dest');
+  if(dl)dl.innerHTML=FRET_PORTS.map(p=>`<option value="${p[0]}">${p[1]} — ${p[2]} €/20'</option>`).join('');
+})();
+const _fretNorm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+function fretPropose(){
+  const lieu=_fretNorm(document.getElementById('c-lieu').value);
+  const cf=document.getElementById('c-fret');
+  let hit=null;
+  if(lieu.length>=3){
+    for(const p of FRET_PORTS){
+      const np=_fretNorm(p[0]);
+      if(lieu===np||lieu.includes(np)||(np.includes(lieu)&&lieu.length>=4)){hit=p;break;}
+    }
+  }
+  if(hit&&(!cf.value||cf.dataset.auto===cf.value)){
+    // ne remplace que si vide ou si la valeur vient d'une proposition précédente
+    cf.value=hit[2];cf.dataset.auto=String(hit[2]);maj();
+  }
+}
 function syncPills(){
   const pl=document.querySelectorAll('#pill-lang input'),pd=document.querySelectorAll('#pill-dev input');
   if(pl.length===2){pl[0].checked=LANG==='fr';pl[1].checked=LANG==='en';}
@@ -504,25 +543,13 @@ function devChange(){
   const nv=document.getElementById('c-dev').value;
   if(nv===DEV){syncPills();return;}
   DEV=nv;
-  // proposer la conversion des prix saisis au taux du jour (sinon libellés seuls)
-  const aDesPrix=lignes.some(l=>l.pu)||(+document.getElementById('c-fret').value>0);
-  if(USD&&aDesPrix){
-    const r=nv==='usd'?USD:1/USD;
-    const msg=nv==='usd'
-      ?'Convertir les prix saisis en dollars au taux du jour (1 € = '+USD.toFixed(4)+' $) ?\n\n« Annuler » = garder les chiffres tels quels (prix déjà en $).'
-      :'Reconvertir les prix saisis en euros (1 € = '+USD.toFixed(4)+' $) ?\n\n« Annuler » = garder les chiffres tels quels (prix déjà en €).';
-    if(confirm(msg)){
-      lignes.forEach(l=>{if(l.pu)l.pu=Math.round(l.pu*r*1000)/1000;});
-      const f=document.getElementById('c-fret');
-      if(+f.value>0)f.value=Math.round(+f.value*r);
-      renderForm();
-    }
-  }
-  syncPills();applyLang();maj();
+  // pas de popup de conversion (retirée 10/09, Ethan) : la bascule ne change
+  // QUE les libellés €/$ — les chiffres saisis restent tels quels
+  syncPills();applyLang();renderForm();maj();
 }
 // taux BCE EUR→USD via frankfurter.dev (⚠️ pas frankfurter.APP : 301), caché 1 jour
+// (plus affiché à l'écran — sert toujours à la conversion €→$ au clic sur la pilule $)
 (async function(){
-  const el=document.getElementById('taux-info');
   try{
     const d=new Date().toISOString().slice(0,10);
     const c=JSON.parse(localStorage.getItem('prodi_prof_usd')||'null');
@@ -532,8 +559,7 @@ function devChange(){
       USD=(await r.json()).rates.USD;
       localStorage.setItem('prodi_prof_usd',JSON.stringify({d,v:USD}));
     }
-    el.textContent='Taux BCE du jour : 1 € = '+USD.toFixed(4)+' $';
-  }catch(e){el.textContent='Taux $ indisponible (hors ligne) — bascule $ sans conversion auto.';}
+  }catch(e){/* hors ligne : bascule $ sans conversion auto */}
 })();
 
 const _loc=()=>LANG==='en'?'en-US':'fr-FR';
@@ -552,14 +578,14 @@ function renderForm(){
   document.getElementById('lignes').innerHTML=lignes.map((l,i)=>`
     <div class="ligne">
       <button class="del" onclick="delLigne(${i})" title="Supprimer">✕</button>
+      <textarea rows="1" placeholder="DÉSIGNATION" style="min-height:0;" oninput="lignes[${i}].des=this.value;maj()">${esc(l.des)}</textarea>
       <div class="row2">
-        <div><label>Code</label><input value="${esc(l.code)}" oninput="lignes[${i}].code=this.value;maj()"></div>
-        <div><label>Qté (kg)</label><input type="number" min="0" step="500" value="${l.qte}" oninput="lignes[${i}].qte=+this.value;maj()"></div>
+      <!-- Saisie À LA TONNE (10/09, Ethan) — le modèle interne lignes[] reste en
+           kg / prix au kg (feuille Sage + préremplissage MCP inchangés) :
+           conversion ×1000 / ÷1000 aux bornes de ces deux inputs. -->
+        <div><input type="number" min="0" step="0.5" value="${l.qte?Math.round(l.qte)/1000:''}" placeholder="QTÉ (T)" oninput="lignes[${i}].qte=(+this.value||0)*1000;maj()"></div>
+        <div><input type="number" min="0" step="10" value="${l.pu?Math.round(l.pu*100000)/100:''}" placeholder="PRIX UNITAIRE (${SYM()}/T)" oninput="lignes[${i}].pu=(+this.value||0)/1000;maj()"></div>
       </div>
-      <label>Désignation</label>
-      <textarea rows="3" oninput="lignes[${i}].des=this.value;maj()">${esc(l.des)}</textarea>
-      <label>Prix unitaire (${SYM()}/kg)</label>
-      <input type="number" min="0" step="0.01" value="${l.pu}" oninput="lignes[${i}].pu=+this.value;maj()">
     </div>`).join('');
 }
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -608,12 +634,19 @@ function maj(){
   document.getElementById('p-ttc').textContent=eur(t.total)+' '+SYM();
   document.getElementById('p-poids').textContent=kg(t.poids);
   document.getElementById('p-net').textContent=eur(t.total)+' '+SYM();
-  // conditions de paiement : 50/50 Sage ou texte libre
+  // conditions de paiement : modes standard du négoce export ou texte libre
   const mode=document.getElementById('c-paiemode').value;
   document.getElementById('paie-libre-wrap').style.display=mode==='libre'?'':'none';
-  document.getElementById('p-paie-lignes').innerHTML=mode==='5050'
-    ?`<div>${eur(t.total/2)}&nbsp;&nbsp;${I18N.v5050a[LANG]}</div><div>${eur(t.total/2)}&nbsp;&nbsp;${I18N.v5050b[LANG]}</div>`
-    :`<div>${eur(t.total)}&nbsp;&nbsp;${esc(v('c-paie'))}</div>`;
+  const _pl=(m,k)=>`<div>${eur(m)}&nbsp;&nbsp;${I18N[k][LANG]}</div>`;
+  const PAIE={
+    '5050':()=>_pl(t.total/2,'v5050a')+_pl(t.total/2,'v5050b'),
+    '100av':()=>_pl(t.total,'v5050a'),
+    '3070':()=>_pl(t.total*0.3,'vcmd')+_pl(t.total*0.7,'v5050b'),
+    'cad':()=>_pl(t.total,'vcad'),
+    'lc':()=>_pl(t.total,'vlc'),
+    'libre':()=>`<div>${eur(t.total)}&nbsp;&nbsp;${esc(v('c-paie'))}</div>`,
+  };
+  document.getElementById('p-paie-lignes').innerHTML=(PAIE[mode]||PAIE['libre'])();
 }
 
 // ── Historique LOCAL (gabarit /invitation/) — la table `proformas` archive tout
@@ -665,8 +698,10 @@ function reprendreHisto(i){
   lignes=Array.isArray(e.lignes)?JSON.parse(JSON.stringify(e.lignes)):[];
   numero=e.numero||null;
   syncPills();applyLang();renderForm();maj();fermerHisto();
-  document.getElementById('genok').textContent=numero
-    ?'Reprise de '+numero+' — « Réimprimer » garde ce numéro, « Générer » en crée un nouveau.':'';
+  // reprise → aperçu direct : « Imprimer / PDF » réimprime avec le MÊME numéro ;
+  // « ← Modifier » puis « Générer » en crée un nouveau
+  montrerApercu();
+  document.getElementById('genok').textContent=numero?'Reprise de '+numero:'';
 }
 
 async function generer(){
@@ -750,6 +785,7 @@ fitSheet();
       lignes.length=0;
       j.lignes.forEach(function(l){lignes.push({code:String(l.code||''),des:String(l.des||''),qte:+l.qte||0,pu:+l.pu||0});});
     }
+    if(typeof syncPills==='function')syncPills();
     renderForm();maj();if(typeof fitSheet==='function')fitSheet();
   }catch(e){console.warn('prefill',e);}
 })();
