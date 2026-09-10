@@ -8597,8 +8597,10 @@ function _albumCards(){
     coul=coul.charAt(0).toUpperCase()+coul.slice(1).toLowerCase();
     const orig=f.image_url?safeUrl(f.image_url):'';
     const src=orig?imgThumb(orig,900):NOPH;
+    const det=String(getProductDetailText(f)||'').toUpperCase();
     return `<div class="alb-card"><div class="alb-ph"><img crossorigin="anonymous" src="${src}" onerror="this.onerror=null;this.src='${esc(NOPH)}'"></div>`
       +`<div class="alb-titre"><span>${isF?'FORMAT':'BOBINE'} — ${esc(lab)}</span><span class="alb-tref">${esc(ref)}</span></div>`
+      +`<div class="alb-det">${esc(det||'—')}</div>`
       +`<div class="alb-grid2">${cell('GRAMMAGE',f.grammage?esc(f.grammage)+' g/m²':'—')
         +cell(isF?'DIMENSIONS':'LAIZE',esc(dim))
         +cell('COULEUR',esc(coul))
@@ -8615,6 +8617,7 @@ function _albumCss(){
 .alb-ph img{width:100%;height:100%;object-fit:cover;display:block}
 .alb-titre{display:flex;justify-content:space-between;align-items:baseline;gap:3mm;font-weight:800;font-size:12.5px;padding:2.2mm 2.6mm;border-bottom:1.1px solid #111;letter-spacing:.2px}
 .alb-tref{color:#6e6e73;font-size:10.5px;font-weight:700;letter-spacing:.4px}
+.alb-det{font-weight:800;font-size:10px;color:#FE0000;padding:1.6mm 2.6mm;border-bottom:1.1px solid #111;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .alb-grid2{display:grid;grid-template-columns:1fr 1fr}
 .alb-cell{padding:1.5mm 2.6mm 1.7mm;border-right:1.1px solid #111;border-bottom:1.1px solid #111}
 .alb-cell:nth-child(2n){border-right:none}
