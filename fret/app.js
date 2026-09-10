@@ -271,7 +271,6 @@ function genMail() {
   const taille = tailleVal();
   const march = marchandiseVal().toLowerCase().replace(' + ', ' et ');
   const inco = incotermVal();
-  const poids = taille === '40' ? 26 : 25;   // tonnage max papier approximatif
   // Réf de l'objet = le n° de proforma s'il est saisi, sinon FR-xxxx auto
   const ref = num || 'FR-' + nextRef;
 
@@ -280,6 +279,7 @@ function genMail() {
   const lignes = [];
   if (prov) lignes.push(`– Lieu de chargement : ${prov}`);
   lignes.push(`– Lieu de livraison : ${destTxt}`);
+  lignes.push(`– Containers : ${nb} x ${taille}'`);
   lignes.push(`– Marchandise : papier en ${march} (sous famille HS 48)`);
   lignes.push(`– Incoterm : ${inco}`);
   if (client) lignes.push(`– Client : ${client}`);
@@ -288,7 +288,7 @@ function genMail() {
   const texte =
 `Bonjour,
 
-Pourriez-vous, s'il vous plaît, nous faire parvenir votre cotation pour : ${nb} x ${taille}' (poids approximatif : ${poids} tonnes par container)
+Pourriez-vous, s'il vous plaît, nous faire parvenir votre cotation pour le transport suivant :
 
 ${lignes.join('\n')}
 
