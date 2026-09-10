@@ -21,6 +21,7 @@ input,select,textarea{font-family:inherit;font-size:16px;color:var(--encre)}
 /* ── header (même repères que /invitation/) ── */
 header.app{background:#fff;border-bottom:1px solid var(--ligne);position:sticky;top:0;z-index:50}
 .h-in{max-width:1180px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:12px}
+.logo-lien{display:flex;align-items:center}
 .h-in .lg{height:26px}
 .h-sub{font-size:14px;color:var(--gris)}
 nav{display:flex;gap:8px;margin-left:auto}
