@@ -7706,6 +7706,18 @@ async function exportListExcelTest(btn){
     // Données enrichies depuis `all` si dispo
     // Colonnes calées sur la LISTE DÉTAILLÉE (16/07) : N° / Réf. / Qualité /
     // Détails / Couleur / GSM / Laize·Ø ou Dimensions / PN / Usine / P/T / Montant.
+    // Détail NETTOYÉ (10/09, Ethan « assemble plus ») : même moulinette que les
+    // cartes du site (préfixes BOB./PAL. retirés, séquences répétées dédupliquées).
+    // Pré-test : si le détail ne contient QUE le préfixe, on renvoie '' direct —
+    // getProductDetailText basculerait sinon sur _productSummary(p) avec un stub
+    // incomplet (champs undefined dans le texte).
+    const _detNet=t=>{
+      if(!t)return '';
+      const pre=String(t).replace(/\b(?:BOB|PAL|FEU|RAM|MACH?)\.[A-ZÀ-Ü0-9]+\s*/gi,'').replace(/(?<=^|\s)-(?=\s|$)/g,'').trim();
+      if(!pre)return '';
+      try{return String(getProductDetailText({details:String(t)})||'').trim();}
+      catch(e){return String(t).trim();}
+    };
     const rows=cart.map(p=>{
       // Enrichissement : la page courante d'abord, sinon le CACHE COMPLET du
       // stock (par réf) — sans ça, le Ø/usine manquaient pour les articles
@@ -7735,7 +7747,7 @@ async function exportListExcelTest(btn){
         ref:String(p.ref||f.ref||'').replace(/^Photo_/i,''),
         qualite:[qual,String((typeof formatProductTitle==='function')?formatProductTitle(qual,p.name):(p.name||''))
           .replace(/^\s*(BOBINE|FORMAT|PALETTE|MACHINE)\s*[—–-]\s*/i,'').trim()].filter(Boolean).join(' — '),
-        detail:(p.details||f.details||''),
+        detail:_detNet(p.details||f.details||''),
         couleur:(p.couleur||f.couleur||'').toString(),
         grammage:p.grammage??f.grammage??'',
         largeur:largeur||'',
@@ -7753,32 +7765,61 @@ async function exportListExcelTest(btn){
     const _byGsm=(a,b)=>(Number(a.grammage)||0)-(Number(b.grammage)||0);
     const bobines=rows.filter(r=>r.isBobine).sort(_byGsm);
     const formats=rows.filter(r=>!r.isBobine).sort(_byGsm);
-    // Feuille ASSEMBLÉE : une ligne par LOT — qualité/couleur/détails/GSM/forme
-    // + USINE + prix, RIEN en N°/Réf (demande Ethan 04/08), PN = poids total du
-    // lot. Pour les BOBINES, la laize (comme le Ø et le poids) ne sépare PAS
-    // les lots : elle s'affiche en plage min–max (04/08). Les formats gardent
-    // leurs dimensions exactes dans la clé. Mandrins distincts joints par « / ».
-    const _lotOf=new Map();
+    // Feuille ASSEMBLÉE (refonte 10/09, Ethan « assemble encore plus ») : une
+    // ligne par LOT — clé = forme/qualité/DÉTAIL NETTOYÉ/couleur/GSM (+dims
+    // exactes pour les formats). L'USINE ne sépare PLUS (colonne masquée v820)
+    // et le PRIX ne sépare qu'au-delà de 100 €/t d'écart (garde-fou Ethan :
+    // « 1000/1100 ensemble, 700/1020 séparés ») — clusters greedy sur prix
+    // triés ancrés au MIN, affichage « min – max €/t » si étalé. Les articles
+    // SANS prix s'assemblent entre eux (vue client : tout = SUR DEMANDE).
+    // Laize/Ø/poids en plage min–max comme avant, mandrins joints « / ».
+    // LOTS_DEBUT (testable hors site : ne dépend que de rows)
+    const ECART_PRIX_MAX=100; // €/t
+    const _detKey=t=>String(t).toUpperCase().replace(/[^0-9A-ZÀ-Ü%]+/g,' ').replace(/\s+/g,' ').trim();
+    const _grpOf=new Map();
     rows.forEach(d=>{
-      const k=[d.isBobine,d.fmt,d.qualite,d.detail,d.couleur,d.grammage,
-        d.isBobine?'':d.largeur,d.isBobine?'':d.longueur,d.usine,d.prixT].join('|');
-      let l=_lotOf.get(k);
-      if(!l){l={...d,ref:''};l._kg=0;l._larges=new Set();l._longs=new Set();l._mands=new Set();_lotOf.set(k,l);}
-      l._kg+=+d.poids||0;
-      if(d.largeur!=='')l._larges.add(+d.largeur||0);
-      if(d.longueur!=='')l._longs.add(+d.longueur||0);
-      if(d.mandrin!=='')l._mands.add(String(d.mandrin));
-      if(!l.img&&d.img)l.img=d.img;
+      const k=[d.isBobine,d.fmt,d.qualite,_detKey(d.detail),String(d.couleur).toUpperCase(),d.grammage,
+        d.isBobine?'':d.largeur,d.isBobine?'':d.longueur].join('|');
+      let g=_grpOf.get(k);
+      if(!g){g=[];_grpOf.set(k,g);}
+      g.push(d);
     });
     const _rngOf=set=>{const v=[...set].filter(Boolean).sort((a,b)=>a-b);
       return v.length?(v.length>1?v[0]+'–'+v[v.length-1]:String(v[0])):'';};
-    const _lots=[..._lotOf.values()].map(l=>({...l,
-      poids:Math.round(l._kg)||'',
-      largeur:_rngOf(l._larges),
-      longueur:_rngOf(l._longs),
-      mandrin:[...l._mands].join(' / '),
-      montant:(l.prix&&l._kg)?Math.round(l._kg*l.prix*100)/100:'',
-    }));
+    const _lots=[];
+    _grpOf.forEach(list=>{
+      const avec=list.filter(d=>typeof d.prixT==='number'&&isFinite(d.prixT)).sort((a,b)=>a.prixT-b.prixT);
+      const sans=list.filter(d=>!(typeof d.prixT==='number'&&isFinite(d.prixT)));
+      const clusters=[];let cur=null;
+      avec.forEach(d=>{
+        if(!cur||d.prixT-cur[0].prixT>ECART_PRIX_MAX){cur=[d];clusters.push(cur);}
+        else cur.push(d);
+      });
+      if(sans.length)clusters.push(sans);
+      clusters.forEach(cl=>{
+        const l={...cl[0],ref:''};
+        let kg=0,pMin=null,pMax=null;
+        const LG=new Set(),LO=new Set(),MD=new Set();
+        cl.forEach(d=>{
+          kg+=+d.poids||0;
+          if(d.largeur!=='')LG.add(+d.largeur||0);
+          if(d.longueur!=='')LO.add(+d.longueur||0);
+          if(d.mandrin!=='')MD.add(String(d.mandrin));
+          if(!l.img&&d.img)l.img=d.img;
+          if(typeof d.prixT==='number'&&isFinite(d.prixT)){
+            pMin=pMin==null?d.prixT:Math.min(pMin,d.prixT);
+            pMax=pMax==null?d.prixT:Math.max(pMax,d.prixT);
+          }
+        });
+        l._kg=kg;
+        l.poids=Math.round(kg)||'';
+        l.largeur=_rngOf(LG);l.longueur=_rngOf(LO);l.mandrin=[...MD].join(' / ');
+        if(pMax!=null){l.prixT=pMax;if(pMax>pMin){l._pMin=pMin;l._pMax=pMax;}}
+        l.montant=(l.prix&&kg)?Math.round(kg*l.prix*100)/100:'';
+        _lots.push(l);
+      });
+    });
+    // LOTS_FIN
     const lotsBob=_lots.filter(x=>x.isBobine).sort(_byGsm);
     const lotsFmt=_lots.filter(x=>!x.isBobine).sort(_byGsm);
 
@@ -7820,6 +7861,10 @@ async function exportListExcelTest(btn){
     // lot « 4 058,10 € » ; laize en CM à virgule, plages assemblées converties.
     const _sp=(s)=>String(s).replace(/[\u202f\u00a0]/g,' ');
     const _fmtPrix=(t)=>(typeof t==='number'&&isFinite(t))?_sp(_xR10(t).toLocaleString('fr-FR'))+' '+_xUnit(true):'SUR DEMANDE';
+    // lot à prix étalé (≤100 €/t d'écart) : « 1 000 – 1 100 €/t »
+    const _fmtPrixCell=(d)=>(typeof d._pMin==='number'&&typeof d._pMax==='number'&&d._pMax>d._pMin)
+      ?_sp(_xR10(d._pMin).toLocaleString('fr-FR'))+' – '+_sp(_xR10(d._pMax).toLocaleString('fr-FR'))+' '+_xUnit(true)
+      :_fmtPrix(d.prixT);
     const _fmtMontant=(t,kg)=>{
       if(typeof t!=='number'||!isFinite(t)||!kg)return '';
       let v=t*kg/1000; if(_xUsd)v*=_usdRate;
@@ -7934,14 +7979,14 @@ async function exportListExcelTest(btn){
         fr:[...phFr,...COLS_B_FR],en:[...phEn,...COLS_B_EN],tailles:[...(AV?[T_TXT]:[]),...TAIL_B],
         iCoul:3+phFr.length,iDet:2+phFr.length,
         iPrix:10+phFr.length,iMont:11+phFr.length,iCfr:12+phFr.length,imgs:imgsBob,
-        vals:secBob.map((d,ix)=>[...(AV?[imgsBob[ix]?'':'SUR DEMANDE']:[]),d.ref,_qualSansCode(d.qualite),d.detail,_coulBi(d.couleur),_numV(d.grammage),_numV(d.mandrin),_mm(d.largeur),_numV(d.longueur),_numV(d.poids),d.usine,_fmtPrix(d.prixT),_fmtMontant(d.prixT,+d.poids||0),PRIX_CFR_FR+PRIX_CFR_EN]),
+        vals:secBob.map((d,ix)=>[...(AV?[imgsBob[ix]?'':'SUR DEMANDE']:[]),d.ref,_qualSansCode(d.qualite),d.detail,_coulBi(d.couleur),_numV(d.grammage),_numV(d.mandrin),_mm(d.largeur),_numV(d.longueur),_numV(d.poids),d.usine,_fmtPrixCell(d),_fmtMontant(d.prixT,+d.poids||0),PRIX_CFR_FR+PRIX_CFR_EN]),
       });
       if(secFmt.length)secDefs.push({
         titreFr:'FORMATS / PALETTES – ',titreEn:'SHEETS/PALLETS',
         fr:[...phFr,...COLS_F_FR],en:[...phEn,...COLS_F_EN],tailles:[...(AV?[T_TXT]:[]),...TAIL_F],
         iCoul:3+phFr.length,iDet:2+phFr.length,
         iPrix:9+phFr.length,iMont:10+phFr.length,iCfr:11+phFr.length,imgs:imgsFmt,
-        vals:secFmt.map((d,ix)=>[...(AV?[imgsFmt[ix]?'':'SUR DEMANDE']:[]),d.ref,_qualSansCode(d.qualite),d.detail,_coulBi(d.couleur),_numV(d.grammage),_mm(d.largeur),_numV(d.longueur),_numV(d.poids),d.usine,_fmtPrix(d.prixT),_fmtMontant(d.prixT,+d.poids||0),PRIX_CFR_FR+PRIX_CFR_EN]),
+        vals:secFmt.map((d,ix)=>[...(AV?[imgsFmt[ix]?'':'SUR DEMANDE']:[]),d.ref,_qualSansCode(d.qualite),d.detail,_coulBi(d.couleur),_numV(d.grammage),_mm(d.largeur),_numV(d.longueur),_numV(d.poids),d.usine,_fmtPrixCell(d),_fmtMontant(d.prixT,+d.poids||0),PRIX_CFR_FR+PRIX_CFR_EN]),
       });
       secDefs.forEach(s=>{
         // la colonne PHOTO (k=0 en mode photos) n'est JAMAIS retirée (règle GSE)
