@@ -7947,7 +7947,8 @@ async function exportListExcelTest(btn){
         // la colonne PHOTO (k=0 en mode photos) n'est JAMAIS retirée (règle GSE)
         // opts.sans : colonnes retirées à la demande (onglet Offre épuré 25/08)
         // MONTANT DU LOT retiré PARTOUT (Ethan 25/08) — plomberie conservée
-        const sans=[...((opts&&opts.sans)||[]),'MONTANT'];
+        // USINE retirée PARTOUT (Ethan 10/09) — données conservées, colonne masquée
+        const sans=[...((opts&&opts.sans)||[]),'MONTANT','USINE'];
         const keep=s.fr.map((_,k)=>k).filter(k=>((AV&&k===0)||s.vals.some(v=>v[k]!=null&&v[k]!==''))&&!(sans&&sans.some(p=>String(s.fr[k]).startsWith(p))));
         s.fr=keep.map(k=>s.fr[k]); s.en=keep.map(k=>s.en[k]); s.tailles=keep.map(k=>s.tailles[k]);
         s.vals=s.vals.map(v=>keep.map(k=>v[k]));
@@ -8300,9 +8301,14 @@ async function exportListExcelTest(btn){
           const cars=[
             ['GRAMMAGE',d.grammage?d.grammage+' g/m²':''],[it.bob?'LAIZE':'DIMENSIONS',laize],
             ['COULEUR',d.couleur],['POIDS NET',d.poids?Math.round(d.poids)+' kgs':''],
-            ['USINE',d.usine],['PRIX',_fmtPrix(d.prixT)],
+            ['PRIX',_fmtPrix(d.prixT)], // USINE retirée (Ethan 10/09)
           ];
           cars.forEach((cv,k)=>_car(ws.getRow(rC+Math.floor(k/2)).getCell(c0+(k%2)),cv[0],cv[1]));
+          if(cars.length%2===1){ // dernière case seule → fusionnée sur la rangée
+            const rY=rC+Math.floor((cars.length-1)/2);
+            ws.getRow(rY).getCell(c0+1).border=bordN;
+            ws.mergeCells(rY,c0,rY,c0+1);
+          }
         });
         r=rC+4;rowIdx++;
       }
