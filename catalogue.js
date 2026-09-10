@@ -8568,83 +8568,136 @@ function _buildSharedInfo(list){
 })();
 
 
-// ─── ALBUM PHOTO PDF (10/09, Ethan) : bouton « Album PDF » du tiroir Panier —
-// TÉLÉCHARGE directement l'album de la sélection (html2pdf.js lazy-loadé
-// depuis jsdelivr, SRI pinné, CSP déjà ouverte à cdn.jsdelivr.net).
-// Format validé sur maquette : A4 portrait, 4 cartes/page (2×2), photo plein
-// cadre 91 mm, bandeau BOBINE|FORMAT — QUALITÉ + réf grise, GRAMMAGE|LAIZE
-// (ou DIMENSIONS) puis COULEUR|POIDS NET — sans prix/usine/détails
-// (envoyable client). Logo Prodiconseil en haut de CHAQUE page (pagination
-// manuelle : 1 div .alb-page par page PDF, page-break-after css).
-// ⚠️ CANVAS : toutes les photos passent par images.weserv.nl (CORS *) avec
-// crossorigin=anonymous — un repli direct stock.prodi.net TEINTERAIT le
-// canvas et casserait le save() → repli photo = /img/no-photo.png (même
-// origine) UNIQUEMENT. Échec CDN/génération → repli fenêtre d'impression
-// (_albumImpression, ancien flux).
-function _albumCards(){
-  const NOPH=location.origin+'/img/no-photo.png';
-  const cell=(c,v)=>`<div class="alb-cell"><div class="alb-cap">${c}</div><div class="alb-val">${v}</div></div>`;
+// ─── ALBUM PHOTO PDF (10/09, Ethan — v3 jsPDF VECTORIEL) : bouton « Album
+// PDF » du tiroir Panier → TÉLÉCHARGE l'album de la sélection.
+// Historique : v1 window.print (Ethan veut un téléchargement direct), v2
+// html2pdf/html2canvas = PDF BLANC ×2 (offsets de layout + zoom global --fitz
+// du catalogue que html2canvas ne gère pas) → v3 : le PDF est DESSINÉ en
+// jsPDF pur (rects/textes/photos), aucune capture DOM, insensible au CSS.
+// Format validé : A4 portrait, 4 cartes/page (2×2), photo plein cadre 91 mm
+// recadrée « cover » (canvas, photos weserv CORS *), bandeau BOBINE|FORMAT —
+// QUALITÉ + réf grise, ligne détails ROUGE, GRAMMAGE|LAIZE (ou DIMENSIONS),
+// COULEUR|POIDS NET — sans prix/usine. Logo en haut de chaque page.
+// Repli : _albumImpression() (onglet + window.print) si CDN jsPDF mort.
+function _albumData(){
   return cart.map(p=>{
     const f=all.find(x=>x.id===+p.id)||p;
     const isF=_estFormat(f);
-    const lab=String(QUALITE_LABELS[f.qualite]||f.qualite||'').toUpperCase();
-    const ref=f.ref?String(f.ref).replace(/^Photo_/i,'').trim():'';
     let dim='—';
     if(isF&&f.largeur&&f.longueur)dim=mmToCm(Math.min(f.largeur,f.longueur))+' × '+mmToCm(Math.max(f.largeur,f.longueur))+' mm';
     else if(f.largeur)dim=mmToCm(f.largeur)+' mm';
     const kg=p.qty_kg??(f.poids_net||0);
     let coul=String(f.couleur||p.couleur||'—');
     coul=coul.charAt(0).toUpperCase()+coul.slice(1).toLowerCase();
-    const orig=f.image_url?safeUrl(f.image_url):'';
-    const src=orig?imgThumb(orig,900):NOPH;
-    const det=String(getProductDetailText(f)||'').toUpperCase();
-    return `<div class="alb-card"><div class="alb-ph"><img crossorigin="anonymous" src="${src}" onerror="this.onerror=null;this.src='${esc(NOPH)}'"></div>`
-      +`<div class="alb-titre"><span>${isF?'FORMAT':'BOBINE'} — ${esc(lab)}</span><span class="alb-tref">${esc(ref)}</span></div>`
-      +`<div class="alb-det">${esc(det||'—')}</div>`
-      +`<div class="alb-grid2">${cell('GRAMMAGE',f.grammage?esc(f.grammage)+' g/m²':'—')
-        +cell(isF?'DIMENSIONS':'LAIZE',esc(dim))
-        +cell('COULEUR',esc(coul))
-        +cell('POIDS NET',kg?Math.round(kg).toLocaleString('fr-FR')+' kgs':'—')}</div></div>`;
+    return {
+      titre:(isF?'FORMAT':'BOBINE')+' — '+String(QUALITE_LABELS[f.qualite]||f.qualite||'').toUpperCase(),
+      ref:f.ref?String(f.ref).replace(/^Photo_/i,'').trim():'',
+      det:String(getProductDetailText(f)||'').toUpperCase()||'—',
+      cells:[['GRAMMAGE',f.grammage?f.grammage+' g/m²':'—'],[isF?'DIMENSIONS':'LAIZE',dim],
+             ['COULEUR',coul],['POIDS NET',kg?Math.round(kg).toLocaleString('fr-FR')+' kgs':'—']],
+      img:f.image_url?imgThumb(safeUrl(f.image_url),900):null
+    };
   });
 }
-function _albumCss(){
-  return `.alb-page{width:210mm;height:296mm;padding:9mm;box-sizing:border-box;background:#fff;overflow:hidden;page-break-after:always;font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;color:#1d1d1f}
-.alb-page:last-child{page-break-after:auto}
-.alb-logo{height:9mm;display:block;margin-bottom:4mm}
-.alb-grid{display:grid;grid-template-columns:1fr 1fr;gap:5mm}
-.alb-card{border:1.4px solid #111;display:flex;flex-direction:column;background:#fff}
-.alb-ph{height:91mm;background:#f0f0f4;overflow:hidden;border-bottom:1.4px solid #111}
-.alb-ph img{width:100%;height:100%;object-fit:cover;display:block}
-.alb-titre{display:flex;justify-content:space-between;align-items:baseline;gap:3mm;font-weight:800;font-size:12.5px;padding:2.2mm 2.6mm;border-bottom:1.1px solid #111;letter-spacing:.2px}
-.alb-tref{color:#6e6e73;font-size:10.5px;font-weight:700;letter-spacing:.4px}
-.alb-det{font-weight:800;font-size:10px;color:#FE0000;padding:1.6mm 2.6mm;border-bottom:1.1px solid #111;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.alb-grid2{display:grid;grid-template-columns:1fr 1fr}
-.alb-cell{padding:1.5mm 2.6mm 1.7mm;border-right:1.1px solid #111;border-bottom:1.1px solid #111}
-.alb-cell:nth-child(2n){border-right:none}
-.alb-cell:nth-last-child(-n+2){border-bottom:none}
-.alb-cap{font-size:7.6px;letter-spacing:.6px;color:#6e6e73;font-weight:600}
-.alb-val{font-size:12.5px;font-weight:800;margin-top:.4mm}`;
+// ALBUM_CORE_DEBUT — dessin pur (testé hors site tel quel, ne pas lier au DOM du catalogue)
+async function _albumChargePhoto(url,ratio,noph){
+  // charge + recadre « cover » au ratio demandé → dataURL JPEG (canvas propre :
+  // weserv envoie ACAO * ; en cas d'échec on retombe sur no-photo même origine)
+  const charge=u=>new Promise((res,rej)=>{const i=new Image();i.crossOrigin='anonymous';
+    i.onload=()=>res(i);i.onerror=rej;i.src=u;});
+  let im=null;
+  try{im=await charge(url);}catch(e){try{im=await charge(noph);}catch(e2){return null;}}
+  const sw=im.naturalWidth,sh=im.naturalHeight;
+  let cw=sw,ch=Math.round(sw/ratio);
+  if(ch>sh){ch=sh;cw=Math.round(sh*ratio);}
+  const c=document.createElement('canvas');
+  const k=Math.min(1,1000/cw);
+  c.width=Math.max(1,Math.round(cw*k));c.height=Math.max(1,Math.round(ch*k));
+  c.getContext('2d').drawImage(im,Math.round((sw-cw)/2),Math.round((sh-ch)/2),cw,ch,0,0,c.width,c.height);
+  try{return c.toDataURL('image/jpeg',.85);}catch(e){return null;}
 }
-function _albumPages(){
-  const cards=_albumCards(),pages=[];
-  for(let i=0;i<cards.length;i+=4)
-    pages.push(`<div class="alb-page"><img class="alb-logo" src="${esc(location.origin+'/img/logo.png')}"><div class="alb-grid">${cards.slice(i,i+4).join('')}</div></div>`);
-  return pages.join('');
+async function _albumBuildPdf(JsPdf,data,logoUrl,noph,onProg){
+  const M=9,GAP=5,CW=(210-2*M-GAP)/2,PH=91,TH=9,DH=6.2,RH=9.6;
+  const CH=PH+TH+DH+2*RH;                       // hauteur carte ≈ 125,4 mm
+  const Y0=M+9+4;                               // marge + logo 9 + espace 4
+  const pdf=new JsPdf({unit:'mm',format:'a4',orientation:'portrait'});
+  // logo (PNG transparent) : dataURL + ratio naturel
+  let logo=null;
+  try{
+    const li=await new Promise((res,rej)=>{const i=new Image();i.crossOrigin='anonymous';
+      i.onload=()=>res(i);i.onerror=rej;i.src=logoUrl;});
+    const lc=document.createElement('canvas');lc.width=li.naturalWidth;lc.height=li.naturalHeight;
+    lc.getContext('2d').drawImage(li,0,0);
+    logo={d:lc.toDataURL('image/png'),w:9*li.naturalWidth/li.naturalHeight};
+  }catch(e){}
+  // photos en parallèle (par paquets de 6)
+  const photos=new Array(data.length);let done=0;
+  for(let i=0;i<data.length;i+=6){
+    await Promise.all(data.slice(i,i+6).map((d,j)=>
+      _albumChargePhoto(d.img||noph,CW/PH,noph).then(r=>{photos[i+j]=r;done++;if(onProg)onProg(done,data.length);})));
+  }
+  const elid=(t,max,size,style)=>{pdf.setFontSize(size);pdf.setFont('helvetica',style);
+    let s=String(t);while(s.length>1&&pdf.getTextWidth(s+'…')>max)s=s.slice(0,-1);
+    return s.length<String(t).length?s+'…':s;};
+  for(let i=0;i<data.length;i++){
+    const pg=Math.floor(i/4);
+    if(i%4===0){
+      if(pg>0)pdf.addPage();
+      if(logo)pdf.addImage(logo.d,'PNG',M,M,logo.w,9);
+    }
+    const col=i%2,row=Math.floor((i%4)/2);
+    const x=M+col*(CW+GAP),y=Y0+row*(CH+GAP);
+    // photo (fond gris si absente)
+    if(photos[i])pdf.addImage(photos[i],'JPEG',x,y,CW,PH);
+    else{pdf.setFillColor(240,240,244);pdf.rect(x,y,CW,PH,'F');
+      pdf.setTextColor(110,110,115);pdf.setFontSize(10);pdf.setFont('helvetica','bold');
+      pdf.text('PHOTO SUR DEMANDE',x+CW/2,y+PH/2,{align:'center'});}
+    // bandeau titre + réf
+    let yy=y+PH;
+    pdf.setTextColor(29,29,31);pdf.setFont('helvetica','bold');pdf.setFontSize(10.5);
+    pdf.text(elid(data[i].titre,CW-30,10.5,'bold'),x+2.6,yy+TH-3);
+    pdf.setTextColor(110,110,115);pdf.setFontSize(8.2);
+    pdf.text(String(data[i].ref),x+CW-2.6,yy+TH-3,{align:'right'});
+    // ligne détails ROUGE
+    yy+=TH;
+    pdf.setTextColor(254,0,0);pdf.setFontSize(8);pdf.setFont('helvetica','bold');
+    pdf.text(elid(data[i].det,CW-5.2,8,'bold'),x+2.6,yy+DH-1.9);
+    // cellules 2×2
+    yy+=DH;
+    for(let r=0;r<2;r++)for(let cc=0;cc<2;cc++){
+      const cx=x+cc*(CW/2),cy=yy+r*RH,cel=data[i].cells[r*2+cc];
+      pdf.setTextColor(110,110,115);pdf.setFontSize(5.8);pdf.setFont('helvetica','bold');
+      pdf.text(String(cel[0]),cx+2.6,cy+3,{charSpace:.12});
+      pdf.setTextColor(29,29,31);pdf.setFontSize(9.5);
+      pdf.text(elid(cel[1],CW/2-5,9.5,'bold'),cx+2.6,cy+7.6);
+    }
+    // traits (après les fonds : cadre + séparations)
+    pdf.setDrawColor(17,17,17);
+    pdf.setLineWidth(.42);pdf.rect(x,y,CW,CH);
+    pdf.setLineWidth(.28);
+    pdf.line(x,y+PH,x+CW,y+PH);
+    pdf.line(x,y+PH+TH,x+CW,y+PH+TH);
+    pdf.line(x,y+PH+TH+DH,x+CW,y+PH+TH+DH);
+    pdf.line(x,y+PH+TH+DH+RH,x+CW,y+PH+TH+DH+RH);
+    pdf.line(x+CW/2,y+PH+TH+DH,x+CW/2,y+CH);
+  }
+  return pdf;
 }
-let _h2pP=null;
-function _h2pLoad(){
-  if(window.html2pdf)return Promise.resolve();
-  if(_h2pP)return _h2pP;
-  _h2pP=new Promise((res,rej)=>{
+// ALBUM_CORE_FIN
+let _jpdfP=null;
+function _jspdfLoad(){
+  if(window.jspdf&&window.jspdf.jsPDF)return Promise.resolve();
+  if(_jpdfP)return _jpdfP;
+  _jpdfP=new Promise((res,rej)=>{
     const s=document.createElement('script');
-    s.src='https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.3/dist/html2pdf.bundle.min.js';
-    s.integrity='sha384-1Rq385dzyHeeImKREXc2dTf1lhBKJHL8YR6phOUkikTCsUwGgDyWRoGv8KVG2+qY';
+    s.src='https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js';
+    s.integrity='sha384-en/ztfPSRkGfME4KIm05joYXynqzUgbsG5nMrj/xEFAHXkeZfO3yMK8QQ+mP7p1/';
     s.crossOrigin='anonymous';
     s.onload=()=>res();
-    s.onerror=()=>{_h2pP=null;rej(new Error('cdn html2pdf'));};
+    s.onerror=()=>{_jpdfP=null;rej(new Error('cdn jspdf'));};
     document.head.appendChild(s);
   });
-  return _h2pP;
+  return _jpdfP;
 }
 async function exportAlbumPdf(){
   if(!cart.length){toast('Liste vide');return;}
@@ -8653,51 +8706,55 @@ async function exportAlbumPdf(){
   const old=lbl?lbl.textContent:'';
   if(btn)btn.disabled=true;
   if(lbl)lbl.textContent='Génération…';
-  let host=null;
   try{
-    await _h2pLoad();
-    // ⚠️ html2canvas dessine l'élément AVEC ses offsets de layout : un conteneur
-    // à left:-9999px sort du canvas → PDF BLANC (vécu 10/09). Le conteneur doit
-    // être VISIBLE à (0,0) → overlay plein écran le temps de la génération
-    // (l'utilisateur voit l'album défiler, ça fait feedback de progression).
-    host=document.createElement('div');
-    host.style.cssText='position:fixed;inset:0;z-index:99998;background:#f5f5f7;overflow:auto;padding:14px 0 40px';
-    host.innerHTML='<style>'+_albumCss()+'</style>'
-      +'<div style="position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:99999;background:#1d1d1f;color:#fff;font-weight:700;font-size:14px;padding:10px 18px;border-radius:999px;box-shadow:0 6px 20px rgba(0,0,0,.25)">Génération du PDF en cours…</div>'
-      +'<div id="alb-inner" style="width:210mm;margin:0 auto;background:#fff;box-shadow:0 4px 22px rgba(0,0,0,.13)">'+_albumPages()+'</div>';
-    document.body.appendChild(host);
-    await new Promise(res=>{
-      const im=[].slice.call(host.querySelectorAll('img'));
-      let n=im.length;if(!n)return res();
-      const t=setTimeout(res,12000);
-      im.forEach(i=>{const one=()=>{if(--n<=0){clearTimeout(t);res();}};
-        if(i.complete)one();else{i.onload=one;i.onerror=one;}});
-    });
-    await html2pdf().set({
-      margin:0,filename:'Album photo Prodiconseil.pdf',
-      image:{type:'jpeg',quality:.86},
-      html2canvas:{scale:2,useCORS:true,logging:false,backgroundColor:'#fff'},
-      jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
-      pagebreak:{mode:['css']}
-    }).from(host.querySelector('#alb-inner')).save();
-    host.remove();host=null;
+    await _jspdfLoad();
+    const noph=location.origin+'/img/no-photo.png';
+    const pdf=await _albumBuildPdf(window.jspdf.jsPDF,_albumData(),
+      location.origin+'/img/logo.png',noph,
+      (d,t)=>{if(lbl)lbl.textContent='Photos '+d+'/'+t+'…';});
+    if(lbl)lbl.textContent='Génération…';
+    pdf.save('Album photo Prodiconseil.pdf');
     window.prodiTrack?.('album_pdf',{n:cart.length});
     toast('Album PDF téléchargé');
   }catch(e){
-    if(host)host.remove();
-    _albumImpression(); // repli : le flux impression marche toujours
+    _albumImpression(); // repli : onglet imprimable
   }finally{
     if(btn)btn.disabled=false;
     if(lbl)lbl.textContent=old;
   }
 }
-// Repli : onglet + window.print() (flux d'origine, → « Enregistrer en PDF »).
+// Repli (CDN mort) : onglet + window.print() → « Enregistrer au format PDF ».
 function _albumImpression(){
+  const NOPH=location.origin+'/img/no-photo.png';
+  const cell=(c,v)=>`<div class="alb-cell"><div class="alb-cap">${c}</div><div class="alb-val">${v}</div></div>`;
+  const cards=_albumData().map(d=>
+    `<div class="alb-card"><div class="alb-ph"><img src="${d.img||esc(NOPH)}" onerror="this.onerror=null;this.src='${esc(NOPH)}'"></div>`
+    +`<div class="alb-titre"><span>${esc(d.titre)}</span><span class="alb-tref">${esc(d.ref)}</span></div>`
+    +`<div class="alb-det">${esc(d.det)}</div>`
+    +`<div class="alb-grid2">${d.cells.map(c=>cell(c[0],esc(String(c[1])))).join('')}</div></div>`);
+  const pages=[];
+  for(let i=0;i<cards.length;i+=4)
+    pages.push(`<div class="alb-page"><img class="alb-logo" src="${esc(location.origin+'/img/logo.png')}"><div class="alb-grid">${cards.slice(i,i+4).join('')}</div></div>`);
   const html=`<!doctype html><html><head><meta charset="utf-8"><title>Album photo Prodiconseil</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;800&display=swap" rel="stylesheet">
-<style>@page{size:A4;margin:0}body{margin:0}${_albumCss()}
+<style>@page{size:A4;margin:0}body{margin:0;font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;color:#1d1d1f}
+.alb-page{width:210mm;height:296mm;padding:9mm;box-sizing:border-box;background:#fff;overflow:hidden;page-break-after:always}
+.alb-page:last-child{page-break-after:auto}
+.alb-logo{height:9mm;display:block;margin-bottom:4mm}
+.alb-grid{display:grid;grid-template-columns:1fr 1fr;gap:5mm}
+.alb-card{border:1.4px solid #111;display:flex;flex-direction:column;background:#fff}
+.alb-ph{height:91mm;background:#f0f0f4;overflow:hidden;border-bottom:1.4px solid #111}
+.alb-ph img{width:100%;height:100%;object-fit:cover;display:block}
+.alb-titre{display:flex;justify-content:space-between;align-items:baseline;gap:3mm;font-weight:800;font-size:12.5px;padding:2.2mm 2.6mm;border-bottom:1.1px solid #111}
+.alb-tref{color:#6e6e73;font-size:10.5px;font-weight:700}
+.alb-det{font-weight:800;font-size:10px;color:#FE0000;padding:1.6mm 2.6mm;border-bottom:1.1px solid #111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.alb-grid2{display:grid;grid-template-columns:1fr 1fr}
+.alb-cell{padding:1.5mm 2.6mm 1.7mm;border-right:1.1px solid #111;border-bottom:1.1px solid #111}
+.alb-cell:nth-child(2n){border-right:none}
+.alb-cell:nth-last-child(-n+2){border-bottom:none}
+.alb-cap{font-size:7.6px;letter-spacing:.6px;color:#6e6e73;font-weight:600}
+.alb-val{font-size:12.5px;font-weight:800;margin-top:.4mm}
 @media screen{body{background:#f5f5f7}.alb-page{margin:0 auto 10mm;box-shadow:0 2px 12px rgba(0,0,0,.12)}}</style></head>
-<body>${_albumPages()}
+<body>${pages.join('')}
 <script>(function(){var im=[].slice.call(document.images),n=im.length;
 function go(){setTimeout(function(){window.print()},350)}
 if(!n)return go();var t=setTimeout(go,9000);
