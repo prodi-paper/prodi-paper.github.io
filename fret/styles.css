@@ -142,10 +142,12 @@ input::placeholder{color:var(--gris2)}
 .mp-tete b{font-size:18px}
 .mail-meta{padding:15px 22px;border-bottom:1px solid var(--ligne);font-size:15px;display:grid;gap:6px}
 .mail-meta b{display:inline-block;min-width:58px;color:var(--gris);font-weight:600}
-/* le corps du mail EST la zone d'édition : clique dedans et modifie */
-#mail-zone{display:block;width:100%;border:none;margin:0;padding:20px 24px;min-height:320px;
-  font-size:17px;line-height:1.65;font-family:inherit;color:var(--encre);resize:vertical;border-radius:0;background:#fff}
-#mail-zone:focus{outline:none}
+/* le corps du mail EST la zone d'édition : clique dedans et modifie —
+   contour visible comme l'éditeur de /invitation/ */
+#mail-zone{display:block;width:calc(100% - 44px);margin:16px 22px 0;padding:16px 18px;min-height:320px;
+  font-size:17px;line-height:1.65;font-family:inherit;color:var(--encre);resize:vertical;
+  border:1px solid var(--ligne);border-radius:10px;background:#fff}
+#mail-zone:focus{outline:none;border-color:var(--rouge)}
 .mp-actions{display:flex;gap:12px;padding:14px 22px 20px}
 .mp-actions .btn-ghost{flex:1;font-size:16px}
 
