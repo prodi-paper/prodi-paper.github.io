@@ -281,8 +281,8 @@ function genMail() {
   lignes.push(`– Lieu de livraison : ${destTxt}`);
   lignes.push(`– Marchandise : papier en ${march} (sous famille HS 48)`);
   lignes.push(`– Incoterm : ${inco}`);
-  const cliTxt = client ? `${client}${num ? ` (n° ${num})` : ''}` : (num ? `n° ${num}` : '');
-  if (cliTxt) lignes.push(`– Client : ${cliTxt}`);
+  if (client) lignes.push(`– Client : ${client}`);
+  if (num) lignes.push(`– N° proforma : ${num}`);
   lignes.push(`– Motif de la demande : commande ferme`);
 
   const texte =
