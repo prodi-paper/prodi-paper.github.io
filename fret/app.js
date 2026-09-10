@@ -272,7 +272,8 @@ function genMail() {
   const march = marchandiseVal().toLowerCase().replace(' + ', ' et ');
   const inco = incotermVal();
   const poids = taille === '40' ? 26 : 25;   // tonnage max papier approximatif
-  const ref = 'FR-' + nextRef;
+  // Réf de l'objet = le n° de proforma s'il est saisi, sinon FR-xxxx auto
+  const ref = num || 'FR-' + nextRef;
 
   const objet = `Cotation fret — ${destTxt} — Réf ${ref}`;
 
@@ -282,7 +283,6 @@ function genMail() {
   lignes.push(`– Marchandise : papier en ${march} (sous famille HS 48)`);
   lignes.push(`– Incoterm : ${inco}`);
   if (client) lignes.push(`– Client : ${client}`);
-  if (num) lignes.push(`– N° proforma : ${num}`);
   lignes.push(`– Motif de la demande : commande ferme`);
 
   const texte =
@@ -350,7 +350,8 @@ async function confirmerEnvoi() {
     });
     const j = await r.json().catch(() => ({}));
     if (!r.ok || !j.ok) throw new Error(j.error || 'HTTP ' + r.status);
-    const ref = 'FR-' + nextRef++;
+    const ref = m.ref;
+    if (!$('f-num').value.trim()) nextRef++;   // la réf auto n'avance que si pas de proforma
     demandes.push({
       ref, pays: selPays,
       destination: [$('f-pays-port').value.trim(), $('f-pays').value.trim()].filter(Boolean).join(', '),
