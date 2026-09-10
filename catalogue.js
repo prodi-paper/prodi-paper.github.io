@@ -8668,9 +8668,9 @@ async function _albumChargePhoto(url,ratio,noph){
   try{return c.toDataURL('image/jpeg',.85);}catch(e){return null;}
 }
 async function _albumBuildPdf(JsPdf,data,logoUrl,noph,onProg){
-  const M=9,GAP=5,CW=(210-2*M-GAP)/2,PH=91,TH=9,DH=6.2,RH=9.6;
-  const CH=PH+TH+DH+2*RH;                       // hauteur carte ≈ 125,4 mm
-  const Y0=M+9+4;                               // marge + logo 9 + espace 4
+  const M=7,GAP=4,CW=(210-2*M-GAP)/2,PH=93,TH=10.5,DH=7.2,RH=11.5;
+  const CH=PH+TH+DH+2*RH;                       // hauteur carte ≈ 133,7 mm (2×133,7+4+en-tête 11 = 289 ≤ 290)
+  const Y0=M+8+3;                               // marge + logo 8 + espace 3
   const pdf=new JsPdf({unit:'mm',format:'a4',orientation:'portrait'});
   // logo (PNG transparent) : dataURL + ratio naturel
   let logo=null;
@@ -8679,7 +8679,7 @@ async function _albumBuildPdf(JsPdf,data,logoUrl,noph,onProg){
       i.onload=()=>res(i);i.onerror=rej;i.src=logoUrl;});
     const lc=document.createElement('canvas');lc.width=li.naturalWidth;lc.height=li.naturalHeight;
     lc.getContext('2d').drawImage(li,0,0);
-    logo={d:lc.toDataURL('image/png'),w:9*li.naturalWidth/li.naturalHeight};
+    logo={d:lc.toDataURL('image/png'),w:8*li.naturalWidth/li.naturalHeight};
   }catch(e){}
   // photos en parallèle (par paquets de 6)
   const photos=new Array(data.length);let done=0;
@@ -8694,33 +8694,33 @@ async function _albumBuildPdf(JsPdf,data,logoUrl,noph,onProg){
     const pg=Math.floor(i/4);
     if(i%4===0){
       if(pg>0)pdf.addPage();
-      if(logo)pdf.addImage(logo.d,'PNG',M,M,logo.w,9);
+      if(logo)pdf.addImage(logo.d,'PNG',M,M,logo.w,8);
     }
     const col=i%2,row=Math.floor((i%4)/2);
     const x=M+col*(CW+GAP),y=Y0+row*(CH+GAP);
     // photo (fond gris si absente)
     if(photos[i])pdf.addImage(photos[i],'JPEG',x,y,CW,PH);
     else{pdf.setFillColor(240,240,244);pdf.rect(x,y,CW,PH,'F');
-      pdf.setTextColor(110,110,115);pdf.setFontSize(10);pdf.setFont('helvetica','bold');
+      pdf.setTextColor(110,110,115);pdf.setFontSize(11);pdf.setFont('helvetica','bold');
       pdf.text('PHOTO SUR DEMANDE',x+CW/2,y+PH/2,{align:'center'});}
     // bandeau titre + réf
     let yy=y+PH;
-    pdf.setTextColor(29,29,31);pdf.setFont('helvetica','bold');pdf.setFontSize(10.5);
-    pdf.text(elid(data[i].titre,CW-30,10.5,'bold'),x+2.6,yy+TH-3);
-    pdf.setTextColor(110,110,115);pdf.setFontSize(8.2);
-    pdf.text(String(data[i].ref),x+CW-2.6,yy+TH-3,{align:'right'});
+    pdf.setTextColor(29,29,31);pdf.setFont('helvetica','bold');pdf.setFontSize(12);
+    pdf.text(elid(data[i].titre,CW-32,12,'bold'),x+2.6,yy+TH-3.3);
+    pdf.setTextColor(110,110,115);pdf.setFontSize(9.5);
+    pdf.text(String(data[i].ref),x+CW-2.6,yy+TH-3.3,{align:'right'});
     // ligne détails ROUGE
     yy+=TH;
-    pdf.setTextColor(254,0,0);pdf.setFontSize(8);pdf.setFont('helvetica','bold');
-    pdf.text(elid(data[i].det,CW-5.2,8,'bold'),x+2.6,yy+DH-1.9);
+    pdf.setTextColor(254,0,0);pdf.setFontSize(9.2);pdf.setFont('helvetica','bold');
+    pdf.text(elid(data[i].det,CW-5.2,9.2,'bold'),x+2.6,yy+DH-2.1);
     // cellules 2×2
     yy+=DH;
     for(let r=0;r<2;r++)for(let cc=0;cc<2;cc++){
       const cx=x+cc*(CW/2),cy=yy+r*RH,cel=data[i].cells[r*2+cc];
-      pdf.setTextColor(110,110,115);pdf.setFontSize(5.8);pdf.setFont('helvetica','bold');
-      pdf.text(String(cel[0]),cx+2.6,cy+3,{charSpace:.12});
-      pdf.setTextColor(29,29,31);pdf.setFontSize(9.5);
-      pdf.text(elid(cel[1],CW/2-5,9.5,'bold'),cx+2.6,cy+7.6);
+      pdf.setTextColor(110,110,115);pdf.setFontSize(6.8);pdf.setFont('helvetica','bold');
+      pdf.text(String(cel[0]),cx+2.6,cy+3.5,{charSpace:.14});
+      pdf.setTextColor(29,29,31);pdf.setFontSize(11.5);
+      pdf.text(elid(cel[1],CW/2-5.4,11.5,'bold'),cx+2.6,cy+9.3);
     }
     // traits (après les fonds : cadre + séparations)
     pdf.setDrawColor(17,17,17);
