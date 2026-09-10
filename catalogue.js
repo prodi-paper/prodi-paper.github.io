@@ -7762,7 +7762,10 @@ async function exportListExcelTest(btn){
         img:p.img||p.image_url||f.image_url||null,
       };
     });
-    const _byGsm=(a,b)=>(Number(a.grammage)||0)-(Number(b.grammage)||0);
+    // Tri FAMILLE d'abord (10/09, Ethan « ne mélange pas les familles ») puis
+    // grammage — chaque qualité reste en bloc, plus d'entrelacement par gsm.
+    const _byGsm=(a,b)=>String(a.qualite).localeCompare(String(b.qualite),'fr')
+      ||((Number(a.grammage)||0)-(Number(b.grammage)||0));
     const bobines=rows.filter(r=>r.isBobine).sort(_byGsm);
     const formats=rows.filter(r=>!r.isBobine).sort(_byGsm);
     // Feuille ASSEMBLÉE (refonte 10/09, Ethan « assemble encore plus ») : une
