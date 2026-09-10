@@ -212,7 +212,7 @@ function genMail() {
   const destTxt = $('f-pays').value.trim();
   if (!destTxt) return null;
   const client = $('f-client').value.trim();
-  const prov = $('f-prov').value.trim() || 'France';
+  const prov = $('f-prov').value.trim();   // vide = on ne parle que de la destination
   const nb = Math.max(1, +$('f-nb-cont').value || 1);
   const taille = tailleVal();
   const march = marchandiseVal().toLowerCase().replace(' + ', ' et ');
@@ -225,10 +225,11 @@ function genMail() {
     `Cotation transport ${destTxt} — Réf ${ref}`,
     `Prix fret vers ${destTxt} — Réf ${ref}`,
   ]);
+  const trajet = prov ? `${prov} → ${destTxt}` : `vers ${destTxt}`;
   const intro = pick([
-    `Merci de nous transmettre le coût d'un transport ${prov} → ${destTxt}.`,
-    `Pourriez-vous nous transmettre le coût d'un transport ${prov} → ${destTxt} ?`,
-    `Nous souhaiterions connaître le coût d'un transport ${prov} → ${destTxt}.`,
+    `Merci de nous transmettre le coût d'un transport ${trajet}.`,
+    `Pourriez-vous nous transmettre le coût d'un transport ${trajet} ?`,
+    `Nous souhaiterions connaître le coût d'un transport ${trajet}.`,
   ]);
   const corps = pick([
     `Il s'agit de ${cargo}, en ${inco}.`,
@@ -316,7 +317,7 @@ async function confirmerEnvoi() {
       ref, pays: selPays,
       destination: $('f-pays').value.trim(),
       client: $('f-client').value.trim(),
-      provenance: $('f-prov').value.trim() || 'France',
+      provenance: $('f-prov').value.trim(),
       nbCont: Math.max(1, +$('f-nb-cont').value || 1),
       taille: tailleVal(),
       marchandise: marchandiseVal(),
@@ -438,7 +439,7 @@ function renderDetail(ref) {
     <div class="page-head">
       <div>
         <h1>${p.flag} ${p.nom} <span class="ref mono" style="font-size:15px;color:var(--mut2)">${d.ref}</span></h1>
-        <p>${d.client ? 'Client : ' + d.client + ' · ' : ''}${d.marchandise} · ${d.nbCont} × ${d.taille}' · ${d.incoterm} · ${d.provenance || 'France'} → ${d.destination || p.nom} · envoyée ${relTime(d.date)}</p>
+        <p>${d.client ? 'Client : ' + d.client + ' · ' : ''}${d.marchandise} · ${d.nbCont} × ${d.taille}' · ${d.incoterm} · ${d.provenance ? d.provenance + ' → ' : ''}${d.destination || p.nom} · envoyée ${relTime(d.date)}</p>
       </div>
     </div>
     <div class="stat-row">
