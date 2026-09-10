@@ -8567,3 +8567,71 @@ function _buildSharedInfo(list){
   kick();
 })();
 
+
+// ─── ALBUM PHOTO PDF (10/09, Ethan) : bouton « Album PDF » du tiroir Panier —
+// génère l'album de la sélection au format validé : A4, 2 colonnes, 4 cartes/
+// page, photo plein cadre 91 mm, bandeau BOBINE|FORMAT — QUALITÉ + réf grise,
+// GRAMMAGE|LAIZE (ou DIMENSIONS) puis COULEUR|POIDS NET. Sans prix ni usine.
+// Logo Prodiconseil répété en haut de chaque page (thead = print header group).
+// Ouvre un onglet qui lance l'impression une fois les photos chargées
+// (→ « Enregistrer au format PDF » dans le dialogue).
+function exportAlbumPdf(){
+  if(!cart.length){toast('Liste vide');return;}
+  const NOPH=location.origin+'/img/no-photo.png';
+  const cell=(c,v)=>`<div class="cell"><div class="cap">${c}</div><div class="val">${v}</div></div>`;
+  const cards=cart.map(p=>{
+    const f=all.find(x=>x.id===+p.id)||p;
+    const isF=_estFormat(f);
+    const lab=String(QUALITE_LABELS[f.qualite]||f.qualite||'').toUpperCase();
+    const ref=f.ref?String(f.ref).replace(/^Photo_/i,'').trim():'';
+    let dim='—';
+    if(isF&&f.largeur&&f.longueur)dim=mmToCm(Math.min(f.largeur,f.longueur))+' × '+mmToCm(Math.max(f.largeur,f.longueur))+' mm';
+    else if(f.largeur)dim=mmToCm(f.largeur)+' mm';
+    const kg=p.qty_kg??(f.poids_net||0);
+    let coul=String(f.couleur||p.couleur||'—');
+    coul=coul.charAt(0).toUpperCase()+coul.slice(1).toLowerCase();
+    const orig=f.image_url?safeUrl(f.image_url):'';
+    const imgHtml=orig
+      ?`<img src="${imgThumb(orig,900)}" onerror="if(!this._o){this._o=1;this.src='${orig}';}else{this.src='${esc(NOPH)}';}">`
+      :`<img src="${esc(NOPH)}">`;
+    return `<div class="card"><div class="ph">${imgHtml}</div>`
+      +`<div class="titre"><span>${isF?'FORMAT':'BOBINE'} — ${esc(lab)}</span><span class="tref">${esc(ref)}</span></div>`
+      +`<div class="grid">${cell('GRAMMAGE',f.grammage?esc(f.grammage)+' g/m²':'—')
+        +cell(isF?'DIMENSIONS':'LAIZE',esc(dim))
+        +cell('COULEUR',esc(coul))
+        +cell('POIDS NET',kg?Math.round(kg).toLocaleString('fr-FR')+' kgs':'—')}</div></div>`;
+  }).join('');
+  const html=`<!doctype html><html><head><meta charset="utf-8"><title>Album photo Prodiconseil</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+@page{size:A4;margin:9mm}
+body{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;margin:0;color:#1d1d1f}
+table.doc{width:100%;border-collapse:collapse}table.doc td{padding:0}
+thead{display:table-header-group}.hd{padding:0 0 4mm}.plogo{height:9mm;display:block}
+.wrap{display:grid;grid-template-columns:1fr 1fr;gap:5mm}
+.card{border:1.4px solid #111;break-inside:avoid;display:flex;flex-direction:column}
+.ph{height:91mm;background:#f0f0f4;overflow:hidden;border-bottom:1.4px solid #111}
+.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.titre{display:flex;justify-content:space-between;align-items:baseline;gap:3mm;font-weight:800;font-size:12.5px;padding:2.2mm 2.6mm;border-bottom:1.1px solid #111;letter-spacing:.2px}
+.tref{color:#6e6e73;font-size:10.5px;font-weight:700;letter-spacing:.4px}
+.grid{display:grid;grid-template-columns:1fr 1fr}
+.cell{padding:1.5mm 2.6mm 1.7mm;border-right:1.1px solid #111;border-bottom:1.1px solid #111}
+.cell:nth-child(2n){border-right:none}
+.cell:nth-last-child(-n+2){border-bottom:none}
+.cap{font-size:7.6px;letter-spacing:.6px;color:#6e6e73;font-weight:600}
+.val{font-size:12.5px;font-weight:800;margin-top:.4mm}
+@media screen{body{background:#f5f5f7;padding:10mm}table.doc{max-width:200mm;margin:0 auto;display:block}}
+</style></head><body>
+<table class="doc"><thead><tr><td class="hd"><img class="plogo" src="${esc(location.origin+'/img/logo.png')}"></td></tr></thead>
+<tbody><tr><td><div class="wrap">${cards}</div></td></tr></tbody></table>
+<script>(function(){var im=[].slice.call(document.images),n=im.length;
+function go(){setTimeout(function(){window.print()},350)}
+if(!n)return go();var t=setTimeout(go,9000);
+im.forEach(function(i){function one(){if(--n<=0){clearTimeout(t);go()}}
+if(i.complete)one();else{i.onload=one;i.onerror=one}})})()<\/script>
+</body></html>`;
+  const w=window.open('','_blank');
+  if(!w){toast('Autorisez les fenêtres pop-up pour générer le PDF');return;}
+  w.document.open();w.document.write(html);w.document.close();
+  window.prodiTrack?.('album_pdf',{n:cart.length});
+}

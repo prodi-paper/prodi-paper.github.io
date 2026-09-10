@@ -700,6 +700,10 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
         <svg width="18" height="18" viewBox="0 0 32 32" style="flex-shrink:0;"><rect x="9" y="2" width="21" height="14" rx="3.5" fill="#8bd47e"/><rect x="20" y="2" width="10" height="14" rx="3.5" fill="#b9e695"/><path d="M9 9h17.5A3.5 3.5 0 0 1 30 12.5V26.5a3.5 3.5 0 0 1-3.5 3.5H12.5A3.5 3.5 0 0 1 9 26.5Z" fill="#2f9e55"/><rect x="2" y="12" width="16" height="16" rx="3.5" fill="#185c37"/><path d="M6.4 16.5h2.7l1.8 3.2 1.8-3.2h2.7l-3.1 4.7 3.2 4.8h-2.8l-1.8-3.3-1.9 3.3H6.2l3.2-4.8z" fill="#fff"/></svg>
         <span>Excel</span>
       </button>
+      <button class="da-action" id="btn-pdf-album" onclick="exportAlbumPdf()" title="Album photo PDF de la sélection">
+        <svg width="18" height="18" viewBox="0 0 24 24" style="flex-shrink:0;"><path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="#fff" fill-opacity=".92"/><text x="12" y="17.5" font-size="6.6" font-weight="800" fill="#c70000" text-anchor="middle" font-family="Arial,sans-serif">PDF</text></svg>
+        <span>Album PDF</span>
+      </button>
     </div>
     <div class="da-prix-row">
       <button class="da-copy-link da-prix" onclick="cartPrixMail(this)" title="Recevoir le prix par email">
@@ -1027,7 +1031,7 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
 <div class="spin-bg" id="spinner"><div class="spin"></div></div>
 
 <script src="/analytics.js?v=6"></script>
-<script src="/catalogue.js?v=814"></script>
+<script src="/catalogue.js?v=815"></script>
 <!-- Fiches techniques & certificats (interne, bouton header + panneau) -->
 <script src="/fiches.js?v=6" defer></script>
 <!-- Traqueur de perf, inerte sans ?perf=1 (voir perf-hud.js) -->
