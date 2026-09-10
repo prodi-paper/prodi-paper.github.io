@@ -292,8 +292,6 @@ Pourriez-vous, s'il vous plaît, nous faire parvenir votre cotation pour le tran
 
 ${lignes.join('\n')}
 
-Merci d'indiquer le transit time et la validité de l'offre.
-
 Merci par avance.
 
 Cordialement,`;
