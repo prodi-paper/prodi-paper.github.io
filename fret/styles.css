@@ -59,7 +59,7 @@ main{max-width:1180px;margin:0 auto;padding:30px 20px 70px}
 .f-row{margin-bottom:18px}
 .f-row label{display:block;font-weight:700;font-size:15px;color:var(--encre);margin-bottom:7px}
 .f-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.f-grid4{display:grid;grid-template-columns:1fr auto 1fr 1fr 1fr;gap:14px}
+.f-grid4{display:grid;grid-template-columns:0.5fr auto 1.5fr 1fr 1fr;gap:14px}
 .ou-sep{display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;
   color:var(--gris);align-self:stretch;padding-bottom:18px}
 .f-grid4 .pp-flag{display:none}
