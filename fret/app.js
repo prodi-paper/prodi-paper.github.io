@@ -51,7 +51,7 @@ function ciblesFor(code) {
 
 function buildPaysList(input, listEl, onPick) {
   const q = input.value.trim().toLowerCase();
-  const hits = PAYS.filter(p => p.nom.toLowerCase().includes(q));
+  const hits = PAYS.filter(p => p.nom.toLowerCase().includes(q) || p.port.toLowerCase().includes(q));
   listEl.innerHTML = hits.map(p =>
     `<button class="pp-item" onmousedown="${onPick}('${p.code}')">
        <span class="f">${p.flag}</span> ${p.nom}
@@ -59,98 +59,291 @@ function buildPaysList(input, listEl, onPick) {
      </button>`).join('') || '<div class="pp-item mut">Aucun pays</div>';
   listEl.classList.add('open');
 }
-function filterPays()  { buildPaysList($('f-pays'), $('pp-list'), 'pickPays'); }
+/* Destination LIBRE : pays ou port, le mail reprend le texte tel quel.
+   Suggestions = tous les pays + tous les ports (DEST_SUGG) ; un port choisi
+   insère le PORT, un pays choisi insère le PAYS. Hors liste : 🌍 + texte brut. */
+const destTexte = s => s.id.startsWith('c_') ? s.nom : `${s.nom}, ${s.sub}`;   // port → « Port, Pays »
+function filterPays() {
+  const q = $('f-pays').value.trim().toLowerCase();
+  const hits = DEST_SUGG.filter(s => destTexte(s).toLowerCase().includes(q)).slice(0, 12);
+  $('pp-list').innerHTML = hits.map(s =>
+    `<button class="pp-item" onmousedown="pickDest('${s.id}')">
+       <span class="f">${s.flag}</span> ${s.nom}
+       <span class="z">${s.sub}</span>
+     </button>`).join('') || '<div class="pp-item mut">Aucune suggestion — le texte partira tel quel</div>';
+  $('pp-list').classList.add('open');
+  const exact = DEST_SUGG.find(s => s.nom.toLowerCase() === q || destTexte(s).toLowerCase() === q);
+  selPays = exact ? exact.code : null;
+  $('pp-flag').textContent = exact ? exact.flag : '🌍';
+  $('f-send').disabled = !q;
+  regenMail();
+}
+function pickDest(id) {
+  const s = DEST_SUGG.find(x => x.id === id);
+  $('f-pays').value = destTexte(s);
+  selPays = s.code;
+  $('pp-flag').textContent = s.flag;
+  $('pp-list').classList.remove('open');
+  $('f-send').disabled = false;
+  regenMail();
+}
 function filterPaysH() { buildPaysList($('h-pays'), $('hp-list'), 'pickPaysH'); }
+
+/* picker départ : pays OU port (inséré « Port, Pays »), texte libre sinon */
+const provTexte = p => p.pays ? `${p.nom}, ${p.pays}` : p.nom;
+function filterProv() {
+  const q = $('f-prov').value.trim().toLowerCase();
+  const hits = PROV_SUGG.filter(p => provTexte(p).toLowerCase().includes(q));
+  const exact = PROV_SUGG.find(p => p.nom.toLowerCase() === q || provTexte(p).toLowerCase() === q);
+  $('pv-flag').textContent = exact ? exact.flag : '🌍';
+  $('pv-list').innerHTML = hits.map(p =>
+    `<button class="pp-item" onmousedown="pickProv('${p.code}')"><span class="f">${p.flag}</span> ${provTexte(p)}</button>`
+  ).join('') || '<div class="pp-item mut">Aucune suggestion — le texte partira tel quel</div>';
+  $('pv-list').classList.add('open');
+  regenMail();
+}
+function pickProv(code) {
+  const p = PROV_SUGG.find(x => x.code === code);
+  $('f-prov').value = provTexte(p);
+  $('pv-flag').textContent = p.flag;
+  $('pv-list').classList.remove('open');
+  regenMail();
+}
 document.addEventListener('click', e => {
   if (!e.target.closest('.pays-pick')) document.querySelectorAll('.pp-list').forEach(l => l.classList.remove('open'));
 });
 
-function pickPays(code) {
-  selPays = code;
-  const p = paysByCode(code);
-  $('f-pays').value = p.nom;
-  $('pp-flag').textContent = p.flag;
-  $('pp-list').classList.remove('open');
-  const cibles = ciblesFor(code);
-  $('f-cibles').innerHTML = cibles.map(t =>
-    `<span class="chip"><span class="dot" style="background:${t.couleur}"></span>${t.nom}</span>`).join('');
-  $('f-nb').textContent = `— ${cibles.length} mails individuels`;
-  $('f-send').disabled = false;
-  $('f-send-n').textContent = `(${cibles.length})`;
-  regenMail(true);
+
+/* ── destinataires : Zouhir fixe + extras À + copies, tous cochables ── */
+let ccActifs = new Set(CC_INTERNE);
+const TO_EXTRA = [];
+let toActifs = new Set();
+let ajoutCible = 'cc';   // le popup ajoute en À ou en Cc
+
+function renderDest() {
+  $('f-to-chips').innerHTML =
+    `<span class="chip to">✓ ${DEST_FRET}</span>` +
+    TO_EXTRA.map(c =>
+      `<button type="button" class="chip cc${toActifs.has(c) ? '' : ' off'}" onclick="toggleTo('${c}')">${toActifs.has(c) ? '✓ ' : ''}${c}</button>`).join('') +
+    `<button type="button" class="chip add" onclick="ajouterEmail('to')">+ Ajouter un email</button>`;
+  $('f-cc-chips').innerHTML =
+    CC_INTERNE.map(c =>
+      `<button type="button" class="chip cc${ccActifs.has(c) ? '' : ' off'}" onclick="toggleCc('${c}')">${ccActifs.has(c) ? '✓ ' : ''}${c}</button>`).join('') +
+    `<button type="button" class="chip add" onclick="ajouterEmail('cc')">+ Ajouter un email</button>`;
+}
+function ajouterEmail(cible) {
+  ajoutCible = cible;
+  $('cc-err').classList.remove('on');
+  $('cc-input').value = '';
+  $('cc-fond').classList.add('ouvert');
+  $('cc-input').focus();
+}
+function fermerAjoutCc() { $('cc-fond').classList.remove('ouvert'); }
+function validerAjoutCc() {
+  const em = $('cc-input').value.trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { $('cc-err').classList.add('on'); return; }
+  if (ajoutCible === 'to') {
+    if (!TO_EXTRA.includes(em)) TO_EXTRA.push(em);
+    toActifs.add(em);
+  } else {
+    if (!CC_INTERNE.includes(em)) CC_INTERNE.push(em);
+    ccActifs.add(em);
+  }
+  renderDest();
+  if (mailOuvert()) renderMail();
+  fermerAjoutCc();
+}
+function toggleCc(c) {
+  ccActifs.has(c) ? ccActifs.delete(c) : ccActifs.add(c);
+  renderDest();
+  if (mailOuvert()) renderMail();   // ne touche pas au corps modifié : seul le Cc change
+}
+function toggleTo(c) {
+  toActifs.has(c) ? toActifs.delete(c) : toActifs.add(c);
+  renderDest();
+  if (mailOuvert()) renderMail();
+}
+const ccList = () => CC_INTERNE.filter(c => ccActifs.has(c));
+const toList = () => TO_EXTRA.filter(c => toActifs.has(c));
+
+/* ── nb de containers : boutons − / + , mot « container(s) » dans la case ── */
+function majContSuffixe() {
+  const n = Math.max(1, +$('f-nb-cont').value || 1);
+  $('st-suffix').textContent = n > 1 ? 'containers' : 'container';
+}
+function stepCont(d) {
+  const el = $('f-nb-cont');
+  el.value = Math.max(1, (+el.value || 1) + d);
+  majContSuffixe();
+  regenMail();
+}
+
+/* ── marchandise : cases Bobines / Formats, au moins une cochée ── */
+function marchandiseVal() {
+  const b = $('f-m-bobines').checked, f = $('f-m-formats').checked;
+  return b && f ? 'Bobines + Formats' : f ? 'Formats' : 'Bobines';
+}
+function marchChange(cb) {
+  if (!$('f-m-bobines').checked && !$('f-m-formats').checked) cb.checked = true;
+  regenMail();
+}
+
+/* ── taille : cases 20' / 40', exclusives (défaut 40') ── */
+function tailleVal() { return $('f-t-20').checked ? '20' : '40'; }
+function tailleChange(cb) {
+  const autre = cb.id === 'f-t-20' ? $('f-t-40') : $('f-t-20');
+  if (cb.checked) autre.checked = false;
+  else cb.checked = true;
+  regenMail();
+}
+
+/* ── incoterm : cases CFR / FOB, exclusives (toujours exactement une) ── */
+function incotermVal() { return $('f-i-fob').checked ? 'FOB' : 'CFR'; }
+function incoChange(cb) {
+  const autre = cb.id === 'f-i-cfr' ? $('f-i-fob') : $('f-i-cfr');
+  if (cb.checked) autre.checked = false;
+  else cb.checked = true;
+  regenMail();
 }
 
 /* ── génération du mail (variantes aléatoires — en prod : API Claude) ── */
 const pick = arr => arr[Math.floor(Math.random() * arr.length)];
 function genMail() {
-  if (!selPays) return null;
-  const p = paysByCode(selPays);
-  const tonnage = $('f-tonnage').value || '—';
-  const inco = $('f-incoterm').value;
-  const detail = $('f-detail').value || 'papier en bobines';
+  const destTxt = $('f-pays').value.trim();
+  if (!destTxt) return null;
+  const client = $('f-client').value.trim();
+  const prov = $('f-prov').value.trim() || 'France';
+  const nb = Math.max(1, +$('f-nb-cont').value || 1);
+  const taille = tailleVal();
+  const march = marchandiseVal().toLowerCase().replace(' + ', ' et ');
+  const inco = incotermVal();
   const ref = 'FR-' + nextRef;
+  const cargo = `${nb} container${nb > 1 ? 's' : ''} ${taille}' de ${march}`;
 
   const objet = pick([
-    `Demande de cotation — ${p.nom} — Réf ${ref}`,
-    `Cotation transport ${p.nom} — Réf ${ref}`,
-    `Prix fret vers ${p.port} — Réf ${ref}`,
+    `Demande de cotation — ${destTxt} — Réf ${ref}`,
+    `Cotation transport ${destTxt} — Réf ${ref}`,
+    `Prix fret vers ${destTxt} — Réf ${ref}`,
   ]);
-  const salut = pick(['Bonjour {prenom},', 'Bonjour,', 'Bonjour {prenom},']);
   const intro = pick([
-    `Pourriez-vous nous coter un transport vers ${p.port} (${p.nom}) ?`,
-    `Nous avons une expédition à prévoir sur ${p.nom} et j'aimerais votre meilleur prix.`,
-    `Merci de nous faire une offre pour un envoi à destination de ${p.port}.`,
+    `Merci de nous transmettre le coût d'un transport ${prov} → ${destTxt}.`,
+    `Pourriez-vous nous transmettre le coût d'un transport ${prov} → ${destTxt} ?`,
+    `Nous souhaiterions connaître le coût d'un transport ${prov} → ${destTxt}.`,
   ]);
   const corps = pick([
-    `Il s'agit de ${detail.toLowerCase()}, environ ${tonnage} tonnes, en ${inco}.`,
-    `Marchandise : ${detail.toLowerCase()} — ${tonnage} t environ. Incoterm souhaité : ${inco}.`,
-    `${detail} pour un total d'environ ${tonnage} tonnes ; cotation ${inco} si possible.`,
+    `Il s'agit de ${cargo}, en ${inco}.`,
+    `Marchandise : ${cargo}. Incoterm souhaité : ${inco}.`,
+    `${cargo.charAt(0).toUpperCase() + cargo.slice(1)} ; cotation ${inco} si possible.`,
   ]);
+  const cli = client ? `Client : ${client}.\n` : '';
   const fin = pick([
     `Merci de préciser le transit time et la validité de l'offre.`,
-    `Pouvez-vous m'indiquer également le délai de transit ?`,
+    `Pouvez-vous nous indiquer également le délai de transit ?`,
     `Dans l'idéal avec le prochain départ possible et le transit time.`,
   ]);
   const bye = pick(['Bien cordialement,', 'Cordialement,', 'Merci d\'avance,']);
-  return { ref, objet, texte: `${salut}\n\n${intro}\n${corps}\n${fin}\n\n${bye}\nEthan Elbilia\nProdiconseil` };
+  // Mail pensé pour être transféré tel quel par Zouhir aux transporteurs :
+  // pas de « Zouhir » dans le salut, pas de signature nominative.
+  return { ref, objet, texte: `Bonjour,\n\n${intro}\n${cli}${corps}\n${fin}\n\n${bye}` };
 }
 
-function regenMail(force) {
+/* ── popup mail : aperçu + édition (façon /invitation/) ── */
+let mailCustom = null;   // corps modifié à la main, gardé jusqu'à envoi / reformulation
+const mailOuvert = () => $('mail-fond').classList.contains('ouvert');
+
+function regenMail() {
+  mailCustom = null;
+  if (mailOuvert()) renderMail();
+}
+function renderMail() {
   const m = genMail();
   if (!m) return;
-  const cibles = ciblesFor(selPays);
-  const ex = cibles[0];
   $('mail-meta').innerHTML =
     `<div><b>De</b> ethan@prodi.com</div>
-     <div><b>À</b> ${ex ? ex.email : ''} <span class="mut">(× ${cibles.length}, un mail chacun)</span></div>
-     <div><b>Cc</b> ${CC_INTERNE.join(', ')}</div>
+     <div><b>À</b> ${[DEST_FRET, ...toList()].join(', ')}</div>
+     <div><b>Cc</b> ${ccList().join(', ') || '—'}</div>
      <div><b>Objet</b> ${m.objet}</div>`;
-  $('mail-body').textContent = m.texte.replace('{prenom}', ex ? ex.contact : '');
-  $('f-cc').innerHTML = CC_INTERNE.map(c => `<span class="chip cc">${c}</span>`).join('');
+  $('mail-body').textContent = mailCustom ?? m.texte;
+  $('mail-zone').value = mailCustom ?? m.texte;
 }
+function ouvrirMail(edition) {
+  if (!$('f-pays').value.trim()) return;
+  renderMail();
+  $('mail-fond').classList.add('ouvert');
+  setModeEdit(!!edition);
+}
+function fermerMail() { $('mail-fond').classList.remove('ouvert'); }
+function setModeEdit(on) {
+  $('mail-body').style.display = on ? 'none' : '';
+  $('mail-zone').style.display = on ? 'block' : 'none';
+  $('mp-act-aper').style.display = on ? 'none' : '';
+  $('mp-act-edit').style.display = on ? '' : 'none';
+  if (on) {
+    const z = $('mail-zone');
+    z.focus();
+    z.setSelectionRange(0, 0);
+    z.scrollTop = 0;      // le focus peut scroller la zone : on repart du début
+  }
+}
+function modifMail() { setModeEdit(true); }
+function reformuler() { mailCustom = null; $('mail-zone').value = genMail().texte; }
+function sauverMail() { mailCustom = $('mail-zone').value; renderMail(); setModeEdit(false); }
 
-/* ── envoi (simulation) ── */
-function envoyer() {
-  if (!selPays) return;
-  const p = paysByCode(selPays);
-  const cibles = ciblesFor(selPays);
-  const ref = 'FR-' + nextRef++;
-  const d = {
-    ref, pays: selPays, tonnage: +$('f-tonnage').value || 22,
-    detail: $('f-detail').value, incoterm: $('f-incoterm').value,
-    date: new Date().toISOString(), cibles: cibles.map(t => t.id),
-  };
-  demandes.push(d);
-  toast(p.flag, `Demande ${ref} envoyée à <b>${cibles.length}</b> transporteurs`);
-  simulerReponses(d);
-  openDetail(ref);
+/* ── envoi RÉEL via prodi-arrivages (canal ethan@ de /api/notify) ──
+   Depuis localhost, le serveur redirige tout sur ethan@ sans cc (mode test). */
+const API_FRET = 'https://prodi-arrivages.vercel.app/api/fret-envoi';
+let envoiEnCours = false;
+async function confirmerEnvoi() {
+  if (envoiEnCours) return;
+  const m = genMail();
+  if (!m) return;
+  const p = paysByCode(selPays) || { flag: '🌍' };
+  const corps = mailCustom ?? m.texte;
+  const btn = document.querySelector('#mp-act-aper .btn-envoi');
+  envoiEnCours = true;
+  btn.disabled = true;
+  btn.textContent = 'Envoi…';
+  try {
+    const r = await fetch(API_FRET, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ objet: m.objet, corps, cc: ccList(), to_extra: toList() }),
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ok) throw new Error(j.error || 'HTTP ' + r.status);
+    const ref = 'FR-' + nextRef++;
+    demandes.push({
+      ref, pays: selPays,
+      destination: $('f-pays').value.trim(),
+      client: $('f-client').value.trim(),
+      provenance: $('f-prov').value.trim() || 'France',
+      nbCont: Math.max(1, +$('f-nb-cont').value || 1),
+      taille: tailleVal(),
+      marchandise: marchandiseVal(),
+      incoterm: incotermVal(),
+      date: new Date().toISOString(), cibles: ciblesFor(selPays).map(t => t.id),
+    });
+    mailCustom = null;
+    fermerMail();
+    toast(p.flag, j.test
+      ? `Demande ${ref} envoyée en <b>TEST</b> sur ethan@ (appel local)`
+      : `Demande ${ref} envoyée à <b>Zouhir</b>`);
+    openDetail(ref);
+  } catch (e) {
+    toast('⚠️', `Envoi raté : ${e.message || e}`);
+  } finally {
+    envoiEnCours = false;
+    btn.disabled = false;
+    btn.textContent = 'Envoyer';
+  }
 }
 
 /* réponses fictives qui « arrivent » en direct */
 const BIAIS = { translog: -.035, atlas: .02, seafret: -.005, capouest: -.025, bernardi: -.015, eurocargo: .015, mtl: .075, globalwave: .045 };
 function simulerReponses(d) {
   const p = paysByCode(d.pays);
-  const base = PRIX_BASE[d.pays] || 1000;
+  const mult = d.taille === '40' ? 1.45 : 1;
+  const base = (PRIX_BASE[d.pays] || 1000) * mult;
   const muet = pick(d.cibles);                       // un qui ne répond pas
   let delai = 3500;
   d.cibles.forEach(id => {
@@ -161,9 +354,9 @@ function simulerReponses(d) {
     const transit = (p.zone === 'europe' ? 3 : p.zone === 'maghreb' ? 4 : 9) + Math.floor(Math.random() * 3);
     setTimeout(() => {
       reponses.push({
-        demande: d.ref, transporteur: id, prix, unite: '20', incoterm: d.incoterm,
+        demande: d.ref, transporteur: id, prix, unite: d.taille, incoterm: d.incoterm,
         transit: `${transit} j`, recu: new Date().toISOString(),
-        texte: `Bonjour Ethan,\n\nPour ${p.port} nous sommes à ${prix.toLocaleString('fr-FR')} € le container 20' ${d.incoterm}, transit ${transit} jours.\nValidité 15 jours.\n\nCordialement,\n${t.contact}`,
+        texte: `Bonjour,\n\nPour ${p.port} nous sommes à ${prix.toLocaleString('fr-FR')} € le container ${d.taille}' ${d.incoterm}, transit ${transit} jours.\nValidité 15 jours.\n\nCordialement,\n${t.contact}`,
       });
       toast(p.flag, `${t.nom} a répondu : <b>${fmtEUR(prix)}</b>`);
       if (detailRef === d.ref) renderDetail(d.ref);
@@ -176,7 +369,7 @@ function simulerReponses(d) {
 function renderDemandes() {
   const list = [...demandes].sort((a, b) => b.date.localeCompare(a.date));
   $('dem-list').innerHTML = list.map(d => {
-    const p = paysByCode(d.pays);
+    const p = paysByCode(d.pays) || { flag: '🌍', nom: d.destination || '—' };
     const reps = reponses.filter(r => r.demande === d.ref);
     const prix = reps.filter(r => r.prix != null).map(r => r.prix);
     const best = prix.length ? Math.min(...prix) : null;
@@ -185,7 +378,7 @@ function renderDemandes() {
       <span class="flag">${p.flag}</span>
       <span>
         <span class="t1">${p.nom} <span class="ref">· ${d.ref}</span></span><br>
-        <span class="t2">${d.detail} · ${d.tonnage} t · ${d.incoterm} · ${relTime(d.date)}</span>
+        <span class="t2">${d.client ? d.client + ' · ' : ''}${d.marchandise} · ${d.nbCont} × ${d.taille}' · ${d.incoterm} · ${relTime(d.date)}</span>
       </span>
       <span class="dem-right">
         ${best ? `<span class="best-mini">${fmtEUR(best)}</span>` : ''}
@@ -201,7 +394,7 @@ function openDetail(ref) { detailRef = ref; renderDetail(ref); go('detail'); }
 function renderDetail(ref) {
   const d = demandes.find(x => x.ref === ref);
   if (!d) return;
-  const p = paysByCode(d.pays);
+  const p = paysByCode(d.pays) || { flag: '🌍', nom: d.destination || '—', zone: '' };
   const reps = reponses.filter(r => r.demande === ref);
   const avecPrix = reps.filter(r => r.prix != null).sort((a, b) => a.prix - b.prix);
   const best = avecPrix[0];
@@ -213,7 +406,7 @@ function renderDetail(ref) {
     return `<tr class="${i === 0 ? 'best' : ''} clickable" onclick="toggleRaw('${ref}-${r.transporteur}')">
       <td><span class="t-carrier"><span class="dot" style="background:${t.couleur}"></span>${t.nom}
         ${i === 0 ? '<span class="tag-best">Meilleur prix</span>' : ''}</span></td>
-      <td class="t-price">${fmtEUR(r.prix)}<div class="t-sub">/ container 20'</div></td>
+      <td class="t-price">${fmtEUR(r.prix)}<div class="t-sub">/ container ${r.unite || '20'}'</div></td>
       <td>${r.incoterm}</td>
       <td>${r.transit}</td>
       <td class="t-sub">${relTime(r.recu)}</td>
@@ -245,7 +438,7 @@ function renderDetail(ref) {
     <div class="page-head">
       <div>
         <h1>${p.flag} ${p.nom} <span class="ref mono" style="font-size:15px;color:var(--mut2)">${d.ref}</span></h1>
-        <p>${d.detail} · ${d.tonnage} t · ${d.incoterm} · port : ${p.port} · envoyée ${relTime(d.date)}</p>
+        <p>${d.client ? 'Client : ' + d.client + ' · ' : ''}${d.marchandise} · ${d.nbCont} × ${d.taille}' · ${d.incoterm} · ${d.provenance || 'France'} → ${d.destination || p.nom} · envoyée ${relTime(d.date)}</p>
       </div>
     </div>
     <div class="stat-row">
@@ -319,7 +512,7 @@ function renderHisto(code) {
 
   $('histo-body').innerHTML = `
     <div class="stat-row">
-      <div class="stat"><div class="v">${fmtEUR(bestNow)}</div><div class="l">Meilleur prix récent / 20'</div></div>
+      <div class="stat"><div class="v">${fmtEUR(bestNow)}</div><div class="l">Meilleur prix récent / container</div></div>
       <div class="stat"><div class="v" style="color:${tCol}">${tendance}</div><div class="l">Tendance 45 jours</div></div>
       <div class="stat"><div class="v">${champ ? carrById(champ[0]).nom : '—'}</div>
         <div class="l">Le + souvent moins cher (${champ ? champ[1] + '×' : ''})</div></div>
@@ -327,7 +520,7 @@ function renderHisto(code) {
     </div>
     <div class="card chart-card">
       <div class="chart-head">
-        <h3 style="font-size:15px">Évolution du prix — container 20' ${p.flag} ${p.nom}</h3>
+        <h3 style="font-size:15px">Évolution du prix / container — ${p.flag} ${p.nom}</h3>
         <div class="legend">${carriers.map(t =>
           `<span><span class="dot" style="background:${t.couleur}"></span>${t.nom}</span>`).join('')}</div>
       </div>
@@ -406,5 +599,7 @@ function toast(flag, html) {
 }
 
 /* ── init ── */
-$('f-cc').innerHTML = CC_INTERNE.map(c => `<span class="chip cc">${c}</span>`).join('');
+renderDest();
 renderDemandes();
+$('cc-input').addEventListener('keydown', e => { if (e.key === 'Enter') validerAjoutCc(); });
+$('cc-fond').addEventListener('click', e => { if (e.target.id === 'cc-fond') fermerAjoutCc(); });

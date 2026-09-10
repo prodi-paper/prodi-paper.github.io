@@ -50,24 +50,81 @@ const PRIX_BASE = {
   GR: 900, TR: 1050, EG: 1150, LB: 1250, AE: 1500, IN: 1650,
 };
 
-const CC_INTERNE = ['julien@prodi.com', 'info@prodi.com'];
+/* pays de provenance possibles (Europe papetière, France par défaut) */
+const PAYS_PROV = [
+  { code: 'FR', nom: 'France',      flag: '🇫🇷' },
+  { code: 'BE', nom: 'Belgique',    flag: '🇧🇪' },
+  { code: 'NL', nom: 'Pays-Bas',    flag: '🇳🇱' },
+  { code: 'DE', nom: 'Allemagne',   flag: '🇩🇪' },
+  { code: 'ES', nom: 'Espagne',     flag: '🇪🇸' },
+  { code: 'PT', nom: 'Portugal',    flag: '🇵🇹' },
+  { code: 'IT', nom: 'Italie',      flag: '🇮🇹' },
+  { code: 'PL', nom: 'Pologne',     flag: '🇵🇱' },
+  { code: 'GB', nom: 'Royaume-Uni', flag: '🇬🇧' },
+  { code: 'SE', nom: 'Suède',       flag: '🇸🇪' },
+  { code: 'FI', nom: 'Finlande',    flag: '🇫🇮' },
+  { code: 'AT', nom: 'Autriche',    flag: '🇦🇹' },
+];
+
+/* ports de départ courants — suggérés au même titre que les pays,
+   insérés « Port, Pays » dans le champ */
+const PORTS_PROV = [
+  { code: 'p_lehavre',   nom: 'Le Havre',        pays: 'France',    flag: '🇫🇷' },
+  { code: 'p_marseille', nom: 'Marseille (Fos)', pays: 'France',    flag: '🇫🇷' },
+  { code: 'p_dunkerque', nom: 'Dunkerque',       pays: 'France',    flag: '🇫🇷' },
+  { code: 'p_anvers',    nom: 'Anvers',          pays: 'Belgique',  flag: '🇧🇪' },
+  { code: 'p_rotterdam', nom: 'Rotterdam',       pays: 'Pays-Bas',  flag: '🇳🇱' },
+  { code: 'p_hambourg',  nom: 'Hambourg',        pays: 'Allemagne', flag: '🇩🇪' },
+  { code: 'p_valence',   nom: 'Valence',         pays: 'Espagne',   flag: '🇪🇸' },
+  { code: 'p_genes',     nom: 'Gênes',           pays: 'Italie',    flag: '🇮🇹' },
+];
+const PROV_SUGG = [...PAYS_PROV, ...PORTS_PROV];
+
+/* suggestions destination : chaque PAYS et chaque PORT sont pickables séparément */
+const PORTS_DEST_EXTRA = [
+  { code: 'MA', port: 'Tanger Med' },
+  { code: 'DZ', port: 'Oran' },
+  { code: 'TN', port: 'Sfax' },
+  { code: 'ES', port: 'Barcelone' },
+  { code: 'ES', port: 'Algésiras' },
+  { code: 'TR', port: 'Mersin' },
+  { code: 'TR', port: 'Izmir' },
+  { code: 'EG', port: 'Port-Saïd' },
+  { code: 'EG', port: 'Damiette' },
+  { code: 'IN', port: 'Mundra' },
+];
+const DEST_SUGG = [
+  ...PAYS.map(p => ({ id: 'c_' + p.code, code: p.code, nom: p.nom, flag: p.flag, sub: ZONES[p.zone] })),
+  ...PAYS.map(p => ({ id: 'p_' + p.code, code: p.code, nom: p.port, flag: p.flag, sub: p.nom })),
+  ...PORTS_DEST_EXTRA.map((e, i) => {
+    const p = PAYS.find(x => x.code === e.code);
+    return { id: 'x_' + i, code: e.code, nom: e.port, flag: p.flag, sub: p.nom };
+  }),
+];
+
+const DEST_FRET = 'zouhir@prodi.com';
+const CC_INTERNE = ['julien@prodi.com', 'client@prodi.com', 've@prodi.com'];
 
 /* ── Demandes passées (fictives) ── */
 const DEMANDES = [
   {
-    ref: 'FR-2601', pays: 'MA', tonnage: 22, detail: 'Bobines de papier, 1 container 20\'',
+    ref: 'FR-2601', pays: 'MA', client: 'PAPETERIE ATLAS', provenance: 'France',
+    nbCont: 1, taille: '20', marchandise: 'Bobines',
     incoterm: 'CFR', date: '2026-08-12T09:14:00', cibles: ['translog', 'atlas', 'seafret', 'mtl', 'globalwave'],
   },
   {
-    ref: 'FR-2602', pays: 'TR', tonnage: 44, detail: 'Bobines couché C1S, 2 containers 20\'',
+    ref: 'FR-2602', pays: 'TR', client: 'KAGIT LTD', provenance: 'France',
+    nbCont: 2, taille: '20', marchandise: 'Bobines',
     incoterm: 'CFR', date: '2026-08-19T15:40:00', cibles: ['mtl', 'globalwave'],
   },
   {
-    ref: 'FR-2603', pays: 'SN', tonnage: 24, detail: 'Papier en bobines, 1 container 20\'',
+    ref: 'FR-2603', pays: 'SN', client: 'SOPACO SARL', provenance: 'France',
+    nbCont: 1, taille: '20', marchandise: 'Bobines',
     incoterm: 'CFR', date: '2026-08-25T10:05:00', cibles: ['seafret', 'capouest', 'mtl', 'globalwave'],
   },
   {
-    ref: 'FR-2604', pays: 'MA', tonnage: 46, detail: 'Bobines de papier, 2 containers 20\'',
+    ref: 'FR-2604', pays: 'MA', client: 'PAPETERIE ATLAS', provenance: 'France',
+    nbCont: 2, taille: '20', marchandise: 'Bobines',
     incoterm: 'CFR', date: '2026-08-31T11:30:00', cibles: ['translog', 'atlas', 'seafret', 'mtl', 'globalwave'],
   },
 ];
