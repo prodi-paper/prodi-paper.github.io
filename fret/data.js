@@ -101,7 +101,7 @@ const DEST_PORTS = [
   }),
 ];
 
-const DEST_FRET = 'zouhir@prodi.com';
+const DEST_FRET = 'support@prodi.com';   // la boîte de Zouhir (zouhir@ n'existe pas)
 const CC_INTERNE = ['julien@prodi.com', 'client@prodi.com', 've@prodi.com'];
 
 /* ── Demandes passées (fictives) ── */
