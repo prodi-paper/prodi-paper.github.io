@@ -264,31 +264,16 @@ function renderMail() {
      <div><b>À</b> ${[DEST_FRET, ...toList()].join(', ')}</div>
      <div><b>Cc</b> ${ccList().join(', ') || '—'}</div>
      <div><b>Objet</b> ${m.objet}</div>`;
-  $('mail-body').textContent = mailCustom ?? m.texte;
   $('mail-zone').value = mailCustom ?? m.texte;
 }
-function ouvrirMail(edition) {
+function ouvrirMail() {
   if (!$('f-pays').value.trim()) return;
   renderMail();
   $('mail-fond').classList.add('ouvert');
-  setModeEdit(!!edition);
+  $('mail-zone').scrollTop = 0;
 }
 function fermerMail() { $('mail-fond').classList.remove('ouvert'); }
-function setModeEdit(on) {
-  $('mail-body').style.display = on ? 'none' : '';
-  $('mail-zone').style.display = on ? 'block' : 'none';
-  $('mp-act-aper').style.display = on ? 'none' : '';
-  $('mp-act-edit').style.display = on ? '' : 'none';
-  if (on) {
-    const z = $('mail-zone');
-    z.focus();
-    z.setSelectionRange(0, 0);
-    z.scrollTop = 0;      // le focus peut scroller la zone : on repart du début
-  }
-}
-function modifMail() { setModeEdit(true); }
-function reformuler() { mailCustom = null; $('mail-zone').value = genMail().texte; }
-function sauverMail() { mailCustom = $('mail-zone').value; renderMail(); setModeEdit(false); }
+function reformuler() { mailCustom = null; renderMail(); }
 
 /* ── envoi RÉEL via prodi-arrivages (canal ethan@ de /api/notify) ──
    Depuis localhost, le serveur redirige tout sur ethan@ sans cc (mode test). */
@@ -299,8 +284,9 @@ async function confirmerEnvoi() {
   const m = genMail();
   if (!m) return;
   const p = paysByCode(selPays) || { flag: '🌍' };
-  const corps = mailCustom ?? m.texte;
-  const btn = document.querySelector('#mp-act-aper .btn-envoi');
+  const corps = $('mail-zone').value.trim();   // ce qui est à l'écran part tel quel
+  if (!corps) return;
+  const btn = $('mp-envoyer');
   envoiEnCours = true;
   btn.disabled = true;
   btn.textContent = 'Envoi…';

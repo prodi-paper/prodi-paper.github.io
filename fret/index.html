@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Prodi · Cotations fret — prototype</title>
 <meta name="robots" content="noindex">
-<link rel="stylesheet" href="styles.css?v=3">
+<link rel="stylesheet" href="styles.css?v=4">
 </head>
 <body>
 
@@ -152,22 +152,17 @@
   <div class="mail-panneau">
     <div class="mp-tete"><b>Mail à Zouhir</b><button class="btn-ghost btn" onclick="fermerMail()">Fermer</button></div>
     <div class="mail-meta" id="mail-meta"></div>
-    <div class="mail-body" id="mail-body"></div>
-    <textarea id="mail-zone"></textarea>
-    <div class="mp-actions" id="mp-act-aper">
-      <button class="btn-modif" onclick="modifMail()">✎ Modifier</button>
-      <button class="btn-envoi" onclick="confirmerEnvoi()">Envoyer</button>
-    </div>
-    <div class="mp-actions" id="mp-act-edit" style="display:none">
+    <textarea id="mail-zone" spellcheck="false" oninput="mailCustom = this.value"></textarea>
+    <div class="mp-actions">
       <button class="btn-ghost btn" onclick="reformuler()">↻ Reformuler</button>
-      <button class="btn-envoi" onclick="sauverMail()">Enregistrer</button>
+      <button class="btn-envoi" id="mp-envoyer" onclick="confirmerEnvoi()">Envoyer</button>
     </div>
   </div>
 </div>
 
 <div id="toasts"></div>
 
-<script src="data.js?v=3"></script>
-<script src="app.js?v=3"></script>
+<script src="data.js?v=4"></script>
+<script src="app.js?v=4"></script>
 </body>
 </html>

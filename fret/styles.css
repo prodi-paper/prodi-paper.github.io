@@ -136,17 +136,18 @@ input::placeholder{color:var(--gris2)}
 #mail-fond{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:80;
   align-items:flex-start;justify-content:center;padding:48px 16px}
 #mail-fond.ouvert{display:flex}
-.mail-panneau{background:#fff;border-radius:12px;width:100%;max-width:680px;max-height:85vh;overflow:auto}
-.mp-tete{display:flex;align-items:center;justify-content:space-between;padding:15px 20px;border-bottom:1px solid var(--ligne)}
-.mp-tete b{font-size:17px}
-.mail-meta{padding:14px 20px;border-bottom:1px solid var(--ligne);font-size:13.5px;display:grid;gap:5px}
-.mail-meta b{display:inline-block;min-width:52px;color:var(--gris);font-weight:600}
-.mail-body{padding:20px;white-space:pre-wrap;font-size:15px;line-height:1.65;color:var(--encre);min-height:220px}
-#mail-zone{display:none;width:calc(100% - 40px);margin:16px 20px 0;min-height:280px;font-size:15px;line-height:1.6;
-  font-family:inherit;padding:14px;border:1px solid var(--ligne);border-radius:10px;resize:vertical}
-#mail-zone:focus{outline:none;border-color:var(--rouge)}
-.mp-actions{display:flex;gap:12px;padding:16px 20px 20px}
-.mp-actions .btn-ghost{flex:1;font-size:15px}
+.mail-panneau{background:#fff;border-radius:12px;width:100%;max-width:760px;max-height:88vh;overflow:auto}
+@media(min-width:861px){.mail-panneau{zoom:1.15}}
+.mp-tete{display:flex;align-items:center;justify-content:space-between;padding:15px 22px;border-bottom:1px solid var(--ligne)}
+.mp-tete b{font-size:18px}
+.mail-meta{padding:15px 22px;border-bottom:1px solid var(--ligne);font-size:15px;display:grid;gap:6px}
+.mail-meta b{display:inline-block;min-width:58px;color:var(--gris);font-weight:600}
+/* le corps du mail EST la zone d'édition : clique dedans et modifie */
+#mail-zone{display:block;width:100%;border:none;margin:0;padding:20px 24px;min-height:320px;
+  font-size:17px;line-height:1.65;font-family:inherit;color:var(--encre);resize:vertical;border-radius:0;background:#fff}
+#mail-zone:focus{outline:none}
+.mp-actions{display:flex;gap:12px;padding:14px 22px 20px}
+.mp-actions .btn-ghost{flex:1;font-size:16px}
 
 /* ── listes / tableaux ── */
 .dem-list{display:grid;gap:13px}
