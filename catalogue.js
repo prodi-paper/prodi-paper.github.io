@@ -7748,6 +7748,10 @@ async function exportListExcelTest(btn){
         qualite:[qual,String((typeof formatProductTitle==='function')?formatProductTitle(qual,p.name):(p.name||''))
           .replace(/^\s*(BOBINE|FORMAT|PALETTE|MACHINE)\s*[—–-]\s*/i,'').trim()].filter(Boolean).join(' — '),
         detail:_detNet(p.details||f.details||''),
+        // Assemblage = MÊMES catégories que le panneau filtres Détails (11/09,
+        // Ethan) : les variantes d'écriture Sage (MALEABLE/MALLEABLE…) donnent
+        // les mêmes tags → même lot. slice() car _detailTagsOf rend son cache.
+        detTags:_detailTagsOf(p.details||f.details||'').slice().sort().join(' + '),
         couleur:(p.couleur||f.couleur||'').toString(),
         grammage:p.grammage??f.grammage??'',
         largeur:largeur||'',
@@ -7765,61 +7769,138 @@ async function exportListExcelTest(btn){
     // Tri FAMILLE d'abord (10/09, Ethan « ne mélange pas les familles ») puis
     // grammage — chaque qualité reste en bloc, plus d'entrelacement par gsm.
     const _byGsm=(a,b)=>String(a.qualite).localeCompare(String(b.qualite),'fr')
-      ||((Number(a.grammage)||0)-(Number(b.grammage)||0));
+      ||((Number(a._g??a.grammage)||0)-(Number(b._g??b.grammage)||0)); // _g = min du lot (plages « 65–70 »)
     const bobines=rows.filter(r=>r.isBobine).sort(_byGsm);
     const formats=rows.filter(r=>!r.isBobine).sort(_byGsm);
-    // Feuille ASSEMBLÉE (refonte 10/09, Ethan « assemble encore plus ») : une
-    // ligne par LOT — clé = forme/qualité/DÉTAIL NETTOYÉ/couleur/GSM (+dims
-    // exactes pour les formats). L'USINE ne sépare PLUS (colonne masquée v820)
-    // et le PRIX ne sépare qu'au-delà de 100 €/t d'écart (garde-fou Ethan :
-    // « 1000/1100 ensemble, 700/1020 séparés ») — clusters greedy sur prix
-    // triés ancrés au MIN, affichage « min – max €/t » si étalé. Les articles
-    // SANS prix s'assemblent entre eux (vue client : tout = SUR DEMANDE).
-    // Laize/Ø/poids en plage min–max comme avant, mandrins joints « / ».
+    // Feuille ASSEMBLÉE (refonte 10/09 « assemble encore plus », étendue
+    // 11/09 « fais les 3, à 5 g près ») : une ligne par LOT — clé de base =
+    // forme/qualité/couleur (+dims exactes pour les formats), puis TAGS
+    // DÉTAILS canoniques (mêmes catégories que le panneau filtres). L'USINE
+    // ne sépare PLUS (colonne masquée v820) et le PRIX ne sépare qu'au-delà
+    // de 100 €/t d'écart (garde-fou Ethan : « 1000/1100 ensemble, 700/1020
+    // séparés ») — clusters greedy sur prix triés ancrés au MIN, affichage
+    // « min – max €/t » si étalé. Les SANS prix s'assemblent entre eux (vue
+    // client : tout = SUR DEMANDE). Laize/Ø/poids en plage min–max, mandrins
+    // joints « / ». Ajouts 11/09 : (a) GRAMMAGES VOISINS fusionnés (≤5 g
+    // entre voisins, colonne g/m² en plage « 65–70 ») ; (b) tags EMBOÎTÉS
+    // absorbés à prix compatible (sauf tags protégés Qual.A/B/C et
+    // FABRICATION) ; (c) mots de couleur ignorés dans le repli texte.
     // LOTS_DEBUT (testable hors site : ne dépend que de rows)
     const ECART_PRIX_MAX=100; // €/t
+    const ECART_GSM_MAX=5;    // g — grammages voisins fusionnés (11/09 Ethan « à 5 g près ça ira »)
     const _detKey=t=>String(t).toUpperCase().replace(/[^0-9A-ZÀ-Ü%]+/g,' ').replace(/\s+/g,' ').trim();
-    const _grpOf=new Map();
+    // (c) repli texte SANS mots de couleur (la colonne COULEUR les porte déjà) ;
+    // ¤ = marqueur repli, jamais mêlé/absorbé par des clés tags.
+    const _COULMOTS=/\b(TRES\s+BLANC|EXTRA\s+WHITE|BLANC(?:HE)?|WHITE|IVOIRE|CREME|BLEU(?:E)?|VERT(?:E)?|JAUNE|ROUGE|BRUN(?:E)?|GRIS(?:E)?|NOIRE?|ROSE|ORANGE|KAKI|ARGENT)\b/gi;
+    const _detFb=t=>'¤'+_detKey(String(t).replace(_COULMOTS,' '));
+    // Tags PROTÉGÉS : jamais absorbés par (b) — déclassés et fabrication
+    // restent des lignes à part même à prix identique.
+    const _TAGS_DUR=new Set(['QUALITÉ A','QUALITÉ B','QUALITÉ C','FABRICATION']);
+    const _grpOf=new Map(); // clé de base → Map(gsm exact → Map(clé détail → articles))
     rows.forEach(d=>{
-      const k=[d.isBobine,d.fmt,d.qualite,_detKey(d.detail),String(d.couleur).toUpperCase(),d.grammage,
+      const base=[d.isBobine,d.fmt,d.qualite,String(d.couleur).toUpperCase(),
         d.isBobine?'':d.largeur,d.isBobine?'':d.longueur].join('|');
-      let g=_grpOf.get(k);
-      if(!g){g=[];_grpOf.set(k,g);}
+      let b=_grpOf.get(base);
+      if(!b){b=new Map();_grpOf.set(base,b);}
+      const gv=+d.grammage||0;
+      let gm=b.get(gv);
+      if(!gm){gm=new Map();b.set(gv,gm);}
+      const dk=d.detTags||_detFb(d.detail);
+      let g=gm.get(dk);
+      if(!g){g=[];gm.set(dk,g);}
       g.push(d);
     });
     const _rngOf=set=>{const v=[...set].filter(Boolean).sort((a,b)=>a-b);
       return v.length?(v.length>1?v[0]+'–'+v[v.length-1]:String(v[0])):'';};
+    const _spanPrix=list=>{let mn=null,mx=null;
+      list.forEach(d=>{if(typeof d.prixT==='number'&&isFinite(d.prixT)){
+        mn=mn==null?d.prixT:Math.min(mn,d.prixT);mx=mx==null?d.prixT:Math.max(mx,d.prixT);}});
+      return mn==null?0:mx-mn;};
     const _lots=[];
-    _grpOf.forEach(list=>{
-      const avec=list.filter(d=>typeof d.prixT==='number'&&isFinite(d.prixT)).sort((a,b)=>a.prixT-b.prixT);
-      const sans=list.filter(d=>!(typeof d.prixT==='number'&&isFinite(d.prixT)));
-      const clusters=[];let cur=null;
-      avec.forEach(d=>{
-        if(!cur||d.prixT-cur[0].prixT>ECART_PRIX_MAX){cur=[d];clusters.push(cur);}
-        else cur.push(d);
+    _grpOf.forEach(byGsm=>{
+      // (b) tags EMBOÎTÉS, par grammage EXACT : un groupe dont les tags sont
+      // un SOUS-ENSEMBLE strict d'un autre ET dont tous les prix (des deux
+      // réunis) tiennent dans ECART_PRIX_MAX fusionne avec lui (Sage
+      // inégalement renseigné : « 100% PP MG » vs « 100% PP MG BRILLANT » au
+      // même €/t et même gsm). Si plusieurs candidats, le plus LOURD gagne.
+      // ⚠️ par gsm exact : sinon un écart de prix sur UN grammage bloque la
+      // fusion des autres, et un article emprunte une finition d'un autre gsm.
+      byGsm.forEach(gm=>{
+        [...gm.keys()].filter(k=>!k.startsWith('¤'))
+          .sort((a,b)=>a.split(' + ').length-b.split(' + ').length)
+          .forEach(kA=>{
+            const A=gm.get(kA);if(!A)return;
+            const tA=kA.split(' + ');
+            let best=null,bestKg=-1;
+            gm.forEach((B,kB)=>{
+              if(kB===kA||kB.startsWith('¤'))return;
+              const tB=new Set(kB.split(' + '));
+              if(tA.length>=tB.size||!tA.every(t=>tB.has(t)))return; // A ⊂ B strict
+              if([...tB].some(t=>_TAGS_DUR.has(t)&&!tA.includes(t)))return;
+              if(_spanPrix(A.concat(B))>ECART_PRIX_MAX)return;
+              const kg=B.reduce((s,d)=>s+(+d.poids||0),0);
+              if(kg>bestKg){bestKg=kg;best=kB;}
+            });
+            if(best){gm.get(best).push(...A);gm.delete(kA);}
+          });
       });
-      if(sans.length)clusters.push(sans);
-      clusters.forEach(cl=>{
-        const l={...cl[0],ref:''};
-        let kg=0,pMin=null,pMax=null;
-        const LG=new Set(),LO=new Set(),MD=new Set();
-        cl.forEach(d=>{
-          kg+=+d.poids||0;
-          if(d.largeur!=='')LG.add(+d.largeur||0);
-          if(d.longueur!=='')LO.add(+d.longueur||0);
-          if(d.mandrin!=='')MD.add(String(d.mandrin));
-          if(!l.img&&d.img)l.img=d.img;
-          if(typeof d.prixT==='number'&&isFinite(d.prixT)){
-            pMin=pMin==null?d.prixT:Math.min(pMin,d.prixT);
-            pMax=pMax==null?d.prixT:Math.max(pMax,d.prixT);
-          }
+      // Refonte par clé détail FINALE (post-absorption), tous gsm confondus.
+      const parDet=new Map();
+      byGsm.forEach(gm=>gm.forEach((list,dk)=>{
+        const t=parDet.get(dk);
+        if(t)t.push(...list);else parDet.set(dk,[...list]);
+      }));
+      parDet.forEach(list=>{
+        // (a) GRAMMAGES VOISINS : clusters greedy sur gsm triés (écart ≤
+        // ECART_GSM_MAX entre voisins) — l'article exact reste dans Détails.
+        const tri=[...list].sort((a,b)=>(+a.grammage||0)-(+b.grammage||0));
+        const subs=[];let gc=null;
+        tri.forEach(d=>{
+          if(!gc||(+d.grammage||0)-(+gc[gc.length-1].grammage||0)>ECART_GSM_MAX){gc=[d];subs.push(gc);}
+          else gc.push(d);
         });
-        l._kg=kg;
-        l.poids=Math.round(kg)||'';
-        l.largeur=_rngOf(LG);l.longueur=_rngOf(LO);l.mandrin=[...MD].join(' / ');
-        if(pMax!=null){l.prixT=pMax;if(pMax>pMin){l._pMin=pMin;l._pMax=pMax;}}
-        l.montant=(l.prix&&kg)?Math.round(kg*l.prix*100)/100:'';
-        _lots.push(l);
+        subs.forEach(sub=>{
+          const avec=sub.filter(d=>typeof d.prixT==='number'&&isFinite(d.prixT)).sort((a,b)=>a.prixT-b.prixT);
+          const sans=sub.filter(d=>!(typeof d.prixT==='number'&&isFinite(d.prixT)));
+          const clusters=[];let cur=null;
+          avec.forEach(d=>{
+            if(!cur||d.prixT-cur[0].prixT>ECART_PRIX_MAX){cur=[d];clusters.push(cur);}
+            else cur.push(d);
+          });
+          if(sans.length)clusters.push(sans);
+          clusters.forEach(cl=>{
+            const l={...cl[0],ref:''};
+            let kg=0,pMin=null,pMax=null;
+            const LG=new Set(),LO=new Set(),MD=new Set(),GS=new Set();
+            cl.forEach(d=>{
+              kg+=+d.poids||0;
+              if(d.largeur!=='')LG.add(+d.largeur||0);
+              if(d.longueur!=='')LO.add(+d.longueur||0);
+              if(d.mandrin!=='')MD.add(String(d.mandrin));
+              if(d.grammage!==''&&d.grammage!=null)GS.add(+d.grammage||0);
+              if(!l.img&&d.img)l.img=d.img;
+              if(typeof d.prixT==='number'&&isFinite(d.prixT)){
+                pMin=pMin==null?d.prixT:Math.min(pMin,d.prixT);
+                pMax=pMax==null?d.prixT:Math.max(pMax,d.prixT);
+              }
+            });
+            // Libellé DÉTAILS du lot = variante d'écriture MAJORITAIRE au poids
+            // (écritures Sage fusionnées par tags → un seul texte affiché).
+            if(cl.length>1){
+              const wDet=new Map();
+              cl.forEach(d=>wDet.set(d.detail,(wDet.get(d.detail)||0)+(+d.poids||0)));
+              l.detail=[...wDet.entries()].sort((a,b)=>b[1]-a[1])[0][0];
+            }
+            l._kg=kg;
+            l.poids=Math.round(kg)||'';
+            l._g=GS.size?Math.min(...GS):(+l.grammage||0); // tri numérique (_byGsm)
+            l.grammage=_rngOf(GS)||l.grammage;
+            l.largeur=_rngOf(LG);l.longueur=_rngOf(LO);l.mandrin=[...MD].join(' / ');
+            if(pMax!=null){l.prixT=pMax;if(pMax>pMin){l._pMin=pMin;l._pMax=pMax;}}
+            l.montant=(l.prix&&kg)?Math.round(kg*l.prix*100)/100:'';
+            _lots.push(l);
+          });
+        });
       });
     });
     // LOTS_FIN
