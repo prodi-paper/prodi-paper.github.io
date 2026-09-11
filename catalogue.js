@@ -244,6 +244,10 @@ function _ccySym(){ return (_currency==='USD'&&_usdRate>0)?'$':'€'; }
 function _paintCcyBtn(){ document.querySelectorAll('.ccy-opt').forEach(b=>b.classList.toggle('active',b.dataset.c===_currency)); }
 function _repaintPrices(){
   const g=document.getElementById('pgrid'); if(g&&g._lastList)render(g._lastList);
+  // Page d'ARRIVÉE (rangées par qualité) : elle vit dans #quality-rows, pas
+  // dans pgrid → sans ce re-rendu, le €/$ n'y changeait RIEN (vécu 11/09 —
+  // « ça marche que si j'utilise les filtres d'abord » = quitter la landing).
+  if(_landingRows&&typeof _renderQualityRows==='function')Promise.resolve(_renderQualityRows()).catch(()=>{});
   if(typeof renderDrawer==='function')renderDrawer();
   if(_detIdx>=0&&all[_detIdx]&&document.getElementById('detail-bg')?.classList.contains('show'))openDetail(all[_detIdx].id);
 }
