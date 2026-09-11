@@ -4792,6 +4792,21 @@ async function openDetail(id){
     p=idx>=0?all[idx]:null;
     if(p)_detSource='list';
   }
+  // REPLI page d'ARRIVÉE (rangées par qualité, 11/09) : les lots de l'accueil
+  // ne sont PAS dans `all` → openDetail sortait en silence (clic carte muet).
+  // On retrouve le LOT dans _groupsList (proto avec _grp* : badge ×N, + =
+  // popup Quantité) sinon l'unité du registre, et on HYDRATE `all` (la fiche
+  // lit `all` : cur, navigation, rendus) comme le fait déjà le repli panier.
+  if(!p){
+    const g=(_groupsList||[]).find(x=>+x.proto_id===+id);
+    const cand=g?_groupToUi(g):_landingUnitsById.get(+id);
+    if(cand){
+      if(!all.find(x=>x.id===+id))all.push(cand);
+      idx=all.findIndex(x=>x.id===+id);
+      p=idx>=0?all[idx]:null;
+      if(p)_detSource='list';
+    }
+  }
   if(!p) return;
   // Pour le mode cart, hydrater `all` avec les données cart si manquantes (modal lit depuis `all`)
   if(_detSource==='cart'&&!all.find(x=>x.id===+id)){
