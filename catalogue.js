@@ -284,6 +284,17 @@ const fmt=kg=>!kg?'—':kg>=1000?(kg/1000).toFixed(1)+' t':kg+' KGS';
 // 16/07 : TOUT reste en mm (données Sage en mm) — l'helper garde son nom
 // historique mais ne convertit plus.
 const mmToCm=mm=>mm!=null?Math.round(+mm):null;
+// 11/09 (Ethan « la laize je la veux en cm, partout ») : la LAIZE des BOBINES
+// s'AFFICHE en cm — cartes/fiche/liste/tiroir/filtres/Excel/album. Données,
+// champs cachés et requêtes serveur RESTENT en mm. Dimensions des formats et
+// Ø restent en mm. Gère nombres et plages « 724–1024 » → « 72,4–102,4 ».
+const _cmAff=v=>{
+  if(v===''||v==null)return '';
+  return String(v).split('–').map(x=>{
+    const n=+x; if(!isFinite(n)||n<=0)return String(x);
+    return String(Math.round(n)/10).replace('.',',');
+  }).join('–');
+};
 // Centralized rule for the "Couleur" paper type split (gsm threshold).
 // Note the deliberate asymmetry, kept from the original design:
 //   - `codes` (RCOL+SCOL) is used by TYPE_MAP (smart search) and rowToUi
@@ -1017,7 +1028,7 @@ function rowToUi(r){
 function cardWa(id){
   const p=all.find(x=>x.id===+id);
   if(!p)return;
-  const msg=`Bonjour, je suis intéressé par : ${p.name}${p.grammage?' '+p.grammage+'g/m²':''}${p.largeur?' '+mmToCm(p.largeur)+'mm':''}${p.couleur?' '+p.couleur:''} — ${fmt(p.poids_net)} disponibles. Quel est votre prix ?`;
+  const msg=`Bonjour, je suis intéressé par : ${p.name}${p.grammage?' '+p.grammage+'g/m²':''}${p.largeur?' '+(_estFormat(p)?mmToCm(p.largeur)+'mm':_cmAff(p.largeur)+'cm'):''}${p.couleur?' '+p.couleur:''} — ${fmt(p.poids_net)} disponibles. Quel est votre prix ?`;
   window.prodiTrack?.('whatsapp_click',{via:'carte',ref:p.ref||null});
   window.open(`https://wa.me/${WA}?text=${encodeURIComponent(msg)}`,'_blank');
 }
@@ -1384,13 +1395,14 @@ function _gsmPg(a){
 }
 // ── LAIZES bobines : TRANCHES façon Poids (19/07, Ethan — fini les 40
 // familles fines, même catégorisation que les tranches logistiques).
+// Libellés en CM (11/09 Ethan) — min/max restent en MM (requêtes serveur).
 const LAIZE_TRANCHES=[
- {label:'< 500 mm',min:0,max:500},
- {label:'500 – 800 mm',min:500,max:800},
- {label:'800 – 1000 mm',min:800,max:1000},
- {label:'1000 – 1300 mm',min:1000,max:1300},
- {label:'1300 – 1600 mm',min:1300,max:1600},
- {label:'> 1600 mm',min:1600,max:99999},
+ {label:'< 50 cm',min:0,max:500},
+ {label:'50 – 80 cm',min:500,max:800},
+ {label:'80 – 100 cm',min:800,max:1000},
+ {label:'100 – 130 cm',min:1000,max:1300},
+ {label:'130 – 160 cm',min:1300,max:1600},
+ {label:'> 160 cm',min:1600,max:99999},
 ];
 const LAIZE_AUTRES='__laize_autres__';
 const LAIZE_OPTIONS=LAIZE_TRANCHES.map(t=>t.label).concat([LAIZE_AUTRES]);
@@ -1449,7 +1461,8 @@ function _poidsPg(t){
 //   laize→f-lmin/f-lmax (width) · diam→f-longmin/f-longmax (longueur, bobines) ·
 //   poids→f-wmin/f-wmax (weight). Plage affichée en haut à droite (comme gram.).
 const _RS_CFG={
-  laize:{minField:'f-lmin',maxField:'f-lmax',unit:'mm',excludeKey:'msd-laize',all:'Toutes les laizes',bobineOnly:true,defLo:0,defHi:2500,step:10,rowVal:r=>+r.width||0},
+  // laize : AFFICHAGE en cm via disp (11/09 Ethan), champs/valeurs en mm
+  laize:{minField:'f-lmin',maxField:'f-lmax',unit:'cm',disp:v=>_cmAff(v),excludeKey:'msd-laize',all:'Toutes les laizes',bobineOnly:true,defLo:0,defHi:2500,step:10,rowVal:r=>+r.width||0},
   diam:{minField:'f-longmin',maxField:'f-longmax',unit:'mm',excludeKey:'msd-diametre',all:'Tous les diamètres',bobineOnly:true,defLo:0,defHi:1600,step:10,rowVal:r=>(String(r.format||'')==='Bobine'?(+r.longueur||0):0)},
   poids:{minField:'f-wmin',maxField:'f-wmax',unit:'kg',excludeKey:'msd-poids',all:'Tous les poids',bobineOnly:false,defLo:0,defHi:5000,step:10,rowVal:r=>+r.weight||+r.poids_net||0},
 };
@@ -1464,7 +1477,8 @@ function _rsRangeText(key){
   const vx=document.getElementById(cfg.maxField)?.value||'';
   const lo=vn||(b?b.lo:''),hi=vx||(b?b.hi:'');
   if(lo===''&&hi==='')return '';
-  return lo+' – '+hi+' '+cfg.unit;
+  const D=cfg.disp||(v=>v); // laize : valeurs mm affichées en cm
+  return D(lo)+' – '+D(hi)+' '+cfg.unit;
 }
 // « Sélection posée » (affichage gras) = un des champs min/max est renseigné.
 function _rsHasSel(key){
@@ -1494,7 +1508,7 @@ function _buildRangeSlider(container,key){
     '<div class="gsl-track"><div class="gsl-fill"></div>'+
     '<input type="range" min="'+LO+'" max="'+HI+'" value="'+LO+'" step="'+PAS+'" data-role="min" aria-label="Minimum">'+
     '<input type="range" min="'+LO+'" max="'+HI+'" value="'+HI+'" step="'+PAS+'" data-role="max" aria-label="Maximum"></div>'+
-    '<div class="gsl-bornes"><span>'+LO+' '+cfg.unit+'</span><span>'+HI+' '+cfg.unit+'</span></div></div>';
+    '<div class="gsl-bornes"><span>'+(cfg.disp?cfg.disp(LO):LO)+' '+cfg.unit+'</span><span>'+(cfg.disp?cfg.disp(HI):HI)+' '+cfg.unit+'</span></div></div>';
   const wrap=container.querySelector('.gsl');
   const iMin=wrap.querySelector('[data-role=min]'),iMax=wrap.querySelector('[data-role=max]');
   const fill=wrap.querySelector('.gsl-fill'),lbl=wrap.querySelector('.gsl-val'),track=wrap.querySelector('.gsl-track');
@@ -1505,7 +1519,8 @@ function _buildRangeSlider(container,key){
     let a=+iMin.value,c=+iMax.value;if(a>c){const t=a;a=c;c=t;}
     fill.style.left=(a-LO)/(HI-LO)*100+'%';fill.style.right=(100-(c-LO)/(HI-LO)*100)+'%';
     const plein=(a<=LO&&c>=HI);
-    lbl.textContent=plein?cfg.all:a+' – '+c+' '+cfg.unit;
+    const D=cfg.disp||(v=>v);
+    lbl.textContent=plein?cfg.all:D(a)+' – '+D(c)+' '+cfg.unit;
     return {a,c,plein};
   }
   function apply(){
@@ -4235,7 +4250,7 @@ function updateFilterChips(){
   });
   if(gn||gx)chips.push({key:'grange',label:'Gram.'+' : '+(gn||'—')+' → '+(gx||'—')+' g/m²',clear:()=>{document.getElementById('f-gmin').value='';document.getElementById('f-gmax').value='';_gslSyncAll();filterProducts();}});
 
-  if(lmin2||lmax2)chips.push({key:'lrange',label:'Laize'+' : '+(lmin2||'—')+' → '+(lmax2||'—')+' mm',clear:()=>{['f-lmin','f-lmax','f-lmin-fb','f-lmax-fb','f-lmin-mob','f-lmax-mob'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});filterProducts();}});
+  if(lmin2||lmax2)chips.push({key:'lrange',label:'Laize'+' : '+(lmin2?_cmAff(lmin2):'—')+' → '+(lmax2?_cmAff(lmax2):'—')+' cm',clear:()=>{['f-lmin','f-lmax','f-lmin-fb','f-lmax-fb','f-lmin-mob','f-lmax-mob'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});filterProducts();}});
   const longmin2=document.getElementById('f-longmin')?.value||'';
   const longmax2=document.getElementById('f-longmax')?.value||'';
   if(longmin2||longmax2)chips.push({key:'lgrange',label:'Ø : '+(longmin2||'—')+' → '+(longmax2||'—')+' mm',clear:()=>{['f-longmin','f-longmax','f-longmin-mob','f-longmax-mob'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});filterProducts();}});
@@ -4338,7 +4353,7 @@ function _productSummary(p){
   if(isPalette&&(p.largeur||p.longueur)){
     parts.push([mmToCm(p.largeur),p.longueur?mmToCm(p.longueur):null].filter(Boolean).join(' × ')+' mm');
   }else if(p.largeur){
-    const dim='Laize '+mmToCm(p.largeur)+' mm'+(p.longueur?' • Long. '+p.longueur+' mm':'');
+    const dim='Laize '+_cmAff(p.largeur)+' cm'+(p.longueur?' • Long. '+p.longueur+' mm':'');
     parts.push(dim);
   }
   return parts.join(' • ');
@@ -4390,7 +4405,7 @@ function _renderCatalogueCard(p){
         :`<img src="${esc(_fallbackImg)}" alt="Photo sur demande" class="pcard-nophoto" width="300" height="279">`;
     const {cls:badgeCls,txt:badgeTxt}=decodeQuality(p.type);
     const isPalette=_estFormat(p);
-    const dimTag=!isPalette&&p.largeur?`${mmToCm(p.largeur)} mm`:'';
+    const dimTag=!isPalette&&p.largeur?`${_cmAff(p.largeur)} cm`:'';
     const fmtLabel=p.format?(isPalette?'Format':'Bobine'):null;
     const paletteDims=isPalette&&(p.largeur||p.longueur)?[p.largeur,p.longueur].filter(Boolean).map(v=>mmToCm(v)).join('×'):null;
     const _isGroup=p._grpCount&&p._grpCount>1;
@@ -4473,7 +4488,7 @@ function _renderCatalogueCard(p){
       if(isPalette){
         cells+=cell('DIMENSIONS',p.largeur&&p.longueur?esc(mmToCm(Math.min(p.largeur,p.longueur))+' × '+mmToCm(Math.max(p.largeur,p.longueur)))+' <small>mm</small>':(p.largeur?esc(mmToCm(p.largeur))+' <small>mm</small>':'—'),2);
       }else{
-        cells+=cell('LAIZE',p.largeur?esc(mmToCm(p.largeur))+' <small>mm</small>':'—',2);
+        cells+=cell('LAIZE',p.largeur?esc(_cmAff(p.largeur))+' <small>cm</small>':'—',2);
       }
       cells+=cell('COULEUR',esc(p.couleur||'—'),2);
       const _wv=_isGroup?_grpTotal:p.poids_net;
@@ -4583,7 +4598,7 @@ function renderList(list){
       :`<button class="plist-add${inCart?' added':''}" id="ladd-${numId(p.id)}" aria-label="${inCart?('Retirer de la liste'):('Ajouter à la liste')}" onclick="event.stopPropagation();addToCart(${numId(p.id)})">${inCart?_ICO_TRASH:'+'}</button>`;
     const isPalette=_estFormat(p);
     // Dimensions: Bobine → Laize | Ø Diamètre | Mandrin / Palette → Dimensions (laize×long)
-    const laize=p.largeur?`${mmToCm(p.largeur)} mm`:'—';
+    const laize=p.largeur?`${_cmAff(p.largeur)} cm`:'—';
     const dim2=isPalette
       ?(p.longueur?`${mmToCm(p.longueur)} mm`:'—')
       :(p.longueur?`Ø ${mmToCm(p.longueur)} mm`:'—');
@@ -4855,7 +4870,7 @@ async function openDetail(id){
     {lbl: 'Couleur',   val: p.couleur},
     {lbl: 'Grammage',                             val: p.grammage?p.grammage+' g/m²':null},
     {lbl: (_estFormat(p)&&p.largeur&&p.longueur)?'Dimensions':('Laize'),
-     val: (_estFormat(p)&&p.largeur&&p.longueur)?mmToCm(p.largeur)+' × '+mmToCm(p.longueur)+' mm':(p.largeur?mmToCm(p.largeur)+' mm':null)},
+     val: (_estFormat(p)&&p.largeur&&p.longueur)?mmToCm(p.largeur)+' × '+mmToCm(p.longueur)+' mm':(p.largeur?_cmAff(p.largeur)+' cm':null)},
     {lbl: 'Longueur', val: _estFormat(p)&&p.largeur&&p.longueur?null:(_estFormat(p)&&p.longueur?mmToCm(p.longueur)+' mm':null)},
     // Bobines : la colonne `longueur` stocke le diamètre (mm) — héritage import Sage.
     {lbl: 'Diamètre',  val: !_estFormat(p)&&p.longueur?'Ø '+mmToCm(p.longueur)+' mm':null},
@@ -4881,7 +4896,7 @@ async function openDetail(id){
     if(isPal){
       et.push({lbl:'Dimensions',val:p.largeur&&p.longueur?esc(mmToCm(Math.min(p.largeur,p.longueur))+' × '+mmToCm(Math.max(p.largeur,p.longueur)))+' <small>mm</small>':(p.largeur?esc(mmToCm(p.largeur))+' <small>mm</small>':'—'),span:2});
     }else{
-      et.push({lbl:'Laize',val:p.largeur?esc(mmToCm(p.largeur))+' <small>mm</small>':'—'});
+      et.push({lbl:'Laize',val:p.largeur?esc(_cmAff(p.largeur))+' <small>cm</small>':'—'});
       et.push({lbl:'Diamètre',val:p.longueur?esc(mmToCm(p.longueur))+' <small>mm</small>':'—'});
       et.push({lbl:'Mandrin',val:p.noyau?esc(p.noyau)+' <small>mm</small>':'—'});
     }
@@ -6578,7 +6593,7 @@ if(_sharedMode)_sharedViewUI(true);
             if(isPal){
               cells+=cell('DIMENSIONS',p.largeur&&p.longueur?esc(mmToCm(Math.min(p.largeur,p.longueur))+' × '+mmToCm(Math.max(p.largeur,p.longueur)))+' <small>mm</small>':(p.largeur?esc(mmToCm(p.largeur))+' <small>mm</small>':'—'),2);
             }else{
-              cells+=cell('LAIZE',p.largeur?esc(mmToCm(p.largeur))+' <small>mm</small>':'—',2);
+              cells+=cell('LAIZE',p.largeur?esc(_cmAff(p.largeur))+' <small>cm</small>':'—',2);
             }
             cells+=cell('COULEUR',esc(p.couleur||'—'),2);
             cells+=cell('POIDS NET',p.poids_net?esc(Math.round(p.poids_net).toLocaleString('fr-FR'))+' <small>kgs</small>':'—',2);
@@ -6928,7 +6943,7 @@ function renderDrawer(){
     return`<div class="ci" id="ci-${numId(p.id)}" onclick="_ciOpenDetail(${numId(p.id)})" style="cursor:pointer">
       <div class="ci-img">${imgHtml}</div>
       <div class="ci-body">
-        ${(()=>{const _fmtQ=_estFormat(_pFull);const _dimv=_fmtQ?(_pFull.largeur&&_pFull.longueur?mmToCm(Math.min(_pFull.largeur,_pFull.longueur))+' × '+mmToCm(Math.max(_pFull.largeur,_pFull.longueur))+' <small>mm</small>':(_pFull.largeur?mmToCm(_pFull.largeur)+' <small>mm</small>':'—')):(_pFull.largeur?mmToCm(_pFull.largeur)+' <small>mm</small>':'—');const _c=(cap,val)=>`<div class="cie-cell"><div class="cie-cap">${cap}</div><div class="cie-val">${val}</div></div>`;const _prix=_priceMode&&_pFull.price?_ccyNum(_pFull.price*1000)+' '+_ccyUnit():null;const _cpSvg='<svg width="10" height="10" viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.6"/><path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';const _refCell=`<div class="cie-cell cie-ref"${_prix?'':' style="grid-column:span 2"'}${lot?` onclick="event.stopPropagation();navigator.clipboard.writeText(${attrJs(lot)}).then(()=>toast('📋 Réf. copiée'))"`:''}><div class="cie-cap">${'RÉFÉRENCE'}</div><div class="cie-val">${lot?esc(lot)+_cpSvg:'—'}</div></div>`;const _prixCell=_prix?`<div class="cie-cell cie-prix"><div class="cie-cap">PRIX</div><div class="cie-val">${esc(_prix)}</div></div>`:'';const _lockHtml=_resaClient?`<span class="cie-lock" title="Réservé${typeof _resaClient==='string'?' — '+esc(_resaClient):''}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ea8600" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>`:'';return `<div class="cie-grid cie-g4"><div class="cie-cell cie-title">${_lockHtml}<span class="cie-title-txt">${esc(ciTitle)}</span><button class="ci-rm cie-rm" onclick="event.stopPropagation();removeFromCart(${numId(p.id)})" aria-label="${'Retirer'}">${_trashSvg}</button></div>${_c('GRAMMAGE',p.grammage?esc(p.grammage)+' <small>g/m²</small>':'—')+_c(_fmtQ?'DIMENSIONS':'LAIZE',_dimv)+_c('COULEUR',esc(_pFull.couleur||p.couleur||'—'))+_c('POIDS',qkg?esc(Math.round(qkg).toLocaleString('fr-FR'))+' <small>kgs</small>':'—')}${_refCell}${_prixCell}</div>`;})()}
+        ${(()=>{const _fmtQ=_estFormat(_pFull);const _dimv=_fmtQ?(_pFull.largeur&&_pFull.longueur?mmToCm(Math.min(_pFull.largeur,_pFull.longueur))+' × '+mmToCm(Math.max(_pFull.largeur,_pFull.longueur))+' <small>mm</small>':(_pFull.largeur?mmToCm(_pFull.largeur)+' <small>mm</small>':'—')):(_pFull.largeur?_cmAff(_pFull.largeur)+' <small>cm</small>':'—');const _c=(cap,val)=>`<div class="cie-cell"><div class="cie-cap">${cap}</div><div class="cie-val">${val}</div></div>`;const _prix=_priceMode&&_pFull.price?_ccyNum(_pFull.price*1000)+' '+_ccyUnit():null;const _cpSvg='<svg width="10" height="10" viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.6"/><path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';const _refCell=`<div class="cie-cell cie-ref"${_prix?'':' style="grid-column:span 2"'}${lot?` onclick="event.stopPropagation();navigator.clipboard.writeText(${attrJs(lot)}).then(()=>toast('📋 Réf. copiée'))"`:''}><div class="cie-cap">${'RÉFÉRENCE'}</div><div class="cie-val">${lot?esc(lot)+_cpSvg:'—'}</div></div>`;const _prixCell=_prix?`<div class="cie-cell cie-prix"><div class="cie-cap">PRIX</div><div class="cie-val">${esc(_prix)}</div></div>`:'';const _lockHtml=_resaClient?`<span class="cie-lock" title="Réservé${typeof _resaClient==='string'?' — '+esc(_resaClient):''}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ea8600" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>`:'';return `<div class="cie-grid cie-g4"><div class="cie-cell cie-title">${_lockHtml}<span class="cie-title-txt">${esc(ciTitle)}</span><button class="ci-rm cie-rm" onclick="event.stopPropagation();removeFromCart(${numId(p.id)})" aria-label="${'Retirer'}">${_trashSvg}</button></div>${_c('GRAMMAGE',p.grammage?esc(p.grammage)+' <small>g/m²</small>':'—')+_c(_fmtQ?'DIMENSIONS':'LAIZE',_dimv)+_c('COULEUR',esc(_pFull.couleur||p.couleur||'—'))+_c('POIDS',qkg?esc(Math.round(qkg).toLocaleString('fr-FR'))+' <small>kgs</small>':'—')}${_refCell}${_prixCell}</div>`;})()}
       </div>
       <div class="ci-confirm" id="ci-confirm-${numId(p.id)}" onclick="event.stopPropagation()">
         <span>${'Retirer cet article\u00a0?'}</span>
@@ -7189,7 +7204,7 @@ function updateFilterVisibility(){
   show('mob-sec-format',   unlocked && !onlyBobine && !window._dimsInAdv);
   show('mob-sec-laize',    true);
   const mobLbl=document.getElementById('mob-laize-title');
-  if(mobLbl) mobLbl.textContent=laizeLbl+' (mm)';
+  if(mobLbl) mobLbl.textContent=laizeLbl+(onlyPalette?' (mm)':' (cm)');
 }
 
 function toggleFbPill(btnId,type){
@@ -7981,14 +7996,22 @@ async function exportListExcelTest(btn){
       let v=t*kg/1000; if(_xUsd)v*=_usdRate;
       return _sp(Math.round(v).toLocaleString('fr-FR'))+' '+_xSym();
     };
-    // Laize/largeur en MM bruts, sans unité dans la cellule (harmonisé avec
-    // mandrin/Ø, l'unité vit dans l'en-tête — Ethan 26/08, fini le « cm à
-    // virgule » du fichier mère) ; gère les plages assemblées « 480–1000 ».
+    // Largeur/longueur des FORMATS en MM bruts, sans unité dans la cellule
+    // (l'unité vit dans l'en-tête) ; gère les plages assemblées « 480–1000 ».
     const _mm=(v)=>{
       if(v===''||v==null)return '';
       const s=String(v);
       if(!s.includes('–')){const n=+s;return isFinite(n)&&n>0?Math.round(n):v;}
       return s.split('–').map(x=>{const n=+x;return isFinite(n)&&n>0?String(Math.round(n)):String(x);}).join('–');
+    };
+    // LAIZE des BOBINES en CM (11/09, Ethan « la laize en cm partout » —
+    // annule le « tout mm » du 26/08 pour cette colonne) : nombre Excel si
+    // valeur seule (72.4 → affiché 72,4 en locale FR), plage en texte virgule.
+    const _cmL=(v)=>{
+      if(v===''||v==null)return '';
+      const s=String(v);
+      if(!s.includes('–')){const n=+s;return isFinite(n)&&n>0?Math.round(n)/10:v;}
+      return s.split('–').map(x=>{const n=+x;return isFinite(n)&&n>0?String(Math.round(n)/10).replace('.',','):String(x);}).join('–');
     };
     const _numV=(v)=>(typeof v==='string'&&v!==''&&/^\d+(\.\d+)?$/.test(v))?+v:v;
     // Qualité SANS le code Sage (« RCOL — OFFSET COULEUR » → « OFFSET
@@ -8056,8 +8079,8 @@ async function exportListExcelTest(btn){
     }
 
     // En-têtes courts façon fichier mère (« g/m² » / « gsm »), 2 lignes FR/EN.
-    const COLS_B_FR=['REFERENCE','QUALITE','DETAIL','COULEUR','g/m²','MANDRIN (mm)','LAIZE\n(mm)','DIAMETRE (mm)','POIDS (kg)','USINE','PRIX\nDÉPART USINE','MONTANT\nDU LOT','PRIX\nCFR'];
-    const COLS_B_EN=['REFERENCE','QUALITY','DETAIL','COLOR','gsm','CORE (mm)','WIDTH\n(mm)','DIAMETER (mm)','WEIGHT (kg)','MILL','EX WORKS\nPRICE','LOT\nAMOUNT','CFR\nPRICE'];
+    const COLS_B_FR=['REFERENCE','QUALITE','DETAIL','COULEUR','g/m²','MANDRIN (mm)','LAIZE\n(cm)','DIAMETRE (mm)','POIDS (kg)','USINE','PRIX\nDÉPART USINE','MONTANT\nDU LOT','PRIX\nCFR'];
+    const COLS_B_EN=['REFERENCE','QUALITY','DETAIL','COLOR','gsm','CORE (mm)','WIDTH\n(cm)','DIAMETER (mm)','WEIGHT (kg)','MILL','EX WORKS\nPRICE','LOT\nAMOUNT','CFR\nPRICE'];
     const TAIL_B=[T_TXT,T_TXT,T_TXT,T_TXT,T_NUM,T_NUM,T_NUM,T_NUM,T_NUM,T_TXT,T_NUM,T_NUM,T_TXT];
     const COLS_F_FR=['REFERENCE','QUALITE','DETAIL','COULEUR','g/m²','LARGEUR\n(mm)','LONGUEUR (mm)','POIDS (kg)','USINE','PRIX\nDÉPART USINE','MONTANT\nDU LOT','PRIX\nCFR'];
     const COLS_F_EN=['REFERENCE','QUALITY','DETAIL','COLOR','gsm','WIDTH\n(mm)','LENGTH (mm)','WEIGHT (kg)','MILL','EX WORKS\nPRICE','LOT\nAMOUNT','CFR\nPRICE'];
@@ -8090,7 +8113,7 @@ async function exportListExcelTest(btn){
         fr:[...phFr,...COLS_B_FR],en:[...phEn,...COLS_B_EN],tailles:[...(AV?[T_TXT]:[]),...TAIL_B],
         iCoul:3+phFr.length,iDet:2+phFr.length,
         iPrix:10+phFr.length,iMont:11+phFr.length,iCfr:12+phFr.length,imgs:imgsBob,
-        vals:secBob.map((d,ix)=>[...(AV?[imgsBob[ix]?'':'SUR DEMANDE']:[]),d.ref,_qualSansCode(d.qualite),d.detail,_coulBi(d.couleur),_numV(d.grammage),_numV(d.mandrin),_mm(d.largeur),_numV(d.longueur),_numV(d.poids),d.usine,_fmtPrixCell(d),_fmtMontant(d.prixT,+d.poids||0),PRIX_CFR_FR+PRIX_CFR_EN]),
+        vals:secBob.map((d,ix)=>[...(AV?[imgsBob[ix]?'':'SUR DEMANDE']:[]),d.ref,_qualSansCode(d.qualite),d.detail,_coulBi(d.couleur),_numV(d.grammage),_numV(d.mandrin),_cmL(d.largeur),_numV(d.longueur),_numV(d.poids),d.usine,_fmtPrixCell(d),_fmtMontant(d.prixT,+d.poids||0),PRIX_CFR_FR+PRIX_CFR_EN]),
       });
       if(secFmt.length)secDefs.push({
         titreFr:'FORMATS / PALETTES – ',titreEn:'SHEETS/PALLETS',
@@ -8452,7 +8475,7 @@ async function exportListExcelTest(btn){
           cs.alignment={horizontal:'left',vertical:'middle',wrapText:true,indent:1};
           cs.border=bordN;
           let laize='';
-          if(it.bob){const l2=_mm(d.largeur);laize=l2===''?'':l2+' mm';}
+          if(it.bob){const l2=_cmAff(d.largeur);laize=l2===''?'':l2+' cm';}
           else{const dims=[_mm(d.largeur),_mm(d.longueur)].filter(x=>x!==''&&x!=null).join('×');laize=dims?dims+' mm':'';}
           const cars=[
             ['GRAMMAGE',d.grammage?d.grammage+' g/m²':''],[it.bob?'LAIZE':'DIMENSIONS',laize],
@@ -8759,7 +8782,7 @@ function _albumData(){
     const isF=_estFormat(f);
     let dim='—';
     if(isF&&f.largeur&&f.longueur)dim=mmToCm(Math.min(f.largeur,f.longueur))+' × '+mmToCm(Math.max(f.largeur,f.longueur))+' mm';
-    else if(f.largeur)dim=mmToCm(f.largeur)+' mm';
+    else if(f.largeur)dim=isF?mmToCm(f.largeur)+' mm':_cmAff(f.largeur)+' cm';
     const kg=p.qty_kg??(f.poids_net||0);
     let coul=String(f.couleur||p.couleur||'—');
     coul=coul.charAt(0).toUpperCase()+coul.slice(1).toLowerCase();
