@@ -249,10 +249,16 @@ function _repaintPrices(){
 }
 function toggleCurrency(c){
   const next=c||(_currency==='USD'?'EUR':'USD');
-  if(next==='USD'&&!(_usdRate>0)){ toast('Taux de change en cours de chargement…'); _loadUsdRate(); return; }
+  // Le choix est TOUJOURS pris (bouton + mémoire), même si le taux n'est pas
+  // encore arrivé : l'affichage reste en € (garde _usdRate>0 des helpers) et
+  // _loadUsdRate() repeint en $ dès réception. Avant, un clic pendant le
+  // chargement du taux était IGNORÉ (return sec) → « le €/$ ne marche pas »
+  // juste après l'ouverture de la page (vécu 11/09).
   _currency=next;
   try{localStorage.setItem('prodi_ccy',_currency);}catch(_){}
-  _paintCcyBtn(); _repaintPrices();
+  _paintCcyBtn();
+  if(next==='USD'&&!(_usdRate>0)){ toast('Taux €→$ en chargement, bascule automatique…'); _loadUsdRate(); }
+  else _repaintPrices();
   window.prodiTrack?.('devise',{ccy:_currency,taux:_usdRate});
 }
 async function _loadUsdRate(){
