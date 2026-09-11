@@ -7672,6 +7672,23 @@ async function cartPrixWa(btn){
 }
 
 // ── EXPORT EXCEL "OFFRE" (TEST) ──────────────────────────────────────────────
+// Nom de fichier des exports (11/09, Ethan « en majuscule, OFFRE OFFSET
+// PRODICONSEIL, sans la date ») : qualité UNIQUE de la sélection → dans le
+// nom (« OFFRE OFFSET PRODICONSEIL.xlsx ») ; qualités mélangées → sans.
+function _exportNomQualite(){
+  const labels=new Set();
+  cart.forEach(p=>{
+    const f=all.find(x=>x.id===+p.id);
+    let q=(f&&f.qualite)||p.qualite||'';
+    if(!q&&typeof _allProductsCache!=='undefined'&&_allProductsCache){
+      const c=_allProductsCache.find(x=>String(x.ref||'')===String(p.ref||''));
+      if(c)q=c.quality||'';
+    }
+    const lbl=String((typeof QUALITE_LABELS!=='undefined'&&QUALITE_LABELS[q])||q||'').trim();
+    if(lbl)labels.add(lbl.toUpperCase());
+  });
+  return labels.size===1?[...labels][0]+' ':'';
+}
 // Génère un .xlsx depuis la Liste au GABARIT GSE (offre-bot/processeur.py,
 // DA validée par Véronique) : logo gauche + case STOCKLOTS/date droite + bloc
 // adresse + titres 36pt + photo entrepôt + tableaux Bobines/Formats bilingues.
@@ -8477,7 +8494,7 @@ async function exportListExcelTest(btn){
     const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
     const a=document.createElement('a');
     a.href=URL.createObjectURL(blob);
-    a.download='Offre Prodiconseil '+new Date().toLocaleDateString('fr-FR').replace(/\//g,'-')+'.xlsx';
+    a.download='OFFRE '+_exportNomQualite()+'PRODICONSEIL.xlsx';
     document.body.appendChild(a);a.click();a.remove();
     setTimeout(()=>URL.revokeObjectURL(a.href),2000);
     toast('📄 Excel généré');
@@ -8874,7 +8891,7 @@ async function exportAlbumPdf(){
       location.origin+'/img/logo.png',noph,
       (d,t)=>{if(lbl)lbl.textContent='Photos '+d+'/'+t+'…';});
     if(lbl)lbl.textContent='Génération…';
-    pdf.save('Album photo Prodiconseil.pdf');
+    pdf.save('ALBUM PHOTO '+_exportNomQualite()+'PRODICONSEIL.pdf');
     window.prodiTrack?.('album_pdf',{n:cart.length});
     toast('Album PDF téléchargé');
   }catch(e){
@@ -8896,7 +8913,7 @@ function _albumImpression(){
   const pages=[];
   for(let i=0;i<cards.length;i+=4)
     pages.push(`<div class="alb-page"><img class="alb-logo" src="${esc(location.origin+'/img/logo.png')}"><div class="alb-grid">${cards.slice(i,i+4).join('')}</div></div>`);
-  const html=`<!doctype html><html><head><meta charset="utf-8"><title>Album photo Prodiconseil</title>
+  const html=`<!doctype html><html><head><meta charset="utf-8"><title>ALBUM PHOTO ${esc(_exportNomQualite())}PRODICONSEIL</title>
 <style>@page{size:A4;margin:0}body{margin:0;font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;color:#1d1d1f}
 .alb-page{width:210mm;height:296mm;padding:9mm;box-sizing:border-box;background:#fff;overflow:hidden;page-break-after:always}
 .alb-page:last-child{page-break-after:auto}
