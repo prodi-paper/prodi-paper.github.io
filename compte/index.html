@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prodiconseil — Connexion / Créer un compte</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* MAQUETTE MIX — page compte façon Alibaba (aucune vraie connexion, version test) */
+*{box-sizing:border-box;}
+body{margin:0;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#1d1d1f;min-height:100vh;display:flex;flex-direction:column;}
+header{display:flex;align-items:center;gap:22px;padding:16px 30px;}
+header img.logo{height:40px;display:block;}
+.lang-box{border:1.5px solid #d2d2d7;border-radius:10px;padding:9px 14px;font:600 14.5px 'DM Sans',sans-serif;color:#1d1d1f;display:flex;align-items:center;gap:10px;background:#fff;cursor:pointer;appearance:none;}
+main{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:60px;max-width:1500px;width:100%;margin:0 auto;padding:30px 40px 60px;align-items:start;}
+/* ── carte promo gauche ── */
+.promo{position:relative;border-radius:18px;overflow:hidden;background:linear-gradient(135deg,#ff7a1a 0%,#ff3c00 45%,#fe0000 100%);min-height:640px;max-width:740px;justify-self:end;width:100%;padding:46px 46px 0;display:flex;flex-direction:column;align-items:center;text-align:center;}
+.promo-badge{background:#fff;color:#fe0000;font-weight:900;font-style:italic;font-size:17px;padding:8px 22px;border-radius:4px;clip-path:polygon(0 0,100% 0,92% 100%,0 100%);letter-spacing:.3px;}
+.promo-h{color:#fff;font-size:42px;font-weight:800;line-height:1.12;margin:26px 0 10px;text-shadow:0 2px 10px rgba(0,0,0,.12);}
+.promo-s{color:#fff;font-size:19px;font-weight:600;opacity:.95;}
+.promo-imgs{margin-top:auto;display:flex;gap:18px;align-items:flex-end;justify-content:center;padding-bottom:0;transform:translateY(26px);}
+.promo-imgs img{background:#fff;border-radius:14px 14px 0 0;box-shadow:0 18px 50px rgba(0,0,0,.25);object-fit:contain;padding:12px;}
+.promo-imgs img:nth-child(1){width:190px;height:190px;}
+.promo-imgs img:nth-child(2){width:240px;height:240px;}
+.promo-imgs img:nth-child(3){width:190px;height:190px;}
+/* ── colonne droite ── */
+.auth{max-width:390px;width:100%;justify-self:start;padding-top:26px;}
+.auth h1{font-size:26px;font-weight:800;line-height:1.25;margin:0 0 26px;}
+.soc-btn{display:flex;align-items:center;width:100%;border:1.5px solid #d2d2d7;border-radius:10px;background:#fff;padding:13px 18px;font:700 15.5px 'DM Sans',sans-serif;color:#1d1d1f;cursor:pointer;margin-bottom:16px;text-decoration:none;}
+.soc-btn:hover{border-color:#1d1d1f;}
+.soc-btn svg{width:22px;height:22px;flex-shrink:0;}
+.soc-btn span{flex:1;text-align:center;margin-left:-22px;}
+.or{display:flex;align-items:center;gap:16px;color:#6e6e73;font-size:13.5px;font-weight:600;margin:22px 0;}
+.or::before,.or::after{content:"";flex:1;border-top:1px solid #e3e3e6;}
+.auth input[type=email]{width:100%;border:1.5px solid #d2d2d7;border-radius:10px;padding:14px 16px;font:500 15.5px 'DM Sans',sans-serif;outline:none;}
+.auth input[type=email]:focus{border-color:#1d1d1f;}
+.go{width:100%;margin-top:22px;border:none;border-radius:999px;background:linear-gradient(90deg,#ff7a1a,#ff3c00 45%,#fe0000);color:#fff;font:800 16.5px 'DM Sans',sans-serif;padding:15px;cursor:pointer;}
+.go:hover{filter:brightness(.93);}
+.qr{display:flex;align-items:center;gap:9px;justify-content:flex-end;margin-top:30px;color:#1d1d1f;font-size:13.5px;font-weight:500;text-decoration:none;}
+.qr:hover{color:#fe0000;}
+.auth-ok{display:none;text-align:center;padding:40px 0;}
+.auth-ok .chk{width:74px;height:74px;border-radius:50%;background:#e8f7ee;color:#1a9a4d;font-size:38px;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;}
+.auth-ok .t{font-size:19px;font-weight:800;}
+.auth-ok small{display:block;margin-top:8px;color:#6e6e73;font-size:14px;font-weight:500;line-height:1.5;}
+footer{padding:26px 20px 30px;text-align:center;color:#6e6e73;font-size:13px;font-weight:500;}
+footer a{color:#6e6e73;text-decoration:none;margin:0 9px;}
+footer a:hover{color:#fe0000;text-decoration:underline;}
+footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
+@media(max-width:980px){
+  main{grid-template-columns:1fr;gap:34px;padding:16px 20px 40px;}
+  .promo{display:none;}
+  .auth{max-width:460px;justify-self:center;padding-top:6px;}
+}
+</style>
+</head>
+<body>
+<header>
+  <a href="/catalogue/"><img class="logo" src="/img/logo.png?v=2" alt="Prodiconseil"></a>
+  <select class="lang-box" aria-label="Langue">
+    <option>Français</option>
+    <option>English</option>
+  </select>
+</header>
+<main>
+  <div class="promo">
+    <div class="promo-badge">Septembre 2026</div>
+    <div class="promo-h">Les offres de la rentrée sont là</div>
+    <div class="promo-s">Stocklots &amp; fabrication — plus de 10 000 t en stock</div>
+    <div class="promo-imgs">
+      <img src="/img/explore2_offset.jpg" alt="Bobine offset">
+      <img src="/img/explore2_couche.jpg" alt="Palette papier couché">
+      <img src="/img/explore2_kraft.jpg" alt="Bobine kraft">
+    </div>
+  </div>
+  <div class="auth">
+    <h1>Connectez-vous ou créez un compte</h1>
+    <form id="auth-f" onsubmit="return axAuthGo(this)">
+      <a class="soc-btn" href="#" onclick="axOauth('google');return false;">
+        <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        <span>Continuer avec Google</span>
+      </a>
+      <a class="soc-btn" href="#" onclick="axOauth('linkedin_oidc');return false;">
+        <svg viewBox="0 0 24 24"><rect x="1" y="1" width="22" height="22" rx="3" fill="#0A66C2"/><path fill="#fff" d="M8.3 17.5H6V9.7h2.3v7.8zM7.1 8.7a1.35 1.35 0 1 1 0-2.7 1.35 1.35 0 0 1 0 2.7zM18 17.5h-2.3v-3.8c0-.9-.3-1.5-1.1-1.5-.6 0-1 .4-1.2.8-.1.2-.1.4-.1.7v3.9H11s0-6.3 0-7.8h2.3v1.1c.3-.5.9-1.2 2.1-1.2 1.5 0 2.6 1 2.6 3.1v4.8z"/></svg>
+        <span>Continuer avec Linkedin</span>
+      </a>
+      <div class="or">OU</div>
+      <input type="email" name="mail" placeholder="Saisissez votre e-mail" required>
+      <button type="submit" class="go">Continuer</button>
+    </form>
+    <div class="auth-ok" id="auth-ok">
+      <div class="chk">&#10003;</div>
+      <div class="t" id="auth-ok-t">Email envoy&eacute; !</div>
+      <small id="auth-ok-s">Ouvrez le lien re&ccedil;u par email pour vous connecter.<br>(Pensez &agrave; v&eacute;rifier les spams.)</small>
+      <div id="auth-ok-actions" style="display:none;margin-top:22px;">
+        <a class="go" style="display:block;text-decoration:none;text-align:center;" href="/catalogue/">Ouvrir le catalogue</a>
+        <button type="button" onclick="axLogout()" style="margin-top:12px;background:none;border:none;color:#6e6e73;font:600 14px 'DM Sans',sans-serif;cursor:pointer;text-decoration:underline;">Se d&eacute;connecter</button>
+      </div>
+    </div>
+    <div id="auth-err" style="display:none;margin-top:16px;background:#fff2ec;border:1.5px solid #ff7a4d;color:#c22a08;border-radius:10px;padding:12px 14px;font-size:13.5px;font-weight:600;line-height:1.45;"></div>
+  </div>
+</main>
+<footer>
+  <div>
+    <a href="/about/">&Agrave; propos</a>&middot;<a href="#" onclick="return false;">Mentions l&eacute;gales</a>&middot;<a href="#" onclick="return false;">Politique de confidentialit&eacute;</a>&middot;<a href="#" onclick="return false;">Conditions d'utilisation</a>&middot;<a href="/about/">Contact</a>
+  </div>
+  <div class="cr">&copy; 1991-2026 Prodiconseil &mdash; Amiens, France</div>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+/* VRAIE connexion via Supabase Auth (projet Prodiconseil).
+   - Email : lien magique (OTP) — fonctionne dès maintenant.
+     ⚠️ SMTP par défaut Supabase : ~2 emails/heure et livraison fiable surtout
+     vers les adresses de l'équipe du projet ; brancher un SMTP (Resend) pour le vrai public.
+   - Google / LinkedIn : signInWithOAuth prêt — s'activera quand le provider
+     sera configuré dans le dashboard Supabase (client ID/secret). */
+var sb=window.supabase.createClient(
+  'https://bvcgpdoukhcatjibmvnb.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2Y2dwZG91a2hjYXRqaWJtdm5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNzg5MjgsImV4cCI6MjA4Nzg1NDkyOH0.Ip3ykSUS9sajTH04yXBerOG1haBKMD1kAvMQNjnGL1Q'
+);
+function _err(msg){var e=document.getElementById('auth-err');e.textContent=msg;e.style.display='block';}
+function _hideErr(){document.getElementById('auth-err').style.display='none';}
+function axAuthGo(f){
+  _hideErr();
+  var email=f.mail.value.trim();
+  var btn=f.querySelector('.go'); btn.disabled=true; btn.textContent='Envoi…';
+  sb.auth.signInWithOtp({email:email,options:{emailRedirectTo:'http://localhost:8101/compte/'}})
+    .then(function(r){
+      btn.disabled=false; btn.textContent='Continuer';
+      if(r.error){_err('Envoi impossible : '+r.error.message+(/rate/i.test(r.error.message)?' (limite SMTP par défaut : ~2 emails/heure)':''));return;}
+      document.getElementById('auth-f').style.display='none';
+      document.getElementById('auth-ok').style.display='block';
+    });
+  return false;
+}
+function axOauth(provider){
+  _hideErr();
+  fetch('https://bvcgpdoukhcatjibmvnb.supabase.co/auth/v1/settings',{headers:{apikey:sb.supabaseKey||''}})
+    .then(function(r){return r.json();})
+    .then(function(cfg){
+      if(!cfg.external||!cfg.external[provider]){
+        _err((provider==='google'?'Google':'LinkedIn')+' pas encore activé — il faut créer l\'app chez le fournisseur puis renseigner client ID/secret dans Supabase. La connexion par email fonctionne déjà.');
+        return;
+      }
+      sb.auth.signInWithOAuth({provider:provider,options:{redirectTo:'http://localhost:8101/compte/'}});
+    })
+    .catch(function(){_err('Réseau indisponible, réessayez.');});
+}
+function axLogout(){sb.auth.signOut().then(function(){location.reload();});}
+/* Session détectée (retour de lien magique ou déjà connecté) → état connecté */
+sb.auth.getSession().then(function(r){
+  var s=r.data&&r.data.session;
+  if(!s)return;
+  document.querySelector('.auth h1').textContent='Mon compte';
+  document.getElementById('auth-f').style.display='none';
+  var ok=document.getElementById('auth-ok');
+  ok.style.display='block';
+  document.getElementById('auth-ok-t').textContent='Connecté !';
+  document.getElementById('auth-ok-s').innerHTML='Vous êtes connecté en tant que<br><b>'+(s.user.email||'')+'</b>';
+  document.getElementById('auth-ok-actions').style.display='block';
+});
+</script>
+</body>
+</html>

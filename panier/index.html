@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prodiconseil — Panier</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* MAQUETTE MIX — page panier vide façon Alibaba */
+*{box-sizing:border-box;}
+body{margin:0;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#1d1d1f;min-height:100vh;display:flex;flex-direction:column;}
+header{display:flex;align-items:center;gap:22px;padding:16px 30px;border-bottom:1px solid #f0f0f2;}
+header img.logo{height:40px;display:block;}
+.h-sp{flex:1;}
+.h-link{color:#1d1d1f;text-decoration:none;font-size:15px;font-weight:600;}
+.h-link:hover{color:#fe0000;}
+main{flex:1;max-width:1500px;width:100%;margin:0 auto;padding:34px 40px 70px;}
+h1{font-size:30px;font-weight:800;margin:0 0 60px;}
+.empty{display:flex;align-items:center;justify-content:center;gap:64px;}
+.empty img{height:170px;width:auto;opacity:.92;}
+.e-t{font-size:20px;font-weight:800;margin-bottom:18px;}
+.e-sub{font-size:15.5px;font-weight:700;margin-bottom:12px;}
+.e-line{display:flex;align-items:center;gap:9px;font-size:14.5px;font-weight:500;color:#1d1d1f;margin-bottom:10px;}
+.e-line svg{width:18px;height:18px;flex-shrink:0;color:#1a9a4d;}
+.start{display:block;margin:42px auto 0;width:min(300px,80%);text-align:center;border:1.5px solid #d2d2d7;border-radius:999px;background:#fff;padding:14px;font:700 15.5px 'DM Sans',sans-serif;color:#1d1d1f;text-decoration:none;}
+.start:hover{border-color:#1d1d1f;}
+footer{padding:26px 20px 30px;text-align:center;color:#6e6e73;font-size:13px;font-weight:500;border-top:1px solid #f0f0f2;}
+footer a{color:#6e6e73;text-decoration:none;margin:0 9px;}
+footer a:hover{color:#fe0000;text-decoration:underline;}
+footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
+</style>
+</head>
+<body>
+<header>
+  <a href="/catalogue/"><img class="logo" src="/img/logo.png?v=2" alt="Prodiconseil"></a>
+  <span class="h-sp"></span>
+  <a class="h-link" href="/catalogue/">Retour au catalogue</a>
+</header>
+<main>
+  <h1>Panier</h1>
+  <div class="empty">
+    <img src="/img/truck2.png" alt="">
+    <div>
+      <div class="e-t">Votre panier est vide.</div>
+      <div class="e-sub">Protection des commandes Prodiconseil</div>
+      <div class="e-line">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+        Paiements s&eacute;curis&eacute;s
+      </div>
+      <div class="e-line">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="14" height="12" rx="1"/><path d="M15 10h4l3 4v4h-7z"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg>
+        Livraison garantie
+      </div>
+      <div class="e-line">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
+        Protection de remboursement
+      </div>
+      <a class="start" href="/catalogue/">Commencer</a>
+    </div>
+  </div>
+</main>
+<footer>
+  <div>
+    <a href="/about/">&Agrave; propos</a>&middot;<a href="#" onclick="return false;">Mentions l&eacute;gales</a>&middot;<a href="#" onclick="return false;">Politique de confidentialit&eacute;</a>&middot;<a href="#" onclick="return false;">Conditions d'utilisation</a>&middot;<a href="/about/">Contact</a>
+  </div>
+  <div class="cr">&copy; 1991-2026 Prodiconseil &mdash; Amiens, France</div>
+</footer>
+</body>
+</html>

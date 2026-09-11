@@ -1,0 +1,44 @@
+# Prodiconseil — prodi.com
+
+> Family-owned paper & board merchant since 1991, based in France (Ivry-sur-Seine, warehouse near Paris). Wholesale export of kraft, offset, coated paper and board, specialty papers and stocklots — in reels and sheets — to the Maghreb, Africa, Europe, Turkey and worldwide. Fast quotes in French and English, WhatsApp +33 6 32 09 68 40.
+
+Prodiconseil buys and sells paper and board from major European mills: regular grades in permanent stock (7 000+ references) and discounted stocklots. Customers are printers, converters, packaging manufacturers and paper traders. Incoterms EXW/FOB/CIF, export documentation handled (EUR.1, certificates).
+
+## Main pages
+
+- [Home (FR)](https://prodi.com/): company overview, product families, contact
+- [English hub](https://prodi.com/en/): all grades and markets in English
+- [All products (FR)](https://prodi.com/produits/): index of the 16 product families
+- [FAQ](https://prodi.com/faq/): buying, shipping, minimums, documents
+- [Logistics](https://prodi.com/logistique/): containers, delivery, incoterms
+- [Export](https://prodi.com/export/): countries served and export process
+
+## Products
+
+- [Offset paper](https://prodi.com/en/offset-paper/) — [FR](https://prodi.com/offset/)
+- [Kraft paper](https://prodi.com/en/kraft-paper/) — [FR](https://prodi.com/kraft/)
+- [Coated paper](https://prodi.com/en/coated-paper/) — [FR](https://prodi.com/papier-couche/)
+- [Coated board](https://prodi.com/en/coated-board/) — [FR](https://prodi.com/carton-couche/)
+- [Coloured offset](https://prodi.com/en/coloured-offset/) — [FR](https://prodi.com/offset-couleur/)
+- [Carbonless (NCR) paper](https://prodi.com/en/carbonless-paper/) — [FR](https://prodi.com/autocopiant/)
+- [Self-adhesive paper](https://prodi.com/en/self-adhesive-paper/) — [FR](https://prodi.com/papier-adhesif/)
+- [Bulky book paper](https://prodi.com/en/bulky-paper/) — [FR](https://prodi.com/bouffant/)
+- [Cut-size paper & reams](https://prodi.com/en/cut-size-paper/) — [FR](https://prodi.com/ramette/)
+- [Creative & specialty papers](https://prodi.com/en/creative-papers/) — [FR](https://prodi.com/papier-creations/)
+- [Liner & testliner](https://prodi.com/en/liner-testliner/) — [FR](https://prodi.com/liner-testliner/)
+- [PE-coated paper](https://prodi.com/en/pe-coated-paper/) — [FR](https://prodi.com/complexe-pe/)
+- [Newsprint](https://prodi.com/en/newsprint/) — [FR](https://prodi.com/papier-journal/)
+- [Baking / greaseproof paper](https://prodi.com/en/baking-paper/) — [FR](https://prodi.com/papier-cuisson/)
+- [Thermal paper](https://prodi.com/en/thermal-paper/) — [FR](https://prodi.com/papier-thermique/)
+- [Heat-sealable paper](https://prodi.com/en/heat-sealable-paper/) — [FR](https://prodi.com/thermo-soudable/)
+
+## Markets
+
+Country guides: [Morocco](https://prodi.com/maroc/), [Algeria](https://prodi.com/algerie/), [Senegal](https://prodi.com/senegal/), [Nigeria](https://prodi.com/en/nigeria/), [Ghana](https://prodi.com/en/ghana/), [Kenya](https://prodi.com/en/kenya/), [Turkey](https://prodi.com/turquie/), [Poland](https://prodi.com/pologne/), [Romania](https://prodi.com/roumanie/) — plus 20 other country pages linked from the site footer.
+
+## Contact
+
+- WhatsApp / phone: +33 6 32 09 68 40
+- Email: ethan@prodi.com
+- Languages: French, English
+- Sitemap: https://prodi.com/sitemap.xml

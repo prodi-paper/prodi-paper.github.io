@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Invitations — Prodiconseil</title>
+<link rel="icon" type="image/png" href="/img/panda.png">
+<style>
+  :root {
+    --rouge: #e30613;
+    --encre: #1a1a1a;
+    --gris: #6b6b6b;
+    --ligne: #e2e2e2;
+    --fond: #f7f6f4;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--fond); color: var(--encre);
+    min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+  }
+  header.app {
+    width: 100%; background: #fff; border-bottom: 1px solid var(--ligne);
+    padding: 14px 20px; display: flex; align-items: center; gap: 12px;
+  }
+  header.app img { height: 26px; }
+  header.app span { font-size: 14px; color: var(--gris); }
+  main { width: 100%; max-width: 900px; padding: 32px 20px 56px; }
+
+  .card { background: #fff; border: 1px solid var(--ligne); border-radius: 12px; padding: 24px; }
+  h2 { font-size: 20px; margin-bottom: 16px; }
+  h2:not(:first-child) { margin-top: 24px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid .full { grid-column: 1 / -1; }
+  label { display: block; font-size: 18px; font-weight: 700; color: var(--encre); margin-bottom: 8px; }
+  input, select {
+    width: 100%; padding: 14px 14px; font-size: 18px; border: 1px solid var(--ligne);
+    border-radius: 9px; background: #fff; color: var(--encre); font-family: inherit;
+  }
+  input:focus, select:focus { outline: none; border-color: var(--rouge); }
+  .err { border-color: var(--rouge) !important; background: #fff5f5; }
+
+  button {
+    font-family: inherit; font-size: 18px; padding: 14px 22px; border-radius: 10px;
+    border: 1px solid var(--ligne); background: #fff; color: var(--encre); cursor: pointer;
+  }
+  button.principal { background: var(--rouge); border-color: var(--rouge); color: #fff; font-weight: 600; }
+  button:active { transform: translateY(1px); }
+  .actions { display: flex; gap: 14px; margin-top: 20px; }
+  .actions button {
+    flex: 1; padding: 16px; color: #fff; font-weight: 600;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  .btn-word { background: #2b579a; border-color: #2b579a; }
+  .btn-pdf { background: #b30b00; border-color: #b30b00; } /* rouge Adobe Acrobat officiel */
+  .btn-pdf svg { flex: none; }
+  .badge {
+    background: #fff; border-radius: 5px; font-weight: 800;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 26px; height: 26px; flex: none;
+  }
+  .btn-word .badge { color: #2b579a; font-size: 17px; font-family: Georgia, serif; }
+  .btn-pdf .badge { color: #d93025; font-size: 9px; letter-spacing: .2px; }
+
+  .histo-btn { margin-left: auto; font-size: 15px; padding: 8px 16px; border-radius: 8px; }
+  #histo-fond {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,.35);
+    z-index: 10; align-items: flex-start; justify-content: center; padding: 60px 16px;
+  }
+  #histo-fond.ouvert { display: flex; }
+  .histo-panneau {
+    background: #fff; border-radius: 12px; width: 100%; max-width: 640px;
+    max-height: 75vh; overflow: auto; padding: 20px;
+  }
+  .histo-tete { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .histo-tete b { font-size: 18px; }
+  .histo-tete button { font-size: 14px; padding: 6px 14px; }
+  .histo-onglets { display: flex; gap: 8px; margin-bottom: 14px; }
+  .ong { font-size: 14px; padding: 7px 15px; border-radius: 20px;
+    border: 1px solid var(--ligne); background: #fff; color: var(--gris); cursor: pointer; }
+  .ong.actif { background: var(--encre); border-color: var(--encre); color: #fff; }
+  .histo-item {
+    display: flex; align-items: center; gap: 8px;
+    border: 1px solid var(--ligne); border-radius: 9px; padding: 10px 8px 10px 14px;
+    margin-bottom: 10px; font-size: 15px; line-height: 1.5;
+  }
+  .histo-item:hover { border-color: var(--rouge); }
+  .histo-corps { flex: 1; min-width: 0; cursor: pointer; }
+  .histo-corps.histo-off { cursor: default; color: var(--gris); }
+  .histo-suppr {
+    flex: none; background: none; border: none; cursor: pointer; color: var(--gris);
+    padding: 6px 8px; border-radius: 8px; line-height: 0; display: flex;
+  }
+  .histo-suppr:hover { color: var(--rouge); background: var(--fond); }
+  .histo-restaurer {
+    flex: none; font-size: 13px; padding: 7px 12px; border-radius: 8px;
+    border: 1px solid #2563eb; background: #fff; color: #2563eb; cursor: pointer; font-weight: 600;
+  }
+  .histo-restaurer:hover { background: #eff4ff; }
+  .histo-vide { color: var(--gris); font-size: 15px; padding: 12px 0; }
+
+  .sugg {
+    position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; z-index: 6;
+    background: #fff; border: 1px solid var(--ligne); border-radius: 9px;
+    box-shadow: 0 10px 28px rgba(0,0,0,.1); overflow: hidden;
+  }
+  .sugg:empty { display: none; }
+  .sugg div { padding: 11px 14px; cursor: pointer; font-size: 16px; }
+  .sugg div:hover { background: var(--fond); }
+  .sugg small { color: var(--gris); }
+
+  .champ-date { cursor: pointer; }
+  #cal-fond {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,.35);
+    z-index: 20; align-items: center; justify-content: center; padding: 16px;
+  }
+  #cal-fond.ouvert { display: flex; }
+  .cal { background: #fff; border-radius: 14px; padding: 22px; width: 420px; max-width: 96vw; }
+  .cal-tete { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .cal-tete b { font-size: 22px; text-transform: capitalize; }
+  .cal-tete button { font-size: 24px; padding: 4px 16px; border-radius: 9px; line-height: 1.2; }
+  .cal-jours { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center;
+    color: var(--gris); font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+  .cal-grille { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .cal-grille button {
+    aspect-ratio: 1; border: none; background: none; font-size: 19px;
+    border-radius: 9px; padding: 0; display: flex; align-items: center; justify-content: center;
+  }
+  .cal-grille button:hover { background: var(--fond); }
+  .cal-grille button.autre { color: #c4c4c4; }
+  .cal-grille button.jour-actuel { outline: 1.5px solid var(--ligne); }
+  .cal-grille button.choisi { background: var(--rouge); color: #fff; font-weight: 700; }
+  .cal-grille button.dans-plage { background: #f8dcde; color: var(--encre); border-radius: 4px; }
+
+  /* Bouton « Modifier » (secondaire, 25 %) à côté du PDF (75 %) + éditeur du corps */
+  .actions .btn-pdf { flex: 3; }
+  .actions .btn-modif { flex: 1; background: #fff; border: 1.5px solid #2563eb;
+    color: #2563eb; font-weight: 600; }
+  .actions .btn-modif:hover { background: #eff4ff; }
+  #corps-fond {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,.35);
+    z-index: 20; align-items: flex-start; justify-content: center; padding: 48px 16px;
+  }
+  #corps-fond.ouvert { display: flex; }
+  .corps-panneau {
+    background: #fff; border-radius: 12px; width: 100%; max-width: 680px;
+    max-height: 82vh; overflow: auto; padding: 20px; zoom: 1.05;
+  }
+  .corps-aide { font-size: 14px; color: var(--gris); margin: 6px 0 12px; line-height: 1.45; }
+  #corps-zone { width: 100%; min-height: 300px; font-size: 15px; line-height: 1.55;
+    font-family: inherit; padding: 14px; border: 1px solid var(--ligne); border-radius: 10px; resize: vertical; }
+  #corps-zone:focus { outline: none; border-color: var(--rouge); }
+  .corps-actions { display: flex; gap: 12px; margin-top: 14px; }
+  .corps-actions button { flex: 1; padding: 13px; }
+
+  /* +30 % global demandé 17/08 (calendrier et popups compris) — desktop seulement,
+     le mobile garde sa taille (déjà plein écran) */
+  @media (min-width: 561px) {
+    body { zoom: 1.3; }
+  }
+  @media (max-width: 560px) {
+    header.app span { display: none; }
+    main { padding: 20px 12px 40px; }
+    .card { padding: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── PORTE CODE D'ACCÈS (même mécanique que /catalogue/ : localStorage
+     'prodi_cat_ok' partagé — déjà validé sur le catalogue = pas de re-saisie.
+     Code = constante PWD ci-dessous (garder SYNCHRO avec catalogue + vitrine). -->
+<script>(function(){try{if(localStorage.getItem('prodi_cat_ok')==='1')document.documentElement.classList.add('cat-unlocked');}catch(e){document.documentElement.classList.add('cat-unlocked');}})();</script>
+<style>
+#cat-gate{position:fixed;inset:0;z-index:100000;background:#F5F3EE;display:flex;align-items:center;justify-content:center;padding:24px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
+html.cat-unlocked #cat-gate{display:none !important;}
+.cat-gate-card{background:#fff;border-radius:20px;box-shadow:0 16px 44px rgba(0,0,0,.16);padding:38px 34px 28px;width:100%;max-width:370px;text-align:center;box-sizing:border-box;}
+.cat-gate-logo{height:32px;margin-bottom:16px;}
+.cat-gate-t{font-size:22px;font-weight:800;color:#1d1d1f;letter-spacing:-.3px;}
+.cat-gate-s{font-size:13.5px;color:#86868b;margin:7px 0 20px;line-height:1.4;}
+#cat-gate-form{display:flex;flex-direction:column;gap:10px;}
+#cat-gate-input{height:46px;border:1.5px solid #e0e0e5;border-radius:12px;padding:0 16px;font-size:16px;outline:none;box-sizing:border-box;text-align:center;}
+#cat-gate-input:focus{border-color:#1d1d1f;}
+#cat-gate-form button{height:46px;border:none;border-radius:12px;background:#1d1d1f;color:#fff;font-size:16px;font-weight:700;cursor:pointer;}
+#cat-gate-form button:active{transform:scale(.98);}
+.cat-gate-err{color:#FE0000;font-size:13px;font-weight:600;min-height:17px;margin-top:11px;}
+.cat-gate-shake{animation:catShake .34s;}
+@keyframes catShake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+/* +30 % sur la porte aussi (17/08) — grands écrans seulement, cumulé au zoom global du body */
+@media (min-width:561px){#cat-gate{zoom:1.3;}}
+</style>
+<div id="cat-gate">
+  <div class="cat-gate-card">
+    <img src="assets/logo.png" alt="Prodiconseil" class="cat-gate-logo">
+    <div class="cat-gate-t">Accès réservé</div>
+    <div class="cat-gate-s">Outil interne Prodiconseil.<br>Entrez le code d'accès pour continuer.</div>
+    <form id="cat-gate-form" autocomplete="off">
+      <input type="password" id="cat-gate-input" placeholder="Code d'accès" autocomplete="off" spellcheck="false">
+      <button type="submit">Confirmer</button>
+    </form>
+    <div class="cat-gate-err" id="cat-gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){
+  var PWD='PRODI2026'; /* ← même code que catalogue/vitrine — changer les 3 ensemble */
+  if(document.documentElement.classList.contains('cat-unlocked'))return;
+  function boot(){
+    var g=document.getElementById('cat-gate'),f=document.getElementById('cat-gate-form'),i=document.getElementById('cat-gate-input'),err=document.getElementById('cat-gate-err');
+    if(!f)return;
+    setTimeout(function(){try{i.focus();}catch(e){}},60);
+    f.addEventListener('submit',function(e){
+      e.preventDefault();
+      if(i.value.trim()===PWD){try{localStorage.setItem('prodi_cat_ok','1');}catch(e){}document.documentElement.classList.add('cat-unlocked');}
+      else{err.textContent='Code incorrect';var card=g.querySelector('.cat-gate-card');card.classList.remove('cat-gate-shake');void card.offsetWidth;card.classList.add('cat-gate-shake');i.select();}
+    });
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})();
+</script>
+
+<header class="app">
+  <img src="assets/logo.png" alt="Prodiconseil">
+  <span>Invitations professionnelles</span>
+  <button class="histo-btn" onclick="ouvrirHisto()">Historique</button>
+</header>
+
+<div id="histo-fond" onclick="fermerHisto()">
+  <div class="histo-panneau" onclick="event.stopPropagation()">
+    <div class="histo-tete">
+      <b>Dernières invitations</b>
+      <button onclick="fermerHisto()">Fermer</button>
+    </div>
+    <div class="histo-onglets">
+      <button id="ong-histo" class="ong actif" onclick="voirOnglet('histo')">Historique</button>
+      <button id="ong-corb" class="ong" onclick="voirOnglet('corbeille')">Corbeille</button>
+    </div>
+    <div id="histo-liste"></div>
+  </div>
+</div>
+
+<main>
+  <section class="card">
+    <div class="grid">
+      <div class="full" style="display:flex;gap:12px">
+        <select id="civilite" style="width:82px;flex:none;padding-right:4px"><option>M.</option><option>Mme</option></select>
+        <div style="flex:1;min-width:0;position:relative">
+          <input id="prenom" placeholder="Prénom" autocomplete="off">
+          <div class="sugg" id="sugg-prenom"></div>
+        </div>
+        <div style="flex:1;min-width:0;position:relative">
+          <input id="nom" placeholder="Nom" autocomplete="off" style="text-transform:uppercase">
+          <div class="sugg" id="sugg-nom"></div>
+        </div>
+      </div>
+      <div class="full">
+        <input id="passeport" placeholder="N° de passeport" autocomplete="off" style="text-transform:uppercase">
+      </div>
+      <div class="full">
+        <input id="societe" placeholder="Société" autocomplete="off" style="text-transform:uppercase">
+      </div>
+    </div>
+
+    <div class="grid" style="margin-top:16px">
+      <div>
+        <label>Début du séjour</label>
+        <input id="date_debut" class="champ-date" readonly placeholder="jj/mm/aaaa" onclick="ouvrirCal('date_debut')">
+      </div>
+      <div>
+        <label>Fin du séjour</label>
+        <input id="date_fin" class="champ-date" readonly placeholder="jj/mm/aaaa" onclick="ouvrirCal('date_fin')">
+      </div>
+      <div class="full">
+        <label>Date de l'invitation (aujourd'hui)</label>
+        <input id="date_courrier" class="champ-date" readonly placeholder="jj/mm/aaaa" onclick="ouvrirCal('date_courrier')">
+      </div>
+    </div>
+
+    <div class="actions">
+      <!-- Bouton Word retiré (18/08, demande Ethan) — telechargerWord() reste dispo pour le rebrancher -->
+      <button type="button" class="btn-modif" onclick="ouvrirCorps()">✎ Modifier</button>
+      <button class="btn-pdf" onclick="telechargerPDF()"><svg viewBox="0 0 60 58.5" width="30" height="29" aria-hidden="true"><path d="M48.2 33.9C47 32.6 44.7 32 41.4 32c-1.8 0-3.7.2-5.5.5-1.2-1.1-2.2-2.4-3.2-3.7-.7-1-1.4-2-2-3.1 1-2.8 1.6-5.8 1.8-8.8 0-2.7-1.1-5.6-4.1-5.6-1 0-2 .6-2.5 1.5-1.3 2.2-.8 6.7 1.3 11.4-.7 2.1-1.5 4.2-2.4 6.5-.8 2-1.7 3.9-2.8 5.7-3.1 1.2-9.6 4.2-10.2 7.5-.2 1 .1 2 .9 2.6.7.6 1.7 1 2.7.9 3.9 0 7.8-5.4 10.5-10.1 1.5-.5 3-1 4.6-1.4 1.7-.4 3.3-.8 4.8-1.1 4.2 3.6 7.9 4.2 9.7 4.2 2.5 0 3.5-1.1 3.8-2 .4-1.1.2-2.3-.6-3.1zm-2.7 1.9c-.1.7-.9 1.2-1.9 1.2-.3 0-.6 0-.9-.1-2-.5-3.9-1.5-5.5-2.8 1.3-.2 2.7-.3 4-.3.9 0 1.8.1 2.7.2.9.2 1.9.6 1.6 1.8zM27.6 13.7c.2-.3.5-.5.9-.6 1 0 1.2 1.1 1.2 2.1-.1 2.3-.5 4.5-1.2 6.7-1.7-4.3-1.5-7.2-.9-8.2zm5.6 19.2c-1.1.2-2.2.5-3.3.8-.8.2-1.6.5-2.5.7.4-.9.8-1.8 1.2-2.6.5-1.1.9-2.2 1.3-3.3.4.6.7 1.1 1.1 1.6.7 1 1.5 1.9 2.2 2.8zm-12.1 5.8c-2.5 4-5 6.6-6.4 6.6-.2 0-.5-.1-.6-.2-.3-.2-.4-.6-.3-.9.2-1.5 3.1-3.6 7.3-5.5z" fill="#fff"/></svg>PDF</button>
+    </div>
+  </section>
+</main>
+
+<div id="cal-fond" onclick="fermerCal()">
+  <div class="cal" onclick="event.stopPropagation()">
+    <div class="cal-tete">
+      <button onclick="calMois(-1)">‹</button>
+      <b id="cal-titre"></b>
+      <button onclick="calMois(1)">›</button>
+    </div>
+    <div class="cal-jours">
+      <span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span>
+    </div>
+    <div class="cal-grille" id="cal-grille"></div>
+  </div>
+</div>
+
+<div id="corps-fond" onclick="fermerCorps()">
+  <div class="corps-panneau" onclick="event.stopPropagation()">
+    <textarea id="corps-zone" spellcheck="false"></textarea>
+    <div class="corps-actions">
+      <button onclick="reinitCorps()">Réinitialiser</button>
+      <button class="principal" onclick="enregistrerCorps()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<script src="vendor/pizzip.js"></script>
+<script src="vendor/docxtemplater.js"></script>
+<script src="vendor/jspdf.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+function frDate(iso) {
+  if (!iso) return "";
+  const [a, m, j] = iso.split("-");
+  return `${j}/${m}/${a}`;
+}
+
+function isoLocale(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function poserDate(id, iso) {
+  $(id).dataset.iso = iso || "";
+  $(id).value = frDate(iso);
+}
+
+// date du courrier = aujourd'hui par défaut
+poserDate("date_courrier", isoLocale(new Date()));
+
+// ===== Calendrier maison (le popup natif est minuscule) =====
+let calChamp = null, calAnnee = 0, calMoisIdx = 0, calMode = "single", calDebut = "", calFin = "";
+const MOIS_FR = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+
+function ouvrirCal(id) {
+  calChamp = id;
+  // Le séjour (début/fin) ouvre un sélecteur de PLAGE ; la date d'invitation reste un choix simple.
+  calMode = (id === "date_debut" || id === "date_fin") ? "range" : "single";
+  if (calMode === "range") {
+    calDebut = $("date_debut").dataset.iso || "";
+    calFin = $("date_fin").dataset.iso || "";
+  }
+  const ref = calMode === "range" ? calDebut : ($(id).dataset.iso || "");
+  const base = ref ? new Date(ref + "T12:00:00") : new Date();
+  calAnnee = base.getFullYear();
+  calMoisIdx = base.getMonth();
+  dessinerCal();
+  $("cal-fond").classList.add("ouvert");
+}
+
+function fermerCal() { $("cal-fond").classList.remove("ouvert"); }
+
+function calMois(delta) {
+  calMoisIdx += delta;
+  if (calMoisIdx < 0) { calMoisIdx = 11; calAnnee--; }
+  if (calMoisIdx > 11) { calMoisIdx = 0; calAnnee++; }
+  dessinerCal();
+}
+
+function dessinerCal() {
+  $("cal-titre").textContent = `${MOIS_FR[calMoisIdx]} ${calAnnee}`;
+  const premier = new Date(calAnnee, calMoisIdx, 1);
+  const debut = new Date(premier);
+  debut.setDate(1 - ((premier.getDay() + 6) % 7)); // recule au lundi
+  const auj = isoLocale(new Date());
+  const range = calMode === "range";
+  const choisi = range ? "" : ($(calChamp).dataset.iso || "");
+  let html = "";
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(debut);
+    d.setDate(debut.getDate() + i);
+    const iso = isoLocale(d);
+    const borne = range && (iso === calDebut || (calFin && iso === calFin));
+    const dansPlage = range && calDebut && calFin && iso > calDebut && iso < calFin;
+    const cls = [
+      d.getMonth() !== calMoisIdx ? "autre" : "",
+      iso === auj ? "jour-actuel" : "",
+      (iso === choisi || borne) ? "choisi" : "",
+      dansPlage ? "dans-plage" : "",
+    ].filter(Boolean).join(" ");
+    const handler = range ? `choisirJourRange('${iso}')` : `choisirJour('${iso}')`;
+    html += `<button class="${cls}" onclick="${handler}">${d.getDate()}</button>`;
+  }
+  $("cal-grille").innerHTML = html;
+}
+
+function choisirJour(iso) {
+  poserDate(calChamp, iso);
+  $(calChamp).classList.remove("err");
+  fermerCal();
+}
+
+// Sélection d'un séjour : 1er clic = début, 2e clic (après) = fin, sans quitter le calendrier.
+function choisirJourRange(iso) {
+  // Pas encore de début, ou plage déjà complète -> on (re)démarre une plage.
+  if (!calDebut || calFin) { calDebut = iso; calFin = ""; dessinerCal(); return; }
+  // Clic avant/le même jour que le début -> on repart de ce jour.
+  if (iso <= calDebut) { calDebut = iso; calFin = ""; dessinerCal(); return; }
+  // Début posé + clic après -> on valide la fin et on écrit les deux champs.
+  calFin = iso;
+  poserDate("date_debut", calDebut);
+  poserDate("date_fin", calFin);
+  $("date_debut").classList.remove("err");
+  $("date_fin").classList.remove("err");
+  dessinerCal();               // laisse voir la plage remplie…
+  setTimeout(fermerCal, 200);  // …puis ferme
+}
+
+function donnees() {
+  const civilite = $("civilite").value;
+  return {
+    civilite,
+    salutation: civilite === "Mme" ? "Madame" : "Monsieur",
+    prenom: $("prenom").value.trim().replace(/^./, c => c.toUpperCase()),
+    nom: $("nom").value.trim().toUpperCase(),
+    societe: $("societe").value.trim().toUpperCase(),
+    passeport: $("passeport").value.trim().toUpperCase(),
+    conteneurs: "3",
+    date_courrier: $("date_courrier").value,
+    date_debut: $("date_debut").value,
+    date_fin: $("date_fin").value,
+    signataire: "Véronique ELBILIA",
+    titre_signataire: "Directrice Commercial",
+  };
+}
+
+function valide() {
+  let ok = true;
+  for (const id of ["prenom", "nom", "societe", "passeport", "date_debut", "date_fin", "date_courrier"]) {
+    const vide = !$(id).value.trim();
+    $(id).classList.toggle("err", vide);
+    if (vide) ok = false;
+  }
+  if (ok && $("date_fin").dataset.iso <= $("date_debut").dataset.iso) {
+    $("date_fin").classList.add("err");
+    ok = false;
+  }
+  return ok;
+}
+
+
+// Historique PARTAGÉ entre appareils (table Supabase invitations_histo,
+// même projet que le catalogue — clé anon publique par design).
+// localStorage = copie de secours si hors ligne.
+const HISTO_CLE = "invitations_histo";
+const HISTO_URL = "https://bvcgpdoukhcatjibmvnb.supabase.co/rest/v1/invitations_histo";
+const HISTO_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2Y2dwZG91a2hjYXRqaWJtdm5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNzg5MjgsImV4cCI6MjA4Nzg1NDkyOH0.Ip3ykSUS9sajTH04yXBerOG1haBKMD1kAvMQNjnGL1Q";
+const HISTO_HDR = { apikey: HISTO_KEY, Authorization: "Bearer " + HISTO_KEY, "Content-Type": "application/json" };
+// Corbeille PARTAGÉE : flag `supprime` dans Supabase (soft-delete, réversible).
+// Repli localStorage seulement si hors ligne.
+let _histoCache = [], _corbeilleCache = [], _ongletActuel = "histo";
+const CORBEILLE_CLE = "invitations_corbeille";
+const TRASH_SVG = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m3 0v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6"/><path d="M10 11v6M14 11v6"/></svg>';
+function histoKey(e) { return String(e.id ?? e.created_at ?? e.quand ?? ""); }
+function lireCorbeille() { try { return JSON.parse(localStorage.getItem(CORBEILLE_CLE) || "[]"); } catch { return []; } }
+function ecrireCorbeille(arr) { localStorage.setItem(CORBEILLE_CLE, JSON.stringify(arr.slice(0, 100))); }
+
+// Bascule le flag supprime d'une ligne (id) côté Supabase.
+function patchSupprime(id, val) {
+  return fetch(`${HISTO_URL}?id=eq.${id}`, {
+    method: "PATCH",
+    headers: { ...HISTO_HDR, Prefer: "return=minimal" },
+    body: JSON.stringify({ supprime: val }),
+  });
+}
+
+// Liste active (supprime=false) ou corbeille (supprime=true) ; repli local hors ligne.
+async function fetchHisto(corbeille) {
+  try {
+    const r = await fetch(`${HISTO_URL}?select=*&supprime=eq.${corbeille}&order=created_at.desc&limit=50`, { headers: HISTO_HDR });
+    if (!r.ok) throw 0;
+    return (await r.json()).map(e => ({ ...e, quand: Date.parse(e.created_at) }));
+  } catch {
+    return corbeille ? lireCorbeille() : JSON.parse(localStorage.getItem(HISTO_CLE) || "[]");
+  }
+}
+
+function enregistrerHisto(type) {
+  const entree = {
+    civilite: $("civilite").value,
+    prenom: $("prenom").value.trim(),
+    nom: $("nom").value.trim(),
+    societe: $("societe").value.trim(),
+    passeport: $("passeport").value.trim(),
+    date_debut: $("date_debut").dataset.iso,
+    date_fin: $("date_fin").dataset.iso,
+    date_courrier: $("date_courrier").dataset.iso,
+    type,
+  };
+  enregistrerClient();
+  const histo = JSON.parse(localStorage.getItem(HISTO_CLE) || "[]");
+  histo.unshift({ ...entree, quand: Date.now() });
+  localStorage.setItem(HISTO_CLE, JSON.stringify(histo.slice(0, 30)));
+  fetch(HISTO_URL, {
+    method: "POST",
+    headers: { ...HISTO_HDR, Prefer: "return=minimal" },
+    body: JSON.stringify(entree),
+  }).catch(() => {});
+}
+
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g, c =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+function ouvrirHisto() {
+  $("histo-fond").classList.add("ouvert");
+  voirOnglet(_ongletActuel);
+}
+
+function ligneHisto(e, i, corbeille) {
+  const info =
+    `<b>${esc(e.civilite)} ${esc(e.prenom)} ${esc((e.nom || "").toUpperCase())}</b> — ${esc((e.societe || "").toUpperCase())}<br>` +
+    `Séjour du ${frDate(e.date_debut)} au ${frDate(e.date_fin)}`;
+  if (corbeille) {
+    return `<div class="histo-item"><div class="histo-corps histo-off">${info}</div>` +
+      `<button class="histo-restaurer" onclick="restaurerHisto(${i})">Restaurer</button></div>`;
+  }
+  return `<div class="histo-item"><div class="histo-corps" onclick="reprendreHisto(${i})">${info}</div>` +
+    `<button class="histo-suppr" title="Supprimer" onclick="supprimerHisto(${i})">${TRASH_SVG}</button></div>`;
+}
+
+async function voirOnglet(which) {
+  _ongletActuel = which;
+  $("ong-histo").classList.toggle("actif", which === "histo");
+  $("ong-corb").classList.toggle("actif", which === "corbeille");
+  const liste = $("histo-liste");
+  const corbeille = which === "corbeille";
+  liste.innerHTML = '<p class="histo-vide">…</p>';
+  const data = await fetchHisto(corbeille);
+  if (_ongletActuel !== which) return; // l'onglet a changé entre-temps
+  if (corbeille) _corbeilleCache = data; else _histoCache = data;
+  liste.innerHTML = data.length
+    ? data.map((e, i) => ligneHisto(e, i, corbeille)).join("")
+    : `<p class="histo-vide">${corbeille ? "Corbeille vide." : "Aucune invitation générée pour l'instant."}</p>`;
+}
+
+async function supprimerHisto(i) {
+  const e = _histoCache[i];
+  if (!e) return;
+  if (e.id) { try { await patchSupprime(e.id, true); } catch {} }
+  else { const c = lireCorbeille(); c.unshift(e); ecrireCorbeille(c); } // repli hors ligne
+  voirOnglet("histo");
+}
+
+async function restaurerHisto(i) {
+  const e = _corbeilleCache[i];
+  if (!e) return;
+  if (e.id) { try { await patchSupprime(e.id, false); } catch {} }
+  else { ecrireCorbeille(lireCorbeille().filter(x => histoKey(x) !== histoKey(e))); } // repli hors ligne
+  voirOnglet("corbeille");
+}
+
+function fermerHisto() { $("histo-fond").classList.remove("ouvert"); }
+
+function reprendreHisto(i) {
+  const e = _histoCache[i];
+  if (!e) return;
+  for (const c of ["civilite", "prenom", "nom", "societe", "passeport"]) {
+    $(c).value = e[c];
+    $(c).classList.remove("err");
+  }
+  for (const c of ["date_debut", "date_fin", "date_courrier"]) {
+    poserDate(c, e[c]);
+    $(c).classList.remove("err");
+  }
+  fermerHisto();
+}
+
+// ===== Mémoire clients (table invitations_clients, anti-doublon par passeport) =====
+const CLIENTS_URL = "https://bvcgpdoukhcatjibmvnb.supabase.co/rest/v1/invitations_clients";
+let _clients = null, _suggMatchs = [];
+
+async function chargerClients() {
+  if (_clients) return _clients;
+  try {
+    const r = await fetch(`${CLIENTS_URL}?select=*&order=updated_at.desc&limit=500`, { headers: HISTO_HDR });
+    _clients = r.ok ? await r.json() : [];
+  } catch { _clients = []; }
+  return _clients;
+}
+
+function enregistrerClient() {
+  const d = donnees();
+  if (!d.passeport) return;
+  _clients = null; // rechargé à la prochaine frappe
+  fetch(`${CLIENTS_URL}?on_conflict=passeport`, {
+    method: "POST",
+    headers: { ...HISTO_HDR, Prefer: "resolution=merge-duplicates,return=minimal" },
+    body: JSON.stringify({ passeport: d.passeport, civilite: d.civilite, prenom: d.prenom,
+      nom: d.nom, societe: d.societe, updated_at: new Date().toISOString() }),
+  }).catch(() => {});
+}
+
+function normalise(s) {
+  return String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+async function suggerer(champ) {
+  const boite = $("sugg-" + champ);
+  const q = normalise($(champ).value.trim());
+  if (q.length < 2) { boite.innerHTML = ""; return; }
+  const clients = await chargerClients();
+  if (normalise($(champ).value.trim()) !== q) return; // frappe entre-temps
+  const vus = new Set();
+  _suggMatchs = clients.filter(c => {
+    const cle = normalise(c.prenom + "|" + c.nom);
+    if (vus.has(cle)) return false;
+    const ok = normalise(c.prenom).startsWith(q) || normalise(c.nom).startsWith(q);
+    if (ok) vus.add(cle);
+    return ok;
+  }).slice(0, 6);
+  boite.innerHTML = _suggMatchs.map((c, i) =>
+    `<div onclick="choisirClient(${i})"><b>${esc(c.civilite || "")} ${esc(c.prenom || "")} ${esc((c.nom || "").toUpperCase())}</b>` +
+    (c.societe ? ` <small>— ${esc(c.societe.toUpperCase())}</small>` : "") + `</div>`).join("");
+}
+
+function choisirClient(i) {
+  const c = _suggMatchs[i];
+  if (!c) return;
+  $("civilite").value = c.civilite === "Mme" ? "Mme" : "M.";
+  $("prenom").value = c.prenom || "";
+  $("nom").value = c.nom || "";
+  $("societe").value = c.societe || "";
+  $("passeport").value = c.passeport || "";
+  ["prenom", "nom", "societe", "passeport"].forEach(id => $(id).classList.remove("err"));
+  $("sugg-prenom").innerHTML = "";
+  $("sugg-nom").innerHTML = "";
+}
+
+["prenom", "nom"].forEach(id => {
+  $(id).addEventListener("input", () => suggerer(id));
+  $(id).addEventListener("blur", () => setTimeout(() => { $("sugg-" + id).innerHTML = ""; }, 250));
+});
+
+async function telechargerWord() {
+  if (!valide()) return;
+  enregistrerHisto("word");
+  const d = donnees();
+  const buf = await (await fetch("template.docx")).arrayBuffer();
+  const doc = new docxtemplater(new PizZip(buf), { paragraphLoop: true, linebreaks: true });
+  doc.render(d);
+  const blob = doc.getZip().generate({
+    type: "blob",
+    mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `INVITATION ${d.civilite}${d.nom}.docx`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+async function imageBase64(url) {
+  const blob = await (await fetch(url)).blob();
+  return new Promise(res => {
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.readAsDataURL(blob);
+  });
+}
+
+// ===== Texte de la lettre, éditable (mémorisé en local, réinitialisable) =====
+// Les paragraphes sont séparés par une ligne vide ; {champ} est remplacé par donnees()[champ].
+const CORPS_DEFAUT = [
+  `{salutation},`,
+  `À la suite des commandes déjà confirmées pour cette année, nous vous confirmons que selon notre programme de commandes prévues, les livraisons se feront en plusieurs fois, {conteneurs} conteneurs par mois en moyenne.`,
+  `Nous vous invitons en nos bureaux afin de discuter des conditions de chargement et de paiement, pour un séjour du {date_debut} au {date_fin}.`,
+  `Nous nous engageons à prendre en charge les frais d’hébergement et de restauration de {civilite} {prenom} {nom}.`,
+  `Dans cette attente, veuillez agréer l’expression de nos salutations distinguées.`,
+].join("\n\n");
+// Texte personnalisé UNIQUEMENT pour la lettre en cours (en mémoire) :
+// on repart toujours du modèle par défaut après un rechargement de la page.
+let _corpsPerso = null;
+try { localStorage.removeItem("invitations_corps"); } catch (e) {} // purge d'anciens textes enregistrés
+
+// Remplace les {champs} par les infos saisies ; laisse le {champ} tel quel si vide.
+function substituerInfos(txt) {
+  const d = donnees();
+  return txt.replace(/\{(\w+)\}/g, (m, k) => (k in d && String(d[k]).trim() ? d[k] : m));
+}
+
+// Texte affiché/imprimé : version en cours si modifiée, sinon le modèle rempli.
+function corpsTemplate() {
+  return _corpsPerso != null ? _corpsPerso : substituerInfos(CORPS_DEFAUT);
+}
+
+// Paragraphes prêts à imprimer : découpés sur les lignes vides, {champs} restants substitués.
+function corpsParas(d) {
+  return corpsTemplate()
+    .split(/\n\s*\n/)
+    .map(p => p.replace(/[ \t]*\n[ \t]*/g, " ").trim())
+    .filter(Boolean)
+    .map(p => p.replace(/\{(\w+)\}/g, (m, k) => (k in d ? d[k] : m)));
+}
+
+function ouvrirCorps() {
+  $("corps-zone").value = corpsTemplate();
+  $("corps-fond").classList.add("ouvert");
+}
+function fermerCorps() { $("corps-fond").classList.remove("ouvert"); }
+
+function reinitCorps() { _corpsPerso = null; $("corps-zone").value = substituerInfos(CORPS_DEFAUT); }
+
+function enregistrerCorps() {
+  const v = $("corps-zone").value.trim();
+  _corpsPerso = (!v || v === substituerInfos(CORPS_DEFAUT).trim()) ? null : v;
+  fermerCorps();
+}
+
+// Lettre PDF vectorielle — en-tête façon PROFORMA (logo à gauche + bloc société),
+// corps justifié, titre « Invitation Professionnelle » (A4, marges 25 mm)
+async function construireLettrePDF(d) {
+  const doc = new jspdf.jsPDF({ unit: "mm", format: "a4" });
+  const M = 25, W = 160, DROITE = 185;
+  const K = 1.15;  // agrandissement global police + logo (+15 %)
+  const KH = 1.2;  // agrandissement supplémentaire de l'en-tête (+20 %), proportions conservées
+  const ENCRE = [26, 26, 26], GRIS = [110, 110, 110], LIGNE = [214, 212, 208];
+
+  // ── EN-TÊTE façon PROFORMA : logo à gauche + bloc société aligné à gauche ──
+  const lw = 54 * K * KH, lh = lw / 7.7041;
+  doc.addImage(await imageBase64("assets/logo.png"), "PNG", M, 15, lw, lh);
+  const H = [
+    ["9 Promenée Jeanne Hachette 94200 Ivry sur Seine – FRANCE", "normal"],
+    ["Contact e-mail : clients@prodi.com", "bold"],
+    ["Tel : 331 4672 0369 – Fax : 331 4959 8731", "normal"],
+    ["SARL au Capital de 516 000 EUR – Siret : 382445922", "normal"],
+    ["NAF 4676Z – TVA FR50 382 445922 RCS Créteil", "normal"],
+  ];
+  doc.setFontSize(8.5 * K * KH); doc.setTextColor(...ENCRE);
+  let hy = 15 + lh + 5 * KH;
+  for (const [t, w] of H) { doc.setFont("times", w); doc.text(t, M, hy); hy += 3.9 * KH; }
+
+  const yf = hy + 0.4;
+
+  // date (droite)
+  const yDate = yf + 9;
+  doc.setFont("times", "normal"); doc.setFontSize(12 * K); doc.setTextColor(...ENCRE);
+  doc.text(`Ivry-sur-Seine, le ${d.date_courrier}`, DROITE, yDate, { align: "right" });
+
+  // destinataire (aligné à la marge, sans liseré)
+  const yb = yDate + 7;
+  doc.text(`${d.civilite} ${d.prenom} ${d.nom}`, M, yb + 4);
+  doc.text(`SOCIÉTÉ : ${d.societe}`, M, yb + 12);
+  doc.text(`PASSEPORT N° : ${d.passeport}`, M, yb + 20);
+
+  // titre (léger interlettrage, sans barre)
+  const yt = yb + 37;
+  doc.setFont("times", "bold"); doc.setFontSize(15 * K);
+  doc.setCharSpace(0.6);
+  doc.text("Invitation Professionnelle", 105, yt, { align: "center" });
+  doc.setCharSpace(0);
+
+  // corps
+  doc.setFont("times", "normal"); doc.setFontSize(12 * K); doc.setTextColor(...ENCRE);
+  const lhCorps = 12 * K * 0.3527 * 1.2;
+  let y = yt + 13;
+  const paras = corpsParas(d);
+  for (const p of paras) {
+    const n = doc.splitTextToSize(p, W).length;
+    doc.text(p, M, y, { maxWidth: W, align: "justify", lineHeightFactor: 1.2 });
+    y += n * lhCorps + 3.6;
+  }
+
+  // signature (droite) + tampon
+  const sx = 118;
+  doc.setFont("times", "normal"); doc.setFontSize(12 * K); doc.setTextColor(...ENCRE);
+  doc.text(d.signataire, sx, y + 6);
+  doc.setFont("times", "italic"); doc.setFontSize(11 * K); doc.setTextColor(...GRIS);
+  doc.text(d.titre_signataire, sx, y + 12.5);
+  doc.addImage(await imageBase64("assets/tampon.png"), "PNG", sx - 2, y + 16, 44 * K, 26.4 * K);
+
+  // pied
+  doc.setDrawColor(...LIGNE); doc.setLineWidth(0.3); doc.line(M, 267, 210 - M, 267);
+  doc.setFont("times", "normal"); doc.setFontSize(9); doc.setTextColor(...GRIS);
+  doc.text("Sarl au capital de 516 000,00 € - RCS : Créteil B382445922", 105, 272, { align: "center" });
+  doc.text("9 Promenée Jeanne hachette 94200 Ivry sur Seine – Tél : 331 46 42 03 69 – fax : 331 49 59 87 31", 105, 276.2, { align: "center" });
+  doc.text("Entrepôt  Tél : 03 22 39 23 – Fax : 03 22 39 24 47", 105, 280.4, { align: "center" });
+
+  return doc;
+}
+
+async function telechargerPDF() {
+  if (!valide()) return;
+  enregistrerHisto("pdf");
+  const d = donnees();
+  (await construireLettrePDF(d)).save(`INVITATION ${d.civilite}${d.nom}.pdf`);
+}
+</script>
+</body>
+</html>
