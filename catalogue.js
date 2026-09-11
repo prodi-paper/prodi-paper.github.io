@@ -8716,7 +8716,19 @@ function _buildSharedInfo(list){
 // Repli : _albumImpression() (onglet + window.print) si CDN jsPDF mort.
 function _albumData(){
   return cart.map(p=>{
-    const f=all.find(x=>x.id===+p.id)||p;
+    // Enrichissement : page courante d'abord, sinon CACHE COMPLET du stock
+    // (par réf, comme l'export Excel) — sans ça, seuls les ~40 produits de la
+    // page chargée avaient leur image_url et TOUT le reste d'un gros panier
+    // Offre sortait en « PHOTOS SUR DEMANDE » (vécu 11/09, album 560 réfs).
+    const _hit=all.find(x=>x.id===+p.id);
+    const _c=(!_hit&&typeof _allProductsCache!=='undefined'&&_allProductsCache)
+      ?_allProductsCache.find(x=>String(x.ref||'')===String(p.ref||''))
+      :null;
+    const f=_hit||(_c?{
+      qualite:_c.quality,couleur:_c.color,grammage:_c.gsm,largeur:_c.width,
+      longueur:_c.longueur,poids_net:_c.weight,details:_c.details,
+      format:_c.format,ref:_c.ref,image_url:_c.image_url,
+    }:p);
     const isF=_estFormat(f);
     let dim='—';
     if(isF&&f.largeur&&f.longueur)dim=mmToCm(Math.min(f.largeur,f.longueur))+' × '+mmToCm(Math.max(f.largeur,f.longueur))+' mm';
@@ -8741,7 +8753,10 @@ async function _albumChargePhoto(url,ratio,noph){
   const charge=u=>new Promise((res,rej)=>{const i=new Image();i.crossOrigin='anonymous';
     i.onload=()=>res(i);i.onerror=rej;i.src=u;});
   let im=null;
-  try{im=await charge(url);}catch(e){try{im=await charge(noph);}catch(e2){return null;}}
+  // Échec de chargement → null : la carte dessine sa boîte grise « PHOTO SUR
+  // DEMANDE » (propre) — le no-photo.png recadré « cover » sortait avec le
+  // texte coupé (vécu 11/09). Le paramètre noph reste pour compat harness.
+  try{im=await charge(url);}catch(e){return null;}
   const sw=im.naturalWidth,sh=im.naturalHeight;
   let cw=sw,ch=Math.round(sw/ratio);
   if(ch>sh){ch=sh;cw=Math.round(sh*ratio);}
@@ -8765,11 +8780,13 @@ async function _albumBuildPdf(JsPdf,data,logoUrl,noph,onProg){
     lc.getContext('2d').drawImage(li,0,0);
     logo={d:lc.toDataURL('image/png'),w:8*li.naturalWidth/li.naturalHeight};
   }catch(e){}
-  // photos en parallèle (par paquets de 6)
+  // photos en parallèle (par paquets de 6) ; sans image_url → pas de requête,
+  // boîte grise directe
   const photos=new Array(data.length);let done=0;
   for(let i=0;i<data.length;i+=6){
     await Promise.all(data.slice(i,i+6).map((d,j)=>
-      _albumChargePhoto(d.img||noph,CW/PH,noph).then(r=>{photos[i+j]=r;done++;if(onProg)onProg(done,data.length);})));
+      (d.img?_albumChargePhoto(d.img,CW/PH,noph):Promise.resolve(null))
+        .then(r=>{photos[i+j]=r;done++;if(onProg)onProg(done,data.length);})));
   }
   const elid=(t,max,size,style)=>{pdf.setFontSize(size);pdf.setFont('helvetica',style);
     let s=String(t);while(s.length>1&&pdf.getTextWidth(s+'…')>max)s=s.slice(0,-1);
@@ -8843,6 +8860,9 @@ async function exportAlbumPdf(){
   if(lbl)lbl.textContent='Génération…';
   try{
     await _jspdfLoad();
+    // cache stock complet pour l'enrichissement par réf (no-op si déjà là ;
+    // sans lui, les articles hors page courante n'ont pas leur image_url)
+    try{await _loadAllProducts();}catch(e){}
     const noph=location.origin+'/img/no-photo.png';
     const pdf=await _albumBuildPdf(window.jspdf.jsPDF,_albumData(),
       location.origin+'/img/logo.png',noph,
