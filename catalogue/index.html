@@ -196,7 +196,7 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
 @media(min-width:769px){
   /* Rangée 1 — bandeau promo */
   #ali-top{display:flex;align-items:center;justify-content:center;gap:20px;height:40px;position:relative;z-index:101;color:#fff;
-    background:linear-gradient(90deg,#ff7a1a 0%,#ff3c00 26%,#fe0000 58%,#ff7d5e 80%,#ffd7c9 90%,#b9efce 100%);}
+    background:linear-gradient(90deg,#ff7a1a 0%,#ff3c00 26%,#fe0000 55%,#fe0000 calc(50% + 320px),#ff7d5e calc(50% + 385px),#ffd7c9 calc(50% + 412px),#b9efce 100%);}
   .ali-badge{position:absolute;right:calc(50% + 430px);background:#fff;color:#fe0000;font-weight:900;font-style:italic;font-size:14.9px;letter-spacing:.2px;
     padding:4px 18px 4px 14px;border-radius:3px;clip-path:polygon(0 0,100% 0,calc(100% - 8px) 50%,100% 100%,0 100%);}
   .ali-topmid{font-size:16.5px;font-weight:500;}
@@ -213,6 +213,7 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
   /* ── Largeur MINIMUM façon Alibaba (desktop) : sous ~1200px de fenêtre, la
      page ne se déforme plus — elle est coupée avec un scroll horizontal ── */
   @media (min-width:769px){
+    html,body{overflow-x:auto !important;}  /* le thème met overflow-x:clip → impossible de défiler vers la droite */
     body.apple-view:not(.shared-view){min-width:1200px;}
     body.apple-view:not(.shared-view) .header-inner,
     body:not(.shared-view) .body-wrap,
@@ -1043,7 +1044,7 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
       ['hr','Croatie',['Rijeka']],
       ['si','Slovénie',['Koper']],
       ['gr','Grèce',['Le Pirée']]]},
-    {n:'Maghreb',t:112,c:[
+    {n:'Maghreb',t:110,c:[
       ['ma','Maroc',['Casablanca','Tanger Med','Agadir']],
       ['dz','Algérie',['Alger','Oran']],
       ['tn','Tunisie',['Radès (Tunis)','Sfax']],
@@ -1116,12 +1117,17 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
   var M={};
   Z.forEach(function(z){z.c.forEach(function(c){(c[2]||[]).forEach(function(pt){M[c[0]+'|'+pt]={f:c[0],port:pt,pays:c[1],t:z.t};});});});
   var cur=null; try{cur=JSON.parse(localStorage.getItem('ali_ship2')||'null');}catch(e){}
-  if(!cur||!M[cur.id]) cur={id:'fr|Le Havre'};
-  function m(){return M[cur.id];}
+  if(!cur||!M[cur.id]) cur=null;   /* pas de port par défaut : « Choisir » */
+  function m(){return cur?M[cur.id]:null;}
   function flag(c){return '<img class="ali-flag" src="https://flagcdn.com/w40/'+c+'.png" alt="">';}
   function paint(){
+    if(!cur){
+      document.getElementById('ali-ship-cur').innerHTML='Choisir un port\u2026';
+      document.getElementById('ali-ship-cfr').textContent='CFR selon destination';
+      return;
+    }
     document.getElementById('ali-ship-cur').innerHTML=flag(m().f)+' '+m().port;
-    document.getElementById('ali-ship-cfr').textContent='CFR +'+m().t+' €/T';
+    document.getElementById('ali-ship-cfr').textContent='CFR +'+m().t+' \u20ac/T';
   }
   var pop=document.createElement('div'); pop.id='ali-ship-pop';
   var POPULAIRES=['ma|Casablanca','dz|Alger','tn|Radès (Tunis)','eg|Alexandrie','sa|Djeddah','ae|Jebel Ali (Dubaï)','sn|Dakar','ci|Abidjan','fr|Le Havre'];
@@ -1143,7 +1149,7 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
     +'<div class="ship-cfr" id="ship-cfr"></div>'
     +'<button id="ship-save">Sauvegarder</button>';
   addr.appendChild(pop);
-  var pend=cur.id;
+  var pend=cur?cur.id:'fr|Le Havre';   /* sélection courante DANS le tiroir (défaut interne) */
   var field=pop.querySelector('#ship-field'), listEl=pop.querySelector('#ship-list');
   var sw=pop.querySelector('#ship-search'), rowsBox=pop.querySelector('#ship-rows');
   function norm(t){return String(t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
@@ -1181,7 +1187,7 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
   addr.addEventListener('click',function(e){
     if(e.target.closest('#ali-ship-pop')) return;
     pop.classList.toggle('open');
-    if(pop.classList.contains('open')){pend=cur.id;fieldPaint();field.classList.remove('open');listEl.classList.remove('open');}
+    if(pop.classList.contains('open')){pend=cur?cur.id:'fr|Le Havre';fieldPaint();field.classList.remove('open');listEl.classList.remove('open');}
   });
   document.addEventListener('click',function(e){if(!e.target.closest('#ali-addr'))pop.classList.remove('open');});
   pop.querySelector('#ship-save').addEventListener('click',function(){
