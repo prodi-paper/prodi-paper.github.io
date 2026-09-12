@@ -5117,7 +5117,7 @@ function updateCartBadge(){
     if(txt){txt.style.display='';txt.textContent=_cartLbl;}
     btn.style.removeProperty('display');
     btn.title=_cartLbl;
-    btn.onclick=()=>openCartDrawer();
+    btn.onclick=()=>{window.open('/panier/','_blank');};   // 11/09 Ethan : le panier = page en NOUVEL onglet
     const clr=document.getElementById('cart-clear-btn');
     if(clr)clr.style.display=cart.length>0?'inline-flex':'none';
   }

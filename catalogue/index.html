@@ -380,9 +380,9 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
   body:not(.shared-view) .rbar-count,body:not(.shared-view) .header-search-group,body:not(.shared-view) #album-wrap{display:none !important;}
   body:not(.shared-view) .hright{margin-left:auto;display:flex;align-items:center;gap:24px;zoom:.9;}
   body:not(.shared-view) .logo-link{zoom:.9;}
-  #ali-addr{display:flex;flex-direction:column;line-height:1.2;cursor:pointer;position:relative;}
+  #ali-addr{display:grid;grid-template-columns:auto auto;column-gap:10px;align-items:center;justify-items:start;line-height:1.2;cursor:pointer;position:relative;}
   .ali-addr-cfr{font-size:13.1px;color:#1d1d1f;font-weight:800;}
-  #ali-ship-pop{position:absolute;top:calc(100% + 12px);left:-20px;width:410px;background:#fff;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.18);padding:26px;z-index:3000;display:none;cursor:default;text-align:left;}
+  #ali-ship-pop{position:absolute;top:calc(100% + 12px);left:50%;transform:translateX(-50%);width:410px;background:#fff;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.18);padding:26px;z-index:3000;display:none;cursor:default;text-align:left;}
   #ali-ship-pop.open{display:block;}
   .aliz-sw{position:sticky;top:0;background:#fff;padding:10px 10px 6px;z-index:1;}
   #ali-ship-search{width:100%;box-sizing:border-box;height:36px;border:1.5px solid #d2d2d7;border-radius:9px;padding:0 12px;font:600 14px 'DM Sans',sans-serif;outline:none;}
@@ -399,13 +399,24 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
   #ali-lc-pop.open{display:block;}
   #ali-lc-pop::before,#ali-ship-pop::before{content:"";position:absolute;top:-6px;width:13px;height:13px;background:#fff;transform:rotate(45deg);border-radius:2px;}
   #ali-lc-pop::before{left:50%;margin-left:-7px;}
-  #ali-ship-pop::before{left:60px;}
+  #ali-ship-pop::before{left:50%;margin-left:-6.5px;}
   .lc-title{font-size:17.5px;font-weight:800;color:#1d1d1f;margin-bottom:8px;}
   .lc-sub{font-size:13px;color:#6e6e73;line-height:1.45;margin-bottom:16px;font-weight:500;}
   .lc-lab{display:block;font-size:13.5px;font-weight:700;color:#1d1d1f;margin:14px 0 7px;}
   .lc-sel{width:100%;box-sizing:border-box;height:42px;border:1.5px solid #d2d2d7;border-radius:9px;padding:0 12px;font:600 14.5px 'DM Sans',sans-serif;color:#1d1d1f;background:#fff;outline:none;appearance:auto;cursor:pointer;}
   #lc-save,#ship-save{width:100%;height:44px;margin-top:20px;border:none;border-radius:999px;background:#fe0000;color:#fff;font:800 15.5px 'DM Sans',sans-serif;cursor:pointer;}
   #lc-save:hover,#ship-save:hover{background:#cc0000;}
+  /* mini-panneau PANIER au survol (façon Alibaba, illustration container+bobine) */
+  .cart-wrap{position:relative;}
+  #cart-pop{position:absolute;top:calc(100% + 12px);left:50%;width:380px;background:#fff;border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.18);padding:22px 24px;opacity:0;visibility:hidden;transform:translate(-50%,6px);transition:opacity .18s,transform .18s,visibility .18s;z-index:3000;}
+  #cart-pop.open{opacity:1;visibility:visible;transform:translateX(-50%);}
+  #cart-pop::before{content:'';position:absolute;top:-6px;left:50%;margin-left:-6px;width:12px;height:12px;background:#fff;transform:rotate(45deg);}
+  .cpop-t{font:800 18px 'DM Sans',sans-serif;color:#111;}
+  .cpop-art{display:block;margin:10px auto 4px;width:250px;height:auto;}
+  .cpop-txt{text-align:center;font:800 17px 'DM Sans',sans-serif;color:#1d1d1f;margin:2px 0 20px;}
+  .cpop-go{display:block;width:100%;height:48px;border-radius:999px;border:1.5px solid #d2d2d7;background:#fff;color:#1d1d1f;font:700 16px 'DM Sans',sans-serif;cursor:pointer;}
+  .cpop-go:hover{background:#f5f5f7;}
+  @media(max-width:768px){#cart-pop{display:none;}}
   .ship-cfr{font-size:12.5px;color:#6e6e73;margin-top:10px;font-weight:600;line-height:1.4;}
   .ship-wrap{position:relative;}
   .ship-field{display:flex;align-items:center;gap:10px;height:46px;border:1.5px solid #d2d2d7;border-radius:9px;padding:0 12px;font:600 14.5px 'DM Sans',sans-serif;color:#1d1d1f;cursor:pointer;background:#fff;}
@@ -424,7 +435,7 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
   .ship-row .ali-flag{width:24px;}
   .ship-row em{display:none;}
   .ship-row i{margin-left:auto;font-style:normal;font-size:13px;color:#1d1d1f;font-weight:600;padding-left:8px;white-space:nowrap;}
-  .ali-addr-l{font-size:13.1px;color:#111;font-weight:500;}
+  .ali-addr-l{font-size:13.1px;color:#111;font-weight:500;grid-column:1 / -1;}
   .ali-addr-v{font-size:16.3px;font-weight:700;color:#111;}
   #ali-lang{display:flex;align-items:center;gap:8px;font-size:15.8px;font-weight:500;color:#111;}
   #ali-lang>svg,#ali-login svg{width:26px;height:26px;flex-shrink:0;}
@@ -443,13 +454,16 @@ if(!(p.get('share')||p.get('s')))c.add('topbar-view');}catch(e){}})();
   #ali-login-lnk:hover{color:#fe0000;}
   #ali-join{background:linear-gradient(90deg,#ff7a1a,#ff3c00 45%,#fe0000);color:#fff;font-weight:800;font-size:15.8px;padding:10px 20px;border-radius:999px;text-decoration:none;white-space:nowrap;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
   #ali-join:hover{filter:brightness(.93);}
-  #ali-acct-pop{display:none;position:absolute;top:calc(100% + 12px);right:-60px;width:358px;background:#fff;border-radius:16px;box-shadow:0 24px 70px rgba(0,0,0,.28);padding:24px 24px 16px;z-index:1200;font-family:'DM Sans',sans-serif;text-align:left;}
+  #ali-acct-pop{display:none;position:absolute;top:calc(100% + 12px);left:50%;transform:translateX(-50%);width:358px;background:#fff;border-radius:16px;box-shadow:0 24px 70px rgba(0,0,0,.28);padding:24px 24px 16px;z-index:1200;font-family:'DM Sans',sans-serif;text-align:left;}
   #ali-acct-pop.open{display:block;}
-  #ali-acct-pop::before{content:"";position:absolute;top:-6px;right:130px;width:13px;height:13px;background:#fff;transform:rotate(45deg);border-radius:2px;}
+  #ali-acct-pop::before{content:"";position:absolute;top:-6px;left:calc(50% + var(--nfix,0px));margin-left:-6.5px;width:13px;height:13px;background:#fff;transform:rotate(45deg);border-radius:2px;}
   .acct-hi{font-size:17px;font-weight:800;color:#1d1d1f;margin-bottom:18px;}
-  .acct-login{display:block;text-align:center;background:#ff6a00;color:#fff;font-weight:800;font-size:15.5px;padding:13px;border-radius:999px;text-decoration:none;}
-  .acct-login:hover{background:#f25400;}
+  .acct-login{display:block;text-align:center;background:#fe0000;color:#fff;font-weight:800;font-size:15.5px;padding:13px;border-radius:999px;text-decoration:none;}
+  .acct-login:hover{background:#cc0000;}
   .acct-or{text-align:center;font-size:14px;color:#1d1d1f;font-weight:500;margin:18px 0 16px;}
+  .acct-google{display:flex;align-items:center;justify-content:center;gap:11px;border:1.5px solid #d2d2d7;border-radius:999px;padding:12px;background:#fff;color:#1d1d1f;font-weight:700;font-size:15px;text-decoration:none;}
+  .acct-google:hover{background:#f7f7f8;}
+  .acct-google svg{width:20px;height:20px;flex-shrink:0;}
   .acct-soc{display:flex;justify-content:center;gap:56px;}
   .acct-soc svg{width:40px;height:40px;display:block;}
   .acct-soc a:hover{opacity:.85;}
@@ -606,7 +620,7 @@ body.shared-view #ali-lang,body.shared-view #ali-login,body.shared-view #ali-cta
       <div id="ali-addr" title="Port de destination — coût CFR indicatif par tonne (container 25 T, départ Amiens)">
         <span class="ali-addr-l">Port de destination&nbsp;:</span>
         <span class="ali-addr-v" id="ali-ship-cur"><img class="ali-flag" src="https://flagcdn.com/w40/fr.png" alt=""> Le Havre</span>
-        <span class="ali-addr-cfr" id="ali-ship-cfr">CFR +80 €/T</span>
+        <span class="ali-addr-cfr" id="ali-ship-cfr">+80 €/T CFR</span>
       </div>
       <div id="ali-lang">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
@@ -662,13 +676,12 @@ body.shared-view #ali-lang,body.shared-view #ali-login,body.shared-view #ali-cta
           <div class="acct-hi">Bienvenue chez Prodiconseil !</div>
           <a class="acct-login" href="/compte/">Se connecter</a>
           <div class="acct-or">Ou continuer avec :</div>
-          <div class="acct-soc">
-            <a href="#" onclick="return false;" aria-label="Google"><svg viewBox="0 0 48 48"><circle fill="#fff" cx="24" cy="24" r="24"/><g transform="translate(9,9) scale(0.625)"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></g></svg></a>
-            <a href="#" onclick="return false;" aria-label="LinkedIn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#0A66C2"/><path fill="#fff" d="M8.3 17.5H6V9.7h2.3v7.8zM7.1 8.7a1.35 1.35 0 1 1 0-2.7 1.35 1.35 0 0 1 0 2.7zM18 17.5h-2.3v-3.8c0-.9-.3-1.5-1.1-1.5-.6 0-1 .4-1.2.8-.1.2-.1.4-.1.7v3.9H11s0-6.3 0-7.8h2.3v1.1c.3-.5.9-1.2 2.1-1.2 1.5 0 2.6 1 2.6 3.1v4.8z"/></svg></a>
-          </div>
-          <div class="acct-legal">En me connectant via les médias sociaux, j'accepte <a href="#" onclick="return false;">les conditions d'utilisation de Prodiconseil</a> et <a href="#" onclick="return false;">la politique de confidentialité</a>, et de recevoir des emails sur les offres et services.</div>
+          <a class="acct-google" href="#" onclick="location.href='https://bvcgpdoukhcatjibmvnb.supabase.co/auth/v1/authorize?provider=google&amp;redirect_to='+encodeURIComponent('http://localhost:8101/compte/');return false;">
+            <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+            <span>Continuer avec Google</span>
+          </a>
           <div class="acct-sep"></div>
-          <a class="acct-item" href="#" onclick="return false;">Mon espace Prodi</a>
+          <a class="acct-item" href="#" onclick="return false;">Mon Prodiconseil</a>
           <a class="acct-item" href="#" onclick="return false;">Mes commandes</a>
           <a class="acct-item" href="#" onclick="return false;">Mes messages</a>
           <a class="acct-item" href="#" onclick="return false;">Demandes de devis</a>
@@ -688,7 +701,16 @@ body.shared-view #ali-lang,body.shared-view #ali-login,body.shared-view #ali-cta
 (function(){
   var w=document.getElementById('ali-acct'),p=document.getElementById('ali-acct-pop'),t;
   if(!w||!p)return;
-  function o(){clearTimeout(t);p.classList.add('open');}
+  function o(){clearTimeout(t);p.classList.add('open');
+    /* clamp : centré sous le bouton, mais jamais hors écran à droite
+       (cas connecté : « Devenir client » masqué → le compte est le dernier
+       élément du header) ; la flèche (--nfix) reste sous le bouton */
+    try{
+      var zf=(window._zf?_zf():1);
+      p.style.marginLeft='';p.style.setProperty('--nfix','0px');
+      var r=p.getBoundingClientRect(), over=r.right-(innerWidth-14);
+      if(over>0){p.style.marginLeft=(-over/zf)+'px';p.style.setProperty('--nfix',(over/zf)+'px');}
+    }catch(e){}}
   function c(){t=setTimeout(function(){p.classList.remove('open');},180);}
   w.addEventListener('mouseenter',o); w.addEventListener('mouseleave',c);
   /* Session Supabase (posée par /compte/) → header connecté */
@@ -697,14 +719,18 @@ body.shared-view #ali-lang,body.shared-view #ali-login,body.shared-view #ali-cta
     if(!raw)return;
     var sess=JSON.parse(raw); var email=sess&&sess.user&&sess.user.email;
     if(!email)return;
+    var meta=(sess.user&&sess.user.user_metadata)||{};
     var lnk=document.getElementById('ali-login-lnk');
-    lnk.childNodes[lnk.childNodes.length-1].textContent=' '+email.split('@')[0];
+    lnk.childNodes[lnk.childNodes.length-1].textContent=' '+(meta.prenom||email.split('@')[0]);
     lnk.title=email;
     var join=document.getElementById('ali-join'); if(join)join.style.display='none';
-    var hi=p.querySelector('.acct-hi'); if(hi)hi.textContent=email;
+    var hi=p.querySelector('.acct-hi'); if(hi)hi.textContent='Bienvenue chez Prodiconseil'+(meta.prenom?', '+meta.prenom:'')+' !';
     var lg=p.querySelector('.acct-login');
     if(lg){lg.textContent='Se déconnecter';lg.removeAttribute('href');lg.style.cursor='pointer';
       lg.onclick=function(){localStorage.removeItem('sb-bvcgpdoukhcatjibmvnb-auth-token');location.reload();return false;};}
+    /* déjà connecté : plus de « Ou continuer avec » ni de bouton Google */
+    var or_=p.querySelector('.acct-or'); if(or_)or_.style.display='none';
+    var gg=p.querySelector('.acct-google'); if(gg)gg.style.display='none';
   }catch(e){}
 })();
 </script>
@@ -1056,6 +1082,8 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
     {n:"Afrique de l'Ouest",t:120,c:[
       ['ci',"Côte d'Ivoire",['Abidjan']],
       ['gh','Ghana',['Tema']],
+      ['tg','Togo',['Lomé']],
+      ['bj','Bénin',['Cotonou']],
       ['ng','Nigeria',['Lagos (Apapa)','Onne']],
       ['gq','Guinée Équat.',['Malabo','Bata']],
       ['ga','Gabon',['Libreville']],
@@ -1114,8 +1142,8 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
       ['nz','Nouvelle-Zélande',['Auckland']]]}
   ];
   var addr=document.getElementById('ali-addr'); if(!addr) return;
-  var M={};
-  Z.forEach(function(z){z.c.forEach(function(c){(c[2]||[]).forEach(function(pt){M[c[0]+'|'+pt]={f:c[0],port:pt,pays:c[1],t:z.t};});});});
+  var M={},F={};   /* F = premier port listé par pays (port principal) */
+  Z.forEach(function(z){z.c.forEach(function(c){(c[2]||[]).forEach(function(pt){var id=c[0]+'|'+pt;M[id]={f:c[0],port:pt,pays:c[1],t:z.t};if(!F[c[0]])F[c[0]]=id;});});});
   var cur=null; try{cur=JSON.parse(localStorage.getItem('ali_ship2')||'null');}catch(e){}
   if(!cur||!M[cur.id]) cur=null;   /* pas de port par défaut : « Choisir » */
   function m(){return cur?M[cur.id]:null;}
@@ -1127,7 +1155,7 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
       return;
     }
     document.getElementById('ali-ship-cur').innerHTML=flag(m().f)+' '+m().port;
-    document.getElementById('ali-ship-cfr').textContent='CFR +'+m().t+' \u20ac/T';
+    document.getElementById('ali-ship-cfr').textContent='+'+m().t+' \u20ac/T CFR';
   }
   var pop=document.createElement('div'); pop.id='ali-ship-pop';
   var POPULAIRES=['ma|Casablanca','dz|Alger','tn|Radès (Tunis)','eg|Alexandrie','sa|Djeddah','ae|Jebel Ali (Dubaï)','sn|Dakar','ci|Abidjan','fr|Le Havre'];
@@ -1172,7 +1200,7 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
     var x=M[pend];
     field.querySelector('img').src='https://flagcdn.com/w40/'+x.f+'.png';
     pop.querySelector('#ship-field-n').textContent=x.port+' — '+x.pays;
-    pop.querySelector('#ship-cfr').textContent='CFR +'+x.t+' €/T — prix estimatif (container 25 T, départ Amiens), peut varier selon le marché et les surcharges.';
+    pop.querySelector('#ship-cfr').textContent='CFR +'+x.t+' €/T — prix estimatif, départ Le Havre, France.';
   }
   field.addEventListener('click',function(){
     field.classList.toggle('open');listEl.classList.toggle('open');
@@ -1184,10 +1212,21 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
     field.classList.remove('open'); listEl.classList.remove('open');
   });
   pop.addEventListener('click',function(e){e.stopPropagation();});
+  var st;
+  function sOpen(){clearTimeout(st);
+    if(!pop.classList.contains('open')){
+      pend=cur?cur.id:'fr|Le Havre';fieldPaint();
+      field.classList.remove('open');listEl.classList.remove('open');
+      pop.classList.add('open');
+    }}
+  function sClose(){st=setTimeout(function(){
+    if(pop.contains(document.activeElement)) return;   /* recherche en cours : ne pas fermer sous la souris */
+    pop.classList.remove('open');},180);}
+  addr.addEventListener('mouseenter',sOpen);
+  addr.addEventListener('mouseleave',sClose);
   addr.addEventListener('click',function(e){
     if(e.target.closest('#ali-ship-pop')) return;
-    pop.classList.toggle('open');
-    if(pop.classList.contains('open')){pend=cur?cur.id:'fr|Le Havre';fieldPaint();field.classList.remove('open');listEl.classList.remove('open');}
+    sOpen();   /* tactile : le tap ouvre, fermeture au tap dehors */
   });
   document.addEventListener('click',function(e){if(!e.target.closest('#ali-addr'))pop.classList.remove('open');});
   pop.querySelector('#ship-save').addEventListener('click',function(){
@@ -1195,6 +1234,24 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
     try{localStorage.setItem('ali_ship2',JSON.stringify(cur));}catch(e){}
     paint(); pop.classList.remove('open');
   });
+  /* Port par DÉFAUT deviné (jamais d'état « Choisir un port… » à froid) :
+     1) région de la langue navigateur (fr-MA → ma), instantané ;
+     2) géoloc IP api.country.is (déjà en CSP connect-src) qui affine derrière.
+     Le guess vit en MÉMOIRE seulement (cur.geo=1) — seul « Sauvegarder »
+     écrit localStorage, donc un choix explicite n'est jamais écrasé. */
+  var NEAR={bf:'ci|Abidjan',ml:'sn|Dakar',ne:'bj|Cotonou',td:'cm|Douala',cf:'cm|Douala',mr:'sn|Dakar',gm:'sn|Dakar',gw:'sn|Dakar',lr:'sl|Freetown',gb:'be|Anvers',ie:'be|Anvers',ch:'it|Gênes',at:'si|Koper'};
+  function _guessId(cc){cc=String(cc||'').toLowerCase();return F[cc]||NEAR[cc]||null;}
+  function _applyGeo(cc){
+    var id=_guessId(cc); if(!id||!M[id]) return;
+    cur={id:id,geo:1};
+    if(!pop.classList.contains('open')) pend=id;   /* pas sous les pieds si le tiroir est ouvert */
+    paint();
+  }
+  if(!cur){var _rg=(navigator.language||'').split('-')[1];if(_rg&&_rg.length===2)_applyGeo(_rg);}
+  fetch('https://api.country.is/').then(function(r){return r.json();}).then(function(d){
+    if(cur&&!cur.geo) return;
+    _applyGeo(d.country);
+  }).catch(function(){});
   paint();
 })();
 
@@ -1216,13 +1273,17 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
     +'<button id="lc-save">Sauvegarder</button>';
   wrap.appendChild(pop);
   pop.addEventListener('click',function(e){e.stopPropagation();});
+  function lSync(){pop.querySelector('#lc-lang').value=cur.lang;pop.querySelector('#lc-ccy').value=cur.ccy;}
+  var lt;
+  function lOpen(){clearTimeout(lt);if(!pop.classList.contains('open')){lSync();pop.classList.add('open');}}
+  function lClose(){lt=setTimeout(function(){
+    if(pop.contains(document.activeElement)) return;   /* select natif déroulé : ne pas fermer sous la souris */
+    pop.classList.remove('open');},180);}
+  wrap.addEventListener('mouseenter',lOpen);
+  wrap.addEventListener('mouseleave',lClose);
   wrap.addEventListener('click',function(e){
     if(e.target.closest('#ali-lc-pop')) return;
-    pop.classList.toggle('open');
-    if(pop.classList.contains('open')){
-      pop.querySelector('#lc-lang').value=cur.lang;
-      pop.querySelector('#lc-ccy').value=cur.ccy;
-    }
+    lOpen();   /* tactile : le tap ouvre, fermeture au tap dehors */
   });
   document.addEventListener('click',function(e){if(!e.target.closest('#ali-lang'))pop.classList.remove('open');});
   pop.querySelector('#lc-save').addEventListener('click',function(){
@@ -1233,6 +1294,35 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
     label(); pop.classList.remove('open');
   });
   label();
+})();
+
+/* MAQUETTE MIX : mini-panneau PANIER au survol (container + bobine) */
+(function(){
+  if(/[?&](s|share)=/.test(location.search)) return;
+  var wrap=document.querySelector('.cart-wrap'), btn=document.getElementById('cart-btn');
+  if(!wrap||!btn) return;
+  var pop=document.createElement('div'); pop.id='cart-pop';
+  pop.innerHTML='<div class="cpop-t">Panier</div>'
+    +'<img class="cpop-art" src="/img/panier_container.webp" alt="" width="800" height="533">'
+    +'<div class="cpop-txt" id="cpop-txt">Votre panier est vide</div>'
+    +'<button type="button" class="cpop-go">Accéder au panier</button>';
+  wrap.appendChild(pop);
+  function fill(){
+    var c=window.cart||[], el=document.getElementById('cpop-txt');
+    if(!c.length){el.textContent='Votre panier est vide';return;}
+    var kg=0; c.forEach(function(p){kg+=Number(p.weight||p.poids||0)||0;});
+    var lbl=c.length+(c.length>1?' articles':' article');
+    if(kg>0){var t=kg/1000, tt=t>=9.95?String(Math.round(t)):t.toFixed(1).replace('.',',');lbl+=' · '+tt+' t';}
+    el.textContent=lbl;
+  }
+  pop.querySelector('.cpop-go').addEventListener('click',function(){window.open('/panier/','_blank');});
+  var ct;
+  function cOpen(){clearTimeout(ct);fill();pop.classList.add('open');}
+  function cClose(){ct=setTimeout(function(){pop.classList.remove('open');},180);}
+  wrap.addEventListener('mouseenter',cOpen);
+  wrap.addEventListener('mouseleave',cClose);
+  /* le panier = vraie page désormais (plus le tiroir), NOUVEL onglet façon Alibaba */
+  btn.onclick=function(){window.open('/panier/','_blank');};
 })();
 
 /* MAQUETTE MIX : méga-menu « Toutes les catégories » façon Alibaba */
@@ -1363,7 +1453,6 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
     var fp=document.createElement('div'); fp.id='ali-fab-pop';
     fp.innerHTML='<div class="fab-in">'
       +'<div class="axsub-h" style="font-size:24px;">Fabrication sur demande</div>'
-      +'<div class="fab-sub">Fabrication usine — sur mesure.</div>'
       +'<form class="axsub-f" onsubmit="return axSubGo(this,\'ali-fab-pop\')">'
       +'<div class="axsub-2col"><input type="text" name="nom" placeholder="Nom" required><input type="text" name="societe" placeholder="Nom société" required></div>'
       +'<div class="axsub-2col"><input type="email" name="mail" placeholder="Email" required><input type="tel" name="tel" placeholder="Téléphone" required></div>'
@@ -1424,7 +1513,15 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
 <!-- MAQUETTE MIX : bandeau bienvenue façon Alibaba -->
 <div id="ali-welcome">
   <div class="aw-in">
-    <div class="aw-title">Bienvenue chez Prodiconseil</div>
+    <div class="aw-title" id="aw-title">Bienvenue chez Prodiconseil</div>
+    <script>
+    /* connecté : bandeau personnalisé avec le prénom (métadonnées Supabase) */
+    try{
+      var _s=JSON.parse(localStorage.getItem('sb-bvcgpdoukhcatjibmvnb-auth-token')||'null');
+      var _p=_s&&_s.user&&_s.user.user_metadata&&_s.user.user_metadata.prenom;
+      if(_p)document.getElementById('aw-title').textContent='Bienvenue chez Prodiconseil, '+_p;
+    }catch(e){}
+    </script>
     <div class="aw-links">
       <a href="#" onclick="document.getElementById('axech-bg').classList.add('open');return false;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg>
@@ -1503,7 +1600,7 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
       {img:'/img/card_a3a4.jpg',        href:'/catalogue/?type=Ramette A4'},
       {img:'/img/card_couche.jpg',       href:'/catalogue/?type=Couché 2 faces'},
       {img:'/img/card_adhesif.jpg',      href:'/catalogue/?type=Adhésif'},
-      {img:'/img/card_creative.jpg',     href:'/catalogue/?type=Luxe'},
+      {img:'/img/card_testliner.jpg',    href:'/catalogue/?type=Liner'},
       {img:'/img/card_thermique.jpg',    href:'/catalogue/?type=Thermique'},
       {img:'/img/card_offsetcouleur.jpg',href:'/catalogue/?type=Offset couleur'},
       {img:'/img/card_book.jpg',         href:'/catalogue/?type=Bouffant'}
@@ -1792,15 +1889,14 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
       if(pd&&!(pd.classList.contains('active')||pd.classList.contains('selected'))) pd.click();
     };
     if(!document.body.classList.contains('ax-nofil')) window.axDispo();
-    /* Camion : panier VIDE → page /panier/ façon Alibaba ; sinon tiroir habituel */
+    /* Camion : TOUJOURS la page /panier/ (11/09 Ethan) — plus jamais le tiroir */
     (function(){
       var cb=document.getElementById('cart-btn');
       if(!cb||document.body.classList.contains('shared-view'))return;
-      cb.removeAttribute('onclick'); cb.onclick=null;
-      cb.addEventListener('click',function(){
-        var n=+((document.getElementById('cart-badge')||{}).textContent||0);
-        if(n>0){openCartDrawer();}else{location.href='/panier/';}
-      });
+      cb.removeAttribute('onclick');
+      /* slot onclick UNIQUE (pas d'addEventListener) : updateCartBadge le
+         réécrit avec la même action — jamais deux onglets par clic */
+      cb.onclick=function(){window.open('/panier/','_blank');};
     })();
     /* … et sa chip « Dispo ✕ » masquée (c'est le mode permanent, pas un filtre) */
     var chipBox=document.getElementById('filter-chips');

@@ -14,9 +14,15 @@
 body{margin:0;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#1d1d1f;min-height:100vh;display:flex;flex-direction:column;}
 header{display:flex;align-items:center;gap:22px;padding:16px 30px;}
 header img.logo{height:40px;display:block;}
-.lang-box{border:1.5px solid #d2d2d7;border-radius:10px;padding:9px 14px;font:600 14.5px 'DM Sans',sans-serif;color:#1d1d1f;display:flex;align-items:center;gap:10px;background:#fff;cursor:pointer;appearance:none;}
-main{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:60px;max-width:1500px;width:100%;margin:0 auto;padding:30px 40px 60px;align-items:start;}
-/* ── carte promo gauche ── */
+/* pilule langue façon Alibaba, à droite du logo */
+.lang-wrap{position:relative;display:inline-flex;align-items:center;}
+.lang-wrap select{appearance:none;-webkit-appearance:none;border:1.5px solid #d2d2d7;border-radius:12px;padding:10px 40px 10px 16px;font:600 14.5px 'DM Sans',sans-serif;color:#1d1d1f;background:#fff;cursor:pointer;outline:none;}
+.lang-wrap select:hover{border-color:#b8b8bd;}
+.lang-wrap svg{position:absolute;right:14px;pointer-events:none;}
+/* structure façon Alibaba : les 2 colonnes centrées EN BLOC, large respiration entre elles */
+main{flex:1;display:grid;grid-template-columns:auto 380px;column-gap:clamp(70px,9vw,175px);justify-content:center;width:100%;margin:0 auto;padding:42px 40px 80px;align-items:start;}
+/* ── visuel promo gauche (image complète) ── */
+.promo-hero{display:block;width:min(740px,48vw);height:auto;border-radius:18px;}
 .promo{position:relative;border-radius:18px;overflow:hidden;background:linear-gradient(135deg,#ff7a1a 0%,#ff3c00 45%,#fe0000 100%);min-height:640px;max-width:740px;justify-self:end;width:100%;padding:46px 46px 0;display:flex;flex-direction:column;align-items:center;text-align:center;}
 .promo-badge{background:#fff;color:#fe0000;font-weight:900;font-style:italic;font-size:17px;padding:8px 22px;border-radius:4px;clip-path:polygon(0 0,100% 0,92% 100%,0 100%);letter-spacing:.3px;}
 .promo-h{color:#fff;font-size:42px;font-weight:800;line-height:1.12;margin:26px 0 10px;text-shadow:0 2px 10px rgba(0,0,0,.12);}
@@ -27,7 +33,7 @@ main{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:60px;max-width:1500px
 .promo-imgs img:nth-child(2){width:240px;height:240px;}
 .promo-imgs img:nth-child(3){width:190px;height:190px;}
 /* ── colonne droite ── */
-.auth{max-width:390px;width:100%;justify-self:start;padding-top:26px;}
+.auth{width:100%;justify-self:start;padding-top:30px;}
 .auth h1{font-size:26px;font-weight:800;line-height:1.25;margin:0 0 26px;}
 .soc-btn{display:flex;align-items:center;width:100%;border:1.5px solid #d2d2d7;border-radius:10px;background:#fff;padding:13px 18px;font:700 15.5px 'DM Sans',sans-serif;color:#1d1d1f;cursor:pointer;margin-bottom:16px;text-decoration:none;}
 .soc-btn:hover{border-color:#1d1d1f;}
@@ -45,6 +51,50 @@ main{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:60px;max-width:1500px
 .auth-ok .chk{width:74px;height:74px;border-radius:50%;background:#e8f7ee;color:#1a9a4d;font-size:38px;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;}
 .auth-ok .t{font-size:19px;font-weight:800;}
 .auth-ok small{display:block;margin-top:8px;color:#6e6e73;font-size:14px;font-weight:500;line-height:1.5;}
+/* ── popup « Configurez votre compte » (1re connexion) ── */
+/* étape PLEINE PAGE : fond blanc opaque, pas de fermeture — on remplit, point. */
+#cfg-bg{position:fixed;inset:0;background:#fff;display:none;align-items:flex-start;justify-content:center;z-index:500;padding-top:9vh;overflow-y:auto;}
+#cfg-bg.open{display:flex;}
+.cfg-card{position:relative;width:min(580px,92vw);background:#fff;border-radius:16px;padding:28px 30px 26px;}
+.cfg-x{position:absolute;top:14px;right:14px;background:none;border:none;cursor:pointer;padding:6px;line-height:0;}
+.cfg-h{text-align:center;font-size:31px;font-weight:800;margin:0 0 30px;}
+.cfg-box{border:1.5px solid #d2d2d7;border-radius:12px;padding:12px 18px;margin-bottom:16px;}
+.cfg-box.ro{background:#f2f2f4;border-color:#e3e3e6;}
+.cfg-lab{font-size:13.5px;color:#6e6e73;font-weight:500;margin-bottom:3px;}
+.cfg-lab b{color:#e02020;font-weight:700;}
+.cfg-val{font-size:17px;font-weight:600;color:#1d1d1f;}
+.cfg-selwrap{position:relative;display:flex;align-items:center;gap:10px;}
+.cfg-selwrap img{width:25px;height:17px;object-fit:cover;border-radius:2px;box-shadow:0 0 0 1px rgba(0,0,0,.08);}
+.cfg-selwrap select{appearance:none;-webkit-appearance:none;flex:1;border:none;outline:none;background:none;font:600 17px 'DM Sans',sans-serif;color:#1d1d1f;padding-right:28px;cursor:pointer;}
+.cfg-selwrap svg{position:absolute;right:2px;pointer-events:none;}
+.cfg-note{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;font-size:12.5px;color:#6e6e73;line-height:1.45;margin:-6px 2px 14px;}
+.cfg-2col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:26px;}
+.cfg-2col .cfg-box{margin-bottom:0;}
+.cfg-box input{width:100%;border:none;outline:none;background:none;font:600 17px 'DM Sans',sans-serif;color:#1d1d1f;padding:0;}
+.cfg-box input::placeholder{color:#b4b4b9;font-weight:500;}
+/* indicatif téléphone façon vitrine (drapeau + code + panneau) */
+.cfg-telrow{position:relative;display:flex;align-items:center;}
+.cfg-telrow input{width:auto;flex:1;padding-left:13px;}
+.tel-cc{flex-shrink:0;display:flex;align-items:center;gap:7px;border:none;background:none;border-right:1px solid #e3e3e6;padding:2px 13px 2px 0;font:600 17px 'DM Sans',sans-serif;color:#1d1d1f;cursor:pointer;}
+.tel-cc::after{content:"";width:6px;height:6px;margin-left:-1px;flex-shrink:0;border-right:1.8px solid #86868b;border-bottom:1.8px solid #86868b;transform:translateY(-2px) rotate(45deg);transition:transform .2s;}
+.cfg-telrow:has(.tel-cc-pan.open) .tel-cc::after{transform:translateY(1px) rotate(-135deg);}
+.tel-cc-pan{display:none;position:absolute;top:calc(100% + 16px);left:-18px;z-index:60;background:#fff;border:1px solid #e8e8e4;border-radius:16px;width:330px;box-shadow:0 16px 50px rgba(0,0,0,.16);padding:10px;}
+.tel-cc-pan.open{display:block;}
+.tel-cc-search{width:100%;border:1px solid #d2d2d7;border-radius:10px;padding:9px 12px;font:500 16px 'DM Sans',sans-serif;outline:none;margin-bottom:8px;}
+/* Safari : masquer le bouton d'auto-remplissage Contacts greffé dans les champs */
+input::-webkit-contacts-auto-fill-button{visibility:hidden;display:none !important;pointer-events:none;position:absolute;right:0;}
+.tel-cc-search:focus{border-color:#1d1d1f;}
+.tel-cc-list{max-height:240px;overflow:auto;display:flex;flex-direction:column;}
+.tel-cc-list button{display:flex;align-items:center;gap:9px;width:100%;border:none;background:none;text-align:left;padding:8px 10px;border-radius:9px;font:400 16.5px 'DM Sans',sans-serif;color:#1d1d1f;cursor:pointer;}
+.tel-cc-list button:hover{background:#f5f5f7;}
+.tel-cc-list button em{margin-left:auto;font-style:normal;color:#86868b;}
+.tel-cc-custom{display:block;width:100%;text-align:left;border:none;background:#ffecec;color:#fe0000;font:600 16.5px 'DM Sans',sans-serif;padding:10px 12px;margin-bottom:6px;border-radius:10px;cursor:pointer;}
+.tel-cc-custom:hover{background:#ffdede;}
+.cfg-later{display:block;margin:0 auto 14px;background:none;border:none;color:#6e6e73;font:600 14.5px 'DM Sans',sans-serif;text-decoration:underline;cursor:pointer;}
+.cfg-later:hover{color:#1d1d1f;}
+.cfg-go{display:block;width:100%;border:none;border-radius:999px;background:#fe0000;color:#fff;font:800 18px 'DM Sans',sans-serif;padding:17px;cursor:pointer;}
+.cfg-go:hover{background:#cc0000;}
+.cfg-err{display:none;margin-top:12px;color:#c22a08;font-size:13px;font-weight:600;text-align:center;}
 footer{padding:26px 20px 30px;text-align:center;color:#6e6e73;font-size:13px;font-weight:500;}
 footer a{color:#6e6e73;text-decoration:none;margin:0 9px;}
 footer a:hover{color:#fe0000;text-decoration:underline;}
@@ -59,32 +109,25 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
 <body>
 <header>
   <a href="/catalogue/"><img class="logo" src="/img/logo.png?v=2" alt="Prodiconseil"></a>
-  <select class="lang-box" aria-label="Langue">
-    <option>Français</option>
-    <option>English</option>
-  </select>
+  <span class="lang-wrap">
+    <select id="lang-sel" aria-label="Langue" onchange="try{localStorage.setItem('ali_lang',this.value)}catch(e){}">
+      <option value="fr">Français</option>
+      <option value="en">English</option>
+    </select>
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" stroke-width="2.2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+  </span>
+  <script>
+  try{document.getElementById('lang-sel').value=(localStorage.getItem('ali_lang')==='en')?'en':'fr';}catch(e){}
+  </script>
 </header>
 <main>
-  <div class="promo">
-    <div class="promo-badge">Septembre 2026</div>
-    <div class="promo-h">Les offres de la rentrée sont là</div>
-    <div class="promo-s">Stocklots &amp; fabrication — plus de 10 000 t en stock</div>
-    <div class="promo-imgs">
-      <img src="/img/explore2_offset.jpg" alt="Bobine offset">
-      <img src="/img/explore2_couche.jpg" alt="Palette papier couché">
-      <img src="/img/explore2_kraft.jpg" alt="Bobine kraft">
-    </div>
-  </div>
+  <img class="promo-hero" src="/img/compte_promo.webp" alt="Quality Paper. Worldwide." width="977" height="1000">
   <div class="auth">
     <h1>Connectez-vous ou créez un compte</h1>
     <form id="auth-f" onsubmit="return axAuthGo(this)">
       <a class="soc-btn" href="#" onclick="axOauth('google');return false;">
         <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
         <span>Continuer avec Google</span>
-      </a>
-      <a class="soc-btn" href="#" onclick="axOauth('linkedin_oidc');return false;">
-        <svg viewBox="0 0 24 24"><rect x="1" y="1" width="22" height="22" rx="3" fill="#0A66C2"/><path fill="#fff" d="M8.3 17.5H6V9.7h2.3v7.8zM7.1 8.7a1.35 1.35 0 1 1 0-2.7 1.35 1.35 0 0 1 0 2.7zM18 17.5h-2.3v-3.8c0-.9-.3-1.5-1.1-1.5-.6 0-1 .4-1.2.8-.1.2-.1.4-.1.7v3.9H11s0-6.3 0-7.8h2.3v1.1c.3-.5.9-1.2 2.1-1.2 1.5 0 2.6 1 2.6 3.1v4.8z"/></svg>
-        <span>Continuer avec Linkedin</span>
       </a>
       <div class="or">OU</div>
       <input type="email" name="mail" placeholder="Saisissez votre e-mail" required>
@@ -102,6 +145,72 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
     <div id="auth-err" style="display:none;margin-top:16px;background:#fff2ec;border:1.5px solid #ff7a4d;color:#c22a08;border-radius:10px;padding:12px 14px;font-size:13.5px;font-weight:600;line-height:1.45;"></div>
   </div>
 </main>
+<div id="cfg-bg">
+  <div class="cfg-card" id="cfg-c1">
+    <div class="cfg-h">Configurez votre compte</div>
+    <div class="cfg-box ro">
+      <div class="cfg-lab">E-mail <b>*</b></div>
+      <div class="cfg-val" id="cfg-mail">&nbsp;</div>
+    </div>
+    <div class="cfg-box" style="margin-bottom:20px;">
+      <div class="cfg-lab">Port de destination pr&eacute;f&eacute;r&eacute;</div>
+      <div class="cfg-selwrap">
+        <img id="cfg-flag" src="https://flagcdn.com/w40/fr.png" alt="">
+        <select id="cfg-port" onchange="cfgFlag()"></select>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" stroke-width="2.2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      </div>
+    </div>
+    <div class="cfg-2col">
+      <div class="cfg-box"><div class="cfg-lab">Pr&eacute;nom <b>*</b></div><input id="cfg-prenom" autocomplete="given-name"></div>
+      <div class="cfg-box"><div class="cfg-lab">Nom <b>*</b></div><input id="cfg-nom" autocomplete="family-name"></div>
+    </div>
+    <button type="button" class="cfg-go" onclick="cfgGo()">Cr&eacute;ez un compte</button>
+    <div class="cfg-err" id="cfg-err"></div>
+  </div>
+  <div class="cfg-card" id="cfg-c2" style="display:none;">
+    <div class="cfg-h">Votre activit&eacute;</div>
+    <div class="cfg-box">
+      <div class="cfg-lab">Secteur d'activit&eacute; <b>*</b></div>
+      <div class="cfg-selwrap">
+        <select id="cfg-act">
+          <option value="" disabled selected hidden>S&eacute;lectionnez votre activit&eacute;&hellip;</option>
+          <option>Imprimeur / transformateur</option>
+          <option>Distributeur</option>
+          <option>Trader</option>
+          <option>Autre</option>
+        </select>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" stroke-width="2.2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      </div>
+    </div>
+    <div class="cfg-box">
+      <div class="cfg-lab">Soci&eacute;t&eacute; <b>*</b></div>
+      <input id="cfg-soc" autocomplete="organization">
+    </div>
+    <div class="cfg-box">
+      <div class="cfg-lab">Num&eacute;ro soci&eacute;t&eacute; / TVA</div>
+      <input id="cfg-tva">
+    </div>
+    <div class="cfg-2col" style="margin-bottom:16px;">
+      <div class="cfg-box"><div class="cfg-lab">Adresse</div><input id="cfg-adr" autocomplete="street-address"></div>
+      <div class="cfg-box"><div class="cfg-lab">Code postal / ZIP</div><input id="cfg-cp" autocomplete="postal-code"></div>
+    </div>
+    <div class="cfg-box" style="margin-bottom:26px;">
+      <div class="cfg-lab">T&eacute;l&eacute;phone / WhatsApp <b>*</b></div>
+      <div class="cfg-telrow">
+        <button type="button" class="tel-cc" id="cfg-cc"><span>&#127467;&#127479;</span> +33</button>
+        <input id="cfg-tel" type="tel" autocomplete="tel">
+        <div class="tel-cc-pan" id="cfg-ccpan">
+          <input type="text" class="tel-cc-search" placeholder="Pays ou indicatif (+245)&hellip;" aria-label="Rechercher un pays ou saisir un indicatif" autocomplete="off" name="cc-recherche">
+          <button type="button" class="tel-cc-custom" style="display:none"></button>
+          <div class="tel-cc-list"></div>
+        </div>
+      </div>
+    </div>
+    <button type="button" class="cfg-later" onclick="location.replace('/catalogue/')">Compl&eacute;ter plus tard</button>
+    <button type="button" class="cfg-go" onclick="cfg2Go()">Valider mon profil</button>
+    <div class="cfg-err" id="cfg-err2"></div>
+  </div>
+</div>
 <footer>
   <div>
     <a href="/about/">&Agrave; propos</a>&middot;<a href="#" onclick="return false;">Mentions l&eacute;gales</a>&middot;<a href="#" onclick="return false;">Politique de confidentialit&eacute;</a>&middot;<a href="#" onclick="return false;">Conditions d'utilisation</a>&middot;<a href="/about/">Contact</a>
@@ -149,17 +258,173 @@ function axOauth(provider){
     .catch(function(){_err('Réseau indisponible, réessayez.');});
 }
 function axLogout(){sb.auth.signOut().then(function(){location.reload();});}
-/* Session détectée (retour de lien magique ou déjà connecté) → état connecté */
+/* ── popup « Configurez votre compte » (profil incomplet) ── */
+/* même liste de ports que le widget du catalogue : [cc, pays, [ports…]] */
+var CFG_Z=[
+  ['fr','France',['Le Havre','Marseille-Fos']],['be','Belgique',['Anvers']],['nl','Pays-Bas',['Rotterdam']],['de','Allemagne',['Hambourg']],['pl','Pologne',['Gdansk']],['it','Italie',['Gênes']],['es','Espagne',['Valence','Algésiras']],['pt','Portugal',['Lisbonne']],['ro','Roumanie',['Constanta']],['bg','Bulgarie',['Varna']],['hr','Croatie',['Rijeka']],['si','Slovénie',['Koper']],['gr','Grèce',['Le Pirée']],
+  ['ma','Maroc',['Casablanca','Tanger Med','Agadir']],['dz','Algérie',['Alger','Oran']],['tn','Tunisie',['Radès (Tunis)','Sfax']],['ly','Libye',['Tripoli','Misrata','Benghazi']],
+  ['sn','Sénégal',['Dakar']],['gn','Guinée',['Conakry']],['sl','Sierra Leone',['Freetown']],
+  ['ci','Côte d\'Ivoire',['Abidjan']],['gh','Ghana',['Tema']],['tg','Togo',['Lomé']],['bj','Bénin',['Cotonou']],['ng','Nigeria',['Lagos (Apapa)','Onne']],['gq','Guinée Équat.',['Malabo','Bata']],['ga','Gabon',['Libreville']],['cg','Congo',['Pointe-Noire']],
+  ['cm','Cameroun',['Douala','Kribi']],['cd','RDC',['Matadi']],
+  ['eg','Égypte',['Alexandrie','Port-Saïd','Damiette']],['sd','Soudan',['Port-Soudan']],['dj','Djibouti',['Djibouti']],
+  ['sa','Arabie Saoudite',['Djeddah','Dammam']],['tr','Turquie',['Istanbul (Ambarli)','Mersin','Izmir']],['ye','Yémen',['Aden']],['jo','Jordanie',['Aqaba']],['iq','Irak',['Umm Qasr']],['lb','Liban',['Beyrouth']],
+  ['ae','Émirats A.U.',['Jebel Ali (Dubaï)']],['qa','Qatar',['Hamad (Doha)']],['om','Oman',['Sohar']],['kw','Koweït',['Shuwaikh']],['bh','Bahreïn',['Khalifa Bin Salman']],
+  ['in','Inde',['Nhava Sheva (Mumbai)','Mundra','Chennai']],['pk','Pakistan',['Karachi']],['bd','Bangladesh',['Chittagong']],['lk','Sri Lanka',['Colombo']],
+  ['cn','Chine',['Shanghai','Ningbo','Shenzhen','Qingdao']],
+  ['th','Thaïlande',['Laem Chabang (Bangkok)']],['vn','Vietnam',['Hô Chi Minh (Cat Lai)','Haïphong']],['my','Malaisie',['Port Klang']],['id','Indonésie',['Jakarta (Tanjung Priok)']],['ph','Philippines',['Manille']],['sg','Singapour',['Singapour']],
+  ['us','USA (côte Est)',['New York','Savannah','Miami']],['ca','Canada',['Montréal','Halifax']],
+  ['br','Brésil',['Santos']],['ar','Argentine',['Buenos Aires']],['cl','Chili',['San Antonio']],['pe','Pérou',['Callao']],['co','Colombie',['Carthagène']],
+  ['za','Afrique du Sud',['Durban','Le Cap']],['mz','Mozambique',['Maputo']],['na','Namibie',['Walvis Bay']],['ao','Angola',['Luanda']],['mg','Madagascar',['Tamatave']],
+  ['au','Australie',['Sydney','Melbourne']],['nz','Nouvelle-Zélande',['Auckland']]
+];
+function cfgFlag(){var v=document.getElementById('cfg-port').value;document.getElementById('cfg-flag').src='https://flagcdn.com/w40/'+v.split('|')[0]+'.png';}
+/* ── indicatif téléphone façon vitrine (ccInit compact) ── */
+var CC_PAYS=[
+["France","fr","+33"],["Maroc","ma","+212"],["Algérie","dz","+213"],["Tunisie","tn","+216"],["Égypte","eg","+20"],["Sénégal","sn","+221"],["Côte d'Ivoire","ci","+225"],
+["Afghanistan","af","+93"],["Afrique du Sud","za","+27"],["Albanie","al","+355"],["Allemagne","de","+49"],["Andorre","ad","+376"],["Angola","ao","+244"],["Arabie saoudite","sa","+966"],
+["Argentine","ar","+54"],["Arménie","am","+374"],["Australie","au","+61"],["Autriche","at","+43"],["Azerbaïdjan","az","+994"],["Bahreïn","bh","+973"],["Bangladesh","bd","+880"],
+["Belgique","be","+32"],["Bénin","bj","+229"],["Biélorussie","by","+375"],["Birmanie","mm","+95"],["Bolivie","bo","+591"],["Bosnie-Herzégovine","ba","+387"],["Botswana","bw","+267"],
+["Brésil","br","+55"],["Bulgarie","bg","+359"],["Burkina Faso","bf","+226"],["Burundi","bi","+257"],["Cambodge","kh","+855"],["Cameroun","cm","+237"],["Canada","ca","+1"],
+["Cap-Vert","cv","+238"],["Centrafrique","cf","+236"],["Chili","cl","+56"],["Chine","cn","+86"],["Chypre","cy","+357"],["Colombie","co","+57"],["Comores","km","+269"],
+["Congo","cg","+242"],["RD Congo","cd","+243"],["Corée du Sud","kr","+82"],["Costa Rica","cr","+506"],["Croatie","hr","+385"],["Cuba","cu","+53"],["Danemark","dk","+45"],
+["Djibouti","dj","+253"],["Émirats arabes unis","ae","+971"],["Équateur","ec","+593"],["Érythrée","er","+291"],["Espagne","es","+34"],["Estonie","ee","+372"],["Eswatini","sz","+268"],
+["États-Unis","us","+1"],["Éthiopie","et","+251"],["Finlande","fi","+358"],["Gabon","ga","+241"],["Gambie","gm","+220"],["Géorgie","ge","+995"],["Ghana","gh","+233"],
+["Grèce","gr","+30"],["Guatemala","gt","+502"],["Guinée","gn","+224"],["Guinée-Bissau","gw","+245"],["Guinée équatoriale","gq","+240"],["Haïti","ht","+509"],["Honduras","hn","+504"],
+["Hong Kong","hk","+852"],["Hongrie","hu","+36"],["Île Maurice","mu","+230"],["Inde","in","+91"],["Indonésie","id","+62"],["Irak","iq","+964"],["Iran","ir","+98"],
+["Irlande","ie","+353"],["Islande","is","+354"],["Israël","il","+972"],["Italie","it","+39"],["Jamaïque","jm","+1876"],["Japon","jp","+81"],["Jordanie","jo","+962"],
+["Kazakhstan","kz","+7"],["Kenya","ke","+254"],["Kirghizistan","kg","+996"],["Koweït","kw","+965"],["Laos","la","+856"],["Lesotho","ls","+266"],["Lettonie","lv","+371"],
+["Liban","lb","+961"],["Liberia","lr","+231"],["Libye","ly","+218"],["Liechtenstein","li","+423"],["Lituanie","lt","+370"],["Luxembourg","lu","+352"],["Macédoine du Nord","mk","+389"],
+["Madagascar","mg","+261"],["Malaisie","my","+60"],["Malawi","mw","+265"],["Maldives","mv","+960"],["Mali","ml","+223"],["Malte","mt","+356"],["Mauritanie","mr","+222"],
+["Mexique","mx","+52"],["Moldavie","md","+373"],["Monaco","mc","+377"],["Mongolie","mn","+976"],["Monténégro","me","+382"],["Mozambique","mz","+258"],["Namibie","na","+264"],
+["Népal","np","+977"],["Nicaragua","ni","+505"],["Niger","ne","+227"],["Nigeria","ng","+234"],["Norvège","no","+47"],["Nouvelle-Zélande","nz","+64"],["Oman","om","+968"],
+["Ouganda","ug","+256"],["Ouzbékistan","uz","+998"],["Pakistan","pk","+92"],["Panama","pa","+507"],["Paraguay","py","+595"],["Pays-Bas","nl","+31"],["Pérou","pe","+51"],
+["Philippines","ph","+63"],["Pologne","pl","+48"],["Portugal","pt","+351"],["Qatar","qa","+974"],["République dominicaine","do","+1809"],["République tchèque","cz","+420"],
+["Roumanie","ro","+40"],["Royaume-Uni","gb","+44"],["Russie","ru","+7"],["Rwanda","rw","+250"],["Salvador","sv","+503"],["Serbie","rs","+381"],["Seychelles","sc","+248"],
+["Sierra Leone","sl","+232"],["Singapour","sg","+65"],["Slovaquie","sk","+421"],["Slovénie","si","+386"],["Somalie","so","+252"],["Soudan","sd","+249"],["Soudan du Sud","ss","+211"],
+["Sri Lanka","lk","+94"],["Suède","se","+46"],["Suisse","ch","+41"],["Suriname","sr","+597"],["Syrie","sy","+963"],["Taïwan","tw","+886"],["Tanzanie","tz","+255"],
+["Tchad","td","+235"],["Thaïlande","th","+66"],["Togo","tg","+228"],["Trinité-et-Tobago","tt","+1868"],["Turkménistan","tm","+993"],["Turquie","tr","+90"],["Ukraine","ua","+380"],
+["Uruguay","uy","+598"],["Venezuela","ve","+58"],["Vietnam","vn","+84"],["Yémen","ye","+967"],["Zambie","zm","+260"],["Zimbabwe","zw","+263"]];
+function ccFlag(iso){return iso.toUpperCase().replace(/./g,function(c){return String.fromCodePoint(127397+c.charCodeAt(0));});}
+(function(){
+  var inp=document.getElementById('cfg-tel'), btn=document.getElementById('cfg-cc'), pan=document.getElementById('cfg-ccpan');
+  if(!inp||!btn||!pan)return;
+  var search=pan.querySelector('.tel-cc-search'), custom=pan.querySelector('.tel-cc-custom'), list=pan.querySelector('.tel-cc-list');
+  list.innerHTML=CC_PAYS.map(function(c,i){return '<button type="button" data-i="'+i+'"><span>'+ccFlag(c[1])+'</span>'+c[0]+' <em>'+c[2]+'</em></button>';}).join('');
+  function setCC(code,iso){inp.dataset.cc=code;btn.innerHTML='<span>'+(iso?ccFlag(iso):'🌐')+'</span> '+code;pan.classList.remove('open');}
+  /* défaut par priorité : choix utilisateur > pays du port (étape 1) > géoloc IP > locale navigateur > +33 */
+  var ccSrc='default';
+  var _r=((navigator.language||'').split('-')[1]||'').toLowerCase();
+  var _d=CC_PAYS.filter(function(p){return p[1]===_r;})[0]||CC_PAYS[0];
+  setCC(_d[2],_d[1]);
+  fetch('https://api.country.is/').then(function(r){return r.json();}).then(function(d){
+    if(ccSrc!=='default')return;
+    var c=CC_PAYS.filter(function(p){return p[1]===String(d.country||'').toLowerCase();})[0];
+    if(c){setCC(c[2],c[1]);ccSrc='ip';}
+  }).catch(function(){});
+  window._cfgSetCcFromIso=function(iso){
+    if(ccSrc==='user')return;
+    var c=CC_PAYS.filter(function(p){return p[1]===iso;})[0];
+    if(c){setCC(c[2],c[1]);ccSrc='port';}
+  };
+  var norm=function(t){return t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');};
+  function asDial(q){var d=(q||'').replace(/[^\d+]/g,'');if(/^\+\d{1,4}$/.test(d))return d;if(/^00\d{1,4}$/.test(d))return '+'+d.slice(2);if(/^\d{1,4}$/.test(d))return '+'+d;return null;}
+  function filtre(q){
+    var nq=norm(q);
+    Array.prototype.forEach.call(list.querySelectorAll('button'),function(b){var c=CC_PAYS[+b.dataset.i];b.style.display=(!nq||norm(c[0]).indexOf(nq)>=0||c[2].indexOf(nq)>=0)?'':'none';});
+    var dial=asDial(q);
+    if(dial&&!CC_PAYS.some(function(c){return c[2]===dial;})){custom.textContent='Utiliser « '+dial+' »';custom.dataset.code=dial;custom.style.display='';}
+    else custom.style.display='none';
+  }
+  btn.addEventListener('click',function(){pan.classList.toggle('open');if(pan.classList.contains('open')){search.value='';filtre('');setTimeout(function(){search.focus();},40);}});
+  search.addEventListener('input',function(){filtre(search.value);});
+  search.addEventListener('keydown',function(e){
+    if(e.key!=='Enter')return;
+    e.preventDefault();
+    var dial=asDial(search.value);
+    if(dial&&!CC_PAYS.some(function(c){return c[2]===dial;})){ccSrc='user';setCC(dial,null);return;}
+    var vis=Array.prototype.filter.call(list.querySelectorAll('button'),function(b){return b.style.display!=='none';});
+    if(vis.length)vis[0].click();
+  });
+  custom.addEventListener('click',function(){ccSrc='user';setCC(custom.dataset.code,null);});
+  list.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var c=CC_PAYS[+b.dataset.i];ccSrc='user';setCC(c[2],c[1]);inp.focus();});
+  document.addEventListener('click',function(e){var row=document.querySelector('.cfg-telrow');if(row&&!row.contains(e.target))pan.classList.remove('open');});
+})();
+function cfgStep(n){
+  document.getElementById('cfg-c1').style.display=(n===1)?'':'none';
+  document.getElementById('cfg-c2').style.display=(n===2)?'':'none';
+  document.getElementById('cfg-bg').scrollTop=0;
+}
+function cfgOpen(user){
+  var m=user.user_metadata||{};
+  document.getElementById('cfg-mail').textContent=user.email||'';
+  var sel=document.getElementById('cfg-port');
+  if(!sel.options.length){CFG_Z.forEach(function(c){c[2].forEach(function(pt){var o=document.createElement('option');o.value=c[0]+'|'+pt;o.textContent=pt+' — '+c[1];sel.appendChild(o);});});}
+  var def='fr|Le Havre';
+  try{var sh=JSON.parse(localStorage.getItem('ali_ship2')||'null');if(sh&&sh.id)def=sh.id;}catch(e){}
+  sel.value=m.port||def; if(!sel.value)sel.value='fr|Le Havre';
+  cfgFlag();
+  document.getElementById('cfg-prenom').value=m.prenom||'';
+  document.getElementById('cfg-nom').value=m.nom||'';
+  /* préremplissage étape 2 */
+  document.getElementById('cfg-soc').value=m.societe||'';
+  document.getElementById('cfg-tva').value=m.tva||'';
+  document.getElementById('cfg-tel').value=m.tel||'';
+  /* pas encore de numéro : indicatif aligné sur le pays du port choisi */
+  if(!m.tel&&window._cfgSetCcFromIso)_cfgSetCcFromIso((m.port||def).split('|')[0]);
+  document.getElementById('cfg-adr').value=m.adresse||'';
+  document.getElementById('cfg-cp').value=m.cp||'';
+  if(m.activite)document.getElementById('cfg-act').value=m.activite;
+  /* identité déjà remplie → directement l'étape activité */
+  cfgStep((!m.prenom&&!m.nom)?1:2);
+  document.getElementById('cfg-bg').classList.add('open');
+}
+function cfgClose(){document.getElementById('cfg-bg').classList.remove('open');}
+function cfgGo(){
+  var pre=document.getElementById('cfg-prenom').value.trim(), nom=document.getElementById('cfg-nom').value.trim();
+  var er=document.getElementById('cfg-err');
+  if(!pre||!nom){er.textContent='Prénom et nom requis.';er.style.display='block';return;}
+  er.style.display='none';
+  var b=document.querySelector('#cfg-c1 .cfg-go'); b.disabled=true; b.textContent='Enregistrement…';
+  var port=document.getElementById('cfg-port').value;
+  sb.auth.updateUser({data:{prenom:pre,nom:nom,port:port}}).then(function(r){
+    b.disabled=false; b.textContent='Créez un compte';
+    if(r.error){er.textContent=r.error.message;er.style.display='block';return;}
+    try{localStorage.setItem('ali_ship2',JSON.stringify({id:port}));}catch(e){}   /* synchro widget CFR du catalogue */
+    cfgStep(2);   /* la suite : infos activité */
+  });
+}
+function cfg2Go(){
+  var soc=document.getElementById('cfg-soc').value.trim(), tel=document.getElementById('cfg-tel').value.trim();
+  var er=document.getElementById('cfg-err2');
+  var nd=(tel.match(/\d/g)||[]).length;
+  if(!document.getElementById('cfg-act').value){er.textContent='Choisissez votre secteur d\'activité.';er.style.display='block';return;}
+  if(!soc){er.textContent='Le nom de votre société est requis.';er.style.display='block';return;}
+  if(nd<8||nd>15){er.textContent='Numéro de téléphone invalide (8 à 15 chiffres).';er.style.display='block';return;}
+  er.style.display='none';
+  /* numéro nu → préfixé par l'indicatif choisi (comme la vitrine) */
+  if(tel.charAt(0)!=='+')tel=((document.getElementById('cfg-tel').dataset.cc||'')+' '+tel).trim();
+  var b=document.querySelector('#cfg-c2 .cfg-go'); b.disabled=true; b.textContent='Enregistrement…';
+  sb.auth.updateUser({data:{
+    societe:soc, tel:tel,
+    tva:document.getElementById('cfg-tva').value.trim(),
+    adresse:document.getElementById('cfg-adr').value.trim(),
+    cp:document.getElementById('cfg-cp').value.trim(),
+    activite:document.getElementById('cfg-act').value
+  }}).then(function(r){
+    b.disabled=false; b.textContent='Valider mon profil';
+    if(r.error){er.textContent=r.error.message;er.style.display='block';return;}
+    location.replace('/catalogue/');   /* profil complet → accueil */
+  });
+}
+/* Session détectée (retour de lien magique ou déjà connecté) :
+   profil incomplet → pages de configuration ; sinon DIRECTEMENT l'accueil
+   (aucune raison de montrer une page « Connecté ! ») */
 sb.auth.getSession().then(function(r){
   var s=r.data&&r.data.session;
   if(!s)return;
-  document.querySelector('.auth h1').textContent='Mon compte';
-  document.getElementById('auth-f').style.display='none';
-  var ok=document.getElementById('auth-ok');
-  ok.style.display='block';
-  document.getElementById('auth-ok-t').textContent='Connecté !';
-  document.getElementById('auth-ok-s').innerHTML='Vous êtes connecté en tant que<br><b>'+(s.user.email||'')+'</b>';
-  document.getElementById('auth-ok-actions').style.display='block';
+  var m=s.user.user_metadata||{};
+  if((!m.prenom&&!m.nom)||!m.societe||!m.tel){cfgOpen(s.user);}
+  else{location.replace('/catalogue/');}
 });
 </script>
 </body>

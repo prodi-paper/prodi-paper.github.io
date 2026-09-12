@@ -11,20 +11,38 @@
 <style>
 /* MAQUETTE MIX — page panier vide façon Alibaba */
 *{box-sizing:border-box;}
-body{margin:0;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#1d1d1f;min-height:100vh;display:flex;flex-direction:column;}
-header{display:flex;align-items:center;gap:22px;padding:16px 30px;border-bottom:1px solid #f0f0f2;}
+body{margin:0;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#1d1d1f;min-height:100vh;display:flex;flex-direction:column;min-width:1200px;}
+/* même gabarit que le catalogue : contenu borné à min(1500px, 100vw − 64px), centré */
+header{border-bottom:1px solid #f0f0f2;padding:13px 0;}
+.h-in{display:flex;align-items:center;gap:24px;max-width:min(1500px,calc(100vw - 64px));margin:0 auto;}
 header img.logo{height:40px;display:block;}
 .h-sp{flex:1;}
-.h-link{color:#1d1d1f;text-decoration:none;font-size:15px;font-weight:600;}
-.h-link:hover{color:#fe0000;}
-main{flex:1;max-width:1500px;width:100%;margin:0 auto;padding:34px 40px 70px;}
+/* barre de recherche façon Alibaba */
+.hsearch{flex:1;display:flex;align-items:center;gap:10px;height:48px;border:1.5px solid #e0e0e4;border-radius:999px;padding:3px 3px 3px 20px;background:#fff;}
+.hsearch:focus-within{border-color:#b8b8bd;}
+.hsearch input{flex:1;min-width:60px;border:none;outline:none;background:none;font:500 15px 'DM Sans',sans-serif;color:#1d1d1f;}
+.hsearch button{height:38px;padding:0 22px;border:none;border-radius:999px;background:#fe0000;color:#fff;font:700 15px 'DM Sans',sans-serif;display:flex;align-items:center;gap:8px;cursor:pointer;flex-shrink:0;}
+.hsearch button:hover{background:#cc0000;}
+/* port de destination */
+.haddr{display:flex;flex-direction:column;line-height:1.3;text-decoration:none;color:#1d1d1f;flex-shrink:0;}
+.haddr .hl{font-size:11.5px;font-weight:500;color:#6e6e73;}
+.haddr .hv{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;}
+.haddr img{width:20px;height:14px;border-radius:2px;object-fit:cover;display:block;}
+/* langue-devise / compte */
+.hlang,.hacct{display:flex;align-items:center;gap:7px;font-size:14.5px;font-weight:600;color:#1d1d1f;text-decoration:none;flex-shrink:0;}
+.hlang svg,.hacct svg{width:19px;height:19px;}
+.hlang:hover,.hacct:hover{color:#fe0000;}
+/* même bouton que le catalogue (#ali-join) : dégradé orange→rouge */
+.hcta{background:linear-gradient(90deg,#ff7a1a,#ff3c00 45%,#fe0000);color:#fff;border-radius:999px;padding:10px 20px;font-weight:800;font-size:15.8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;text-decoration:none;white-space:nowrap;flex-shrink:0;}
+.hcta:hover{filter:brightness(.93);}
+main{flex:1;max-width:min(1500px,calc(100vw - 64px));width:100%;margin:0 auto;padding:34px 0 70px;}
 h1{font-size:30px;font-weight:800;margin:0 0 60px;}
 .empty{display:flex;align-items:center;justify-content:center;gap:64px;}
-.empty img{height:170px;width:auto;opacity:.92;}
+.empty img{height:220px;width:auto;}
 .e-t{font-size:20px;font-weight:800;margin-bottom:18px;}
 .e-sub{font-size:15.5px;font-weight:700;margin-bottom:12px;}
 .e-line{display:flex;align-items:center;gap:9px;font-size:14.5px;font-weight:500;color:#1d1d1f;margin-bottom:10px;}
-.e-line svg{width:18px;height:18px;flex-shrink:0;color:#1a9a4d;}
+.e-line svg{width:18px;height:18px;flex-shrink:0;color:#1d1d1f;}
 .start{display:block;margin:42px auto 0;width:min(300px,80%);text-align:center;border:1.5px solid #d2d2d7;border-radius:999px;background:#fff;padding:14px;font:700 15.5px 'DM Sans',sans-serif;color:#1d1d1f;text-decoration:none;}
 .start:hover{border-color:#1d1d1f;}
 footer{padding:26px 20px 30px;text-align:center;color:#6e6e73;font-size:13px;font-weight:500;border-top:1px solid #f0f0f2;}
@@ -35,30 +53,65 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
 </head>
 <body>
 <header>
+<div class="h-in">
   <a href="/catalogue/"><img class="logo" src="/img/logo.png?v=2" alt="Prodiconseil"></a>
-  <span class="h-sp"></span>
-  <a class="h-link" href="/catalogue/">Retour au catalogue</a>
+  <form class="hsearch" action="/catalogue/" method="get">
+    <input type="text" name="q" placeholder="Que recherchez-vous ?" autocomplete="off">
+    <input type="hidden" name="all" value="1">
+    <button type="submit">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      Rechercher
+    </button>
+  </form>
+  <a class="haddr" href="/catalogue/" title="Changer de port dans le catalogue">
+    <span class="hl">Port de destination&nbsp;:</span>
+    <span class="hv"><img id="h-flag" src="https://flagcdn.com/w40/fr.png" alt=""><span id="h-port">Le Havre</span></span>
+  </a>
+  <a class="hlang" href="/catalogue/">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
+    <span id="h-lang">Français-EUR</span>
+  </a>
+  <a class="hacct" href="/compte/">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>
+    Se connecter
+  </a>
+  <a class="hcta" href="/compte/">Devenir client</a>
+</div>
 </header>
+<script>
+/* reflète les choix mémorisés du catalogue (port + langue/devise) */
+(function(){
+  try{
+    var s=JSON.parse(localStorage.getItem('ali_ship2')||'null');
+    if(s&&s.id){var p=s.id.split('|');
+      document.getElementById('h-flag').src='https://flagcdn.com/w40/'+p[0]+'.png';
+      document.getElementById('h-port').textContent=p[1];}
+  }catch(e){}
+  try{
+    var l=localStorage.getItem('ali_lang')||'fr';
+    var c=/usd/i.test(localStorage.getItem('prodi_ccy')||'')?'USD':'EUR';
+    document.getElementById('h-lang').textContent=(l==='en'?'English':'Français')+'-'+c;
+  }catch(e){}
+})();
+</script>
 <main>
   <h1>Panier</h1>
   <div class="empty">
-    <img src="/img/truck2.png" alt="">
+    <img src="/img/panier_container.webp" alt="" width="800" height="533">
     <div>
       <div class="e-t">Votre panier est vide.</div>
-      <div class="e-sub">Protection des commandes Prodiconseil</div>
       <div class="e-line">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
-        Paiements s&eacute;curis&eacute;s
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 9 5-9 5-9-5z"/><path d="m3 12 9 5 9-5"/><path d="m3 17 9 5 9-5"/></svg>
+        <span><b>+25 qualit&eacute;s de papier &amp; carton</b></span>
       </div>
       <div class="e-line">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="14" height="12" rx="1"/><path d="M15 10h4l3 4v4h-7z"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg>
-        Livraison garantie
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v13"/><path d="M5 12H2a10 10 0 0 0 20 0h-3"/><circle cx="12" cy="5" r="3"/></svg>
+        <span><b>Export international</b></span>
       </div>
       <div class="e-line">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
-        Protection de remboursement
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h6"/></svg>
+        <span><b>Documents export &amp; fiches techniques</b></span>
       </div>
-      <a class="start" href="/catalogue/">Commencer</a>
     </div>
   </div>
 </main>
