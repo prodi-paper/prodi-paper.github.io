@@ -211,9 +211,10 @@ def parse_dov(files):
         # pour les réfs numériques (le site gère les 404 par fallback visuel).
         image_url = f"https://stock.prodi.net/albums/photo/{ref}.jpg" if ref.isdigit() else None
 
-        # Règle PROMO (18/07/2026, Ethan) : toute réf numérique < 900000 est du
-        # vieux stock re-listé — JAMAIS une vraie réservation (les CODE_CLI
-        # qu'on y trouve sont des scories) → promo, prix -30 %, résa levée.
+        # Règle PROMO (18/07/2026, Ethan ; seuil relevé 900000→950000 le 13/09/2026) :
+        # toute réf numérique < 950000 (arrivage > ~mi-2023) est du vieux stock
+        # re-listé — JAMAIS une vraie réservation (les CODE_CLI qu'on y trouve
+        # sont des scories) → promo, prix -30 %, résa levée.
         # Date d'arrivée Sage (DATECREA) → products.date_arrivee (21/07/2026).
         _dc = g(row, 'DATECREA')
         try:
@@ -221,7 +222,7 @@ def parse_dov(files):
         except Exception:
             date_arrivee = None
 
-        promo = ref.isdigit() and int(ref) < 900000
+        promo = ref.isdigit() and int(ref) < 950000
         # Prix (04/08) : PUNET vaut le prix d'ACHAT à ±1 % sur 52 % des lignes
         # du DOV et est SOUS l'achat sur 20 % — c'est une valorisation de
         # stock, pas un prix de vente. On prend donc le MAX de PUNET et
