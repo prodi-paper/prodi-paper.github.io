@@ -89,7 +89,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--rouge)}
   padding:14px 14px;font-weight:600;font-size:19px;cursor:pointer;background:#fff;transition:background .15s,color .15s;user-select:none;color:var(--gris)}
 .check + .check{border-left:1px solid var(--ligne)}
 .check:hover{color:var(--encre)}
-.check:has(input:checked){background:#fff;color:#b30b00;font-weight:800;box-shadow:inset 0 0 0 2px #b30b00;border-radius:var(--radius-sm)} /* rouge Acrobat = celui du bouton Confirmer */
+.check:has(input:checked){background:#eff4ff;color:#1d4ed8;font-weight:700} /* retour au bleu doux d'origine (14/09 Ethan, après essais rouge) */
 .check input{display:none}
 .check span{white-space:nowrap}
 
@@ -113,8 +113,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--rouge)}
 .chip .dot{width:9px;height:9px;border-radius:50%}
 .chip.cc{background:#fff;color:var(--gris);cursor:pointer;transition:.15s}
 .chip.cc:hover{border-color:var(--gris2)}
-.chip.cc:not(.off){border:1.5px solid #b30b00;background:#fff;color:#b30b00;font-weight:700}
-.chip.to{border:1.5px solid #b30b00;background:#fff;color:#b30b00;font-weight:700}
+.chip.cc:not(.off){border:1.5px solid var(--bleu);background:#eff4ff;color:#1d4ed8;font-weight:700}
+.chip.to{border:1.5px solid var(--bleu);background:#eff4ff;color:#1d4ed8;font-weight:700}
 .chip.add{background:#fff;border:1.5px dashed var(--ligne);color:var(--gris)}
 .chip.add:hover{border-color:var(--gris2);background:var(--fond)}
 .dest-ligne{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
