@@ -68,23 +68,52 @@ function majEnvoiActif() {
 
 /* destination : pays */
 function filterPays() {
-  const q = $('f-pays').value.trim().toLowerCase();
-  const hits = PAYS.filter(p => p.nom.toLowerCase().includes(q));
+  /* GROUPÉ PAR PAYS (14/09, comme le DÉPART — sans ligne dépôt) :
+     pays en tête (cliquable), ses ports dessous ; un port choisi ici
+     remplit PAYS + PORT d'un coup. */
+  /* valeur issue d'un choix du menu → focus = liste complète (pas un filtre) */
+  const raw = $('f-pays').value.trim();
+  const q = (window._destPicked && raw === window._destPicked) ? '' : raw.toLowerCase();
+  if (q) window._destPicked = null;
   const exact = PAYS.find(p => p.nom.toLowerCase() === q);
-  selPays = exact ? exact.code : null;
-  $('pp-flag').textContent = exact ? exact.flag : '🌍';
-  $('pp-list').innerHTML = hits.map(p =>
-    `<button class="pp-item" onmousedown="pickDest('${p.code}')">
-       <span class="f">${p.flag}</span> ${p.nom}
-       <span class="z">${ZONES[p.zone]}</span>
-     </button>`).join('') || LIBRE;
+  if (q) selPays = exact ? exact.code : null;
+  if (q) $('pp-flag').textContent = exact ? exact.flag : '🌍';
+  let html = '';
+  PAYS.forEach(c => {
+    const ports = DEST_PORTS.filter(p => p.code === c.code);
+    const cMatch = !q || c.nom.toLowerCase().includes(q);
+    const pHits = q ? ports.filter(p => p.nom.toLowerCase().includes(q)) : ports;
+    if (!cMatch && !pHits.length) return;
+    html += `<button class="pp-item pp-grp" onmousedown="pickDest('${c.code}')"><span class="f">${c.flag}</span> ${c.nom}<span class="z">${ZONES[c.zone]}</span></button>`;
+    (cMatch ? ports : pHits).forEach(p => {
+      html += `<button class="pp-item pp-port" onmousedown="pickDestBoth('${p.id}')">${p.nom}</button>`;
+    });
+  });
+  $('pp-list').innerHTML = html || LIBRE;
   $('pp-list').classList.add('open');
+  majEnvoiActif();
+  regenMail();
+}
+/* clic port depuis le menu PAYS : remplit les deux champs */
+function pickDestBoth(id) {
+  const s = DEST_PORTS.find(x => x.id === id);
+  const c = paysByCode(s.code);
+  /* case unique : « Port, Pays » ; le champ port caché reste vide (le mail
+     construit destTxt à partir de la case visible) */
+  $('f-pays').value = s.nom + ', ' + c.nom;
+  $('f-pays-port').value = '';
+  window._destPicked = $('f-pays').value;
+  selPays = c.code;
+  $('pp-flag').textContent = c.flag;
+  $('pp-list').classList.remove('open');
   majEnvoiActif();
   regenMail();
 }
 function pickDest(code) {
   const p = paysByCode(code);
   $('f-pays').value = p.nom;
+  $('f-pays-port').value = '';
+  window._destPicked = p.nom;
   selPays = code;
   $('pp-flag').textContent = p.flag;
   $('pp-list').classList.remove('open');
@@ -135,16 +164,39 @@ function provInput() {
   filterProv();
 }
 function filterProv() {
-  const q = $('f-prov').value.trim().toLowerCase();
-  const hits = PROV_SUGG.filter(p => provTexte(p).toLowerCase().includes(q));
+  /* GROUPÉ PAR PAYS : le pays en tête de groupe (cliquable), ses ports
+     dessous — les plus gros ports d'abord (ordre de PORTS_PROV). */
+  /* dépôt actif : le champ contient son libellé → liste COMPLÈTE au focus */
+  const q = $('f-depot').checked ? '' : $('f-prov').value.trim().toLowerCase();
   const exact = PROV_SUGG.find(p => p.nom.toLowerCase() === q || provTexte(p).toLowerCase() === q);
-  $('pv-flag').textContent = exact ? exact.flag : '🌍';
-  $('pv-list').innerHTML = hits.map(p =>
-    `<button class="pp-item" onmousedown="pickProv('${p.code}')"><span class="f">${p.flag}</span> ${provTexte(p)}</button>`
-  ).join('') || LIBRE;
+  $('pv-flag').textContent = $('f-depot').checked ? '🏭' : (exact ? exact.flag : '🌍');
+  let html = '';
+  /* 1re ligne : le DÉPÔT (14/09 Ethan) — clic = coche le segment Dépôt */
+  if (!q || 'dépôt depot saint-ouen amiens'.includes(q))
+    html += `<button class="pp-item pp-grp" onmousedown="pickProvDepot()"><span class="f">🏭</span> Dépôt<span class="z">${DEPOT_ADRESSE}</span></button>`;
+  PAYS_PROV.forEach(c => {
+    const ports = PORTS_PROV.filter(p => p.pays === c.nom);
+    const cMatch = !q || c.nom.toLowerCase().includes(q);
+    const pHits = q ? ports.filter(p => provTexte(p).toLowerCase().includes(q)) : ports;
+    if (!cMatch && !pHits.length) return;
+    html += `<button class="pp-item pp-grp" onmousedown="pickProv('${c.code}')"><span class="f">${c.flag}</span> ${c.nom}</button>`;
+    (cMatch ? ports : pHits).forEach(p => {
+      html += `<button class="pp-item pp-port" onmousedown="pickProv('${p.code}')">${p.nom}</button>`;
+    });
+  });
+  $('pv-list').innerHTML = html || LIBRE;
   $('pv-list').classList.add('open');
   regenMail();
 }
+
+function pickProvDepot() {
+  $('f-depot').checked = true;
+  $('f-prov').value = 'Dépôt — Saint-Ouen (80)';
+  $('pv-flag').textContent = '🏭';
+  $('pv-list').classList.remove('open');
+  regenMail();
+}
+/* pas de départ par défaut (14/09) : champ vide, Dépôt reste la 1re ligne du menu */
 function pickProv(code) {
   const p = PROV_SUGG.find(x => x.code === code);
   $('f-prov').value = provTexte(p);

@@ -50,12 +50,13 @@ main{max-width:1180px;margin:0 auto;padding:30px 20px 70px}
 .btn-envoi{flex:3;background:#b30b00;border:1px solid #b30b00;color:#fff} /* rouge Acrobat, comme le bouton PDF de /invitation/ */
 .btn-envoi:hover{background:#8f0900}
 .btn-envoi:active{transform:translateY(1px)}
-.btn-envoi[disabled]{opacity:.4;cursor:not-allowed}
+.btn-envoi[disabled]{cursor:not-allowed} /* rouge plein dès le début (14/09) — reste inactif tant que la destination est vide */
 
 /* ── formulaire ── */
 .f-row{margin-bottom:18px}
 .f-row label{display:block;font-weight:700;font-size:15px;color:var(--encre);margin-bottom:7px}
 .f-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.f-grid-3{grid-template-columns:1fr 1fr 1fr}
 /* rangée Départ/Destination scindée en 2 moitiés (1fr 1fr) → frontières ALIGNÉES
    sur la rangée Client/Numéro du dessus (le « OU » vit DANS la moitié gauche) */
 .dep-half{display:flex;gap:14px;align-items:stretch}
@@ -66,29 +67,29 @@ main{max-width:1180px;margin:0 auto;padding:30px 20px 70px}
   color:var(--gris);align-self:stretch;flex:none}
 .dep-half .pp-flag,.dest-half .pp-flag{display:none}
 .dep-half .pays-pick input,.dest-half .pays-pick input{padding-left:16px;padding-right:8px}
-.dep-half input::placeholder,.dest-half input::placeholder{font-size:14px}
+/* même police que NOM DU CLIENT / NUMÉRO PROFORMA (14/09) */
 input[type=text],input[type=email],input[type=number],select,textarea{width:100%;border:1px solid var(--ligne);border-radius:var(--radius-sm);
   padding:14px 14px;background:#fff;outline:none;transition:border-color .15s;font-size:18px}
 input:focus,select:focus,textarea:focus{border-color:var(--rouge)}
 
 .stepper{display:flex;align-items:stretch;border:1px solid var(--ligne);border-radius:var(--radius-sm);background:#fff;overflow:hidden}
 .stepper:focus-within{border-color:var(--rouge)}
-.stepper input{flex:none;width:46px;min-width:0;border:none !important;border-radius:0;text-align:left;-moz-appearance:textfield;padding-right:0;font-size:22px;font-weight:700}
+.stepper input{flex:none;width:52px;min-width:0;margin-left:auto;border:none !important;border-radius:0;text-align:right;-moz-appearance:textfield;padding-right:6px;font-size:22px;font-weight:700}
 .stepper input::-webkit-outer-spin-button,.stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
-.st-suffix{flex:1;display:flex;align-items:center;color:var(--encre);font-size:22px;font-weight:700;user-select:none}
+.st-suffix{flex:none;margin-right:auto;display:flex;align-items:center;padding-left:6px;color:var(--encre);font-size:22px;font-weight:700;user-select:none}
 .st-btn{width:25%;font-size:26px;font-weight:600;color:var(--encre);border-left:1px solid var(--ligne);transition:.15s;
   display:flex;align-items:center;justify-content:center}
 .st-btn:hover{background:var(--fond)}
 .st-btn:active{background:#ececea}
 
-/* segments accolés (choix joints, actif bleu) — mêmes dimensions qu'avant */
+/* segments accolés (choix joints, actif ROUGE plein — 14/09 Ethan) */
 .check-row{display:flex;gap:0;border:1px solid var(--ligne);border-radius:var(--radius-sm);overflow:hidden;background:#fff}
-.check-row .check{margin:0} /* neutralise le margin-bottom:7px de .f-row label (sinon bande blanche en bas) */
+.check-row .check{margin:0;display:flex;align-items:center;justify-content:center} /* bat .f-row label (display:block) qui décentrait les libellés (14/09) */
 .check{flex:1;display:flex;align-items:center;justify-content:center;border:none;border-radius:0;
   padding:14px 14px;font-weight:600;font-size:19px;cursor:pointer;background:#fff;transition:background .15s,color .15s;user-select:none;color:var(--gris)}
 .check + .check{border-left:1px solid var(--ligne)}
 .check:hover{color:var(--encre)}
-.check:has(input:checked){background:#eff4ff;color:#1d4ed8;font-weight:700}
+.check:has(input:checked){background:#fff;color:#b30b00;font-weight:800;box-shadow:inset 0 0 0 2px #b30b00;border-radius:var(--radius-sm)} /* rouge Acrobat = celui du bouton Confirmer */
 .check input{display:none}
 .check span{white-space:nowrap}
 
@@ -98,10 +99,13 @@ input:focus,select:focus,textarea:focus{border-color:var(--rouge)}
 .pp-list{position:absolute;inset-inline:0;top:calc(100% + 5px);background:#fff;border-radius:var(--radius-sm);
   box-shadow:0 10px 28px rgba(0,0,0,.1);max-height:280px;overflow:auto;z-index:30;display:none;border:1px solid var(--ligne)}
 .pp-list.open{display:block}
-.pp-item{display:flex;align-items:center;gap:11px;width:100%;padding:10px 14px;text-align:left;font-size:14.5px}
+.pp-item{display:flex;align-items:center;gap:9px;width:100%;padding:6px 12px;text-align:left;font-size:14px}
 .pp-item:hover{background:var(--fond)}
-.pp-item .f{font-size:18px}
+.pp-item .f{font-size:16px;width:20px;flex-shrink:0;text-align:center}
 .pp-item .z{margin-left:auto;font-size:12px;color:var(--gris2)}
+.pp-grp{font-weight:800;border-top:1px solid var(--ligne);padding-top:8px;padding-bottom:4px}
+.pp-grp:first-child{border-top:none}
+.pp-port{padding-left:41px;padding-top:4px;padding-bottom:4px;color:var(--encre);font-weight:500}
 
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{display:inline-flex;align-items:center;gap:7px;background:var(--fond);border:1px solid var(--ligne);
@@ -109,8 +113,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--rouge)}
 .chip .dot{width:9px;height:9px;border-radius:50%}
 .chip.cc{background:#fff;color:var(--gris);cursor:pointer;transition:.15s}
 .chip.cc:hover{border-color:var(--gris2)}
-.chip.cc:not(.off){border:1.5px solid var(--bleu);background:#eff4ff;color:#1d4ed8;font-weight:700}
-.chip.to{border:1.5px solid var(--bleu);background:#eff4ff;color:#1d4ed8;font-weight:700}
+.chip.cc:not(.off){border:1.5px solid #b30b00;background:#fff;color:#b30b00;font-weight:700}
+.chip.to{border:1.5px solid #b30b00;background:#fff;color:#b30b00;font-weight:700}
 .chip.add{background:#fff;border:1.5px dashed var(--ligne);color:var(--gris)}
 .chip.add:hover{border-color:var(--gris2);background:var(--fond)}
 .dest-ligne{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
@@ -234,6 +238,7 @@ footer{max-width:1180px;margin:0 auto;padding:0 20px 40px;color:var(--gris2);fon
 
 @media(max-width:860px){
   .f-grid{grid-template-columns:1fr}
+  .f-grid-3{grid-template-columns:1fr}
   .ou-sep{display:none}
   .h-in{padding:10px 14px;gap:10px;flex-wrap:wrap}
   .h-sub{display:none}
