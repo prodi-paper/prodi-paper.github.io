@@ -748,7 +748,10 @@ function etirerBas(){
   const _fh=Math.max(6,36-Math.max(0,lignes.length-3)*11);
   document.querySelectorAll('table.corps tr.fill td').forEach(td=>td.style.height=_fh+'mm');
   let bas=0;for(const el of sh.children)bas=Math.max(bas,el.offsetTop+el.offsetHeight);
-  const libre=(sh.clientHeight-9*mm)-bas; // 9mm = padding bas de la feuille
+  // 9mm padding bas + 12mm de sécurité : le rendu PRINT est un peu plus haut que
+  // l'écran (largeur/retours à la ligne différents) → sans marge, le bloc banques
+  // insécable saute en page 2 (vécu 24/09)
+  const libre=(sh.clientHeight-21*mm)-bas;
   if(libre>mm)document.querySelectorAll('table.corps tr.fill td')
     .forEach(td=>td.style.height=(_fh+libre/mm)+'mm');
 }
