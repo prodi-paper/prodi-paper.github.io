@@ -5,12 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>Offres Intelligence — Prodi</title>
-<!-- Source de travail : ~/Code/prodi_verite/v2.html (copie adaptée à la main, comme /invitation/).
-     Différences en ligne (24/08) : porte validée CÔTÉ SERVEUR (Edge Function `offres`,
-     secret OFFRES_CODE — le code n'est PAS dans cette page) ; index + fichiers servis
-     depuis le bucket Supabase PRIVÉ `offres` (liens signés 1h). Rien de sensible dans
-     le repo public. Rafraîchir les données : build_index.py PUIS upload_supabase.py
-     dans ~/Code/prodi_verite (plus de copie d'offres.json ici). -->
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
 :root{--ink:#222;--g2:#6e6e73;--bg:#f5f5f7;--border:#EBEBEB;--red:#FE0000;--green:#1d7a2e;--blue:#1d4fa8;
@@ -20,68 +14,47 @@ body{margin:0;background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--
 header{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.92);border-bottom:1px solid var(--border);box-shadow:var(--shadow);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
 .header-inner{max-width:var(--gab);margin:0 auto;height:64px;display:flex;align-items:center;gap:15px;padding:0 26px;}
 .header-inner img{height:40px;width:auto;display:block;}
-.header-inner .htitre{font-family:'Bebas Neue',sans-serif;font-size:31px;letter-spacing:1.3px;margin-left:2px;padding-top:3px;}
-/* Bouton façon Apple : pilule bleue #0071e3, typo légère, transitions douces */
-.hcat{margin-left:auto;text-decoration:none;background:#0071e3;color:#fff;font-weight:600;font-size:15px;letter-spacing:.1px;padding:9px 19px;border-radius:980px;white-space:nowrap;transition:background .18s ease,transform .12s ease,box-shadow .18s ease;}
-.hcat:hover{background:#0077ed;box-shadow:0 4px 14px rgba(0,113,227,.35);}
-.hcat:active{transform:scale(.97);background:#006edb;}
-.hcat::after{content:' ›';font-weight:600;}
-.wrap{max-width:var(--gab);margin:0 auto;padding:22px 26px 90px;}
-.card{border:1px solid rgba(0,0,0,.05);border-radius:14px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.10);}
-.count{font-size:14px;color:var(--g2);font-weight:600;margin-left:8px;text-transform:none;letter-spacing:0;}
+.header-inner .htitre{font-family:'Bebas Neue',sans-serif;font-size:31px;letter-spacing:1.3px;margin-left:2px;padding-top:3px;white-space:nowrap;}
+.maj{font-size:13.5px;font-weight:800;padding:6px 13px;border-radius:999px;white-space:nowrap;background:#e7f4ea;color:var(--green);}
+.maj.vieux{background:#fdeeea;color:#c33c10;}
+#q{margin-left:auto;height:42px;width:min(360px,34vw);border:1.5px solid #d2d2d7;border-radius:999px;padding:0 18px;font-size:15.5px;font-family:'DM Sans',sans-serif;outline:none;background:#fff;}
+#q:focus{border-color:#1d1d1f;}
+.wrap{max-width:var(--gab);margin:0 auto;padding:20px 26px 90px;}
 
+.seg-t{font-family:'Bebas Neue',sans-serif;font-size:27px;letter-spacing:1px;display:flex;align-items:baseline;gap:10px;padding:0 0 8px;border-bottom:2px solid var(--ink);margin:30px 0 12px;}
+.seg-t:first-child{margin-top:4px;}
+.seg-t .count{font-family:'DM Sans',sans-serif;font-size:13.5px;color:var(--g2);font-weight:700;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;}
+.grid.large{grid-template-columns:repeat(auto-fill,minmax(400px,1fr));}
 
-/* ── Grille métiers ── */
-.seg-t{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;color:var(--ink);display:flex;align-items:center;gap:9px;padding:0 0 9px;border-bottom:2px solid var(--ink);margin:34px 0 12px;}
-#metiers .seg-t:first-child{margin-top:6px;}
-.seg-t span{font-size:25px;}
-.seg-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
-.mcard{padding:18px 20px;cursor:pointer;display:flex;align-items:center;gap:13px;font-weight:700;font-size:18px;line-height:1.18;user-select:none;min-height:68px;}
-.mcard:hover{background:#fafafa;}
-.mcard.on{background:#222;color:#fff;}
-.mcard .emo{font-size:28px;flex:none;}
-
-
-/* ── Popup panier ── */
-.group{margin-top:24px;}
-.group:first-child{margin-top:0;}
-.modal{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.45);display:flex;align-items:flex-start;justify-content:center;padding:34px 16px;overflow-y:auto;}
-.modal[hidden]{display:none;}
-.modal-panel{position:relative;background:var(--bg);border-radius:18px;max-width:1200px;width:100%;padding:18px 26px 30px;box-shadow:0 24px 70px rgba(0,0,0,.35);}
-.modal-x{position:absolute;top:14px;right:16px;border:none;background:#e6e6e9;border-radius:999px;width:40px;height:40px;font-size:18px;cursor:pointer;color:var(--ink);z-index:5;}
-.modal-x:hover{background:#dcdce0;}
-.grp-h{display:flex;align-items:center;gap:10px;font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:.8px;padding-bottom:8px;padding-right:52px;border-bottom:2px solid var(--ink);margin-bottom:14px;}
-.grp-h .grp-emo{font-size:24px;}
-/* ── Offres ── */
-.docs-body{margin-top:6px;}
-.ol{display:flex;align-items:center;gap:10px;padding:11px 6px;border-top:1px dashed #e4e4e8;text-decoration:none;color:var(--ink);cursor:pointer;border-radius:8px;}
-.ol:hover{background:#f2f2f4;}
-.ol:hover .oln{text-decoration:underline;}
-.ol .oln{flex:0 1 auto;min-width:0;font-size:17.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.ol .olp{margin-left:auto;font-weight:800;font-size:18px;color:var(--green);white-space:nowrap;}
-.ol .old{font-size:15.5px;font-weight:800;color:var(--ink);white-space:nowrap;min-width:104px;text-align:right;}
-.ol .dlok{color:var(--green);font-weight:800;font-size:13px;white-space:nowrap;}
-.ol .chip{flex:none;font-size:13px;font-weight:800;letter-spacing:.3px;border-radius:8px;padding:4px 10px;background:#ececef;color:#555;min-width:86px;text-align:center;}
-.ol .chip.cd{background:#222;color:#fff;min-width:0;}
-/* en ligne : pas de fichier à télécharger — ligne informative, pas un lien */
-.ol.ol-nolien{cursor:default;}
-.ol.ol-nolien:hover .oln{text-decoration:none;}
-.sub-h{font-size:15px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;margin:16px 0 4px;padding-bottom:5px;border-bottom:1px solid var(--border);}
-.sub-h:first-child{margin-top:2px;}
-.sh-stock{color:var(--green);}
-.sh-fab{color:var(--blue);}
-.sub-h+.ol{border-top:none;}
-.nodoc{margin-top:12px;font-size:13.5px;color:var(--g2);font-weight:600;}
+.card{border:1px solid rgba(0,0,0,.05);border-radius:14px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.10);padding:14px 16px 12px;display:flex;flex-direction:column;gap:8px;}
+.card.vide{opacity:.55;}
+.c-head{display:flex;align-items:baseline;gap:9px;min-width:0;}
+.c-titre{font-size:17.5px;font-weight:800;line-height:1.15;flex:1;min-width:0;}
+.c-code{flex:none;font-size:12.5px;font-weight:800;letter-spacing:.4px;background:#222;color:#fff;border-radius:7px;padding:3px 8px;}
+.c-tons{flex:none;font-size:17px;font-weight:800;color:var(--green);white-space:nowrap;}
+.c-stats{font-size:13.5px;color:var(--g2);font-weight:600;}
+.c-stats b{color:var(--ink);}
+.files{display:flex;flex-direction:column;margin-top:auto;}
+.fl{display:flex;align-items:center;gap:9px;padding:8px 4px;border-top:1px dashed #e4e4e8;cursor:pointer;text-decoration:none;color:var(--ink);border-radius:7px;}
+.fl:first-child{border-top:none;}
+.fl:hover{background:#f2f2f4;}
+.fl:hover .fln{text-decoration:underline;}
+.fl .ico{flex:none;width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;background:#e7f4ea;color:var(--green);font-size:14px;font-weight:800;}
+.fl.fab .ico{background:#e8effc;color:var(--blue);}
+.fl .fln{font-size:14.5px;font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.fl .fli{margin-left:auto;font-size:12.5px;font-weight:700;color:var(--g2);white-space:nowrap;}
+.fl .fli.alerte{color:#c33c10;}
+.fl .dlok{color:var(--green);font-weight:800;font-size:12.5px;white-space:nowrap;}
+.nores{margin:40px 0;text-align:center;font-size:16px;color:var(--g2);font-weight:600;display:none;}
 </style>
 </head>
 <body>
-
-<!-- ── PORTE CODE D'ACCÈS validée CÔTÉ SERVEUR (Edge Function `offres`, secret
-     OFFRES_CODE) : le code n'apparaît PAS dans cette page. Le code saisi est
-     mémorisé (localStorage 'prodi_offres_code') car chaque appel API (index,
-     liens signés) le renvoie. prodi_cat_ok posé aussi (compat autres pages),
-     mais ici il ne suffit PAS : il faut le code lui-même. -->
-<script>(function(){try{if(localStorage.getItem('prodi_offres_code'))document.documentElement.classList.add('cat-unlocked');}catch(e){}})();</script>
+<script>
+/* localhost = mode dev : pas de porte, index + fichiers locaux */
+window._LOCAL=/^(localhost|127\.)/.test(location.hostname);
+(function(){try{if(window._LOCAL||localStorage.getItem('prodi_offres_code'))document.documentElement.classList.add('cat-unlocked');}catch(e){}})();
+</script>
 <style>
 #cat-gate{position:fixed;inset:0;z-index:100000;background:#F5F3EE;display:flex;align-items:center;justify-content:center;padding:24px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
 html.cat-unlocked #cat-gate{display:none !important;}
@@ -93,7 +66,6 @@ html.cat-unlocked #cat-gate{display:none !important;}
 #cat-gate-input{height:46px;border:1.5px solid #e0e0e5;border-radius:12px;padding:0 16px;font-size:16px;outline:none;box-sizing:border-box;text-align:center;}
 #cat-gate-input:focus{border-color:#1d1d1f;}
 #cat-gate-form button{height:46px;border:none;border-radius:12px;background:#1d1d1f;color:#fff;font-size:16px;font-weight:700;cursor:pointer;}
-#cat-gate-form button:active{transform:scale(.98);}
 .cat-gate-err{color:#FE0000;font-size:13px;font-weight:600;min-height:17px;margin-top:11px;}
 .cat-gate-shake{animation:catShake .34s;}
 @keyframes catShake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
@@ -114,12 +86,10 @@ html.cat-unlocked #cat-gate{display:none !important;}
 (function(){
   window._OFFRES_API='https://bvcgpdoukhcatjibmvnb.supabase.co/functions/v1/offres';
   try{window._OFFRES_CODE=localStorage.getItem('prodi_offres_code')||'';}catch(e){window._OFFRES_CODE='';}
-  /* pas d'early return si déjà déverrouillé : la porte doit rester câblée pour
-     réapparaître si le code mémorisé est périmé (rotation côté serveur) */
   function boot(){
     var g=document.getElementById('cat-gate'),f=document.getElementById('cat-gate-form'),i=document.getElementById('cat-gate-input'),err=document.getElementById('cat-gate-err');
     if(!f)return;
-    setTimeout(function(){try{i.focus();}catch(e){}},60);
+    if(!window._LOCAL)setTimeout(function(){try{i.focus();}catch(e){}},60);
     f.addEventListener('submit',function(e){
       e.preventDefault();
       var code=i.value.trim();if(!code)return;
@@ -143,231 +113,129 @@ html.cat-unlocked #cat-gate{display:none !important;}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
 </script>
-
 <script>
 (function(){function fit(){var z=Math.max(1,Math.min(window.innerWidth/1550,window.innerHeight/860,1.6));document.body.style.zoom=z>1.01?z:'';}fit();window.addEventListener('resize',fit);})();
 </script>
+
 <header>
   <div class="header-inner">
     <img src="logo.png" alt="Prodiconseil">
     <span class="htitre">OFFRES INTELLIGENCE</span>
-    <a class="hcat" href="https://prodi.com/catalogue/" target="_blank" rel="noopener">Catalogue</a>
+    <span class="maj" id="maj"></span>
+    <input id="q" type="search" placeholder="Chercher une qualité… (kraft, autocopiant, RCAR…)">
   </div>
 </header>
 
 <div class="wrap">
-  <div id="metiers"></div>
-</div>
-
-<div id="modal" class="modal" hidden>
-  <div class="modal-panel">
-    <button class="modal-x" id="modal-x" aria-label="Fermer">✕</button>
-    <div id="resultats"></div>
-  </div>
+  <div id="contenu"></div>
+  <div class="nores" id="nores">Aucune offre ne correspond.</div>
 </div>
 
 <script>
-/* Métiers enrichis : chaque besoin a un nom "vente" (langage client) + un usage
-   (le produit fini du client, utilisé dans la phrase « À dire au client »).
-   c = codes qualité (stock) ; g = fenêtre grammage ; inc/exc = mots-clés offres.
-   kw = synonymes pour la recherche. */
-/* Une case = un périmètre d'offres EXCLUSIF : chaque dossier Dropbox est
-   attribué à LA PREMIÈRE case qui matche (ordre du tableau = priorité).
-   => une offre n'apparaît jamais dans deux cases. */
-const METIERS=[
- /* ═══ IMPRIMEUR ═══ */
- {id:'ramettes',seg:'Imprimeur',emo:'📄',nom:'Ramette A3/A4',inc:['RAMETTES']},
- {id:'offset',seg:'Imprimeur',emo:'📓',nom:'Cahiers & offset',inc:['OFFSET']},
- {id:'couche',seg:'Imprimeur',emo:'🖨️',nom:'Couché & bristol',inc:['COUCHE 2']},
- {id:'livres_tech',seg:'Imprimeur',emo:'📚',nom:'Livres',inc:['BOUFFANT','MINCE','BIBLE','CALQUE','SECURITE','FILTRE','CIGARETTE','DESSIN','MASQUE']},
- {id:'magazines',seg:'Imprimeur',emo:'📖',nom:'Magazines & journaux',inc:['LWC','JOURNAL']},
- {id:'etiquettes',seg:'Imprimeur',emo:'🏷️',nom:'Étiquettes',inc:['COUCHE 1 ?FACE','ETIQUETTE','ADHESIF','GLASSINE','SILICONE']},
- {id:'tickets',seg:'Imprimeur',emo:'🧾',nom:'Ticket thermique',inc:['THERMIQUE','AUTOCOPIANT']},
- {id:'papeterie',seg:'Imprimeur',emo:'🎨',nom:'Impression couleur',inc:['CADEAU','PAPETERIE','DOSSIER','COULEUR']},
- /* ═══ TRANSFORMATEUR ═══ */
- {id:'gras',seg:'Transformateur',emo:'🍟',nom:'Emballage gras & cuisson',inc:['INGRAISSABLE','SULFURISE','CUISSON','ALIMENTAIRE','VIENNOISERIES']},
- {id:'complexes',seg:'Transformateur',emo:'🍫',nom:'Complexes, alu & transparent',inc:['COMPLEXE','^PAPIER ALU','METALISE','FILM','CRISTAL']},
- {id:'thermo',seg:'Transformateur',emo:'🍬',nom:'Sachets sucre & thermo',inc:['THERMO SOUDABLE','SUCRE']},
- {id:'sacs_kraft',seg:'Transformateur',emo:'🛍️',nom:'Sacs papier',inc:['SACS KRAFT','^KRAFT$','PAPIER KRAFT'],exc:['LINER']},
- {id:'sacs_ciment',seg:'Transformateur',emo:'🏗️',nom:'Sacs industriels & ciment',inc:['SEMI-EXTENSIBLE'],exc:['LINER']},
- {id:'gobelets',seg:'Transformateur',emo:'🥤',nom:'Gobelets & barquettes',inc:['GOBELET','GROS GRAMMAGE']},
- {id:'etuis',seg:'Transformateur',emo:'📦',nom:'Boîtes pliantes & étuis',inc:['GD2','SBS','TRIPLEX','^CARTON$']},
- {id:'pizza',seg:'Transformateur',emo:'🍕',nom:'Boîtes pizza',inc:['PIZZA','CKB']},
- {id:'caisses',seg:'Transformateur',emo:'🗃️',nom:'Caisses & ondulé',inc:['KRAFTLINER','KRAFT LINER','TESTLINER','FLUTING','CANNELURE']},
- {id:'luxe',seg:'Transformateur',emo:'✨',nom:'Emballage luxe & prestige',inc:['LUXE','CHROMOLUX','CARTE PARFUM']}];
-let DATA={offres:[],stock:[]},metSel=new Set();
-const norm=s=>s.normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase();
-const euro=n=>Number(n).toLocaleString('fr-FR');
+let DATA=null;
 const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-const href=p=>(p||'').split('/').map(encodeURIComponent).join('/');
-const dateFr=d=>{const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(d||'');return m?m[3]+'/'+m[2]+'/'+m[1]:(d||'');};
-/* Les fichiers offres/ ne sont PAS dans le repo public : en local ils sont servis
-   par le serveur du Mac (~/Code/prodi_verite) ; EN LIGNE ils vivent dans le bucket
-   Supabase privé `offres` — index et liens signés via l'Edge Function (code requis). */
-const FICHIERS_DISPO=['localhost','127.0.0.1'].includes(location.hostname);
-/* offre affichée = "OFFRE" dans le nom + moins de 6 mois (recalculé chaque jour) */
-const CUT=(d=>{d.setDate(d.getDate()-183);return d.toISOString().slice(0,10);})(new Date());
-/* exclut les fichiers de travail internes : prix à faire/à donner, modèles vides,
-   listes fournisseur UPM, offres avec une vieille année dans le nom (re-dépôts). */
-const INTERNE=/A\s+FAIRE|A\s+DONNER|MODELE|\bVIDE\b|\bTEST\b|\bUPM\b|\b20(0\d|1\d|2[0-4])\b|LOW GRAMMAGES/i;
-/* fichiers écartés à la main (doublons, brouillons…) — fragment du nom suffit */
-const EXCLUS=['RAMETTES COULEUR A4 ET A3 DU 28 04 26','RAMETTES COULEUR FICHIER   EXCEL  A4 ET A3 DU 28 04 26'];
-const estExclu=n=>EXCLUS.some(x=>n.replace(/\s+/g,' ').includes(x.replace(/\s+/g,' ')));
-const estOffre=f=>/offre/i.test(f.nom)&&(f.date||'')>=CUT&&!INTERNE.test(f.nom)&&!estExclu(f.nom);
+const norm=s=>(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase();
+const nT=t=>t==null?'':(t>=100?Math.round(t).toLocaleString('fr-FR'):t.toLocaleString('fr-FR'))+' t';
+const nR=n=>n.toLocaleString('fr-FR');
+const dFr=d=>{const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(d||'');return m?m[3]+'/'+m[2]:'';};
+/* libellé FR = partie avant le tiret-espace ("AUTOCOPIANT EN BOBINE - REEL …") ;
+   les tirets collés (GC1-GC2, BLANCHI-) ne coupent pas */
+const labFr=s=>(s||'').split(/\s*-\s+/)[0].replace(/\s+/g,' ').trim();
 
-function _chargerDonnees(){
-  if(FICHIERS_DISPO){fetch('offres.json',{cache:'no-store'}).then(r=>r.json()).then(d=>{DATA=d;buildGrid();});return;}
-  if(!window._OFFRES_CODE)return; /* porte affichée — rappelé après validation */
-  fetch(window._OFFRES_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:window._OFFRES_CODE,action:'index'})})
-    .then(r=>{if(!r.ok)throw r.status;return r.json();})
-    .then(d=>{DATA=d;buildGrid();})
-    .catch(st=>{
-      if(st===403){/* code mémorisé périmé (rotation serveur) → re-porte */
-        window._OFFRES_CODE='';try{localStorage.removeItem('prodi_offres_code');}catch(e){}
-        document.documentElement.classList.remove('cat-unlocked');
-      }
-    });
+function chargerDonnees(){
+  const apres=d=>{DATA=d;render('');document.getElementById('q').addEventListener('input',e=>render(e.target.value));};
+  if(window._LOCAL){fetch('depot_index.json',{cache:'no-store'}).then(r=>r.json()).then(apres);return;}
+  fetch(window._OFFRES_API,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({code:window._OFFRES_CODE,action:'index'})})
+    .then(r=>{if(r.status===403){window._OFFRES_CODE='';try{localStorage.removeItem('prodi_offres_code');}catch(e){}
+      document.documentElement.classList.remove('cat-unlocked');throw 0;}return r.json();})
+    .then(apres).catch(()=>{});
 }
-window._chargerDonnees=_chargerDonnees;
-_chargerDonnees();
+window._chargerDonnees=chargerDonnees;
 
-/* ── Recherche + grille ── */
-const elM=document.getElementById('metiers');
-const SEGS=[['Imprimeur','🖨️'],['Transformateur','🏭']];
-const cardById={};
-function buildGrid(){
-  elM.innerHTML='';
-  const aDesOffres=m=>(DATA.offres||[]).some(o=>(o.fichiers||[]).some(f=>estOffre(f)&&caseOf(o,f)===m.id));
-  SEGS.forEach(([seg,emo])=>{
-    const mets=METIERS.filter(m=>m.seg===seg&&aDesOffres(m));
-    if(!mets.length)return;
-    const st=document.createElement('div');st.className='seg-t';st.innerHTML='<span>'+emo+'</span>'+seg;elM.appendChild(st);
-    const list=document.createElement('div');list.className='seg-list';
-    mets.forEach(m=>{
-      const c=document.createElement('div');c.className='card mcard'+(metSel.has(m.id)?' on':'');
-      c.innerHTML='<span class="emo">'+m.emo+'</span><span>'+m.nom+'</span>';
-      c.onclick=()=>toggle(m.id);
-      cardById[m.id]=c;list.appendChild(c);});
-    elM.appendChild(list);});
-}
-const modal=document.getElementById('modal');
-document.getElementById('modal-x').onclick=closeModal;
-modal.onclick=e=>{if(e.target===modal)closeModal();};
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
-function openModal(){if(!metSel.size)return;modal.hidden=false;document.body.style.overflow='hidden';render();}
-function closeModal(){modal.hidden=true;document.body.style.overflow='';}
-function toggle(id){
-  if(metSel.has(id)){metSel.clear();syncSel();closeModal();return;}
-  metSel.clear();metSel.add(id);syncSel();openModal();
-}
-function syncSel(){
-  Object.entries(cardById).forEach(([id,c])=>{if(c&&c.classList)c.classList.toggle('on',metSel.has(id));});
-  if(!modal.hidden){if(metSel.size)render();else closeModal();}
+/* groupes = un par code qualité (ou un par fichier sans code) */
+function groupes(fs){
+  const map=new Map();
+  fs.forEach(f=>{
+    const k=f.code||('~'+f.nom);
+    if(!map.has(k))map.set(k,{code:f.code,fichiers:[]});
+    map.get(k).fichiers.push(f);
+  });
+  return [...map.values()].map(g=>{
+    g.stock=g.fichiers.filter(f=>!f.fab);g.fabs=g.fichiers.filter(f=>f.fab);
+    const base=g.stock[0]||g.fichiers[0];
+    g.titre=labFr(base.label)||g.code;
+    g.tons=g.stock.reduce((s,f)=>s+(f.tonnes||0),0)||null;
+    g.refs=g.stock.reduce((s,f)=>s+f.refs,0);
+    const gs=g.stock.filter(f=>f.gmin!=null),ps=g.stock.filter(f=>f.pmin!=null);
+    g.gmin=gs.length?Math.min(...gs.map(f=>f.gmin)):null;g.gmax=gs.length?Math.max(...gs.map(f=>f.gmax)):null;
+    g.pmin=ps.length?Math.min(...ps.map(f=>f.pmin)):null;g.pmax=ps.length?Math.max(...ps.map(f=>f.pmax)):null;
+    g.texte=norm(g.fichiers.map(f=>f.nom+' '+f.label).join(' ')+' '+(g.code||''));
+    return g;
+  }).sort((a,b)=>(b.tons||0)-(a.tons||0)||a.titre.localeCompare(b.titre));
 }
 
-/* ── Données : stock par besoin, offres par métier ── */
-function matche(m,dossier){
-  const d=norm(dossier);
-  if((m.exc||[]).some(x=>d.includes(norm(x))))return false;
-  return (m.inc||[]).some(x=>x.startsWith('^')?new RegExp(x).test(d):new RegExp('(^|[^A-Z])'+norm(x)).test(d)||d.includes(norm(x)));}
-/* propriétaire EXCLUSIF d'un dossier = 1re case qui matche (jamais 2 cases) */
-function owner(dossier){const m=METIERS.find(x=>matche(x,dossier));return m?m.id:null;}
-/* case d'un FICHIER : reroutages par nom (prioritaires), sinon la case du dossier.
-   Ex. « OFFSET COULEUR » vit dans le dossier OFFSET mais part en Impression couleur. */
-function caseOf(o,f){
-  if(/COULEUR/i.test(f.nom))return 'papeterie';
-  if(/BRISTOL/i.test(f.nom))return 'couche';
-  if(/ALIMENTAIRE|INGRAISSABLE|SULFURISE|CUISSON/i.test(f.nom))return 'gras';
-  return owner(o.dossier);}
-function agregeBesoin(be){
-  const codes=new Set(be.c||[]),g=be.g;let refs=0,t=0,gmin=1e9,gmax=0;
-  (DATA.stock||[]).forEach(s=>{
-    if(!codes.has(s.code))return;
-    if(g&&(s.g==null||s.g<g[0]||s.g>g[1]))return;
-    refs+=+s.refs||0;t+=+s.tonnes||0;
-    if(s.g!=null){gmin=Math.min(gmin,s.g);gmax=Math.max(gmax,s.g);}});
-  return{refs,t:Math.round(t),gmin:gmin<1e9?gmin:null,gmax:gmax||null};}
-/* Décompose un nom de fichier d'offre en colonnes : réf/usine, désignation, conditionnement */
-function parseNom(nom,dossier){
-  const s=nom.replace(/\.(xlsx?|pdf)$/i,'').replace(/[–—]/g,'-');
-  const rm=/(USINE|REF)\s*\.?\s*((?:EUROPE|USA?)\s*)?(\d+[A-Za-z+]*)/i.exec(s);
-  const ref=rm?(rm[1].toUpperCase()==='USINE'?'USINE ':'RÉF ')+rm[3]:null;
-  const bob=/BOBINE/i.test(s),fmt=/FORMAT/i.test(s);
-  const cond=bob&&fmt?'Bobine + format':bob?'Bobine':fmt?'Format':null;
-  let d=(' '+s+' ').replace(/\s+/g,' ');
-  d=d.replace(/\([^)]*\)/g,' ');
-  d=d.replace(/\b(USINE|REF)\s*\.?\s*(EUROPE|USA?)?\s*\d+[A-Za-z+]*/gi,' ');
-  d=d.replace(/\b(COPIE DE|COPY OF|STOCKLOTS?|STOCK FABRICATION|FABRICATION|SIDERUNS|OFFRE DE|OFFRE|EN BOBINES?|EN FORMAT|BOBINES?|FORMAT)\b/gi,' ');
-  d=d.replace(/\b\d{1,2}[ ./-]\d{1,2}[ ./-]\d{2,4}\b/g,' ').replace(/\b\d{6,8}\b/g,' ');
-  d=d.replace(/\b\d+[RS]\b/gi,' ').replace(/\bDU\s*$/i,' ');
-  d=d.replace(/\s*-\s*/g,' ').replace(/\s{2,}/g,' ').trim().replace(/^[.,\-\s]+|[.,\-\s]+$/g,'');
-  d=d.replace(/\s+(DU|EN|DE|ET)$/i,'');
-  if(!d)d=dossier||nom;
-  return{ref,cond,des:d};}
-
-function phrase(be,ag,pmin){
-  const u=be.usage;
-  if(ag.t>0&&pmin) return 'Oui, pour vos '+u+', on a '+euro(ag.t)+' tonnes en stock, à partir de '+pmin+' € la tonne.';
-  if(ag.t>0)       return 'Oui, pour vos '+u+', on a '+euro(ag.t)+' tonnes en stock — je vous chiffre ça tout de suite.';
-  if(pmin)         return 'Pour vos '+u+', on peut vous livrer sur commande à partir de '+pmin+' € la tonne.';
-  return 'Pour vos '+u+', je vérifie la dispo et je vous prépare une offre.';
+function ligneFichier(f,libelle,classes){
+  const href=window._LOCAL?('depot/'+encodeURIComponent(f.nom)):'#';
+  const stats=f.refs?`${nR(f.refs)} réf${f.refs>1?'s':''}${f.tonnes?' · '+nT(f.tonnes):''}`:'vide';
+  const vieux=DATA.stock_date&&f.modif<DATA.stock_date;
+  return `<a class="fl ${classes||''}" href="${href}" ${window._LOCAL?`download="${esc(f.nom)}"`:''} data-key="${esc(f.key)}" data-nom="${esc(f.nom)}" title="${esc(f.nom)}">
+    <span class="ico">⬇</span><span class="fln">${esc(libelle)}</span>
+    <span class="fli${vieux?' alerte':''}">${vieux?'⚠️ '+dFr(f.modif):stats}</span></a>`;
 }
 
-function render(){
-  const R=document.getElementById('resultats');R.innerHTML='';
-  METIERS.filter(m=>metSel.has(m.id)).forEach(m=>{
-    const items=[];(DATA.offres||[]).forEach(o=>(o.fichiers||[]).forEach(f=>{if(estOffre(f)&&caseOf(o,f)===m.id)items.push({o,f});}));
-    items.sort((a,b)=>{
-      const sa=a.o.source==='stocklots'?0:1,sb=b.o.source==='stocklots'?0:1;if(sa!==sb)return sa-sb;
-      const pa=a.f.prix?a.f.prix.med:1e9,pb=b.f.prix?b.f.prix.med:1e9;if(pa!==pb)return pa-pb;
-      return (b.f.date||'').localeCompare(a.f.date||'');});
-    const grp=document.createElement('div');grp.className='group';
-    let h='<div class="grp-h"><span class="grp-emo">'+m.emo+'</span>'+esc(m.nom)+'</div><div class="docs-body">';
-    const ligne=x=>{
-      const f=x.f,p=f.prix?f.prix.med:null,pn=parseNom(f.nom,x.o.dossier);
-      const corps=(pn.ref?'<span class="chip">'+esc(pn.ref)+'</span>':'')
-        +'<span class="oln">'+esc(pn.des)+'</span>'
-        +(pn.cond?'<span class="chip cd">'+esc(pn.cond)+'</span>':'')
-        +'<span class="olp">'+(p?p+' €/T':'—')+'</span>'
-        +'<span class="old">'+dateFr(f.date)+'</span>';
-      if(FICHIERS_DISPO)return '<a class="ol" href="'+href(f.fichier)+'" download="'+esc(f.nom)+'" rel="noopener" title="'+esc(f.nom)+'">'+corps+'</a>';
-      if(f.key)return '<a class="ol" href="#" data-key="'+esc(f.key)+'" data-nom="'+esc(f.nom)+'" title="'+esc(f.nom)+'">'+corps+'</a>';
-      return '<div class="ol ol-nolien" title="'+esc(f.nom)+'">'+corps+'</div>';};
-    /* regroupe par usine/réf (même source collée ensemble), groupes ordonnés par meilleur prix */
-    const cle=n=>{let m=/REF\s*(?:EUROPE|USA?)?\s*\.?\s*(\d+)/i.exec(n);if(m)return 'REF '+m[1];
-      m=/USINE\s+([A-Z0-9+]+)/i.exec(n);if(m)return 'USINE '+m[1];return 'zzz';};
-    const grouper=arr=>{
-      const g=new Map();
-      arr.forEach(x=>{const k=cle(x.f.nom);g.has(k)?g.get(k).push(x):g.set(k,[x]);});
-      return [...g.values()].sort((a,b)=>{
-        const pa=Math.min(...a.map(x=>x.f.prix?x.f.prix.med:1e9)),pb=Math.min(...b.map(x=>x.f.prix?x.f.prix.med:1e9));
-        return pa-pb;}).flat();};
-    const stock=grouper(items.filter(x=>x.o.source==='stocklots')),fab=grouper(items.filter(x=>x.o.source!=='stocklots'));
-    if(stock.length){h+='<div class="sub-h sh-stock">En stock</div>';stock.forEach(x=>h+=ligne(x));}
-    if(fab.length){h+='<div class="sub-h sh-fab">Fabrication sur commande</div>';fab.forEach(x=>h+=ligne(x));}
-    h+='</div>';
-    grp.innerHTML=h;
-    grp.querySelectorAll('a.ol').forEach(a=>a.addEventListener('click',e=>{
-      if(a.dataset.key){ /* en ligne : lien signé 1h via l'Edge Function */
-        e.preventDefault();
-        if(a.querySelector('.dlok'))return;
-        const s=document.createElement('span');s.className='dlok';s.textContent='Préparation…';a.appendChild(s);
-        fetch(window._OFFRES_API,{method:'POST',headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({code:window._OFFRES_CODE,action:'sign',key:a.dataset.key,nom:a.dataset.nom||''})})
-          .then(r=>r.json()).then(d=>{
-            if(!d||!d.url)throw 0;
-            s.textContent='✓ Téléchargé';
-            window.location.href=d.url; /* Content-Disposition attachment → télécharge sans quitter la page */
-            setTimeout(()=>s.remove(),2200);
-          }).catch(()=>{s.textContent='Erreur — réessayez';setTimeout(()=>s.remove(),2600);});
-        return;
-      }
-      if(a.querySelector('.dlok'))return;
-      const s=document.createElement('span');s.className='dlok';s.textContent='✓ Téléchargé';
-      a.appendChild(s);setTimeout(()=>s.remove(),2200);}));
-    R.appendChild(grp);});
+function carte(g){
+  if(!g.refs)return '';               /* offre vide → pas affichée */
+  const plein=g.stock.filter(f=>f.refs);
+  let lignes='';
+  if(plein.length===1)lignes+=ligneFichier(plein[0],'Télécharger l’offre');
+  else plein.forEach(f=>lignes+=ligneFichier(f,labFr(f.label)));
+  return `<div class="card" data-txt="${g.texte}">
+    <div class="c-head"><span class="c-titre">${esc(g.titre)}</span>${g.code?`<span class="c-code">${esc(g.code)}</span>`:''}${g.tons?`<span class="c-tons">${nT(g.tons)}</span>`:''}</div>
+    <div class="files">${lignes}</div></div>`;
 }
 
+function render(q){
+  const R=document.getElementById('contenu');R.innerHTML='';
+  const fs=DATA.fichiers;
+  const sd=DATA.stock_date,auj=new Date().toISOString().slice(0,10);
+  const maj=document.getElementById('maj');
+  maj.textContent='Stock du '+(sd?sd.split('-').reverse().join('/'):'?');
+  maj.classList.toggle('vieux',sd!==auj);
+
+  let html='';
+  const bloc=(titre,cartes,large)=>{if(!cartes)return;
+    html+=`<div class="seg-t sec">${titre}</div><div class="grid${large?' large':''}">${cartes}</div>`;};
+
+  bloc('Bobines',groupes(fs.filter(f=>f.section==='bobines')).map(carte).join(''));
+  bloc('Feuilles & palettes',groupes(fs.filter(f=>f.section==='feuilles')).map(carte).join(''));
+  R.innerHTML=html;
+
+  /* recherche : filtre les cartes, masque les sections vides */
+  const Q=norm(q||'').trim();
+  if(Q){let tot=0;
+    R.querySelectorAll('.card').forEach(c=>{const on=c.dataset.txt.includes(Q);c.style.display=on?'':'none';if(on)tot++;});
+    R.querySelectorAll('.seg-t.sec').forEach(t=>{
+      const g=t.nextElementSibling;
+      const vis=[...g.querySelectorAll('.card')].some(c=>c.style.display!=='none');
+      t.style.display=vis?'':'none';g.style.display=vis?'':'none';});
+    document.getElementById('nores').style.display=tot?'none':'block';
+  }else document.getElementById('nores').style.display='none';
+
+  /* téléchargements en ligne : lien signé 1h via l'Edge Function */
+  R.querySelectorAll('a.fl').forEach(a=>a.addEventListener('click',e=>{
+    if(a.querySelector('.dlok'))return;
+    const ok=()=>{const s=document.createElement('span');s.className='dlok';s.textContent='✓';
+      a.appendChild(s);setTimeout(()=>s.remove(),2200);};
+    if(window._LOCAL){ok();return;}
+    e.preventDefault();
+    fetch(window._OFFRES_API,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({code:window._OFFRES_CODE,action:'sign',key:a.dataset.key,nom:a.dataset.nom||''})})
+      .then(r=>r.json()).then(d=>{if(d&&d.ok&&d.url){ok();location.href=d.url;}});
+  }));
+}
+
+if(window._LOCAL||window._OFFRES_CODE)chargerDonnees();
 </script>
 </body>
 </html>
