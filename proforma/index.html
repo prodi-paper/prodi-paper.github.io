@@ -161,8 +161,9 @@
   .paie #p-paie-lignes div{margin-bottom:.6mm;}
   .banqcli{margin:1.5mm 0 0 4mm;font-weight:700;font-size:8.2pt;}
   .basflex{display:flex;gap:2mm;margin-top:2mm;position:relative;}
+  /* rayures en tuile SVG (pas de repeating-linear-gradient : html2canvas ne le rend pas → PDF sans rayures, vécu 24/09) */
   .raye{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;
-    background:repeating-linear-gradient(-45deg,rgba(17,17,17,.20) 0 2px,rgba(255,255,255,.55) 2px 9px);}
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='9'%3E%3Crect width='9' height='9' fill='%23fff' fill-opacity='.55'/%3E%3Cpath d='M-2 7L7 -2M2 11L11 2' stroke='%23111' stroke-opacity='.2' stroke-width='2'/%3E%3C/svg%3E") repeat;}
   .raye span{background:#fff;border:1.5px solid #111;color:#c00;font-weight:800;font-size:10pt;
     letter-spacing:.4px;padding:1.5mm 4mm;white-space:nowrap;}
   table.banques{border-collapse:collapse;flex:1;}
@@ -277,7 +278,8 @@ html.cat-unlocked #cat-gate{display:none !important;}
 
   <div id="apercu-bar">
     <button class="btn btn-ghost" onclick="retourFormulaire()">← Modifier</button>
-    <button class="btn btn-red" onclick="window.print()">Imprimer / PDF</button>
+    <button class="btn btn-ghost" onclick="window.print()">Imprimer</button>
+    <button class="btn btn-red" id="btn-pdf" onclick="telechargerPdf()">Télécharger PDF</button>
   </div>
 
   <!-- ═══ FORMULAIRE ═══ -->
@@ -732,9 +734,9 @@ async function generer(){
     body:JSON.stringify({numero,client:{nom:document.getElementById('c-nom').value,rc:document.getElementById('c-rc').value,lieu:document.getElementById('c-lieu').value,orig:document.getElementById('c-orig').value,prov:document.getElementById('c-prov').value,usine:document.getElementById('c-usine').value,douane:document.getElementById('c-douane').value,paie:document.getElementById('c-paiemode').value,devise:DEV,langue:LANG},
       lignes,incoterm:document.getElementById('c-inco').value,fret:t.fret,
       totaux:{fob:t.fob,total:t.total,poids:t.poids}})}).catch(()=>{});
-  ok.textContent='✓ '+numero+' — enregistrée. Impression…';
+  ok.textContent='✓ '+numero+' — enregistrée. Téléchargement…';
   montrerApercu();
-  setTimeout(()=>window.print(),350);
+  setTimeout(()=>telechargerPdf(),450);
 }
 
 // ── Adaptation téléphone : la feuille A4 (210mm ≈ 794px) est réduite à la
@@ -763,6 +765,47 @@ function fitSheet(){
 }
 window.addEventListener('resize',fitSheet);
 window.addEventListener('orientationchange',fitSheet);
+
+// ── Téléchargement PDF direct (html2pdf lazy, repli window.print si CDN mort) ──
+let _h2pLoad=null;
+function _h2p(){
+  if(window.html2pdf)return Promise.resolve();
+  if(_h2pLoad)return _h2pLoad;
+  _h2pLoad=new Promise((res,rej)=>{
+    const s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.3/dist/html2pdf.bundle.min.js';
+    s.integrity='sha384-1Rq385dzyHeeImKREXc2dTf1lhBKJHL8YR6phOUkikTCsUwGgDyWRoGv8KVG2+qY';
+    s.crossOrigin='anonymous';
+    s.onload=res;s.onerror=()=>{_h2pLoad=null;rej(new Error('cdn'));};
+    document.head.appendChild(s);
+  });
+  return _h2pLoad;
+}
+async function telechargerPdf(){
+  const sh=document.getElementById('sheet');if(!sh)return;
+  const btn=document.getElementById('btn-pdf');
+  const lbl=btn?btn.textContent:'';if(btn){btn.disabled=true;btn.textContent='PDF…';}
+  const fini=()=>{if(btn){btn.disabled=false;btn.textContent=lbl;}};
+  try{await _h2p();}catch(e){fini();window.print();return;}
+  // capture en taille réelle : le zoom mobile (fitSheet) fausse la géométrie html2canvas
+  const zAvant=sh.style.zoom;sh.style.zoom='';
+  try{
+    // plus d'une page (beaucoup de lignes) : html2canvas couperait au milieu → impression
+    const mm=sh.offsetWidth/210;
+    if(sh.offsetHeight>299*mm){window.print();return;}
+    const nom=(document.getElementById('c-nom').value||'').split('\n')[0].trim().toUpperCase();
+    const fichier=(LANG==='en'?'PRICE OFFER PRODICONSEIL':'OFFRE DE PRIX PRODICONSEIL')+(nom?' - '+nom:'')+'.pdf';
+    // 296mm pendant la capture : à 297 pile, l'arrondi html2pdf ajoute une page 2 vide
+    const hAvant=sh.style.height,mhAvant=sh.style.minHeight;
+    sh.style.height='296mm';sh.style.minHeight='296mm';
+    try{
+      await html2pdf().set({margin:0,filename:fichier,image:{type:'jpeg',quality:.95},
+        html2canvas:{scale:2,useCORS:true},
+        jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}}).from(sh).save();
+    }finally{sh.style.height=hAvant;sh.style.minHeight=mhAvant;}
+  }catch(e){window.print();}
+  finally{sh.style.zoom=zAvant;fini();}
+}
 
 // maj live sur tous les champs
 document.querySelectorAll('.panel input,.panel textarea,.panel select').forEach(el=>el.addEventListener('input',maj));
