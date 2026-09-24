@@ -137,7 +137,7 @@
   table.corps td{border-left:1px solid #111;border-right:1px solid #111;padding:1mm 1.5mm;vertical-align:top;font-size:9pt;}
   table.corps .lref{width:16mm;}
   table.corps .lqte,table.corps .lpu{width:20mm;text-align:right;}
-  table.corps .lmt{width:24mm;text-align:right;}
+  table.corps .lmt{width:24mm;text-align:right;white-space:nowrap;}
   table.corps tr.fill td{height:36mm;border-bottom:1px solid #111;}
   /* impression : garder les couleurs (rouge/tampon) et ne pas couper les blocs */
   .sheet{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
@@ -160,7 +160,11 @@
   .paie{display:flex;gap:3mm;font-size:9.5pt;font-weight:700;}
   .paie #p-paie-lignes div{margin-bottom:.6mm;}
   .banqcli{margin:1.5mm 0 0 4mm;font-weight:700;font-size:8.2pt;}
-  .basflex{display:flex;gap:2mm;margin-top:2mm;}
+  .basflex{display:flex;gap:2mm;margin-top:2mm;position:relative;}
+  .raye{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;
+    background:repeating-linear-gradient(-45deg,rgba(17,17,17,.20) 0 2px,rgba(255,255,255,.55) 2px 9px);}
+  .raye span{background:#fff;border:1.5px solid #111;color:#c00;font-weight:800;font-size:10pt;
+    letter-spacing:.4px;padding:1.5mm 4mm;white-space:nowrap;}
   table.banques{border-collapse:collapse;flex:1;}
   table.banques th,table.banques td{border:1px solid #111;font-size:6.8pt;padding:.7mm 1mm;}
   table.banques th{text-align:center;}
@@ -424,6 +428,7 @@ html.cat-unlocked #cat-gate{display:none !important;}
         <div data-t="engage">Je confirme mon accord sur cette proforma et les conditions de vente :<br>Je m'engage à payer tous les frais et taxes s'il y avait un retard, une annulation hors du pays de départ des marchandises.</div>
         <div class="rsc" data-t="rsc">RENVOYER SIGNÉ ET CACHETÉ</div>
       </div>
+      <div class="raye"><span data-t="rayet">DEMANDER PROFORMA FINAL</span></div>
     </div>
   </div></div>
 </div>
@@ -473,6 +478,7 @@ const I18N={
   engage:{fr:"Je confirme mon accord sur cette proforma et les conditions de vente :<br>Je m'engage à payer tous les frais et taxes s'il y avait un retard, une annulation hors du pays de départ des marchandises.",
           en:'I confirm my agreement with this proforma and the sales terms:<br>I undertake to pay all costs and taxes in the event of a delay or cancellation outside the country of departure of the goods.'},
   rsc:{fr:'RENVOYER SIGNÉ ET CACHETÉ',en:'RETURN SIGNED AND STAMPED'},
+  rayet:{fr:'DEMANDER PROFORMA FINAL',en:'REQUEST FINAL PROFORMA'},
   titre_eur:{fr:'Offre de prix (Euros)',en:'Price offer (Euros)'},
   titre_usd:{fr:'Offre de prix (Dollars US)',en:'Price offer (US Dollars)'},
   v5050a:{fr:'VIREMENT AVANT EXPEDITION',en:'BANK TRANSFER BEFORE SHIPMENT'},
@@ -615,7 +621,7 @@ function maj(){
   document.getElementById('p-orig').textContent=v('c-orig');
   document.getElementById('p-prov').textContent=v('c-prov');
   document.getElementById('p-date').textContent=new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'2-digit'});
-  document.getElementById('p-num').textContent=numero||'—';
+  document.getElementById('p-num').textContent='XXXXXX';
   document.getElementById('p-lignes').innerHTML=lignes.map(l=>`
     <tr><td class="lref">${esc(l.code)}</td><td class="desig">${desHtml(l.des)}</td>
     <td class="lqte">${l.qte?kg(l.qte):''}</td><td class="lpu">${l.pu?pu3(l.pu):''}</td>
@@ -734,7 +740,18 @@ async function generer(){
 // ── Adaptation téléphone : la feuille A4 (210mm ≈ 794px) est réduite à la
 //    largeur de l'écran via zoom (le layout suit, pas de vide sous la feuille).
 //    L'impression repasse toujours en taille réelle (zoom:1 dans @media print).
-function montrerApercu(){document.body.classList.add('apercu');window.scrollTo(0,0);if(typeof fitSheet==='function')fitSheet();}
+function montrerApercu(){document.body.classList.add('apercu');window.scrollTo(0,0);if(typeof fitSheet==='function')fitSheet();requestAnimationFrame(etirerBas);}
+// allonge la zone de lignes pour que le contenu remplisse la page (rien de vide sous les banques)
+function etirerBas(){
+  const sh=document.getElementById('sheet');if(!sh)return;
+  const mm=sh.offsetWidth/210;if(!(mm>0))return;
+  const _fh=Math.max(6,36-Math.max(0,lignes.length-3)*11);
+  document.querySelectorAll('table.corps tr.fill td').forEach(td=>td.style.height=_fh+'mm');
+  let bas=0;for(const el of sh.children)bas=Math.max(bas,el.offsetTop+el.offsetHeight);
+  const libre=(sh.clientHeight-9*mm)-bas; // 9mm = padding bas de la feuille
+  if(libre>mm)document.querySelectorAll('table.corps tr.fill td')
+    .forEach(td=>td.style.height=(_fh+libre/mm)+'mm');
+}
 function retourFormulaire(){document.body.classList.remove('apercu');window.scrollTo(0,0);}
 function fitSheet(){
   const s=document.getElementById('sheet');if(!s)return;
