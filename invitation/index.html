@@ -796,7 +796,23 @@ async function telechargerPDF() {
   if (!valide()) return;
   enregistrerHisto("pdf");
   const d = donnees();
-  (await construireLettrePDF(d)).save(`INVITATION ${d.civilite}${d.nom}.pdf`);
+  const doc = await construireLettrePDF(d);
+  const nom = `INVITATION ${d.civilite}${d.nom}.pdf`;
+  // Téléphone : feuille de partage native avec le FICHIER SEUL (ni texte ni
+  // lien — partager depuis l'aperçu Safari collait l'URL de la page avec).
+  const mobile = navigator.maxTouchPoints > 1 || /iPhone|iPad|Android/i.test(navigator.userAgent);
+  if (mobile && navigator.canShare) {
+    try {
+      const f = new File([doc.output("blob")], nom, { type: "application/pdf" });
+      if (navigator.canShare({ files: [f] })) {
+        await navigator.share({ files: [f] });
+        return;
+      }
+    } catch (e) {
+      if (e && e.name === "AbortError") return; // partage annulé par l'utilisateur
+    }
+  }
+  doc.save(nom);
 }
 </script>
 <script>
