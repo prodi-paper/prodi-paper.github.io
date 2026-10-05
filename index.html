@@ -211,12 +211,17 @@ body:not(.cat-page) .mob-filtres-btn{display:none !important;}
   body:not(.cat-page) #mob-hdr-r1 .cart-wrap,
   body:not(.cat-page) #mob-hdr-r1 #cart-btn,
   body:not(.cat-page) #mob-hdr-r1 .btn-panier{flex-shrink:0 !important;white-space:nowrap !important;}
-  /* place pour le badge (right:-10px) → padding droite pour ne pas mordre le texte « Panier » */
-  body:not(.cat-page) #mob-hdr-r1 #cart-btn{padding-right:22px !important;margin-right:6px;}
+  /* panier = ICÔNE seule sur mobile (texte retiré) + place pour le badge (right:-10px) */
+  body.apple-view:not(.shared-view):not(.cat-page) #mob-hdr-r1 #cart-btn .btn-panier-txt{display:none !important;}
+  body:not(.cat-page) #mob-hdr-r1 #cart-btn{padding:0 16px 0 12px !important;margin-right:8px;}
   body:not(.cat-page) #mob-hdr-r2{display:none !important;}
   body:not(.cat-page) #ali-hero{display:flex !important;flex-direction:column;align-items:center;padding:22px 16px 16px;background:linear-gradient(180deg,#fff 0%,#fff6f3 55%,#fff 100%);}
   body:not(.cat-page) #ali-welcome{display:block !important;background:#f5f5f7;}
-  body:not(.cat-page) #ali-cards{display:grid !important;grid-template-columns:1fr 1fr 1fr;gap:8px;max-width:92vw;margin:14px auto 4px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
+  body:not(.cat-page) #ali-cards{display:block !important;max-width:92vw;margin:14px auto 4px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
+  /* rail horizontal des cartes catégories : 2 visibles + slide vers la droite */
+  #ali-cards .ac-rail{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:10px 0;padding-bottom:2px;}
+  #ali-cards .ac-rail::-webkit-scrollbar{display:none;}
+  #ali-cards .ac-rail .ac-card{flex:0 0 44%;scroll-snap-align:start;}
   body:not(.cat-page) #ali-banner{display:block !important;max-width:92vw;margin:12px auto 6px;}
   /* hero */
   #ali-hero .ah-slogan{font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:clamp(28px,8vw,42px);line-height:1;letter-spacing:.5px;color:#111;margin:0 0 5px;text-align:center;}
@@ -235,29 +240,30 @@ body:not(.cat-page) .mob-filtres-btn{display:none !important;}
   /* bandeau bienvenue */
   #ali-welcome .aw-in{max-width:92vw;margin:0 auto;height:auto;display:flex;flex-direction:column;align-items:flex-start;gap:9px;padding:12px 0;}
   #ali-welcome .aw-title{font-size:17px;font-weight:700;color:#111;}
-  #ali-welcome .aw-links{display:flex;flex-wrap:wrap;gap:12px 16px;}
-  #ali-welcome .aw-links a{display:flex;align-items:center;gap:7px;font:600 13.5px 'DM Sans',sans-serif;color:#111;text-decoration:none;}
-  #ali-welcome .aw-links svg{width:18px;height:18px;}
+  #ali-welcome .aw-links{display:flex;flex-wrap:nowrap;gap:18px;overflow-x:auto;scrollbar-width:none;width:100%;}
+  #ali-welcome .aw-links::-webkit-scrollbar{display:none;}
+  #ali-welcome .aw-links a{display:flex;align-items:center;gap:7px;font:600 13.5px 'DM Sans',sans-serif;color:#111;text-decoration:none;white-space:nowrap;flex-shrink:0;}
+  #ali-welcome .aw-links svg{width:18px;height:18px;flex-shrink:0;}
   #ali-welcome .aw-sep{display:none;}
   /* cartes catégories */
   #ali-cards>*{height:auto !important;box-sizing:border-box;}
-  #ali-cards .ac-cats{grid-column:1/-1;background:#f5f5f7;border-radius:12px;padding:6px;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;}
+  #ali-cards .ac-cats{background:#f5f5f7;border-radius:12px;padding:6px;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;}
   #ali-cards .ac-cats::-webkit-scrollbar{display:none;}
   #ali-cards .ac-cats .ac-row{white-space:nowrap;padding:8px 12px;border-radius:9px;font:600 13.5px 'DM Sans',sans-serif;color:#111;text-decoration:none;display:flex;align-items:center;gap:8px;}
   #ali-cards .ac-cats .ac-row svg{width:17px;height:17px;flex-shrink:0;}
   #ali-cards .ac-cats .ac-row .chv{display:none;}
-  #ali-cards .ac-card{background:#f5f5f7;border-radius:12px;overflow:hidden;padding:9px 8px;text-decoration:none;color:#111;display:flex;flex-direction:column;}
-  #ali-cards .ac-card .ac-t{font-size:12.5px;font-weight:700;line-height:1.1;}
-  #ali-cards .ac-card .ac-s{display:none;}  /* sous-titre masqué : trop long en bandeau 3-col */
-  #ali-cards .ac-card .ac-imgbox{width:100%;height:86px;background:#fff;border-radius:9px;overflow:hidden;position:relative;margin-top:6px;}
-  #ali-cards .ac-card .ac-imgbox img{width:100%;height:100%;object-fit:contain;padding:8px;box-sizing:border-box;}
+  #ali-cards .ac-card{background:#f5f5f7;border-radius:12px;overflow:hidden;padding:12px;text-decoration:none;color:#111;display:flex;flex-direction:column;}
+  #ali-cards .ac-card .ac-t{font-size:14px;font-weight:700;line-height:1.15;}
+  #ali-cards .ac-card .ac-s{display:block;font-size:11.5px;font-weight:500;color:#6e6e73;margin:2px 0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  #ali-cards .ac-card .ac-imgbox{width:100%;height:115px;background:#fff;border-radius:9px;overflow:hidden;position:relative;}
+  #ali-cards .ac-card .ac-imgbox img{width:100%;height:100%;object-fit:contain;padding:12px;box-sizing:border-box;}
   #ali-cards .ac-card .ac-pill{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);background:rgba(17,17,17,.85);color:#fff;font-size:11px;font-weight:700;padding:5px 11px;border-radius:999px;white-space:nowrap;}
-  #ali-cards .ac-video{grid-column:1/-1;border-radius:12px;overflow:hidden;position:relative;background:#000;aspect-ratio:6/5;}  /* ratio ≈ image (1200×992) → plus de crop/zoom */
+  #ali-cards .ac-video{border-radius:12px;overflow:hidden;position:relative;background:#000;aspect-ratio:6/5;margin-top:10px;}  /* ratio ≈ image (1200×992) → plus de crop/zoom */
   #ali-cards .ac-video video{width:100%;height:100%;object-fit:cover;display:block;}
   #ali-cards .acc-ar{width:30px;height:30px;}
   /* bande arrivages */
-  #ali-banner .alb-link{display:block;position:relative;aspect-ratio:5/1;border-radius:14px;overflow:hidden;background:#f5f5f7;}
-  #ali-banner .alb-link img{width:100%;height:100%;object-fit:cover;object-position:center 40%;display:block;}
+  #ali-banner .alb-link{display:block;position:relative;aspect-ratio:3/1;border-radius:14px;overflow:hidden;background:#f5f5f7;}
+  #ali-banner .alb-link img{width:100%;height:100%;object-fit:cover;object-position:center;display:block;}
 }
 </style>
 </head>
@@ -2969,6 +2975,27 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
     _lastY = y; _tick = false;
   }
   window.addEventListener('scroll', function () { if (!_tick) { requestAnimationFrame(_onScroll); _tick = true; } }, { passive: true });
+})();
+/* HOME MOBILE : regrouper les cartes catégories (#ali-cards .ac-card) dans un RAIL
+   horizontal (.ac-rail) → 2 cartes visibles + slide vers la droite. ac-cats et coated restent pleine largeur. */
+(function(){
+  if (window.innerWidth > 1135 || document.body.classList.contains('cat-page')) return;
+  function wrap(){
+    var cont = document.getElementById('ali-cards'); if (!cont) return false;
+    if (cont.querySelector('.ac-rail')) return true;
+    var cards = Array.prototype.filter.call(cont.children, function(c){ return c.classList && c.classList.contains('ac-card'); });
+    if (cards.length < 2) return false;
+    var rail = document.createElement('div'); rail.className = 'ac-rail';
+    cont.insertBefore(rail, cards[0]);
+    cards.forEach(function(c){ rail.appendChild(c); });
+    return true;
+  }
+  if (!wrap()) {
+    var target = document.getElementById('ali-cards') || document.body;
+    var obs = new MutationObserver(function(){ if (wrap()) obs.disconnect(); });
+    obs.observe(target, { childList: true, subtree: true });
+    setTimeout(function(){ try { obs.disconnect(); } catch(e){} }, 10000);
+  }
 })();
 </script>
 
