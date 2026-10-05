@@ -1,27 +1,31 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+<script src="/i18n.js?v=2"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Prodiconseil — Panier</title>
 <meta name="robots" content="noindex">
-<link rel="icon" href="/img/logo.png">
+<link rel="icon" type="image/png" href="/img/panda.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/header.css">
+<link rel="stylesheet" href="/nav-menu.css?v=1">
+<link rel="stylesheet" href="/fiche.css?v=1">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
 /* MAQUETTE MIX — page panier vide façon Alibaba */
 *{box-sizing:border-box;}
 body{margin:0;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#1d1d1f;min-height:100vh;display:flex;flex-direction:column;min-width:1200px;}
 /* même gabarit que le catalogue : contenu borné à min(1500px, 100vw − 64px), centré */
 header{border-bottom:1px solid #f0f0f2;padding:13px 0;}
-.h-in{display:flex;align-items:center;gap:24px;max-width:min(1500px,calc(100vw - 64px));margin:0 auto;}
+.h-in{display:flex;align-items:center;gap:24px;max-width:min(1880px,calc(100vw - 64px));margin:0 auto;}
 header img.logo{height:40px;display:block;}
 .h-sp{flex:1;}
 /* barre de recherche façon Alibaba */
-.hsearch{flex:1;display:flex;align-items:center;gap:10px;height:48px;border:1.5px solid #e0e0e4;border-radius:999px;padding:3px 3px 3px 20px;background:#fff;}
+.hsearch{flex:1;display:flex;align-items:center;gap:8px;height:40px;border:1.5px solid #e0e0e4;border-radius:999px;padding:3px 3px 3px 16px;background:#fff;}
 .hsearch:focus-within{border-color:#b8b8bd;}
-.hsearch input{flex:1;min-width:60px;border:none;outline:none;background:none;font:500 15px 'DM Sans',sans-serif;color:#1d1d1f;}
-.hsearch button{height:38px;padding:0 22px;border:none;border-radius:999px;background:#fe0000;color:#fff;font:700 15px 'DM Sans',sans-serif;display:flex;align-items:center;gap:8px;cursor:pointer;flex-shrink:0;}
+.hsearch input{flex:1;min-width:60px;border:none;outline:none;background:none;font:500 14.5px 'DM Sans',sans-serif;color:#1d1d1f;}
+.hsearch button{height:32px;padding:0 16px;border:none;border-radius:999px;background:#fe0000;color:#fff;font:700 14px 'DM Sans',sans-serif;display:flex;align-items:center;gap:7px;cursor:pointer;flex-shrink:0;}
 .hsearch button:hover{background:#cc0000;}
 /* port de destination */
 .haddr{display:flex;flex-direction:column;line-height:1.3;text-decoration:none;color:#1d1d1f;flex-shrink:0;}
@@ -35,8 +39,8 @@ header img.logo{height:40px;display:block;}
 /* même bouton que le catalogue (#ali-join) : dégradé orange→rouge */
 .hcta{background:linear-gradient(90deg,#ff7a1a,#ff3c00 45%,#fe0000);color:#fff;border-radius:999px;padding:10px 20px;font-weight:800;font-size:15.8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;text-decoration:none;white-space:nowrap;flex-shrink:0;}
 .hcta:hover{filter:brightness(.93);}
-main{flex:1;max-width:min(1500px,calc(100vw - 64px));width:100%;margin:0 auto;padding:34px 0 70px;}
-h1{font-size:30px;font-weight:800;margin:0 0 60px;}
+main{flex:1;max-width:min(1880px,calc(100vw - 64px));width:100%;margin:0 auto;padding:22px 0 70px;}
+h1{font-size:30px;font-weight:800;margin:0 0 22px;}
 .empty{display:flex;align-items:center;justify-content:center;gap:64px;}
 .empty img{height:220px;width:auto;}
 .e-t{font-size:20px;font-weight:800;margin-bottom:18px;}
@@ -45,16 +49,114 @@ h1{font-size:30px;font-weight:800;margin:0 0 60px;}
 .e-line svg{width:18px;height:18px;flex-shrink:0;color:#1d1d1f;}
 .start{display:block;margin:42px auto 0;width:min(300px,80%);text-align:center;border:1.5px solid #d2d2d7;border-radius:999px;background:#fff;padding:14px;font:700 15.5px 'DM Sans',sans-serif;color:#1d1d1f;text-decoration:none;}
 .start:hover{border-color:#1d1d1f;}
+/* panier PLEIN : la sélection dans le MÊME tableau Excel que la page stock
+   (styles copiés de catalogue.css + index.html, dé-scopés) */
+.plist-table{width:100%;min-width:700px;border-collapse:collapse;font-family:'DM Sans',sans-serif;font-size:14px;background:#fff;}
+.plist-td{padding:6px 4px;vertical-align:middle;color:#000;white-space:nowrap;}
+.plist-td-num{text-align:left;font-variant-numeric:tabular-nums;}
+.plist-td-title{white-space:normal;min-width:120px;max-width:180px;}
+.plist-qtitle{display:block;font-size:14px;font-weight:700;color:#222;line-height:1.3;}
+.plist-details{display:block;font-size:13px;color:#222;margin-top:2px;font-weight:500;white-space:normal;}
+.plist-gsm{font-family:'Bebas Neue',sans-serif;font-size:16px;color:#222;letter-spacing:.5px;}
+.plist-thumb{width:50px;height:40px;object-fit:cover;border-radius:5px;display:block;}
+.plist-table th{position:sticky;top:0;z-index:6;background:#dce6f1;color:#111;font-weight:800;border:none;border-top:1.5px solid #8f9aae;border-bottom:1.5px solid #8f9aae;border-right:1px solid #8f9aae;padding:9px 10px;text-transform:uppercase;font-size:11.5px;letter-spacing:.3px;white-space:nowrap;text-align:left;}
+.plist-table th:first-child{border-left:1.5px solid #8f9aae;}
+.plist-table td{border:none;border-bottom:1px solid #c9d0db;border-right:1px solid #c9d0db;padding:7px 10px;background:#fff;}
+.plist-table td:first-child{border-left:1.5px solid #8f9aae;}
+.plist-table th:last-child,.plist-table td:last-child{border-right:1.5px solid #8f9aae;}
+.plist-table tbody tr:last-child td{border-bottom:1.5px solid #8f9aae;}
+.plist-table tbody tr:nth-child(even) td{background:#f5f8fc;}
+.plist-table tbody tr:hover td{background:#fff3c4;}
+.plist-table .plist-thumb-wrap{cursor:zoom-in;position:relative;}
+.plist-table .plist-thumb-wrap .plist-thumb{transition:transform .15s ease,box-shadow .15s ease;border-radius:5px;display:block;}
+.plist-table tbody tr:hover .plist-thumb-wrap .plist-thumb{transform:scale(1.35);box-shadow:0 5px 16px rgba(0,0,0,.3);}
+.plist-table .plist-thumb-wrap:hover{z-index:4;}
+/* FICHE produit (styles dans /fiche.css — .prodi-fiche, partagé avec le stock) :
+   ici juste l'overlay + le cadre blanc + le bouton ⊗ de la ligne prix. */
+#px-fiche{position:fixed;inset:0;background:rgba(10,10,12,.6);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);z-index:9600;display:none;align-items:flex-start;justify-content:center;overflow-y:auto;padding:40px 16px;cursor:zoom-out;}
+#px-fiche.open{display:flex;}
+.pxf-card{width:min(700px,94vw);background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.4);cursor:default;}
+.pxf-x{position:fixed;top:18px;left:22px;width:44px;height:44px;border-radius:50%;border:1.5px solid #e3e3e6;background:#fff;color:#1d1d1f;font-size:17px;font-weight:700;cursor:pointer;z-index:4;box-shadow:0 4px 16px rgba(0,0,0,.3);}
+.pxf-x:hover{background:#1d1d1f;color:#fff;}
+.pxf-add{width:38px;height:38px;border-radius:50%;border:none;background:#1d1d1f;color:#fff;font-size:17px;cursor:pointer;flex-shrink:0;}
+.pxf-add:hover{background:#fe0000;}
+.plist-ref-badge{display:inline-block;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.3px;color:#222;}
+.plist-del{border:none;background:none;color:#1d1d1f;cursor:pointer;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto;}
+.plist-del:hover{background:#ffecec;color:#fe0000;}
+.cx-wrap{overflow-x:auto;margin-bottom:22px;}
+/* récap EN BARRE au-dessus du tableau (04/10) — le Excel prend toute la largeur */
+.cf-grid{display:block;}
+.cf-item{display:flex;align-items:center;gap:18px;padding:14px 0;border-bottom:1px solid #f0f0f2;}
+.cf-item:first-child{border-top:1px solid #f0f0f2;}
+.cf-ph{width:86px;height:66px;border-radius:10px;object-fit:cover;background:#f5f5f7;flex-shrink:0;cursor:zoom-in;}
+.cf-main{flex:1;min-width:0;}
+.cf-t{font-size:15.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cf-d{font-size:13px;font-weight:600;color:#6e6e73;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cf-specs{font-size:13.5px;font-weight:600;color:#1d1d1f;margin-top:5px;}
+.cf-specs small{color:#6e6e73;font-weight:600;}
+.cf-ref{display:inline-block;background:#f0f0f2;border-radius:7px;padding:2px 9px;font-size:13px;font-weight:800;margin-right:10px;cursor:pointer;}
+.cf-ref:hover{background:#1d1d1f;color:#fff;}
+.cf-right{text-align:right;flex-shrink:0;}
+.cf-kg{font-size:14px;font-weight:700;}
+.cf-px{font-size:16px;font-weight:800;margin-top:3px;white-space:nowrap;}
+.cf-px small{font-size:11.5px;font-weight:700;color:#6e6e73;}
+.cf-del{width:36px;height:36px;border:none;border-radius:50%;background:none;color:#6e6e73;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.cf-del:hover{background:#ffecec;color:#fe0000;}
+.cf-sum{display:flex;align-items:center;gap:14px 30px;flex-wrap:wrap;background:#fff;border:1.5px solid #e8e8e4;border-radius:18px;padding:18px 26px;margin-bottom:18px;}
+.cfs-t{font-size:22px;font-weight:800;margin-right:8px;}
+.cfs-l{display:flex;align-items:baseline;gap:9px;font-size:16px;font-weight:600;color:#1d1d1f;white-space:nowrap;}
+.cfs-l b{font-weight:800;font-size:19px;}
+.cfs-tot{font-size:17px;}
+.cfs-tot b{font-size:26px;}
+.cfs-note{flex:1;min-width:220px;font-size:12.5px;font-weight:500;color:#6e6e73;line-height:1.45;margin-right:16px;align-self:center;}
+#cfs-dest{border:1.5px solid #d2d2d7;border-radius:10px;padding:7px 10px;font:800 15px 'DM Sans',sans-serif;color:#1d1d1f;background:#fff;cursor:pointer;max-width:190px;}
+#cfs-dest:focus{outline:none;border-color:#1d1d1f;}
+/* barre d'actions : propre ligne, alignée à droite, compacte */
+.cfb{display:flex;align-items:center;gap:12px;flex-basis:100%;justify-content:flex-end;margin-top:4px;padding-top:14px;border-top:1px solid #f0f0f2;}
+.cfb-btn{display:inline-flex;align-items:center;gap:11px;background:#fff;border:1.5px solid #e8e8e4;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.08);color:#1d1d1f;font:800 17px 'DM Sans',sans-serif;padding:13px 22px;cursor:pointer;transition:box-shadow .15s,transform .15s;}
+.cfb-btn:hover{box-shadow:0 5px 14px rgba(0,0,0,.18);transform:translateY(-1px);}
+.cfb-clear{color:#6e6e73;padding:13px 15px;}
+.cfb-clear:hover{color:#fe0000;}
+.cfb-go{background:linear-gradient(90deg,#ff7a1a,#ff3c00 45%,#fe0000);color:#fff;box-shadow:0 2px 10px rgba(254,0,0,.3);}
+.cfb-go:hover{filter:brightness(.93);box-shadow:0 5px 16px rgba(254,0,0,.4);}
+#px-toast{position:fixed;left:50%;transform:translateX(-50%) translateY(16px);bottom:26px;background:#fff;border:1px solid rgba(0,0,0,.22);border-radius:999px;padding:12px 22px;font:700 14px 'DM Sans',sans-serif;color:#1d1d1f;box-shadow:0 8px 30px rgba(0,0,0,.18);opacity:0;transition:opacity .25s,transform .3s;pointer-events:none;z-index:9700;}
+#px-toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
 footer{padding:26px 20px 30px;text-align:center;color:#6e6e73;font-size:13px;font-weight:500;border-top:1px solid #f0f0f2;}
 footer a{color:#6e6e73;text-decoration:none;margin:0 9px;}
 footer a:hover{color:#fe0000;text-decoration:underline;}
 footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
+/* ════ MOBILE / TABLETTE (05/10) ════ */
+@media(max-width:1024px){
+  body{min-width:0;}
+  main{max-width:none;padding:18px 16px 60px;}
+  .cf-sum{gap:12px 22px;padding:16px 18px;}
+  .cfs-t{font-size:20px;}
+  .cfs-l{font-size:15px;}.cfs-l b{font-size:17px;}
+  .cfs-tot b{font-size:22px;}
+  .cfb{flex-wrap:wrap;justify-content:flex-start;gap:10px;}
+  .cfs-note{min-width:100%;margin-right:0;order:9;}
+  .empty{gap:32px;}
+  .empty img{height:150px;}
+  .pxf-card{width:min(680px,94vw);}
+}
+@media(max-width:640px){
+  main{padding:14px 12px 50px;}
+  .cf-sum{gap:10px 16px;padding:14px;}
+  .cfs-t{font-size:18px;flex-basis:100%;}
+  .cfb-btn{font-size:15px;padding:11px 16px;flex:1 1 auto;justify-content:center;}
+  .cfb-go{flex-basis:100%;}
+  .empty{flex-direction:column;text-align:center;gap:22px;}
+  .pxf-x{top:10px;left:10px;width:40px;height:40px;}
+  .pxf-card{width:96vw;}
+  /* fiche : photo moins haute sur téléphone */
+  .prodi-fiche .dimg-col{height:46vh !important;}
+}
 </style>
 </head>
 <body>
 <header>
 <div class="h-in">
-  <a href="/catalogue/"><img class="logo" src="/img/logo.png?v=2" alt="Prodiconseil"></a>
+  <a href="/"><img class="logo" src="/img/logo.png?v=2" alt="Prodiconseil"></a>
   <form class="hsearch" action="/catalogue/" method="get">
     <input type="text" name="q" placeholder="Que recherchez-vous ?" autocomplete="off">
     <input type="hidden" name="all" value="1">
@@ -63,39 +165,66 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
       Rechercher
     </button>
   </form>
-  <a class="haddr" href="/catalogue/" title="Changer de port dans le catalogue">
-    <span class="hl">Port de destination&nbsp;:</span>
-    <span class="hv"><img id="h-flag" src="https://flagcdn.com/w40/fr.png" alt=""><span id="h-port">Le Havre</span></span>
-  </a>
-  <a class="hlang" href="/catalogue/">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
-    <span id="h-lang">Français-EUR</span>
-  </a>
-  <a class="hacct" href="/compte/">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>
-    Se connecter
-  </a>
-  <a class="hcta" href="/compte/">Devenir client</a>
+  <div id="ali-addr" title="Port de destination — coût CFR indicatif par tonne (container 25 T, départ Amiens)">
+    <span class="ali-addr-l">Port de destination&nbsp;:</span>
+    <span class="ali-addr-v" id="ali-ship-cur"><img class="ali-flag" src="https://flagcdn.com/w40/fr.png" alt=""> Le Havre</span>
+    <span class="ali-addr-cfr" id="ali-ship-cfr">+80 €/T CFR</span>
+  </div>
+  <div id="ali-lang">
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
+    <span id="ali-lc-cur">Français-EUR</span>
+  </div>
+      <div id="ali-acct">
+        <a id="ali-login-lnk" href="/compte/">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>
+          Se connecter
+        </a>
+        <div id="ali-acct-pop">
+          <div class="acct-hi">Bienvenue chez Prodiconseil !</div>
+          <a class="acct-login" href="/compte/">Se connecter</a>
+          <div class="acct-or">Ou continuer avec :</div>
+          <a class="acct-google" href="#" onclick="location.href='https://bvcgpdoukhcatjibmvnb.supabase.co/auth/v1/authorize?provider=google&amp;redirect_to='+encodeURIComponent('http://localhost:8101/compte/');return false;">
+            <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+            <span>Continuer avec Google</span>
+          </a>
+          <div class="acct-sep"></div>
+          <a class="acct-item" href="/mon-prodiconseil/">Mes commandes</a>
+          <a class="acct-item" href="#" onclick="return false;">Demande de devis</a>
+          <a class="acct-item" href="/echantillons/">Demande d'&eacute;chantillons</a>
+          <a class="acct-item" href="/contact/">Nous contacter</a>
+          <a class="acct-item" href="/mon-prodiconseil/">Mon Prodiconseil</a>
+          <div class="acct-sep"></div>
+          <a class="acct-item" href="/compte/">Devenir client Prodiconseil</a>
+        </div>
+      </div>
+      <a id="ali-join" href="/compte/">Devenir client</a>
 </div>
 </header>
-<script>
-/* reflète les choix mémorisés du catalogue (port + langue/devise) */
-(function(){
-  try{
-    var s=JSON.parse(localStorage.getItem('ali_ship2')||'null');
-    if(s&&s.id){var p=s.id.split('|');
-      document.getElementById('h-flag').src='https://flagcdn.com/w40/'+p[0]+'.png';
-      document.getElementById('h-port').textContent=p[1];}
-  }catch(e){}
-  try{
-    var l=localStorage.getItem('ali_lang')||'fr';
-    var c=/usd/i.test(localStorage.getItem('prodi_ccy')||'')?'USD':'EUR';
-    document.getElementById('h-lang').textContent=(l==='en'?'English':'Français')+'-'+c;
-  }catch(e){}
-})();
-</script>
 <main>
-  <h1>Panier</h1>
+  <h1 id="cart-h1" style="display:none;">Panier</h1>
+  <div id="cart-full" style="display:none;">
+    <div class="cf-grid">
+      <aside class="cf-sum">
+        <div class="cfs-t">Panier</div>
+        <div class="cfs-l" id="cfs-bob-wrap"><span>Bobines</span><b id="cfs-bob">—</b></div>
+        <div class="cfs-l" id="cfs-fmt-wrap"><span>Formats</span><b id="cfs-fmt">—</b></div>
+        <div class="cfs-l"><span>Tonnage</span><b id="cfs-kg">—</b></div>
+        <div class="cfs-l"><span>Prix moyen (EXW)</span><b id="cfs-avg">—</b></div>
+        <div class="cfs-l"><span>Marchandise (EXW)</span><b id="cfs-eur">—</b></div>
+        <div class="cfs-l cfs-ship"><span>Destination</span><select id="cfs-dest"></select></div>
+        <div class="cfs-l"><span>Transport estimé</span><b id="cfs-ship">—</b></div>
+        <div class="cfs-l cfs-tot"><span>Total estimé (CFR)</span><b id="cfs-cfr">—</b></div>
+        <div class="cfb">
+          <div class="cfs-note" id="cfs-note">EXW = prix départ dépôt, hors transport. Transport estimatif<br>par tonne (container ~25 T) selon le port de destination. Montant confirmé sur la proforma.</div>
+          <button class="cfb-btn cfb-clear" onclick="pxVider()" title="Vider la sélection"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9.2"/><path d="m9 9 6 6M15 9l-6 6"/></svg></button>
+          <button class="cfb-btn" onclick="pxExcel(this)">Télécharger <svg width="24" height="24" viewBox="0 0 32 32" style="flex-shrink:0;"><rect x="9" y="2" width="21" height="14" rx="3.5" fill="#8bd47e"/><rect x="20" y="2" width="10" height="14" rx="3.5" fill="#b9e695"/><path d="M9 9h17.5A3.5 3.5 0 0 1 30 12.5V26.5a3.5 3.5 0 0 1-3.5 3.5H12.5A3.5 3.5 0 0 1 9 26.5Z" fill="#2f9e55"/><rect x="2" y="12" width="16" height="16" rx="3.5" fill="#185c37"/><path d="M6.4 16.5h2.7l1.8 3.2 1.8-3.2h2.7l-3.1 4.7 3.2 4.8h-2.8l-1.8-3.3-1.9 3.3H6.2l3.2-4.8z" fill="#fff"/></svg></button>
+          <button class="cfb-btn" onclick="pxAlbum(this)">Album photo <img src="/img/pdf_icon.png" alt="" style="height:24px;width:auto;flex-shrink:0;"></button>
+          <button class="cfb-btn cfb-go" onclick="pxReserver()">Réserver</button>
+        </div>
+      </aside>
+      <div id="cart-items"></div>
+    </div>
+  </div>
   <div class="empty">
     <img src="/img/panier_container.webp" alt="" width="800" height="533">
     <div>
@@ -121,5 +250,254 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
   </div>
   <div class="cr">&copy; 1991-2026 Prodiconseil &mdash; Amiens, France</div>
 </footer>
+<script src="/header.js"></script>
+<script src="/login-pop.js"></script>
+<script src="/footer.js"></script>
+<script src="/nav-menu.js?v=1"></script>
+<script src="/fiche.js?v=1"></script>
+<script>
+/* Sélection = localStorage prodi_cart (posé par le catalogue — même origine).
+   Panier non vide → liste des lignes + récap ; sinon l'état vide d'origine. */
+(function(){
+  function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+  function safeUrl(u){return /^https?:\/\//.test(String(u||''))?String(u):'';}
+  function lire(){try{return JSON.parse(localStorage.getItem('prodi_cart')||'[]')||[];}catch(e){return [];}}
+  function sauver(c){try{localStorage.setItem('prodi_cart',JSON.stringify(c));}catch(e){}}
+  function eurT(p){return Math.round(p*1000/10)*10;}
+  function logged(){try{var s=JSON.parse(localStorage.getItem('sb-bvcgpdoukhcatjibmvnb-auth-token')||'null');return !!(s&&s.user);}catch(e){return false;}}
+  /* ── Destinations + barème transport CFR €/T (container ~25 T) — même barème
+     que le sélecteur du header du site. Le choix est persisté dans ali_ship2. ── */
+  var ZONES=[
+    ['Europe',80,[['fr','France'],['be','Belgique'],['nl','Pays-Bas'],['de','Allemagne'],['pl','Pologne'],['it','Italie'],['es','Espagne'],['pt','Portugal'],['ro','Roumanie'],['bg','Bulgarie'],['gr','Grèce']]],
+    ['Maghreb',110,[['ma','Maroc'],['dz','Algérie'],['tn','Tunisie'],['ly','Libye']]],
+    ["Afrique de l'Ouest",120,[['sn','Sénégal'],['gn','Guinée'],['ci',"Côte d'Ivoire"],['gh','Ghana'],['tg','Togo'],['bj','Bénin'],['ng','Nigeria'],['ga','Gabon'],['cg','Congo']]],
+    ['Afrique centrale',140,[['cm','Cameroun'],['cd','RDC']]],
+    ['Afrique du Nord-Est',100,[['eg','Égypte'],['sd','Soudan'],['dj','Djibouti']]],
+    ['Moyen-Orient',120,[['sa','Arabie Saoudite'],['tr','Turquie'],['lb','Liban'],['jo','Jordanie'],['iq','Irak']]],
+    ['Golfe',140,[['ae','Émirats A.U.'],['qa','Qatar'],['om','Oman'],['kw','Koweït'],['bh','Bahreïn']]],
+    ['Asie du Sud',160,[['in','Inde'],['pk','Pakistan'],['bd','Bangladesh'],['lk','Sri Lanka']]],
+    ['Asie du Sud-Est',200,[['th','Thaïlande'],['vn','Vietnam'],['my','Malaisie'],['id','Indonésie'],['ph','Philippines'],['sg','Singapour']]],
+    ['Chine',180,[['cn','Chine']]],
+    ['Amérique du Nord',100,[['us','USA'],['ca','Canada']]],
+    ['Amérique du Sud',200,[['br','Brésil'],['ar','Argentine'],['cl','Chili'],['pe','Pérou'],['co','Colombie']]],
+    ['Afrique australe',160,[['za','Afrique du Sud'],['mz','Mozambique'],['ao','Angola'],['mg','Madagascar']]],
+    ['Océanie',200,[['au','Australie'],['nz','Nouvelle-Zélande']]]
+  ];
+  function destInit(){
+    var sel=document.getElementById('cfs-dest'); if(!sel||sel._done)return; sel._done=1;
+    var h='<option value="">— Choisir un pays —</option>';
+    ZONES.forEach(function(z){
+      h+='<optgroup label="'+esc(z[0])+' (+'+z[1]+' €/T)">';
+      z[2].forEach(function(c){h+='<option value="'+z[1]+'" data-f="'+c[0]+'" data-p="'+esc(c[1])+'">'+esc(c[1])+'</option>';});
+      h+='</optgroup>';
+    });
+    sel.innerHTML=h;
+    // PRÉ-REMPLISSAGE auto (05/10) : 1) port déjà choisi sur le site, sinon
+    // 2) pays du compte, sinon 3) région du navigateur (ex. fr-MA → Maroc).
+    var cc=null;
+    try{var ship=JSON.parse(localStorage.getItem('ali_ship2')||'null');if(ship&&ship.f)cc=ship.f;}catch(e){}
+    if(!cc){try{var sb=JSON.parse(localStorage.getItem('sb-bvcgpdoukhcatjibmvnb-auth-token')||'null');var m=sb&&sb.user&&sb.user.user_metadata||{};cc=(m.pays_code||m.country||m.pays||'').toString().toLowerCase().slice(0,2)||null;}catch(e){}}
+    if(!cc){var L=(navigator.language||navigator.userLanguage||'');var mm=L.match(/[-_]([A-Za-z]{2})/);if(mm)cc=mm[1].toLowerCase();}
+    if(cc){var o=sel.querySelector('option[data-f="'+cc+'"]'); if(o){o.selected=true;
+      /* persiste ce choix auto pour que le site entier soit cohérent */
+      try{localStorage.setItem('ali_ship2',JSON.stringify({id:o.getAttribute('data-f')+'|'+o.getAttribute('data-p'),t:+o.value,port:o.getAttribute('data-p'),pays:o.getAttribute('data-p'),f:o.getAttribute('data-f')}));}catch(e){}}}
+    sel.addEventListener('change',function(){
+      var o=sel.options[sel.selectedIndex];
+      if(o&&o.value){try{localStorage.setItem('ali_ship2',JSON.stringify({id:o.getAttribute('data-f')+'|'+o.getAttribute('data-p'),t:+o.value,port:o.getAttribute('data-p'),pays:o.getAttribute('data-p'),f:o.getAttribute('data-f')}));}catch(e){}}
+      rendre();
+    });
+  }
+  /* toast simple */
+  var _toastT=null;
+  function pxToast(msg){
+    var t=document.getElementById('px-toast');
+    if(!t){t=document.createElement('div');t.id='px-toast';document.body.appendChild(t);}
+    t.textContent=msg;t.classList.add('on');
+    clearTimeout(_toastT);_toastT=setTimeout(function(){t.classList.remove('on');},2600);
+  }
+  /* Télécharger / Album photo = EXACTEMENT les moteurs du catalogue, appelés
+     dans une iframe /catalogue/ invisible (même origine, même panier
+     localStorage) — zéro duplication de code. */
+  var _cfP=null;
+  function _catFrame(){
+    if(_cfP)return _cfP;
+    _cfP=new Promise(function(res,rej){
+      var f=document.createElement('iframe');
+      f.style.cssText='position:fixed;width:1280px;height:900px;left:-20000px;top:0;visibility:hidden;';
+      f.src='/catalogue/';
+      var t0=Date.now();
+      function hijack(w){
+        /* Chrome bloque les téléchargements d'une iframe cachée : on rejoue
+           le clic de l'ancre <a download> DANS la page parent (même origine,
+           les blob: passent) — couvre ExcelJS (a.click) et jsPDF (.save). */
+        if(w.__pxHijacked)return;w.__pxHijacked=true;
+        var orig=w.HTMLAnchorElement.prototype.click;
+        w.HTMLAnchorElement.prototype.click=function(){
+          if(this.download||this.getAttribute('download')!=null){
+            var a=document.createElement('a');
+            a.href=this.href;a.download=this.download||'';
+            document.body.appendChild(a);a.click();a.remove();
+            return;
+          }
+          return orig.apply(this,arguments);
+        };
+      }
+      function poll(){
+        try{
+          var w=f.contentWindow;
+          /* `cart` est un let top-level (pas une propriété window) → on lit le
+             badge panier du DOM de l'iframe pour savoir si la liste est prête */
+          var bd=w&&w.document&&w.document.getElementById('cart-badge');
+          var n=bd?(parseInt(bd.textContent,10)||0):0;
+          if(w&&typeof w.exportListExcelTest==='function'&&typeof w.exportAlbumPdf==='function'&&n===lire().length&&n>0){hijack(w);return res(w);}
+        }catch(e){}
+        if(Date.now()-t0>25000){_cfP=null;return rej(new Error('timeout'));}
+        setTimeout(poll,350);
+      }
+      f.onload=poll;
+      document.body.appendChild(f);
+    });
+    return _cfP;
+  }
+  window.pxExcel=function(btn){
+    if(!lire().length){pxToast('Panier vide');return;}
+    var old=btn.firstChild.textContent;btn.firstChild.textContent='Génération… ';btn.disabled=true;
+    _catFrame().then(function(w){return w.exportListExcelTest(null);})
+      .then(function(){pxToast('Excel téléchargé');})
+      .catch(function(){pxToast('Erreur export — réessayez');})
+      .finally(function(){btn.firstChild.textContent=old;btn.disabled=false;});
+  };
+  window.pxAlbum=function(btn){
+    if(!lire().length){pxToast('Panier vide');return;}
+    var old=btn.firstChild.textContent;btn.firstChild.textContent='Génération… ';btn.disabled=true;
+    _catFrame().then(function(w){return w.exportAlbumPdf(null);})
+      .then(function(){pxToast('Album PDF téléchargé');})
+      .catch(function(){pxToast('Erreur album — réessayez');})
+      .finally(function(){btn.firstChild.textContent=old;btn.disabled=false;});
+  };
+  window.pxVider=function(){sauver([]);rendre();pxToast('Panier vidé');};
+  window.pxReserver=function(){
+    if(!lire().length){pxToast('Panier vide');return;}
+    if(window.prodiRequireAccount&&!window.prodiRequireAccount())return;
+    pxToast('✅ Demande de réservation envoyée — nous revenons vers vous.');
+  };
+  /* lightbox photo en place (clic photo = agrandir ICI, pas un nouvel onglet) */
+  var ICO_X='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9.2"/><path d="m9 9 6 6M15 9l-6 6"/></svg>';
+  function estFmt(it){return it.format!=='Bobine';}
+  function fullTitle(it){
+    var base=String(it.titre||it.name||'').replace(/^(BOBINE|PALETTE|FORMAT|FEUILLE)\s*[—-]\s*/i,'');
+    return (estFmt(it)?'FORMAT':'BOBINE')+' — '+base;
+  }
+  /* FICHE produit — EXACTEMENT celle du stock : markup ProdiFiche (fiche.js) +
+     styles fiche.css (.prodi-fiche). Plus de copie de code (05/10). */
+  window.pxFiche=function(i){
+    var c=lire(); var it=c[i]; if(!it)return;
+    var bg=document.getElementById('px-fiche');
+    if(!bg){
+      bg=document.createElement('div');bg.id='px-fiche';
+      bg.onclick=function(e){if(e.target===bg)bg.classList.remove('open');};
+      document.addEventListener('keydown',function(e){if(e.key==='Escape')bg.classList.remove('open');});
+      document.body.appendChild(bg);
+    }
+    var H={
+      estFormat:estFmt,
+      detail:function(x){return x.detailTxt||x.details||'';},
+      title:fullTitle,
+      hs:function(){return '';},         /* code douanier non stocké dans le panier */
+      mm:function(v){return v;},          /* déjà en mm */
+      showPriceRow:true,
+      priceVal:function(x){return (x.price&&logged())?esc(eurT(x.price).toLocaleString('fr-FR'))+' <small>€/T</small>':'—';}
+    };
+    var photo=ProdiFiche.photoColHTML({image_url:it.img,ref:it.ref,usine:it.usine,name:it.name,grammage:it.grammage,couleur:it.couleur},{});
+    bg.innerHTML='<button class="pxf-x" aria-label="Fermer" onclick="document.getElementById(\'px-fiche\').classList.remove(\'open\')">✕</button>'
+      +'<div class="pxf-card prodi-fiche">'+photo+ProdiFiche.specsHTML(it,H)+'</div>';
+    // + rond « retirer » sur la ligne PRIX (comme la fiche stock)
+    var cell=bg.querySelector('.det-etq-prix');
+    if(cell){var b=document.createElement('button');b.className='pxf-add';b.textContent='✕';b.title='Retirer du panier';b.onclick=function(){pxFicheRemove(i);};cell.appendChild(b);}
+    // pastille réf = copie au clic
+    var rb=bg.querySelector('.xla-refb');
+    if(rb)rb.onclick=function(){var t=rb.textContent.replace(/[⎘✓]\s*$/,'').trim();navigator.clipboard&&navigator.clipboard.writeText(t).then(function(){rb.textContent=t+' ✓';setTimeout(function(){rb.textContent=t+' ⎘';},1500);});};
+    bg.classList.add('open');
+  };
+  window.pxFicheRemove=function(i){var c=lire();c.splice(i,1);sauver(c);document.getElementById('px-fiche').classList.remove('open');rendre();};
+  function titre(it){return String(it.titre||it.name||'Produit').replace(/^(BOBINE|PALETTE|FORMAT|FEUILLE)\s*[—-]\s*/i,'');}
+  function ligne(it,i,pal){
+    var ref=String(it.ref||'').replace(/^Photo_/i,'').toUpperCase();
+    var img=safeUrl(it.img);
+    var det=it.details?String(it.details).replace(/[-–—\s]+/g,' ').trim():'';
+    var prix=logged()
+      ?(it.price?eurT(it.price).toLocaleString('fr-FR')+' €/T':'—')
+      :'<button class="plist-seep" onclick="window.prodiLoginPop&&window.prodiLoginPop()" style="border:none;background:none;color:#fe0000;font:700 12.5px \'DM Sans\',sans-serif;cursor:pointer;">Voir le prix</button>';
+    return '<tr>'
+      +'<td class="plist-td" style="text-align:center;"><button class="plist-del" title="Retirer du panier" data-i="'+i+'">'+ICO_X+'</button></td>'
+      +'<td class="plist-td plist-thumb-wrap"'+(img?' onclick="pxFiche('+i+')"':'')+'>'+(img?'<img class="plist-thumb" loading="lazy" src="'+esc(img)+'" alt="" onerror="this.style.visibility=\'hidden\'">':'')+'</td>'
+      +'<td class="plist-td" style="text-align:center;" title="Copier la référence" onclick="navigator.clipboard&&navigator.clipboard.writeText(\''+esc(ref)+'\')"><span class="plist-ref-badge">'+esc(ref)+'</span></td>'
+      +'<td class="plist-td plist-td-title"><strong class="plist-qtitle">'+esc(titre(it))+'</strong></td>'
+      +'<td class="plist-td" style="white-space:normal;min-width:200px;">'+(det?'<span class="plist-details">'+esc(det.substring(0,60))+(det.length>60?'…':'')+'</span>':'—')+'</td>'
+      +'<td class="plist-td">'+esc(it.couleur||'—')+'</td>'
+      +'<td class="plist-td plist-td-num"><span class="plist-gsm">'+(it.grammage?esc(it.grammage+' g/m²'):'—')+'</span></td>'
+      +(pal
+        ?'<td class="plist-td plist-td-num" colspan="3">'+((it.largeur&&it.longueur)?esc(it.largeur+' × '+it.longueur):(it.largeur?esc(''+it.largeur):'—'))+'</td>'
+        :'<td class="plist-td plist-td-num">'+(it.largeur?esc(''+it.largeur):'—')+'</td>'
+         +'<td class="plist-td plist-td-num">'+(it.longueur?esc(''+it.longueur):'—')+'</td>'
+         +'<td class="plist-td plist-td-num">'+(it.noyau?esc(''+it.noyau):'—')+'</td>')
+      +'<td class="plist-td plist-td-num">'+(it.poids_net?(+it.poids_net).toLocaleString('fr-FR'):'—')+'</td>'
+      +'<td class="plist-td plist-td-num" style="font-weight:800;">'+prix+'</td>'
+    +'</tr>';
+  }
+  function table(items,pal){
+    if(!items.length)return '';
+    var head='<th></th><th>Photo</th><th>Référence</th><th>Qualité</th><th>Détails</th><th>Couleur</th><th>GSM</th>'
+      +(pal?'<th colspan="3">Dimensions (mm)</th>':'<th>Laize (mm)</th><th>Diamètre (mm)</th><th>Mandrin (mm)</th>')
+      +'<th>Poids (kg)</th><th>Prix</th>';
+    return '<div class="cx-wrap"><table class="plist-table"><thead><tr>'+head+'</tr></thead><tbody>'
+      +items.map(function(o){return ligne(o.it,o.i,pal);}).join('')+'</tbody></table></div>';
+  }
+  function rendre(){
+    var c=lire();
+    var full=document.getElementById('cart-full');
+    var vide=document.querySelector('.empty');
+    var h1=document.getElementById('cart-h1');
+    if(!c.length){full.style.display='none';vide.style.display='';h1.textContent='Panier';return;}
+    vide.style.display='none';full.style.display='';
+    h1.textContent='Panier';
+    destInit();
+    var kg=0,eur=0;
+    var bobs=[],pals=[];
+    c.forEach(function(it,i){
+      kg+=(+it.poids_net||0);
+      if(it.price)eur+=it.price*(+it.poids_net||0);
+      (it.format==='Bobine'?bobs:pals).push({it:it,i:i});
+    });
+    document.getElementById('cart-items').innerHTML=table(bobs,false)+table(pals,true);
+    var T=kg/1000;
+    // nombre de bobines / formats (masque la ligne si 0)
+    document.getElementById('cfs-bob').textContent=bobs.length;
+    document.getElementById('cfs-fmt').textContent=pals.length;
+    document.getElementById('cfs-bob-wrap').style.display=bobs.length?'':'none';
+    document.getElementById('cfs-fmt-wrap').style.display=pals.length?'':'none';
+    document.getElementById('cfs-kg').textContent=T.toLocaleString('fr-FR',{maximumFractionDigits:1})+' T';
+    var ok=eur&&logged();
+    var eurFmt=function(n){return Math.round(n).toLocaleString('fr-FR')+' €';};
+    // Prix moyen EXW (€/T) + marchandise EXW
+    document.getElementById('cfs-avg').textContent=ok&&T>0?Math.round(eur/T/10)*10+' €/T':'—';
+    document.getElementById('cfs-eur').textContent=ok?eurFmt(eur):'—';
+    // Transport estimé selon la destination choisie (barème €/T, container ~25 T)
+    var rate=+document.getElementById('cfs-dest').value||0;
+    var shipEl=document.getElementById('cfs-ship'), cfrEl=document.getElementById('cfs-cfr');
+    if(rate){
+      var tr=rate*T;
+      shipEl.textContent=ok?('≈ '+eurFmt(tr)+'  ('+rate+' €/T)'):(rate+' €/T');
+      cfrEl.textContent=ok?eurFmt(eur+tr):'—';
+    }else{ shipEl.textContent='—'; cfrEl.textContent=ok?eurFmt(eur):'—'; }
+    document.querySelectorAll('.plist-del').forEach(function(b){
+      b.onclick=function(e){e.stopPropagation();var c2=lire();c2.splice(+b.dataset.i,1);sauver(c2);rendre();};
+    });
+  }
+  rendre();
+  /* la sélection change dans l'onglet catalogue → le panier suit en direct */
+  window.addEventListener('storage',function(e){if(e.key==='prodi_cart')rendre();});
+})();
+</script>
 </body>
 </html>

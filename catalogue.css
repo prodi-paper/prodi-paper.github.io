@@ -1772,10 +1772,10 @@ body.topbar-view .body-wrap>div:last-child{padding:12px 0 0;}
 }
 @media(min-width:769px){
 body.topbar-view .pgrid{grid-template-columns:repeat(4,1fr);max-width:var(--gab);margin-left:auto;margin-right:auto;gap:8px;} /* PORTABLE/MacBook = 4 cartes (29/08 Ethan) */
-/* Grand écran externe (≥1800px) = 5 cartes ; portable reste à 4 (29/08 Ethan) */
-@media(min-width:1800px){body.topbar-view .pgrid{grid-template-columns:repeat(5,1fr);}}
-/* Grand écran : 5 cartes MAX par rangée (demande Ethan 20/08 — le zoom global gère le reste) */
-@media(min-width:2100px){body.topbar-view .pgrid{grid-template-columns:repeat(5,1fr);}body.shared-view .pgrid{grid-template-columns:repeat(5,1fr);}}
+/* Grand écran externe (≥1800px) = 6 cartes ; portable reste à 4 (12/09 Ethan) */
+@media(min-width:1800px){body.topbar-view .pgrid{grid-template-columns:repeat(6,1fr);}}
+/* Grand écran : 6 cartes par rangée (12/09 Ethan) */
+@media(min-width:2100px){body.topbar-view .pgrid{grid-template-columns:repeat(6,1fr);}body.shared-view .pgrid{grid-template-columns:repeat(5,1fr);}}
 /* Perf CLS desktop : quand on quitte le hero pour la grille, la bascule est
    synchrone mais la grille reste VIDE le temps du fetch (debounce 200ms) → le
    contenu s'effondre puis resaute quand les cartes arrivent (CLS ~0,58). On

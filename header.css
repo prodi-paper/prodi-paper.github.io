@@ -1,0 +1,134 @@
+/* HEADER PARTAGÉ (12/09) : widgets port + langue/devise + compte et leurs
+   panneaux au survol — extraits VERBATIM de l'accueil (index.html) pour être
+   maintenus à UN seul endroit. Inclure header.css + header.js sur toute page
+   légère (panier, compte…). */
+#ali-addr,#ali-lang,#ali-acct,#ali-ship-pop,#ali-lc-pop{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;}
+  #ali-addr{display:grid;grid-template-columns:auto auto;column-gap:10px;align-items:center;justify-items:start;line-height:1.2;cursor:pointer;position:relative;}
+  .ali-addr-cfr{font-size:13.1px;color:#1d1d1f;font-weight:800;}
+  #ali-ship-pop{position:absolute;top:calc(100% + 12px);left:50%;transform:translateX(-50%);width:410px;background:#fff;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.18);padding:26px;z-index:3000;display:none;cursor:default;text-align:left;}
+  #ali-ship-pop.open{display:block;}
+  .aliz-sw{position:sticky;top:0;background:#fff;padding:10px 10px 6px;z-index:1;}
+  #ali-ship-search{width:100%;box-sizing:border-box;height:36px;border:1.5px solid #d2d2d7;border-radius:9px;padding:0 12px;font:600 14px 'DM Sans',sans-serif;outline:none;}
+  .aliz-list{padding:0 10px 10px;}
+  .aliz-h{font-size:11px;font-weight:800;color:#6e6e73;text-transform:uppercase;letter-spacing:.4px;padding:11px 10px 4px;display:flex;justify-content:space-between;}
+  .aliz-row{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;color:#1d1d1f;}
+  .aliz-row:hover{background:#f5f5f7;}
+  .aliz-t{margin-left:auto;font-size:12px;color:#fe0000;font-weight:800;}
+  .ali-flag{width:21px;height:auto;border-radius:2px;box-shadow:0 0 0 1px rgba(0,0,0,.1);vertical-align:-2px;display:inline-block;}
+  .aliz-row .ali-flag{width:23px;}
+  #ali-lang{position:relative;cursor:pointer;}
+  #ali-lang .ccy-seg{display:none !important;}
+  #ali-lc-pop{position:absolute;top:calc(100% + 12px);left:50%;transform:translateX(-50%);width:400px;background:#fff;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.18);padding:22px;z-index:3000;display:none;cursor:default;text-align:left;}
+  #ali-lc-pop.open{display:block;}
+  #ali-lc-pop::before,#ali-ship-pop::before{content:"";position:absolute;top:-6px;width:13px;height:13px;background:#fff;transform:rotate(45deg);border-radius:2px;}
+  #ali-lc-pop::before{left:50%;margin-left:-7px;}
+  #ali-ship-pop::before{left:50%;margin-left:-6.5px;}
+  .lc-title{font-size:17.5px;font-weight:800;color:#1d1d1f;margin-bottom:8px;}
+  .lc-sub{font-size:13px;color:#6e6e73;line-height:1.45;margin-bottom:16px;font-weight:500;}
+  .lc-lab{display:block;font-size:13.5px;font-weight:700;color:#1d1d1f;margin:14px 0 7px;}
+  .lc-sel{width:100%;box-sizing:border-box;height:42px;border:1.5px solid #d2d2d7;border-radius:9px;padding:0 12px;font:600 14.5px 'DM Sans',sans-serif;color:#1d1d1f;background:#fff;outline:none;appearance:auto;cursor:pointer;}
+  #lc-save,#ship-save{width:100%;height:44px;margin-top:20px;border:none;border-radius:999px;background:#fe0000;color:#fff;font:800 15.5px 'DM Sans',sans-serif;cursor:pointer;}
+  #lc-save:hover,#ship-save:hover{background:#cc0000;}
+  /* mini-panneau PANIER au survol (façon Alibaba, illustration container+bobine) */
+  .cart-wrap{position:relative;}
+  #cart-pop{position:absolute;top:calc(100% + 12px);left:50%;width:380px;background:#fff;border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.18);padding:22px 24px;opacity:0;visibility:hidden;transform:translate(-50%,6px);transition:opacity .18s,transform .18s,visibility .18s;z-index:3000;}
+  #cart-pop.open{opacity:1;visibility:visible;transform:translateX(-50%);}
+  #cart-pop::before{content:'';position:absolute;top:-6px;left:50%;margin-left:-6px;width:12px;height:12px;background:#fff;transform:rotate(45deg);}
+  .cpop-t{font:800 18px 'DM Sans',sans-serif;color:#111;}
+  .cpop-art{display:block;margin:10px auto 4px;width:250px;height:auto;}
+  .cpop-txt{text-align:center;font:800 17px 'DM Sans',sans-serif;color:#1d1d1f;margin:2px 0 20px;}
+  .cpop-go{display:block;width:100%;height:48px;border-radius:999px;border:1.5px solid #d2d2d7;background:#fff;color:#1d1d1f;font:700 16px 'DM Sans',sans-serif;cursor:pointer;}
+  .cpop-go:hover{background:#f5f5f7;}
+  @media(max-width:768px){#cart-pop{display:none;}}
+  .ship-cfr{font-size:12.5px;color:#6e6e73;margin-top:10px;font-weight:600;line-height:1.4;}
+  .ship-wrap{position:relative;}
+  .ship-field{display:flex;align-items:center;gap:10px;height:46px;border:1.5px solid #d2d2d7;border-radius:9px;padding:0 12px;font:600 14.5px 'DM Sans',sans-serif;color:#1d1d1f;cursor:pointer;background:#fff;}
+  .ship-field svg{margin-left:auto;color:#6e6e73;transition:transform .18s;}
+  .ship-field.open{border-color:#86868b;}
+  .ship-field.open svg{transform:rotate(180deg);}
+  .ship-list{position:absolute;top:calc(100% + 6px);left:0;right:0;max-height:450px;overflow:auto;background:#fff;border-radius:12px;box-shadow:0 10px 34px rgba(0,0,0,.22);z-index:10;display:none;padding:0 0 8px;}
+  .ship-sw{position:sticky;top:0;background:#fff;padding:8px 8px 6px;z-index:2;}
+  #ship-search{width:100%;box-sizing:border-box;height:40px;border:1.5px solid #d2d2d7;border-radius:9px;padding:0 12px;font:600 14px 'DM Sans',sans-serif;outline:none;}
+  #ship-search:focus{border-color:#86868b;}
+  #ship-rows{padding:0 6px;}
+  .ship-list.open{display:block;}
+  .ship-grp{font-size:10.5px;font-weight:800;color:#86868b;text-transform:uppercase;letter-spacing:.5px;padding:12px 10px 5px;}
+  .ship-row{display:flex;align-items:center;gap:11px;padding:10px 10px;border-radius:8px;cursor:pointer;font-size:15.5px;font-weight:600;color:#1d1d1f;}
+  .ship-row:hover{background:#f5f5f7;}
+  .ship-row .ali-flag{width:24px;}
+  .ship-row em{display:none;}
+  .ship-row i{margin-left:auto;font-style:normal;font-size:13px;color:#1d1d1f;font-weight:600;padding-left:8px;white-space:nowrap;}
+  .ali-addr-l{font-size:13.1px;color:#111;font-weight:500;grid-column:1 / -1;}
+  .ali-addr-v{font-size:16.3px;font-weight:700;color:#111;}
+  #ali-lang{display:flex;align-items:center;gap:8px;font-size:15.8px;font-weight:500;color:#111;}
+  #ali-lang>svg,#ali-login svg{width:26px;height:26px;flex-shrink:0;}
+  /* panier = icône seule */
+  body:not(.shared-view) #cart-btn{border:none !important;background:transparent !important;box-shadow:none !important;padding:4px !important;height:auto !important;}
+  body:not(.shared-view) #cart-btn img,body:not(.shared-view) #cart-btn .btn-panier-txt{display:none !important;}
+  body:not(.shared-view) #cart-btn::before{content:"";display:block;width:26px;height:26px;
+    background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231d1d1f' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><circle cx='9.5' cy='20.5' r='1.7'/><circle cx='18.5' cy='20.5' r='1.7'/><path d='M2.5 3.5h3L8 15.5a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.6l1.9-9.1H6.1'/></svg>") center/contain no-repeat;}
+  #ali-login{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:500;color:#111;text-decoration:none;}
+  #ali-cta{background:#fe0000;color:#fff;font-weight:700;font-size:15px;padding:12px 24px;border-radius:999px;text-decoration:none;white-space:nowrap;}
+  #ali-cta:hover{background:#cc0000;}
+  /* ── Compte façon Alibaba : Se connecter + Devenir client ── */
+  #ali-acct{position:relative;display:flex;align-items:center;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
+  #ali-login-lnk{display:flex;align-items:center;gap:7px;color:#1d1d1f;text-decoration:none;font-size:15.8px;font-weight:600;padding:6px 2px;white-space:nowrap;}
+  #ali-login-lnk svg{width:21px;height:21px;flex-shrink:0;}
+  #ali-login-lnk:hover{color:#fe0000;}
+  #ali-join{background:linear-gradient(90deg,#ff7a1a,#ff3c00 45%,#fe0000);color:#fff;font-weight:800;font-size:15.8px;padding:10px 20px;border-radius:999px;text-decoration:none;white-space:nowrap;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
+  #ali-join:hover{filter:brightness(.93);}
+  #ali-acct-pop{display:none;position:absolute;top:calc(100% + 12px);left:50%;transform:translateX(-50%);width:358px;background:#fff;border-radius:16px;box-shadow:0 24px 70px rgba(0,0,0,.28);padding:24px 24px 16px;z-index:1200;font-family:'DM Sans',sans-serif;text-align:left;}
+  #ali-acct-pop.open{display:block;}
+  #ali-acct-pop::before{content:"";position:absolute;top:-6px;left:calc(50% + var(--nfix,0px));margin-left:-6.5px;width:13px;height:13px;background:#fff;transform:rotate(45deg);border-radius:2px;}
+  .acct-hi{font-size:17px;font-weight:800;color:#1d1d1f;margin-bottom:18px;}
+  .acct-login{display:block;text-align:center;background:#fe0000;color:#fff;font-weight:800;font-size:15.5px;padding:13px;border-radius:999px;text-decoration:none;}
+  .acct-login:hover{background:#cc0000;}
+  .acct-or{text-align:center;font-size:14px;color:#1d1d1f;font-weight:500;margin:18px 0 16px;}
+  .acct-google{display:flex;align-items:center;justify-content:center;gap:11px;border:1.5px solid #d2d2d7;border-radius:999px;padding:12px;background:#fff;color:#1d1d1f;font-weight:700;font-size:15px;text-decoration:none;}
+  .acct-google:hover{background:#f7f7f8;}
+  .acct-google svg{width:20px;height:20px;flex-shrink:0;}
+  .acct-soc{display:flex;justify-content:center;gap:56px;}
+  .acct-soc svg{width:40px;height:40px;display:block;}
+  .acct-soc a:hover{opacity:.85;}
+  .acct-legal{font-size:13px;color:#6e6e73;line-height:1.55;margin-top:20px;}
+  .acct-legal a{color:#6e6e73;text-decoration:underline;}
+  .acct-sep{border-top:1px solid #e8e8e8;margin:20px 0 10px;}
+  .acct-item{display:block;padding:11px 0;font-size:15.5px;font-weight:500;color:#1d1d1f;text-decoration:none;}
+  .acct-item:hover{color:#fe0000;}
+
+/* ── LAYOUT du header partagé (barre + recherche) ── */
+header{border-bottom:1px solid #f0f0f2;padding:13px 0;}
+.h-in{display:flex;align-items:center;gap:24px;max-width:min(1880px,calc(100vw - 64px));margin:0 auto;}
+header a .logo,header img.logo{height:40px;display:block;}
+.h-sp{flex:1;}
+.hsearch{flex:1;display:flex;align-items:center;gap:8px;height:40px;border:1.5px solid #e0e0e4;border-radius:999px;padding:3px 3px 3px 16px;background:#fff;}
+.hsearch:focus-within{border-color:#b8b8bd;}
+.hsearch input{flex:1;min-width:60px;border:none;outline:none;background:none;font:500 14.5px 'DM Sans',sans-serif;color:#1d1d1f;}
+.hsearch button{height:32px;padding:0 16px;border:none;border-radius:999px;background:#fe0000;color:#fff;font:700 14px 'DM Sans',sans-serif;display:flex;align-items:center;gap:7px;cursor:pointer;flex-shrink:0;}
+.hsearch button:hover{background:#cc0000;}
+
+
+/* ════ MOBILE / TABLETTE (05/10 Ethan) — header partagé des pages coquille.
+   Les pages dupliquent .h-in/.hsearch inline → on force avec !important.
+   iPad portrait ≤1024 : header compact. Téléphone ≤640 : 2 lignes. ════ */
+@media(max-width:1024px){
+  body{min-width:0 !important;}
+  .h-in{max-width:none !important;gap:14px !important;padding:0 16px !important;flex-wrap:wrap !important;}
+  header a .logo,header img.logo{height:34px !important;}
+  #ali-addr{display:none !important;}          /* port de destination : masqué (secondaire) */
+  #ali-lang .ccy-seg{display:none !important;}
+  #ali-login-lnk span,#ali-login span{font-size:14px !important;}
+}
+@media(max-width:640px){
+  .h-in{gap:10px 12px !important;padding:0 12px !important;}
+  header a .logo,header img.logo{height:30px !important;}
+  .hsearch{order:3 !important;flex:1 1 100% !important;height:42px !important;}
+  #ali-lang{display:none !important;}          /* langue/devise : masqué sur téléphone */
+  /* « Se connecter » / nom du compte = icône seule (le libellé est un nœud
+     texte → font-size:0 sur le lien, l'icône garde sa taille fixe) */
+  #ali-login-lnk,#ali-login{padding:4px 2px !important;font-size:0 !important;gap:0 !important;}
+  #ali-login-lnk svg,#ali-login svg{font-size:initial;}
+  #ali-join{font-size:13.5px !important;padding:9px 15px !important;}
+  #ali-acct-pop,#ali-ship-pop,#ali-lc-pop{position:fixed !important;left:12px !important;right:12px !important;top:64px !important;width:auto !important;max-width:none !important;transform:none !important;}
+  #ali-acct-pop::before,#ali-ship-pop::before,#ali-lc-pop::before{display:none !important;}
+}

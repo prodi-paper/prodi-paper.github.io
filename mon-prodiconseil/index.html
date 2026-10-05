@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<script src="/i18n.js?v=2"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mon Prodiconseil</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="/img/panda.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="/header.css">
+<link rel="stylesheet" href="/nav-menu.css?v=1">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;}
+body{margin:0;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f5f5f7;color:#1d1d1f;min-height:100vh;min-width:1200px;}
+.mp-wrap{max-width:min(1880px,calc(100vw - 64px));margin:0 auto;padding:26px 0 70px;display:grid;grid-template-columns:250px 1fr;gap:24px;align-items:start;}
+/* sidebar */
+.mp-side{background:#fff;border-radius:14px;padding:14px 10px;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+.mp-nav{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;color:#1d1d1f;text-decoration:none;font-size:15px;font-weight:600;margin-bottom:2px;}
+.mp-nav svg{width:20px;height:20px;flex-shrink:0;color:#6e6e73;}
+.mp-nav:hover{background:#f5f5f7;}
+.mp-nav.on{background:#ffecec;color:#fe0000;}
+.mp-nav.on svg{color:#fe0000;}
+.mp-side-sep{height:1px;background:#f0f0f2;margin:10px 6px;}
+/* main */
+.mp-main{display:flex;flex-direction:column;gap:20px;}
+.mp-card{background:#fff;border-radius:14px;padding:26px 28px;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+/* profil */
+.mp-prof{display:flex;align-items:center;gap:20px;}
+.mp-ava{width:64px;height:64px;border-radius:50%;background:#ffecec;color:#fe0000;font-size:26px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.mp-prof-name{font-size:22px;font-weight:800;}
+.mp-prof-sub{font-size:14px;color:#6e6e73;font-weight:500;margin-top:3px;}
+.mp-help{margin-left:auto;display:flex;align-items:center;gap:8px;color:#1d1d1f;font-size:14.5px;font-weight:600;text-decoration:none;}
+.mp-help:hover{color:#fe0000;}
+.mp-help svg{width:20px;height:20px;}
+.mp-stats{display:grid;grid-template-columns:repeat(3,1fr);margin-top:22px;border-top:1px solid #f0f0f2;padding-top:20px;}
+.mp-stat{text-align:center;border-right:1px solid #f0f0f2;}
+.mp-stat:last-child{border-right:none;}
+.mp-stat b{display:block;font-size:26px;font-weight:800;}
+.mp-stat span{font-size:13.5px;color:#6e6e73;font-weight:600;}
+/* compléter profil */
+.mp-complete{display:none;align-items:center;gap:16px;background:linear-gradient(90deg,#fff6f0,#fff);border:1.5px solid #ffd9c7;}
+.mp-complete.show{display:flex;}
+.mp-complete svg{width:26px;height:26px;color:#fe0000;flex-shrink:0;}
+.mp-complete .t{font-size:15.5px;font-weight:700;}
+.mp-complete .s{font-size:13.5px;color:#6e6e73;font-weight:500;margin-top:2px;}
+.mp-complete a{margin-left:auto;background:#fe0000;color:#fff;border-radius:999px;padding:11px 22px;font-size:14.5px;font-weight:700;text-decoration:none;white-space:nowrap;}
+.mp-complete a:hover{background:#cc0000;}
+/* titres section + empty */
+.mp-h{font-size:18px;font-weight:800;margin:0 0 4px;}
+.mp-empty{display:flex;flex-direction:column;align-items:center;text-align:center;padding:34px 0 10px;}
+.mp-empty img{height:120px;width:auto;margin-bottom:14px;}
+.mp-empty p{color:#6e6e73;font-size:14.5px;font-weight:500;margin:0 0 18px;}
+.mp-empty a{border:1.5px solid #d2d2d7;border-radius:999px;padding:11px 26px;font-size:14.5px;font-weight:700;color:#1d1d1f;text-decoration:none;}
+.mp-empty a:hover{border-color:#1d1d1f;}
+footer{max-width:min(1880px,calc(100vw - 64px));margin:0 auto;text-align:center;color:#98989d;font-size:12.5px;padding:0 0 30px;}
+/* MOBILE / TABLETTE (05/10) */
+@media(max-width:1024px){
+  body{min-width:0 !important;}
+  .mp-wrap{max-width:none;grid-template-columns:1fr;padding:18px 16px 60px;gap:18px;}
+  footer{max-width:none;padding-left:16px;padding-right:16px;}
+}
+</style>
+</head>
+<body>
+<header>
+<div class="h-in">
+  <a href="/"><img class="logo" src="/img/logo.png?v=2" alt="Prodiconseil"></a>
+  <form class="hsearch" action="/" method="get">
+    <input type="text" name="q" placeholder="Que recherchez-vous ?" autocomplete="off">
+    <input type="hidden" name="all" value="1">
+    <button type="submit">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      Rechercher
+    </button>
+  </form>
+  <div id="ali-addr" title="Port de destination — coût CFR indicatif par tonne (container 25 T, départ Amiens)">
+    <span class="ali-addr-l">Port de destination&nbsp;:</span>
+    <span class="ali-addr-v" id="ali-ship-cur"><img class="ali-flag" src="https://flagcdn.com/w40/fr.png" alt=""> Le Havre</span>
+    <span class="ali-addr-cfr" id="ali-ship-cfr">+80 €/T CFR</span>
+  </div>
+  <div id="ali-lang">
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
+    <span id="ali-lc-cur">Français-EUR</span>
+  </div>
+      <div id="ali-acct">
+        <a id="ali-login-lnk" href="/compte/">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>
+          Se connecter
+        </a>
+        <div id="ali-acct-pop">
+          <div class="acct-hi">Bienvenue chez Prodiconseil !</div>
+          <a class="acct-login" href="/compte/">Se connecter</a>
+          <div class="acct-or">Ou continuer avec :</div>
+          <a class="acct-google" href="#" onclick="location.href='https://bvcgpdoukhcatjibmvnb.supabase.co/auth/v1/authorize?provider=google&amp;redirect_to='+encodeURIComponent('http://localhost:8101/compte/');return false;">
+            <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+            <span>Continuer avec Google</span>
+          </a>
+          <div class="acct-sep"></div>
+          <a class="acct-item" href="/mon-prodiconseil/">Mes commandes</a>
+          <a class="acct-item" href="#" onclick="return false;">Demande de devis</a>
+          <a class="acct-item" href="/echantillons/">Demande d'&eacute;chantillons</a>
+          <a class="acct-item" href="/contact/">Nous contacter</a>
+          <a class="acct-item" href="/mon-prodiconseil/">Mon Prodiconseil</a>
+          <div class="acct-sep"></div>
+          <a class="acct-item" href="/compte/">Devenir client Prodiconseil</a>
+        </div>
+      </div>
+      <a id="ali-join" href="/compte/">Devenir client</a>
+
+</div>
+</header>
+<div class="mp-wrap">
+  <aside class="mp-side">
+    <a class="mp-nav on" href="/mon-prodiconseil/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Tableau de bord</a>
+    <a class="mp-nav" href="#" onclick="return false;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6"/></svg>Mes commandes</a>
+    <a class="mp-nav" href="#" onclick="return false;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Demandes de devis</a>
+    <a class="mp-nav" href="#" onclick="return false;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>Mes favoris</a>
+    <a class="mp-nav" href="/compte/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>Mon profil</a>
+    <div class="mp-side-sep"></div>
+    <a class="mp-nav" href="/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Retour au catalogue</a>
+  </aside>
+  <main class="mp-main">
+    <div class="mp-card">
+      <div class="mp-prof">
+        <div class="mp-ava" id="mp-ava">P</div>
+        <div>
+          <div class="mp-prof-name" id="mp-name">Mon Prodiconseil</div>
+          <div class="mp-prof-sub" id="mp-sub">Profil · Informations</div>
+        </div>
+        <a class="mp-help" href="https://wa.me/33632096840" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Assistance
+        </a>
+      </div>
+      <div class="mp-stats">
+        <div class="mp-stat"><b>0</b><span>Commandes</span></div>
+        <div class="mp-stat"><b>0</b><span>Demandes de devis</span></div>
+        <div class="mp-stat"><b>0</b><span>Favoris</span></div>
+      </div>
+    </div>
+
+    <div class="mp-card mp-complete" id="mp-complete">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
+      <div>
+        <div class="t">Complétez votre profil</div>
+        <div class="s">Société, coordonnées et port de livraison — pour des offres et devis plus rapides.</div>
+      </div>
+      <a href="/compte/">Compléter</a>
+    </div>
+
+    <div class="mp-card">
+      <div class="mp-h">Mes commandes</div>
+      <div class="mp-empty">
+        <img src="/img/panier_container.webp" alt="">
+        <p>Vous n'avez aucune commande pour l'instant.</p>
+        <a href="/">Explorer le catalogue</a>
+      </div>
+    </div>
+
+    <div class="mp-card">
+      <div class="mp-h">Mes favoris</div>
+      <div class="mp-empty">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#d2d2d7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:12px"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+        <p>Aucun favori pour l'instant.</p>
+        <a href="/">Parcourir le stock</a>
+      </div>
+    </div>
+  </main>
+</div>
+<footer>&copy; 1991-2026 Prodiconseil — Amiens, France</footer>
+
+<script>
+/* Réservé aux connectés : sinon → connexion/inscription */
+(function(){
+  var prenom='', nom='', soc='', tel='', email='';
+  try{
+    var s=JSON.parse(localStorage.getItem('sb-bvcgpdoukhcatjibmvnb-auth-token')||'null');
+    if(!s||!s.user){location.replace('/compte/');return;}
+    email=s.user.email||'';
+    var m=s.user.user_metadata||{};
+    prenom=m.prenom||''; nom=m.nom||''; soc=m.societe||''; tel=m.tel||'';
+  }catch(e){location.replace('/compte/');return;}
+  var disp=(prenom||nom)?((prenom+' '+nom).trim()):(email.split('@')[0]||'Mon compte');
+  document.getElementById('mp-name').textContent=disp;
+  document.getElementById('mp-ava').textContent=(disp[0]||'P').toUpperCase();
+  document.getElementById('mp-sub').textContent=soc?soc:(email||'Profil');
+  /* profil incomplet (société ou téléphone manquant) → carte « Compléter » */
+  if(!soc||!tel) document.getElementById('mp-complete').classList.add('show');
+})();
+</script>
+<script src="/header.js"></script>
+<script src="/login-pop.js"></script>
+<script src="/footer.js"></script>
+<script src="/nav-menu.js?v=1"></script>
+</body>
+</html>

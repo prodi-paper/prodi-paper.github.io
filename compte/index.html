@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+<script src="/i18n.js?v=2"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Prodiconseil — Connexion / Créer un compte</title>
 <meta name="robots" content="noindex">
-<link rel="icon" href="/img/logo.png">
+<link rel="icon" type="image/png" href="/img/panda.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -19,6 +20,7 @@ header img.logo{height:40px;display:block;}
 .lang-wrap select{appearance:none;-webkit-appearance:none;border:1.5px solid #d2d2d7;border-radius:12px;padding:10px 40px 10px 16px;font:600 14.5px 'DM Sans',sans-serif;color:#1d1d1f;background:#fff;cursor:pointer;outline:none;}
 .lang-wrap select:hover{border-color:#b8b8bd;}
 .lang-wrap svg{position:absolute;right:14px;pointer-events:none;}
+header img.logo{height:40px;display:block;}
 /* structure façon Alibaba : les 2 colonnes centrées EN BLOC, large respiration entre elles */
 main{flex:1;display:grid;grid-template-columns:auto 380px;column-gap:clamp(70px,9vw,175px);justify-content:center;width:100%;margin:0 auto;padding:42px 40px 80px;align-items:start;}
 /* ── visuel promo gauche (image complète) ── */
@@ -108,7 +110,7 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
 </head>
 <body>
 <header>
-  <a href="/catalogue/"><img class="logo" src="/img/logo.png?v=2" alt="Prodiconseil"></a>
+  <a href="/"><img class="logo" src="/img/logo.png?v=2" alt="Prodiconseil"></a>
   <span class="lang-wrap">
     <select id="lang-sel" aria-label="Langue" onchange="try{localStorage.setItem('ali_lang',this.value)}catch(e){}">
       <option value="fr">Français</option>
@@ -138,7 +140,7 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
       <div class="t" id="auth-ok-t">Email envoy&eacute; !</div>
       <small id="auth-ok-s">Ouvrez le lien re&ccedil;u par email pour vous connecter.<br>(Pensez &agrave; v&eacute;rifier les spams.)</small>
       <div id="auth-ok-actions" style="display:none;margin-top:22px;">
-        <a class="go" style="display:block;text-decoration:none;text-align:center;" href="/catalogue/">Ouvrir le catalogue</a>
+        <a class="go" style="display:block;text-decoration:none;text-align:center;" href="/">Ouvrir le catalogue</a>
         <button type="button" onclick="axLogout()" style="margin-top:12px;background:none;border:none;color:#6e6e73;font:600 14px 'DM Sans',sans-serif;cursor:pointer;text-decoration:underline;">Se d&eacute;connecter</button>
       </div>
     </div>
@@ -206,7 +208,7 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
         </div>
       </div>
     </div>
-    <button type="button" class="cfg-later" onclick="location.replace('/catalogue/')">Compl&eacute;ter plus tard</button>
+    <button type="button" class="cfg-later" onclick="location.replace('/')">Compl&eacute;ter plus tard</button>
     <button type="button" class="cfg-go" onclick="cfg2Go()">Valider mon profil</button>
     <div class="cfg-err" id="cfg-err2"></div>
   </div>
@@ -413,7 +415,7 @@ function cfg2Go(){
   }}).then(function(r){
     b.disabled=false; b.textContent='Valider mon profil';
     if(r.error){er.textContent=r.error.message;er.style.display='block';return;}
-    location.replace('/catalogue/');   /* profil complet → accueil */
+    location.replace('/');   /* profil complet → accueil */
   });
 }
 /* Session détectée (retour de lien magique ou déjà connecté) :
@@ -424,8 +426,10 @@ sb.auth.getSession().then(function(r){
   if(!s)return;
   var m=s.user.user_metadata||{};
   if((!m.prenom&&!m.nom)||!m.societe||!m.tel){cfgOpen(s.user);}
-  else{location.replace('/catalogue/');}
+  else{location.replace('/');}
 });
 </script>
+<script src="/login-pop.js"></script>
+<script src="/footer.js"></script>
 </body>
 </html>

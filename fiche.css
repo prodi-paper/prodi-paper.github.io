@@ -1,0 +1,81 @@
+/* Fiche produit « étiquette » — STYLES UNIQUES partagés (catalogue + panier).
+   Re-scopés sous .prodi-fiche depuis catalogue.css (hors media-queries) pour
+   reproduire EXACTEMENT la fiche du stock. */
+.prodi-fiche{font-family:'DM Sans',sans-serif;}
+.prodi-fiche .dimg-col{position:relative;background:#fff;order:0;width:50%;height:100%;flex-shrink:0;border-right:1px solid var(--border);}
+.prodi-fiche .dmain{width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;}
+.prodi-fiche .dmain img{width:95%;height:95%;object-fit:contain;}
+.prodi-fiche .det-etq{display:grid;grid-template-columns:repeat(4,1fr);border:2.5px solid #000;border-radius:10px;overflow:hidden;}
+.prodi-fiche .det-etq-cell{border:.5px solid #000;padding:9px 12px;min-width:0;}
+.prodi-fiche .det-etq-lbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#222;white-space:nowrap;}
+.prodi-fiche .det-etq-val{font-size:22px;font-weight:800;color:#000;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.prodi-fiche .det-reste{margin-top:12px;display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:#666;}
+.prodi-fiche .det-reste-item b{font-weight:700;color:#333;text-transform:uppercase;font-size:11.5px;letter-spacing:.5px;margin-right:4px;}
+.prodi-fiche .det-etq-title{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:.8px;line-height:1.05;padding:12px 14px 9px;white-space:normal;}
+.prodi-fiche .dimg-col{width:100%;height:460px;flex-shrink:0;position:relative;}
+.prodi-fiche .dmain{height:460px;}
+.prodi-fiche .dmain img{width:100%;height:100%;object-fit:contain;position:relative;z-index:1;}
+.prodi-fiche .dmain{background:#111;overflow:hidden;}
+.prodi-fiche .det-blur{position:absolute;inset:0;background-size:cover;background-position:center;filter:blur(24px) brightness(.72);transform:scale(1.18);}
+.prodi-fiche .det-etq{border-radius:0;border:none;border-top:3px solid #000;}
+.prodi-fiche .det-etq-cell{border-width:1px;}
+.prodi-fiche .det-reste{padding:10px 16px 4px;margin-top:0;}
+.prodi-fiche .det-etq-wrap .det-etq-val{white-space:normal;overflow:visible;text-overflow:clip;font-size:17px;line-height:1.3;font-weight:700;}
+.prodi-fiche .dimg-col, .prodi-fiche .dmain{height:min(48vh,600px);}
+.prodi-fiche /* la photo cède la place si l'écran manque de hauteur, l'étiquette reste entière */ .prodi-fiche .dimg-col, .prodi-fiche .dimg-col{flex-shrink:1;min-height:220px;}
+.prodi-fiche .det-etq-title{font-size:29px;padding:10px 14px 8px;}
+.prodi-fiche .det-etq-cell{padding:8px 12px;}
+.prodi-fiche .det-etq .det-etq-val{font-size:19px;}
+.prodi-fiche .det-etq .det-etq-wrap .det-etq-val{font-size:16px;}
+.prodi-fiche /* (08/08) Fiche = carte : DÉTAIL en sous-titre sous le titre (sans label) */ .det-etq-sub{border-top:none !important;padding-top:0 !important;padding-bottom:10px !important;}
+.prodi-fiche .det-etq-sub .det-etq-val{white-space:normal !important;overflow:visible !important;text-overflow:clip !important;font-family:'DM Sans',sans-serif !important;font-size:26px !important;font-weight:800 !important;color:#000 !important;line-height:1.08;letter-spacing:-.4px;}
+.prodi-fiche /* Ligne PRIX = valeur + rond « + » à droite (comme la carte, .prodi-fiche sans label « PRIX ») */ .det-etq-prix{display:flex !important;flex-direction:row;align-items:center;justify-content:space-between;gap:10px;}
+.prodi-fiche .det-etq-prixval{font-size:22px !important;font-weight:800 !important;color:#000 !important;}
+.prodi-fiche .det-etq-prixval{color:#1d1d1f !important;}
+.prodi-fiche .det-etq-prix .sc-add{flex:0 0 auto;}
+.prodi-fiche .det-reste{padding:2px 16px 3px;line-height:1.1;}
+.prodi-fiche .det-etq{border-top:1px solid #e8e8ed;}
+.prodi-fiche .det-etq-cell{border:none;border-top:1px solid #e8e8ed;border-left:1px solid #e8e8ed;padding:10px 14px;}
+.prodi-fiche .det-etq-title{border:none;font-family:'DM Sans',sans-serif;font-weight:700;font-size:24px;letter-spacing:-.4px;text-transform:none;color:#1d1d1f;}
+.prodi-fiche .det-etq-lbl{color:var(--g2);}
+.prodi-fiche .det-etq-val{color:#1d1d1f;}
+.prodi-fiche .det-reste{color:var(--g2);}
+.prodi-fiche .det-etq-title{font-weight:800;font-size:26px;color:#000;}
+.prodi-fiche .det-etq-lbl{color:#48484a;font-weight:700;}
+.prodi-fiche .det-etq-val{font-weight:800;font-size:23px;color:#000;}
+.prodi-fiche .det-etq-wrap .det-etq-val{font-size:18px;font-weight:700;}
+.prodi-fiche .det-reste{color:#48484a;}
+.prodi-fiche .det-reste-item b{color:#000;}
+/* (08/08 Ethan) Hauteur uniforme des bandeaux fiche = 50px ; Zone/Code = 25px */ .prodi-fiche .det-etq, .prodi-fiche .det-etq{grid-auto-rows:50px;}
+.prodi-fiche .det-etq-cell{display:flex;flex-direction:column;justify-content:center;}
+.prodi-fiche .det-etq-prix{flex-direction:row;align-items:center;justify-content:space-between;}
+.prodi-fiche .det-etq-sub{padding-top:0 !important;padding-bottom:0 !important;}
+.prodi-fiche .det-reste{height:25px;padding-top:0;padding-bottom:0;align-items:center;}
+/* Anti-coupe : la valeur (avec son unité <small>) ne doit pas être rognée en bas */ .prodi-fiche .det-etq-cell:not(.det-etq-sub) > .det-etq-val, .prodi-fiche .det-etq-cell:not(.det-etq-sub) > .det-etq-val{overflow:visible;line-height:1.3;}
+.prodi-fiche .det-etq{border-top:1px solid #c9c9ce;}
+.prodi-fiche .det-etq-cell{border-top:1px solid #c9c9ce;border-left:1px solid #c9c9ce;}
+.prodi-fiche .sc-cap, .prodi-fiche .det-etq-lbl{font-weight:800;color:#3a3a3c;}
+.prodi-fiche .sc-cap, .prodi-fiche .det-etq-lbl{font-size:12px;font-weight:900;color:#000;letter-spacing:.4px;}
+.prodi-fiche .det-etq{border-right:1px solid #c9c9ce;border-bottom:1px solid #c9c9ce;}
+.prodi-fiche .det-etq{border:1px solid #c9c9ce;border-radius:0 0 20px 20px;overflow:hidden;}
+.prodi-fiche .det-etq{background:#c9c9ce;gap:1px;border:1px solid #c9c9ce;}
+.prodi-fiche .det-etq-cell{border:none !important;background:#fff;}
+/* Apple : la FICHE reprend exactement la typo des cartes (gras/noir/contrastes) */ .prodi-fiche .det-etq-title{font-weight:800;color:#000;letter-spacing:-.4px;}
+.prodi-fiche .det-etq-lbl{font-size:13px;font-weight:900;color:#000;letter-spacing:.4px;}
+.prodi-fiche .det-etq-val{font-weight:800;font-size:26px;color:#000;letter-spacing:-.5px;}
+.prodi-fiche .det-etq-wrap .det-etq-val{font-size:19px;font-weight:800;letter-spacing:0;}
+.prodi-fiche .det-reste, .prodi-fiche .det-reste-item b{color:#000;}
+.prodi-fiche .det-etq-cell{padding-top:8px;padding-bottom:8px;}
+.prodi-fiche .det-etq-title{font-family:'Bebas Neue',sans-serif !important;font-weight:400 !important;font-size:36px !important;letter-spacing:1px !important;text-transform:uppercase !important;-webkit-text-stroke:.9px #000;}
+.prodi-fiche .det-etq-val small{font-size:13px;font-weight:800;}
+.prodi-fiche .det-etq-val small{font-size:14px;}
+.prodi-fiche .dimg-col{border-right:none;border-bottom:none;}
+/* photo + pastilles réf ⎘ / usine (comme la fiche stock) */
+.prodi-fiche .dimg-col{width:100%;height:min(52vh,520px);position:relative;border:none;}
+.prodi-fiche .dmain{height:100%;background:#111;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;}
+.prodi-fiche .dmain img{width:100%;height:100%;object-fit:contain;position:relative;z-index:1;}
+.prodi-fiche .det-blur{position:absolute;inset:0;background-size:cover;background-position:center;filter:blur(24px) brightness(.72);transform:scale(1.18);}
+.prodi-fiche .xla-refb{position:absolute;bottom:12px;left:12px;z-index:10;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;color:#fff;background:rgba(0,0,0,.5);padding:6px 12px;border-radius:6px;cursor:pointer;letter-spacing:.4px;}
+.prodi-fiche .xla-usineb{position:absolute;bottom:12px;right:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border-radius:8px;padding:5px 12px;display:inline-flex;align-items:baseline;gap:4px;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);}
+.prodi-fiche .xla-usineb span{font-size:13px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:rgba(255,255,255,.75);}
+.prodi-fiche .xla-usineb b{font-family:'Bebas Neue',sans-serif;font-size:32px;line-height:1;letter-spacing:.5px;color:#fff;font-weight:400;}

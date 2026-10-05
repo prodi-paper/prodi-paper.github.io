@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Service achat — Prodiconseil</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="/header.css">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;}
+body{margin:0;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#1d1d1f;min-height:100vh;min-width:1200px;}
+main{max-width:640px;margin:0 auto;padding:34px 0 80px;}
+h1{text-align:center;font-size:31px;font-weight:800;margin:0 0 8px;}
+.sub{text-align:center;font-size:15px;color:#6e6e73;font-weight:500;margin:0 0 30px;}
+.cfg-box{border:1.5px solid #d2d2d7;border-radius:12px;padding:12px 18px;margin-bottom:16px;}
+.cfg-box.ro{background:#f2f2f4;border-color:#e3e3e6;}
+.cfg-lab{font-size:13.5px;color:#6e6e73;font-weight:500;margin-bottom:3px;}
+.cfg-lab b{color:#e02020;font-weight:700;}
+.cfg-val{font-size:17px;font-weight:600;color:#1d1d1f;}
+.cfg-box input,.cfg-box textarea{width:100%;border:none;outline:none;background:none;font:600 17px 'DM Sans',sans-serif;color:#1d1d1f;padding:0;resize:vertical;}
+.cfg-box textarea{font-weight:500;font-size:15.5px;min-height:74px;}
+.cfg-box input::placeholder,.cfg-box textarea::placeholder{color:#b4b4b9;font-weight:500;}
+.cfg-2col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;}
+.cfg-2col .cfg-box{margin-bottom:0;}
+.cfg-selwrap{position:relative;display:flex;align-items:center;gap:10px;}
+.cfg-selwrap select{appearance:none;-webkit-appearance:none;flex:1;border:none;outline:none;background:none;font:600 17px 'DM Sans',sans-serif;color:#1d1d1f;padding-right:28px;cursor:pointer;}
+.cfg-selwrap svg{position:absolute;right:2px;pointer-events:none;}
+/* zone d'upload */
+.up-zone{border:1.5px dashed #c9c9ce;border-radius:12px;padding:22px 18px;text-align:center;cursor:pointer;margin-bottom:16px;transition:border-color .15s,background .15s;}
+.up-zone:hover{border-color:#1d1d1f;background:#fafafa;}
+.up-zone svg{width:26px;height:26px;color:#6e6e73;margin-bottom:6px;}
+.up-t{font-size:15px;font-weight:700;}
+.up-s{font-size:12.5px;color:#6e6e73;font-weight:500;margin-top:3px;}
+.up-list{margin:0 0 16px;padding:0;list-style:none;}
+.up-list li{display:flex;align-items:center;gap:9px;font-size:14px;font-weight:600;padding:7px 4px;border-bottom:1px solid #f0f0f2;}
+.up-list li svg{width:16px;height:16px;color:#6e6e73;flex-shrink:0;}
+.up-list li small{margin-left:auto;color:#98989d;font-weight:500;}
+.up-list li button{background:none;border:none;color:#fe0000;cursor:pointer;font-size:15px;padding:2px 6px;}
+.go{display:block;width:100%;border:none;border-radius:999px;background:#fe0000;color:#fff;font:800 18px 'DM Sans',sans-serif;padding:17px;cursor:pointer;margin-top:8px;}
+.go:hover{background:#cc0000;}
+.err{display:none;margin-top:12px;color:#c22a08;font-size:13px;font-weight:600;text-align:center;}
+.ok{display:none;text-align:center;padding:60px 0;}
+.ok .chk{width:74px;height:74px;border-radius:50%;background:#e8f7ee;color:#1a9a4d;font-size:38px;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;}
+.ok .t{font-size:20px;font-weight:800;}
+.ok small{display:block;margin-top:8px;color:#6e6e73;font-size:14.5px;font-weight:500;line-height:1.5;}
+footer{text-align:center;color:#98989d;font-size:12.5px;padding:0 0 30px;}
+</style>
+</head>
+<body>
+<header>
+<div class="h-in">
+  <a href="/"><img class="logo" src="/img/logo.png?v=2" alt="Prodiconseil"></a>
+  <form class="hsearch" action="/catalogue/" method="get">
+    <input type="text" name="q" placeholder="Que recherchez-vous ?" autocomplete="off">
+    <input type="hidden" name="all" value="1">
+    <button type="submit">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      Rechercher
+    </button>
+  </form>
+  <div id="ali-addr" title="Port de destination — coût CFR indicatif par tonne (container 25 T, départ Amiens)">
+    <span class="ali-addr-l">Port de destination&nbsp;:</span>
+    <span class="ali-addr-v" id="ali-ship-cur"><img class="ali-flag" src="https://flagcdn.com/w40/fr.png" alt=""> Le Havre</span>
+    <span class="ali-addr-cfr" id="ali-ship-cfr">+80 €/T CFR</span>
+  </div>
+  <div id="ali-lang">
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
+    <span id="ali-lc-cur">Français-EUR</span>
+  </div>
+      <div id="ali-acct">
+        <a id="ali-login-lnk" href="/compte/">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>
+          Se connecter
+        </a>
+        <div id="ali-acct-pop">
+          <div class="acct-hi">Bienvenue chez Prodiconseil !</div>
+          <a class="acct-login" href="/compte/">Se connecter</a>
+          <div class="acct-or">Ou continuer avec :</div>
+          <a class="acct-google" href="#" onclick="location.href='https://bvcgpdoukhcatjibmvnb.supabase.co/auth/v1/authorize?provider=google&amp;redirect_to='+encodeURIComponent('http://localhost:8101/compte/');return false;">
+            <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+            <span>Continuer avec Google</span>
+          </a>
+          <div class="acct-sep"></div>
+          <a class="acct-item" href="/mon-prodiconseil/">Mes commandes</a>
+          <a class="acct-item" href="#" onclick="return false;">Demande de devis</a>
+          <a class="acct-item" href="/echantillons/">Demande d'&eacute;chantillons</a>
+          <a class="acct-item" href="/contact/">Nous contacter</a>
+          <a class="acct-item" href="/mon-prodiconseil/">Mon Prodiconseil</a>
+          <div class="acct-sep"></div>
+          <a class="acct-item" href="/compte/">Devenir client Prodiconseil</a>
+        </div>
+      </div>
+      <a id="ali-join" href="/compte/">Devenir client</a>
+</div>
+</header>
+<main>
+  <div id="sa-form">
+    <h1>Service achat</h1>
+    <p class="sub">Vous avez du papier ou du carton &agrave; vendre&nbsp;? Proposez vos lots &agrave; notre service achat.</p>
+    <div class="cfg-2col">
+      <div class="cfg-box ro"><div class="cfg-lab">Soci&eacute;t&eacute;</div><div class="cfg-val" id="sa-soc">&nbsp;</div></div>
+      <div class="cfg-box ro"><div class="cfg-lab">Contact</div><div class="cfg-val" id="sa-contact">&nbsp;</div></div>
+    </div>
+    <div class="cfg-2col">
+      <div class="cfg-box">
+        <div class="cfg-lab">Type de produit <b>*</b></div>
+        <div class="cfg-selwrap">
+          <select id="sa-type">
+            <option value="" disabled selected hidden>S&eacute;lectionnez&hellip;</option>
+            <option>Bobines</option>
+            <option>Formats / feuilles</option>
+            <option>Bobines + formats</option>
+            <option>Autre</option>
+          </select>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" stroke-width="2.2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+        </div>
+      </div>
+      <div class="cfg-box"><div class="cfg-lab">Qualit&eacute; <b>*</b></div><input id="sa-qual" placeholder="Offset, kraft, carton&hellip;"></div>
+    </div>
+    <div class="cfg-2col">
+      <div class="cfg-box"><div class="cfg-lab">Tonnage approximatif</div><input id="sa-tons" placeholder="ex : 120 t"></div>
+      <div class="cfg-box"><div class="cfg-lab">Localisation du stock</div><input id="sa-loc" placeholder="Ville, pays"></div>
+    </div>
+    <div class="cfg-box">
+      <div class="cfg-lab">Description de l'offre</div>
+      <textarea id="sa-msg" placeholder="Grammages, laizes/formats, &eacute;tat, prix demand&eacute;&hellip;"></textarea>
+    </div>
+    <div class="up-zone" onclick="document.getElementById('sa-files').click()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <div class="up-t">D&eacute;posez vos documents</div>
+      <div class="up-s">Liste de stock (Excel, PDF), photos, fiches techniques&hellip;</div>
+      <input type="file" id="sa-files" multiple accept=".pdf,.xlsx,.xls,.csv,.doc,.docx,image/*" style="display:none" onchange="saFiles(this)">
+    </div>
+    <ul class="up-list" id="sa-list"></ul>
+    <button type="button" class="go" onclick="saGo()">Envoyer au service achat</button>
+    <div class="err" id="sa-err"></div>
+  </div>
+  <div class="ok" id="sa-ok">
+    <div class="chk">&#10003;</div>
+    <div class="t">Bien re&ccedil;u !</div>
+    <small>Votre proposition et vos documents sont chez notre service achat.<br>R&eacute;ponse sous 24&nbsp;h ouvr&eacute;es.</small>
+  </div>
+</main>
+<footer>&copy; 1991-2026 Prodiconseil &mdash; Amiens, France</footer>
+
+<script>
+/* R&eacute;serv&eacute; aux connect&eacute;s : sinon &rarr; page de connexion */
+var _saUser=null;
+try{
+  var _s=JSON.parse(localStorage.getItem('sb-bvcgpdoukhcatjibmvnb-auth-token')||'null');
+  if(!_s||!_s.user){location.replace('/compte/');}
+  else{
+    _saUser=_s.user;
+    var m=_saUser.user_metadata||{};
+    if(m.societe){document.getElementById('sa-soc').textContent=m.societe;}
+    else{
+      /* société jamais renseignée (« Compléter plus tard ») → case saisissable */
+      var bx=document.getElementById('sa-soc').parentElement;
+      bx.classList.remove('ro');
+      bx.innerHTML='<div class="cfg-lab">Société <b>*</b></div><input id="sa-soc-inp" placeholder="Nom de votre entreprise" autocomplete="organization">';
+    }
+    document.getElementById('sa-contact').textContent=((m.prenom||'')+' '+(m.nom||'')).trim()||_saUser.email||'—';
+  }
+}catch(e){location.replace('/compte/');}
+
+var _saSel=[];
+function saFiles(inp){
+  for(var i=0;i<inp.files.length;i++)_saSel.push(inp.files[i]);
+  saPaint();
+}
+function saPaint(){
+  var ul=document.getElementById('sa-list');
+  ul.innerHTML=_saSel.map(function(f,i){
+    var kb=f.size>1048576?(f.size/1048576).toFixed(1)+' Mo':Math.round(f.size/1024)+' Ko';
+    return '<li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/></svg>'+f.name.replace(/[<>&]/g,'')+'<small>'+kb+'</small><button type="button" onclick="_saSel.splice('+i+',1);saPaint()">&#10005;</button></li>';
+  }).join('');
+}
+function saGo(){
+  var er=document.getElementById('sa-err');
+  if(!document.getElementById('sa-type').value){er.textContent='Choisissez le type de produit.';er.style.display='block';return;}
+  if(!document.getElementById('sa-qual').value.trim()){er.textContent='Indiquez la qualit\u00e9 propos\u00e9e.';er.style.display='block';return;}
+  var si=document.getElementById('sa-soc-inp');
+  if(si&&!si.value.trim()){er.textContent='Indiquez le nom de votre soci\u00e9t\u00e9.';er.style.display='block';return;}
+  er.style.display='none';
+  /* maquette : envoi FACTICE (le branchement r\u00e9el = bucket Supabase + mail service achat) */
+  document.getElementById('sa-form').style.display='none';
+  document.getElementById('sa-ok').style.display='block';
+  window.scrollTo(0,0);
+}
+</script>
+<script src="/header.js"></script>
+</body>
+</html>

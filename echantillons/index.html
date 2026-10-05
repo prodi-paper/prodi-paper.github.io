@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<script src="/i18n.js?v=2"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prodiconseil — Demande d'échantillons</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="/img/panda.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="/header.css">
+<link rel="stylesheet" href="/nav-menu.css?v=1">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* MAQUETTE MIX — page échantillons, shell identique au panier */
+*{box-sizing:border-box;}
+body{margin:0;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#1d1d1f;min-height:100vh;display:flex;flex-direction:column;min-width:1200px;}
+header{border-bottom:1px solid #f0f0f2;padding:13px 0;}
+.h-in{display:flex;align-items:center;gap:24px;max-width:min(1880px,calc(100vw - 64px));margin:0 auto;}
+header img.logo{height:40px;display:block;}
+.hsearch{flex:1;display:flex;align-items:center;gap:8px;height:40px;border:1.5px solid #e0e0e4;border-radius:999px;padding:3px 3px 3px 16px;background:#fff;}
+.hsearch:focus-within{border-color:#b8b8bd;}
+.hsearch input{flex:1;min-width:60px;border:none;outline:none;background:none;font:500 14.5px 'DM Sans',sans-serif;color:#1d1d1f;}
+.hsearch button{height:32px;padding:0 16px;border:none;border-radius:999px;background:#fe0000;color:#fff;font:700 14px 'DM Sans',sans-serif;display:flex;align-items:center;gap:7px;cursor:pointer;flex-shrink:0;}
+.hsearch button:hover{background:#cc0000;}
+main{flex:1;max-width:min(1880px,calc(100vw - 64px));width:100%;margin:0 auto;padding:40px 0 70px;display:flex;flex-direction:column;justify-content:center;}
+.head-row{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:8px;}
+h1{font-size:36px;font-weight:800;margin:0;}
+.axsub-badge{display:inline-block;background:linear-gradient(90deg,#ff7a1a,#fe0000);color:#fff;font-size:14px;font-weight:900;font-style:italic;letter-spacing:.3px;padding:6px 18px 6px 14px;border-radius:3px;clip-path:polygon(0 0,100% 0,calc(100% - 8px) 50%,100% 100%,0 100%);flex-shrink:0;}
+.sub{font-size:15.5px;color:#515154;line-height:1.7;max-width:640px;margin:0 auto 26px;text-align:center;}
+.formwrap{width:860px;max-width:100%;margin:0 auto;}
+/* PARCOURS WIZARD (04/10, même délire que /fabrication/) */
+.wiz-top{display:flex;align-items:center;gap:16px;margin-bottom:30px;}
+.wiz-back{width:40px;height:40px;flex-shrink:0;border-radius:50%;border:1.5px solid #e3e3e6;background:#fff;color:#1d1d1f;font-size:16px;cursor:pointer;}
+.wiz-back:hover{border-color:#1d1d1f;}
+.wiz-prog{flex:1;height:6px;background:#f0f0f2;border-radius:999px;overflow:hidden;}
+.wiz-prog i{display:block;height:100%;width:0;background:#e2211c;border-radius:999px;transition:width .25s;}
+.wiz-q{font-size:25px;font-weight:800;text-align:center;margin:0 0 26px;}
+.wiz-tiles{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.wiz-tiles.cols4{grid-template-columns:repeat(4,1fr);}
+.wiz-tile{border:1.5px solid #e3e3e6;border-radius:16px;background:#fff;padding:24px 10px;font:700 16.5px 'DM Sans',sans-serif;color:#1d1d1f;cursor:pointer;text-align:center;transition:border-color .15s,box-shadow .15s,transform .15s;}
+.wiz-tile:hover{border-color:#1d1d1f;transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.08);}
+.wiz-tile.sel{border-color:#e2211c;background:#ffecec;}
+.wiz-chips{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:18px;}
+.wiz-chip{border:1.5px solid #e3e3e6;border-radius:999px;background:#fff;padding:11px 19px;font:600 15px 'DM Sans',sans-serif;color:#1d1d1f;cursor:pointer;}
+.wiz-chip:hover{border-color:#1d1d1f;}
+.wiz-input{display:block;width:420px;max-width:100%;margin:0 auto;box-sizing:border-box;border:1.5px solid #e3e3e6;border-radius:16px;padding:16px 20px;font:500 16.5px 'DM Sans',sans-serif;color:#1d1d1f;outline:none;text-align:center;}
+.wiz-input:focus{border-color:#86868b;}
+.wiz-next{display:block;margin:20px auto 0;width:320px;max-width:100%;background:#e2211c;color:#fff;border:none;border-radius:999px;padding:16px;font:700 17px 'DM Sans',sans-serif;cursor:pointer;}
+.wiz-next:hover{background:#c41b17;}
+.wiz-skip{display:block;width:fit-content;margin:16px auto 0;background:none;border:none;color:#6e6e73;font:600 14px 'DM Sans',sans-serif;cursor:pointer;text-decoration:underline;}
+.wiz-skip:hover{color:#1d1d1f;}
+.wiz-rec{border:1.5px solid #e3e3e6;border-radius:16px;padding:6px 22px;margin-bottom:18px;}
+.wiz-rec-l{display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:11px 0;border-bottom:1px solid #f0f0f2;font-size:15px;}
+.wiz-rec-l:last-child{border-bottom:none;}
+.wiz-rec-l span{color:#6e6e73;font-weight:600;}
+.wiz-rec-l b{font-weight:800;}
+.wiz-del{width:30px;height:30px;flex-shrink:0;border-radius:50%;border:none;background:none;color:#6e6e73;font-size:15px;cursor:pointer;}
+.wiz-del:hover{background:#ffecec;color:#fe0000;}
+.wiz-add{display:block;width:100%;box-sizing:border-box;background:#fff;border:1.5px dashed #c9c9ce;border-radius:16px;padding:14px;font:700 15.5px 'DM Sans',sans-serif;color:#1d1d1f;cursor:pointer;margin-bottom:18px;}
+.wiz-add:hover{border-color:#1d1d1f;}
+.wiz-adr{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:16px;}
+.wiz-adr input{width:100%;box-sizing:border-box;border:1.5px solid #e3e3e6;border-radius:16px;padding:16px 20px;font:500 16px 'DM Sans',sans-serif;color:#1d1d1f;outline:none;}
+.wiz-adr input:focus{border-color:#86868b;}
+.wiz-msg{display:block;width:100%;box-sizing:border-box;border:1.5px solid #e3e3e6;border-radius:16px;padding:16px 20px;font:500 16px 'DM Sans',sans-serif;color:#1d1d1f;outline:none;min-height:100px;resize:vertical;margin-bottom:18px;}
+.wiz-msg:focus{border-color:#86868b;}
+.axsub-f{display:flex;flex-direction:column;gap:12px;}
+.axsub-f input,.axsub-f textarea{width:100%;box-sizing:border-box;border:1.5px solid #e3e3e6;border-radius:14px;padding:13px 16px;font:500 16px 'DM Sans',sans-serif;color:#1d1d1f;outline:none;background:#fff;}
+.axsub-f input::placeholder,.axsub-f textarea::placeholder{color:#a3a3a8;}
+.axsub-f input:focus,.axsub-f textarea:focus{border-color:#86868b;}
+.axsub-2col{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.axsub-lbl{font-size:14.5px;font-weight:700;color:#1d1d1f;margin-top:4px;}
+.axsub-lbl-big{font-size:23px;font-weight:800;margin-top:6px;}
+.axsub-quals{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.axsub-q{border:1.5px solid #e3e3e6;border-radius:6px;padding:12px 6px;text-align:center;font:600 16.5px 'DM Sans',sans-serif;background:#fff;color:#1d1d1f;cursor:pointer;}
+.axsub-q:not(.on):hover{background:#fff2ec;border-color:#ff7a4d;color:#d8330f;}
+.axsub-q.on{background:#ffe4d8;border-color:#ff5a2b;color:#c22a08;}
+.axsub-msg{min-height:60px;resize:vertical;}
+.axsub-go{width:100%;background:#e2211c;color:#fff;border:none;border-radius:999px;padding:15px;font:700 17px 'DM Sans',sans-serif;cursor:pointer;margin-top:4px;}
+.axsub-go:hover{background:#c41b17;}
+.axsub-ok{text-align:center;padding:30px 0 16px;}
+.wiz-lock{text-align:center;padding:26px 0 10px;}
+.wiz-lock-t{font-size:22px;font-weight:800;margin-bottom:8px;}
+.wiz-lock-p{font-size:15px;color:#6e6e73;margin:0 0 22px;}
+.wiz-lock .axsub-go{width:360px;max-width:100%;margin:0 auto;display:block;}
+.axsub-check{width:64px;height:64px;border-radius:50%;background:#1a9c46;color:#fff;font-size:32px;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;}
+.axsub-okt{font-size:20px;font-weight:800;color:#111;line-height:1.4;}
+.axsub-okt small{font-size:14.5px;font-weight:500;color:#6e6e73;}
+#fab-chip{display:none;align-items:center;gap:8px;background:#f0f9f2;border:1px solid #cde8d3;color:#1a7a38;border-radius:999px;padding:9px 18px;font-size:14px;font-weight:700;margin:0 auto 18px;width:fit-content;}
+footer{padding:26px 20px 30px;text-align:center;color:#6e6e73;font-size:13px;font-weight:500;border-top:1px solid #f0f0f2;}
+footer a{color:#6e6e73;text-decoration:none;margin:0 9px;}
+footer a:hover{color:#fe0000;text-decoration:underline;}
+footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
+/* MOBILE / TABLETTE (05/10) */
+@media(max-width:1024px){
+  body{min-width:0;}
+  main{max-width:none;padding:28px 16px 60px;}
+  h1{font-size:30px;}
+  .formwrap{width:100%;}
+  .wiz-input,.wiz-next{width:100%;}
+}
+@media(max-width:640px){
+  main{padding:20px 12px 50px;}
+  h1{font-size:25px;margin-bottom:20px;}
+  .wiz-q{font-size:21px;margin-bottom:20px;}
+  .wiz-tiles,.wiz-tiles.cols4{grid-template-columns:1fr 1fr;}
+  .wiz-tile{padding:18px 8px;font-size:15px;}
+  .wiz-chip{padding:10px 15px;font-size:14px;}
+  .wiz-2btn{grid-template-columns:1fr;}
+  .wiz-rec{padding:4px 16px;}
+  .wiz-adr{grid-template-columns:1fr;}
+  .wiz-lock .axsub-go,.axsub-go{width:100%;}
+  .head-row{flex-wrap:wrap;}
+}
+</style>
+</head>
+<body>
+<header>
+<div class="h-in">
+  <a href="/"><img class="logo" src="/img/logo.png?v=2" alt="Prodiconseil"></a>
+  <form class="hsearch" action="/catalogue/" method="get">
+    <input type="text" name="q" placeholder="Que recherchez-vous ?" autocomplete="off">
+    <input type="hidden" name="all" value="1">
+    <button type="submit">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      Rechercher
+    </button>
+  </form>
+  <div id="ali-addr" title="Port de destination — coût CFR indicatif par tonne (container 25 T, départ Amiens)">
+    <span class="ali-addr-l">Port de destination&nbsp;:</span>
+    <span class="ali-addr-v" id="ali-ship-cur"><img class="ali-flag" src="https://flagcdn.com/w40/fr.png" alt=""> Le Havre</span>
+    <span class="ali-addr-cfr" id="ali-ship-cfr">+80 €/T CFR</span>
+  </div>
+  <div id="ali-lang">
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
+    <span id="ali-lc-cur">Français-EUR</span>
+  </div>
+      <div id="ali-acct">
+        <a id="ali-login-lnk" href="/compte/">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>
+          Se connecter
+        </a>
+        <div id="ali-acct-pop">
+          <div class="acct-hi">Bienvenue chez Prodiconseil !</div>
+          <a class="acct-login" href="/compte/">Se connecter</a>
+          <div class="acct-or">Ou continuer avec :</div>
+          <a class="acct-google" href="#" onclick="location.href='https://bvcgpdoukhcatjibmvnb.supabase.co/auth/v1/authorize?provider=google&amp;redirect_to='+encodeURIComponent('http://localhost:8101/compte/');return false;">
+            <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+            <span>Continuer avec Google</span>
+          </a>
+          <div class="acct-sep"></div>
+          <a class="acct-item" href="/mon-prodiconseil/">Mes commandes</a>
+          <a class="acct-item" href="#" onclick="return false;">Demande de devis</a>
+          <a class="acct-item" href="/echantillons/">Demande d'&eacute;chantillons</a>
+          <a class="acct-item" href="/contact/">Nous contacter</a>
+          <a class="acct-item" href="/mon-prodiconseil/">Mon Prodiconseil</a>
+          <div class="acct-sep"></div>
+          <a class="acct-item" href="/compte/">Devenir client Prodiconseil</a>
+        </div>
+      </div>
+      <a id="ali-join" href="/compte/">Devenir client</a>
+</div>
+</header>
+<main>
+  <div class="head-row">
+    <h1>Demande d'échantillons</h1>
+    <span class="axsub-badge">48/72H</span>
+  </div>
+  <p class="sub">Validez la qualité avant de commander : vos échantillons partent du dépôt d'Amiens sous 48 h.</p>
+  <div class="formwrap">
+    <div id="fab-chip"></div>
+    <div id="wiz">
+      <div class="wiz-top">
+        <button class="wiz-back" id="wiz-back" onclick="wizBack()" aria-label="Retour" style="visibility:hidden;">←</button>
+        <div class="wiz-prog"><i id="wiz-bar"></i></div>
+      </div>
+      <div id="wiz-step"></div>
+    </div>
+    <div class="axsub-ok" style="display:none;">
+      <div class="axsub-check">✓</div>
+      <div class="axsub-okt">Bien reçu !<br><small>Vos échantillons partent sous 48 h.</small></div>
+    </div>
+  </div>
+</main>
+<script src="/login-pop.js"></script>
+<script>
+/* ── Parcours wizard échantillons (même délire que /fabrication/, simplifié) ──
+   qualité → grammage → récap MULTI-échantillons + adresse + envoi.
+   Tuile/chip = avance auto ; « + Ajouter un autre échantillon » re-déroule. */
+var W={step:0,items:[],draft:{},adr:'',cp:'',msg:''};
+var WIZ_N=3;
+function wEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function wVal(f){return W.draft[f]||'';}
+function wTiles(field,opts,cols){
+  return '<div class="wiz-tiles'+(cols===4?' cols4':'')+'">'+opts.map(function(o){
+    return '<button class="wiz-tile'+(wVal(field)===o?' sel':'')+'" onclick="wizPick(\''+field+'\',this.textContent)">'+wEsc(o)+'</button>';
+  }).join('')+'</div>';
+}
+function wChips(opts){
+  return '<div class="wiz-chips">'+opts.map(function(o){
+    return '<button class="wiz-chip" onclick="wizPick(wizField(),this.textContent)">'+wEsc(o)+'</button>';
+  }).join('')+'</div>';
+}
+function wInput(ph,field){
+  return '<input class="wiz-input" id="wiz-inp" placeholder="'+wEsc(ph)+'" value="'+wEsc(wVal(field))+'" onkeydown="if(event.key===\'Enter\')wizNext()">'
+    +'<button class="wiz-next" onclick="wizNext()">Continuer</button>'
+    +'<button class="wiz-skip" onclick="wizSkip()">Passer cette étape</button>';
+}
+function wizField(){return ['qualite','grammage'][W.step];}
+function wizSum(it){return [it.qualite,it.grammage].filter(Boolean).join(' · ')||'Échantillon';}
+function wizRender(){
+  var el=document.getElementById('wiz-step');
+  document.getElementById('wiz-bar').style.width=(W.step/(WIZ_N-1)*100)+'%';
+  document.getElementById('wiz-back').style.visibility=(W.step||W.items.length)?'visible':'hidden';
+  if(W.step===0){
+    el.innerHTML='<div class="wiz-q">Quel échantillon voulez-vous recevoir ?</div>'
+      +wTiles('qualite',['Offset','Offset couleur','Papier couché','Carton couché','Kraft','Bouffant','Autocopiant','Adhésif','Papier journal','Ramette A4','Liner','Papier création'],4);
+  }else if(W.step===1){
+    el.innerHTML='<div class="wiz-q">Quel grammage ?</div>'
+      +wChips(['45 g/m²','60 g/m²','80 g/m²','90 g/m²','120 g/m²','170 g/m²','250 g/m²','300 g/m²'])
+      +wInput('Autre grammage (ex : 115 g/m²)','grammage');
+  }else{
+    el.innerHTML='<div class="wiz-q">Vos échantillons'+(W.items.length>1?' — '+W.items.length:'')+'</div>'
+      +'<div class="wiz-rec">'
+        +(W.items.length?W.items.map(function(it,i){
+          return '<div class="wiz-rec-l"><b style="text-align:left;">'+wEsc(wizSum(it))+'</b><button class="wiz-del" onclick="wizDel('+i+')" title="Retirer cet échantillon">✕</button></div>';
+        }).join(''):'<div class="wiz-rec-l"><span>Aucun échantillon — ajoutez-en un ci-dessous.</span></div>')
+      +'</div>'
+      +'<button class="wiz-add" onclick="wizMore()">+ Ajouter un autre échantillon</button>'
+      +'<div class="wiz-adr">'
+        +'<input id="wiz-adr" placeholder="Adresse de livraison (rue, n°)" value="'+wEsc(W.adr)+'" oninput="W.adr=this.value">'
+        +'<input id="wiz-cp" placeholder="Code postal / ZIP" value="'+wEsc(W.cp)+'" oninput="W.cp=this.value">'
+      +'</div>'
+      +'<textarea class="wiz-msg" id="wiz-msg" placeholder="Précisions — facultatif" oninput="W.msg=this.value">'+wEsc(W.msg)+'</textarea>'
+      +'<button class="axsub-go" onclick="wizSend()">Recevoir mes échantillons !</button>';
+  }
+}
+function wizFinishProduct(){W.items.push(W.draft);W.draft={};W.step=2;wizRender();}
+function wizAdvance(){if(W.step===1)wizFinishProduct();else{W.step++;wizRender();}}
+function wizPick(field,val){W.draft[field]=val.trim();wizAdvance();}
+function wizNext(){
+  var inp=document.getElementById('wiz-inp');
+  if(inp)W.draft[wizField()]=inp.value.trim();
+  wizAdvance();
+}
+function wizSkip(){W.draft[wizField()]='';wizAdvance();}
+function wizBack(){
+  if(W.step===2){ if(W.items.length){W.draft=W.items.pop();W.step=1;} else {W.step=0;W.draft={};} }
+  else if(W.step===0&&W.items.length){W.step=2;}
+  else if(W.step>0){W.step--;}
+  wizRender();
+}
+function wizDel(i){W.items.splice(i,1);wizRender();}
+function wizMore(){W.draft={};W.step=0;wizRender();}
+function wizSend(){
+  if(!W.items.length)return;
+  document.getElementById('wiz').style.display='none';
+  document.querySelector('.axsub-ok').style.display='block';
+}
+/* Porte compte : identité + adresse reprises du compte ;
+   non connecté = popup de connexion façon Alibaba (login-pop.js). */
+(function(){
+  var sess=null;
+  try{sess=JSON.parse(localStorage.getItem('sb-bvcgpdoukhcatjibmvnb-auth-token')||'null');}catch(e){}
+  var user=sess&&sess.user;
+  if(!user){
+    // page INACCESSIBLE sans compte : wizard masqué + écran verrou, popup direct
+    var wz=document.getElementById('wiz'); if(wz)wz.style.display='none';
+    var lock=document.createElement('div');
+    lock.className='wiz-lock';
+    lock.innerHTML='<div class="wiz-lock-t">Réservé aux clients Prodiconseil</div>'
+      +'<p class="wiz-lock-p">Connectez-vous pour recevoir vos échantillons.</p>'
+      +'<button class="axsub-go" onclick="window.prodiLoginPop&&window.prodiLoginPop()">Se connecter / créer un compte</button>';
+    document.querySelector('.formwrap').appendChild(lock);
+    window.prodiLoginPop&&window.prodiLoginPop();
+    return;
+  }
+  var meta=user.user_metadata||{};
+  if(meta.adresse)W.adr=meta.adresse;
+  if(meta.cp)W.cp=meta.cp;
+  // (pastille « Demande au nom de » retirée 04/10 — identité du compte gardée côté envoi)
+})();
+wizRender();
+</script>
+<footer>
+  <div>
+    <a href="/about/">&Agrave; propos</a>&middot;<a href="#" onclick="return false;">Mentions l&eacute;gales</a>&middot;<a href="#" onclick="return false;">Politique de confidentialit&eacute;</a>&middot;<a href="#" onclick="return false;">Conditions d'utilisation</a>&middot;<a href="/contact/">Contact</a>
+  </div>
+  <div class="cr">&copy; 1991-2026 Prodiconseil &mdash; Amiens, France</div>
+</footer>
+<script src="/header.js"></script>
+<script src="/footer.js"></script>
+<script src="/nav-menu.js?v=1"></script>
+</body>
+</html>

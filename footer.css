@@ -1,0 +1,39 @@
+/* Footer partagé Prodiconseil (façon vitrine ft2) — injecté par footer.js sur tout le site */
+footer.ft2{background:#fafafa;border-top:1px solid #e8e8e4;padding:52px 0 30px;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;text-align:left;color:#1d1d1f;}
+footer.ft2 .ft2-grid{display:grid;grid-template-columns:1.35fr 1fr 1fr 1.15fr 1fr 1fr;gap:32px;max-width:min(1880px,calc(100vw - 64px));margin:0 auto;}
+footer.ft2 .ft2-brand img{display:block;width:170px;height:auto;margin-bottom:12px;}
+footer.ft2 .ft2-tag{font-size:13.5px;color:#6e6e73;line-height:1.5;max-width:260px;margin:0;}
+footer.ft2 .ft2-social{display:flex;gap:10px;margin-top:14px;}
+footer.ft2 .ft2-social a{width:32px;height:32px;border:none;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;transition:transform .15s,filter .15s;margin:0;}
+footer.ft2 .ft2-social a:hover{transform:scale(1.1);filter:brightness(.95);}
+footer.ft2 .ft2-social svg{display:block;}
+footer.ft2 .fs-yt{background:#FF0000;}
+footer.ft2 .fs-tk{background:#000;}
+footer.ft2 .fs-fb{background:#1877F2;}
+footer.ft2 .fs-ig{background:radial-gradient(circle at 30% 110%,#fdf497 0%,#fdf497 5%,#fd5949 45%,#d6249f 60%,#285AEB 90%);}
+footer.ft2 .fs-in{background:#0A66C2;}
+footer.ft2 .ft2-h{font-size:13px;font-weight:700;color:#1d1d1f;margin-bottom:4px;}
+footer.ft2 .ft2-col{display:flex;flex-direction:column;gap:9px;}
+footer.ft2 .ft2-col a{font-size:13.5px;color:#6e6e73;text-decoration:none;transition:color .2s;margin:0;}
+footer.ft2 .ft2-col a:hover{color:#1d1d1f;text-decoration:none;}
+footer.ft2 .ft2-col-zones{display:grid;grid-template-columns:1fr 1fr;column-gap:22px;row-gap:9px;align-content:start;}
+footer.ft2 .ft2-col-zones .ft2-h{grid-column:1/-1;}
+footer.ft2 .ft2-markets{max-width:min(1880px,calc(100vw - 64px));margin:34px auto 0;padding-top:18px;border-top:1px solid #e3e3e6;display:flex;flex-wrap:wrap;gap:7px 16px;align-items:baseline;}
+footer.ft2 .ft2-mk-h{font-size:12.5px;font-weight:700;color:#1d1d1f;}
+footer.ft2 .ft2-markets a{font-size:12.5px;color:#6e6e73;text-decoration:none;transition:color .2s;margin:0;}
+footer.ft2 .ft2-markets a:hover{color:#1d1d1f;text-decoration:none;}
+footer.ft2 .ft2-bottom{max-width:min(1880px,calc(100vw - 64px));margin:38px auto 0;padding-top:20px;border-top:1px solid #e3e3e6;font-size:12.5px;color:#6e6e73;text-align:center;}
+footer.ft2 .ft2-bottom a{color:inherit;margin:0;}
+
+/* MOBILE / TABLETTE (05/10) : 6 colonnes → 3 (tablette) → 2 (téléphone) */
+@media(max-width:1024px){
+  footer.ft2{padding:40px 0 26px;}
+  footer.ft2 .ft2-grid{grid-template-columns:repeat(3,1fr);gap:28px 22px;max-width:none;padding:0 20px;box-sizing:border-box;}
+  footer.ft2 .ft2-brand{grid-column:1/-1;}
+  footer.ft2 .ft2-markets,footer.ft2 .ft2-bottom{max-width:none;padding-left:20px;padding-right:20px;box-sizing:border-box;}
+}
+@media(max-width:640px){
+  footer.ft2 .ft2-grid{grid-template-columns:1fr 1fr;gap:24px 18px;}
+  footer.ft2 .ft2-col-zones{grid-column:1/-1;}
+  footer.ft2 .ft2-tag{max-width:none;}
+}

@@ -1,0 +1,19 @@
+/* Styles du menu burger mobile — chargé partout (05/10) */
+/* ── MENU BURGER mobile (05/10) : bouton masqué en desktop, drawer gauche ── */
+#mnav-btn{display:none;align-items:center;justify-content:center;width:40px;height:40px;border:none;background:none;cursor:pointer;flex-shrink:0;padding:0;margin-right:4px;}
+#mnav-bg{position:fixed;inset:0;background:rgba(10,10,12,.5);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);z-index:9800;display:none;}
+#mnav-bg.open{display:block;}
+.mnav-panel{position:absolute;top:0;left:0;bottom:0;width:min(330px,86vw);background:#fff;box-shadow:4px 0 40px rgba(0,0,0,.3);display:flex;flex-direction:column;transform:translateX(-100%);transition:transform .22s cubic-bezier(.4,0,.2,1);}
+#mnav-bg.open .mnav-panel{transform:none;}
+.mnav-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid #f0f0f2;}
+.mnav-logo{height:30px;}
+.mnav-x{border:none;background:none;font-size:22px;color:#1d1d1f;cursor:pointer;line-height:1;padding:4px;}
+.mnav-links{flex:1;overflow-y:auto;padding:10px 0;}
+.mnav-link{display:block;padding:14px 22px;font:700 17px 'DM Sans',sans-serif;color:#1d1d1f;text-decoration:none;}
+.mnav-link:hover,.mnav-link:active{background:#f5f5f7;}
+.mnav-link.mnav-on{color:#fe0000;}
+.mnav-sep{height:1px;background:#f0f0f2;margin:8px 22px;}
+.mnav-foot{padding:16px 20px 22px;border-top:1px solid #f0f0f2;}
+.mnav-cta{display:block;text-align:center;background:linear-gradient(90deg,#ff7a1a,#ff3c00 45%,#fe0000);color:#fff;font:800 16px 'DM Sans',sans-serif;padding:15px;border-radius:999px;text-decoration:none;}
+.mnav-cta-out{background:#fff;border:1.5px solid #d2d2d7;color:#1d1d1f;}
+@media(max-width:1135px){#mnav-btn{display:flex;}}
