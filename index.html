@@ -187,6 +187,10 @@ gtag('config', 'G-KYEHH64T17');
 @media(max-width:1135px){
   body.cat-page #cat-hsearch,
   body.cat-page #results-bar{display:none !important;}
+  /* header /catalogue/ : burger + logo + panier alignés sur UNE ligne ; bande grise (r2) en dessous */
+  body.cat-page.topbar-view:not(.shared-view) .header-inner{display:flex !important;flex-wrap:wrap;align-items:center;gap:6px;height:auto !important;}
+  body.cat-page #mob-hdr-r1{flex:1 1 auto;width:auto !important;min-width:0;overflow:visible !important;}
+  body.cat-page #mob-hdr-r2{flex-basis:100%;width:100%;}
 }
 /* table Excel : scroll horizontal DÉCOUVRABLE sur mobile/tablette (barre visible + tactile) */
 @media(max-width:1135px){
