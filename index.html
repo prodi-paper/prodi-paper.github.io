@@ -184,8 +184,9 @@ gtag('config', 'G-KYEHH64T17');
 .wa-sticky{display:none !important;}
 /* table Excel : scroll horizontal DÉCOUVRABLE sur mobile/tablette (barre visible + tactile) */
 @media(max-width:1135px){
-  #pgrid div:has(> .plist-table){overflow-x:auto !important;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:#c4c4c9 #f0f0f2;}
-  #pgrid div:has(> .plist-table)::-webkit-scrollbar{height:9px;}
+  /* boîte scroll 2 axes + momentum tactile (même réglage que /catalogue/) → slide horizontal fiable au doigt */
+  #pgrid div:has(> .plist-table){overflow:auto !important;max-height:calc(100vh - 150px);-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-x pan-y;scrollbar-width:thin;scrollbar-color:#c4c4c9 #f0f0f2;}
+  #pgrid div:has(> .plist-table)::-webkit-scrollbar{height:9px;width:9px;}
   #pgrid div:has(> .plist-table)::-webkit-scrollbar-thumb{background:#c4c4c9;border-radius:5px;}
   #pgrid div:has(> .plist-table)::-webkit-scrollbar-track{background:#f0f0f2;}
 }
