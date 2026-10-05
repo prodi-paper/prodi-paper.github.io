@@ -98,6 +98,14 @@
   if(!cur||!M[cur.id]) cur=null;   /* pas de port par défaut : « Choisir » */
   function m(){return cur?M[cur.id]:null;}
   function flag(c){return '<img class="ali-flag" src="https://flagcdn.com/w40/'+c+'.png" alt="">';}
+  /* CFR €/T → devise active (prodi_ccy + taux prodi_usd, même logique que le panier :
+     conversion ×taux puis arrondi à la dizaine, unité $/T). Lu à chaque rendu. */
+  function _ccyCfr(t){
+    var usd=false,rate=0;
+    try{usd=/usd/i.test(localStorage.getItem('prodi_ccy')||'');}catch(e){}
+    try{var c=JSON.parse(localStorage.getItem('prodi_usd')||'null');if(c&&+c.r>0)rate=+c.r;}catch(e){}
+    return (usd&&rate>0)?{v:Math.round(t*rate/10)*10,u:'$/T'}:{v:t,u:'€/T'};
+  }
   function paint(){
     if(!cur){
       document.getElementById('ali-ship-cur').innerHTML='Choisir un port\u2026';
@@ -105,16 +113,18 @@
       return;
     }
     document.getElementById('ali-ship-cur').innerHTML=flag(m().f)+' '+m().port;
-    document.getElementById('ali-ship-cfr').textContent='+'+m().t+' \u20ac/T CFR';
+    var _c=_ccyCfr(m().t);
+    document.getElementById('ali-ship-cfr').textContent='+'+_c.v+' '+_c.u+' CFR';
   }
   var pop=document.createElement('div'); pop.id='ali-ship-pop';
   var POPULAIRES=['ma|Casablanca','dz|Alger','tn|Radès (Tunis)','eg|Alexandrie','sa|Djeddah','ae|Jebel Ali (Dubaï)','sn|Dakar','ci|Abidjan','fr|Le Havre'];
-  function row(id){var x=M[id];return '<div class="ship-row" data-id="'+id+'">'+flag(x.f)+'<span>'+x.port+'</span><em>'+x.pays+'</em><i>+'+x.t+' €/T</i></div>';}
+  function row(id){var x=M[id];var c=_ccyCfr(x.t);return '<div class="ship-row" data-id="'+id+'">'+flag(x.f)+'<span>'+x.port+'</span><em>'+x.pays+'</em><i>+'+c.v+' '+c.u+'</i></div>';}
   function rowsHtml(){
     var h='<div class="ship-grp">Ports populaires</div>';
     POPULAIRES.forEach(function(id){h+=row(id);});
     Z.forEach(function(z){
-      h+='<div class="ship-grp">'+z.n+' · '+z.t+' €/T</div>';
+      var _zc=_ccyCfr(z.t);
+      h+='<div class="ship-grp">'+z.n+' · '+_zc.v+' '+_zc.u+'</div>';
       z.c.forEach(function(c){(c[2]||[]).forEach(function(pt){h+=row(c[0]+'|'+pt);});});
     });
     return h;
@@ -150,8 +160,11 @@
     var x=M[pend];
     field.querySelector('img').src='https://flagcdn.com/w40/'+x.f+'.png';
     pop.querySelector('#ship-field-n').textContent=x.port+' — '+x.pays;
-    pop.querySelector('#ship-cfr').textContent='CFR +'+x.t+' €/T — prix estimatif, départ Le Havre, France.';
+    var _fc=_ccyCfr(x.t);
+    pop.querySelector('#ship-cfr').textContent='CFR +'+_fc.v+' '+_fc.u+' — prix estimatif, départ Le Havre, France.';
   }
+  /* re-rendu quand la devise change (émis par le panier/header sans reload) */
+  window.addEventListener('prodi-ccy',function(){try{paint();rowsBox.innerHTML=rowsHtml();fieldPaint();}catch(e){}});
   field.addEventListener('click',function(){
     field.classList.toggle('open');listEl.classList.toggle('open');
     if(listEl.classList.contains('open')){sw.value='';filter();setTimeout(function(){sw.focus();},50);}

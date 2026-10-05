@@ -267,6 +267,7 @@ function toggleCurrency(c){
   _currency=next;
   try{localStorage.setItem('prodi_ccy',_currency);}catch(_){}
   _paintCcyBtn(); _repaintPrices();
+  try{window.dispatchEvent(new Event('prodi-ccy'));}catch(_){}  // re-rend la bannière Port de destination (header.js)
   window.prodiTrack?.('devise',{ccy:_currency,taux:_usdRate});
 }
 async function _loadUsdRate(){
@@ -279,7 +280,7 @@ async function _loadUsdRate(){
     const j=await res.json();
     const r=j&&j.rates&&+j.rates.USD;
     if(r>0){ _usdRate=r; try{localStorage.setItem('prodi_usd',JSON.stringify({d:today,r}));}catch(_){}
-      if(_currency==='USD')_repaintPrices(); }
+      if(_currency==='USD'){_repaintPrices();try{window.dispatchEvent(new Event('prodi-ccy'));}catch(_){}} }
   }catch(_){/* garde le cache ou reste en € */}
 }
 _paintCcyBtn(); _loadUsdRate();

@@ -328,7 +328,7 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
   function _fetchRate(){
     fetch('https://api.frankfurter.dev/v1/latest?base=EUR&symbols=USD').then(function(r){return r.json();}).then(function(j){
       var r=j&&j.rates&&+j.rates.USD;
-      if(r>0){ _usdRate=r; try{localStorage.setItem('prodi_usd',JSON.stringify({d:new Date().toISOString().slice(0,10),r:r}));}catch(e){} if(_ccy==='USD'){_refreshDestLabels();rendre();} }
+      if(r>0){ _usdRate=r; try{localStorage.setItem('prodi_usd',JSON.stringify({d:new Date().toISOString().slice(0,10),r:r}));}catch(e){} if(_ccy==='USD'){_refreshDestLabels();rendre();try{window.dispatchEvent(new Event('prodi-ccy'));}catch(e){}} }
     }).catch(function(){});
   }
   function _refreshDestLabels(){
@@ -342,6 +342,7 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
     try{localStorage.setItem('prodi_ccy',_ccy);}catch(e){}
     if(_ccy==='USD'&&!(_usdRate>0)){_fetchRate();}
     _refreshDestLabels(); rendre();
+    try{window.dispatchEvent(new Event('prodi-ccy'));}catch(e){}  // re-rend la bannière Port de destination (header.js)
     window.prodiTrack&&window.prodiTrack('devise',{ccy:_ccy,p:'panier'});
   };
   function logged(){try{var s=JSON.parse(localStorage.getItem('sb-bvcgpdoukhcatjibmvnb-auth-token')||'null');return !!(s&&s.user);}catch(e){return false;}}
