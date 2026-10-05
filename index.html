@@ -179,6 +179,13 @@ gtag('config', 'G-KYEHH64T17');
 .vitrine-embed{max-width:min(1880px,92vw);margin:0 auto;overflow-x:hidden;}
 /* la vitrine n'apparaît QUE sur l'accueil (/) — jamais sur /catalogue/ (même fichier via symlink) */
 body.cat-page .vitrine-embed{display:none !important;}
+/* INVERSE : le CATALOGUE (filtres + rails/grille produits = .body-wrap) n'apparaît QUE sur /catalogue/.
+   Sur l'accueil (/) = storefront pur (hero + cartes catégories + vitrine), pas de catalogue brut. */
+body:not(.cat-page) .body-wrap{display:none !important;}
+/* + chrome catalogue dans le header (tonnage + bouton Filtres) masqué sur la home */
+body:not(.cat-page) #head-tons,
+body:not(.cat-page) #outils-wrap,
+body:not(.cat-page) .mob-filtres-btn{display:none !important;}
 .vitrine-embed section{padding-left:0 !important;padding-right:0 !important;}
 .vitrine-embed .sec-inner{max-width:100% !important;padding-left:0 !important;padding-right:0 !important;}
 .vitrine-embed .qtiles,
