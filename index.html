@@ -209,6 +209,8 @@ gtag('config', 'G-KYEHH64T17');
   #pgrid div:has(> .plist-table)::-webkit-scrollbar{height:9px;width:9px;}
   #pgrid div:has(> .plist-table)::-webkit-scrollbar-thumb{background:#c4c4c9;border-radius:5px;}
   #pgrid div:has(> .plist-table)::-webkit-scrollbar-track{background:#f0f0f2;}
+  /* dézoom léger du tableau Excel sur mobile → plus de colonnes visibles d'un coup */
+  body:not(.shared-view) #pgrid .plist-table{zoom:.72;}
 }
 /* la vitrine n'apparaît QUE sur l'accueil (/) — jamais sur /catalogue/ (même fichier via symlink) */
 body.cat-page .vitrine-embed{display:none !important;}
