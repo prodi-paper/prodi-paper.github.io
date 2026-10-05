@@ -1167,7 +1167,7 @@ async function init(){
   // Accueil catalogue = rangées horizontales par qualité (sauf hero / recherche / filtre / vue client).
   // PAGE STOCK (cat-page) : on ouvre DIRECTEMENT la vue tableau Excel (« vue
   // Excel d'office » — 04/10), jamais l'ancien accueil-cartes par qualité.
-  if(!_sharedMode && !_featuredMode && !window._SAISIE_BASSE && !_anyFilterActive() && !document.body.classList.contains('cat-page')){
+  if(false){ /* ACCUEIL = vue Excel par qualité (05/10 Ethan) — plus de rangées-cartes par qualité (ancien modèle retiré) */
     _landingRows=true;
     const _ok=await _renderQualityRows();
     // Re-vérif APRÈS l'await : si l'utilisateur a filtré pendant le chargement (race),

@@ -182,13 +182,8 @@ gtag('config', 'G-KYEHH64T17');
 #ali-cats-pop .mm-side-row[data-g="top"]{display:none !important;}
 /* la vitrine n'apparaît QUE sur l'accueil (/) — jamais sur /catalogue/ (même fichier via symlink) */
 body.cat-page .vitrine-embed{display:none !important;}
-/* INVERSE : le CATALOGUE (filtres + rails/grille produits = .body-wrap) n'apparaît QUE sur /catalogue/.
-   Sur l'accueil (/) = storefront pur (hero + cartes catégories + vitrine), pas de catalogue brut. */
-body:not(.cat-page) .body-wrap{display:none !important;}
-/* + chrome catalogue dans le header (tonnage + bouton Filtres) masqué sur la home */
-body:not(.cat-page) #head-tons,
-body:not(.cat-page) #outils-wrap,
-body:not(.cat-page) .mob-filtres-btn{display:none !important;}
+/* ACCUEIL = storefront (hero + cartes + vitrine) PUIS l'Excel interactif par qualité (le catalogue
+   .body-wrap est RESTAURÉ sur la home ; _landingRows désactivé dans catalogue.js → vue Excel, plus les rangées-cartes). */
 .vitrine-embed section{padding-left:0 !important;padding-right:0 !important;}
 .vitrine-embed .sec-inner{max-width:100% !important;padding-left:0 !important;padding-right:0 !important;}
 .vitrine-embed .qtiles,
@@ -266,8 +261,8 @@ body:not(.cat-page) .mob-filtres-btn{display:none !important;}
   #ali-cards .ac-video video{width:100%;height:100%;object-fit:cover;display:block;}
   #ali-cards .acc-ar{width:30px;height:30px;}
   /* bande arrivages */
-  #ali-banner .alb-link{display:block;position:relative;aspect-ratio:3/1;border-radius:14px;overflow:hidden;background:#f5f5f7;}
-  #ali-banner .alb-link img{width:100%;height:100%;object-fit:cover;object-position:center;display:block;}
+  #ali-banner .alb-link{display:block;position:relative;aspect-ratio:2.4/1;border-radius:14px;overflow:hidden;background:#f5f5f7;}
+  #ali-banner .alb-link img{width:100%;height:100%;object-fit:cover;object-position:left center;display:block;}
 }
 </style>
 </head>
