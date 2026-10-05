@@ -185,11 +185,11 @@ gtag('config', 'G-KYEHH64T17');
 /* barre de sélection #xl-status : compacte sur mobile (trop large sinon — Réserver coupé).
    Télécharger + Album = icône seule ; zoom off ; bornée à l'écran. */
 @media(max-width:1135px){
-  #xl-status{zoom:1 !important;max-width:calc(100vw - 12px);gap:6px !important;padding:5px 7px !important;}
-  #xl-status .xls-sum{margin-right:2px !important;font-size:12px !important;}
-  #xl-status .xls-dark:not(.xls-clear){font-size:0 !important;padding:9px 12px !important;gap:0 !important;}
+  #xl-status{zoom:1 !important;max-width:calc(100vw - 12px);gap:11px !important;padding:6px 13px !important;}
+  #xl-status .xls-sum{margin-right:5px !important;font-size:12.5px !important;}
+  #xl-status .xls-dark:not(.xls-clear){font-size:0 !important;padding:9px 15px !important;gap:0 !important;}
   #xl-status .xls-dark:not(.xls-clear) svg{width:18px !important;height:18px !important;}
-  #xl-status .xls-go{padding:9px 14px !important;font-size:13px !important;}
+  #xl-status .xls-go{padding:10px 24px !important;font-size:13px !important;}
 }
 /* /catalogue/ MOBILE épuré : on garde header (burger+logo+panier) + bande grise (tonnage+Filtres),
    on enlève la barre de recherche et la barre pastilles/tri. */
@@ -539,7 +539,7 @@ body.topbar-view .plist-table .plist-thumb-wrap:hover::after{opacity:0;}   /* le
 #xl-album .xla-usineb span{font-size:13px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:rgba(255,255,255,.75);}
 #xl-album .xla-usineb b{font-family:'Bebas Neue',sans-serif;font-size:32px;line-height:1;letter-spacing:.5px;color:#fff;font-weight:400;}
 /* barre d'état masquée quand une fiche/modale est ouverte */
-body:has(.modal-bg.show) #xl-status,body:has(#detail-bg.show) #xl-status{opacity:0;pointer-events:none;}
+body:has(.modal-bg.show) #xl-status,body:has(#detail-bg.show) #xl-status,body:has(#filter-drawer.open) #xl-status{opacity:0;pointer-events:none;}
 #xl-status{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:1200;zoom:1.155;display:flex;align-items:center;gap:12px;background:#fff;border:1.5px solid #d2d2d7;border-radius:999px;box-shadow:0 8px 30px rgba(0,0,0,.16);padding:9px 10px;font-family:'DM Sans',sans-serif;font-size:14px;color:#1d1d1f;white-space:nowrap;}
 #xl-status .xls-sum{margin-right:6px;}
 #xl-status .xls-hors{color:#b45309;font-weight:700;font-size:12.5px;}
