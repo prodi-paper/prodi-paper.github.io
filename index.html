@@ -180,6 +180,15 @@ gtag('config', 'G-KYEHH64T17');
 /* « Catégories pour vous » retiré PARTOUT (home sidebar/rail + méga-menu) — toutes largeurs */
 #ali-cards .ac-cats .ac-row-hd{display:none !important;}
 #ali-cats-pop .mm-side-row[data-g="top"]{display:none !important;}
+/* bouton WhatsApp flottant retiré (demande Ethan) */
+.wa-sticky{display:none !important;}
+/* table Excel : scroll horizontal DÉCOUVRABLE sur mobile/tablette (barre visible + tactile) */
+@media(max-width:1135px){
+  #pgrid div:has(> .plist-table){overflow-x:auto !important;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:#c4c4c9 #f0f0f2;}
+  #pgrid div:has(> .plist-table)::-webkit-scrollbar{height:9px;}
+  #pgrid div:has(> .plist-table)::-webkit-scrollbar-thumb{background:#c4c4c9;border-radius:5px;}
+  #pgrid div:has(> .plist-table)::-webkit-scrollbar-track{background:#f0f0f2;}
+}
 /* la vitrine n'apparaît QUE sur l'accueil (/) — jamais sur /catalogue/ (même fichier via symlink) */
 body.cat-page .vitrine-embed{display:none !important;}
 /* ACCUEIL = storefront (hero + cartes + vitrine) PUIS l'Excel interactif par qualité (le catalogue
