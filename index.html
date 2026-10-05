@@ -540,6 +540,11 @@ body.topbar-view .plist-table .plist-thumb-wrap:hover::after{opacity:0;}   /* le
 #xl-album .xla-usineb{position:absolute;bottom:12px;right:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border-radius:8px;padding:5px 12px;display:inline-flex;align-items:baseline;gap:4px;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);}
 #xl-album .xla-usineb span{font-size:13px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:rgba(255,255,255,.75);}
 #xl-album .xla-usineb b{font-family:'Bebas Neue',sans-serif;font-size:32px;line-height:1;letter-spacing:.5px;color:#fff;font-weight:400;}
+/* album d'un lot ×N sur mobile : 1 colonne (sinon grille 2×380px = débordement horizontal) */
+@media(max-width:1135px){
+  #xl-album .xla-wrap{grid-template-columns:minmax(0,1fr) !important;gap:16px !important;padding:62px 12px 50px !important;}
+  #xl-album .dimg-col{height:280px !important;}
+}
 /* barre d'état masquée quand une fiche/modale est ouverte */
 body:has(.modal-bg.show) #xl-status,body:has(#detail-bg.show) #xl-status,body:has(#filter-drawer.open) #xl-status{opacity:0;pointer-events:none;}
 #xl-status{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:1200;zoom:1.155;display:flex;align-items:center;gap:12px;background:#fff;border:1.5px solid #d2d2d7;border-radius:999px;box-shadow:0 8px 30px rgba(0,0,0,.16);padding:9px 10px;font-family:'DM Sans',sans-serif;font-size:14px;color:#1d1d1f;white-space:nowrap;}
