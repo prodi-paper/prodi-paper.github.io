@@ -1,6 +1,6 @@
-/* vitrine-embed.js — AUTO-GÉNÉRÉ depuis vitrine.js : IIFE (anti-collision esc/safeUrl/SKEY/SURL)
-   + export des onclick vers window + ZOOM BODY NEUTRALISÉ (sinon regonfle le catalogue plein écran).
-   Régénérer depuis vitrine.js en ré-appliquant ces 2 patchs. */
+/* vitrine-embed.js — AUTO depuis vitrine.js : IIFE anti-collision + export onclick
+   + 3 patchs EMBED : zoom body OFF, injection lead-modal OFF, injection contact OFF.
+   Régénérer depuis vitrine.js en ré-appliquant ces patchs. */
 (function(){
 // ─── SECURITY HELPERS ───
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -29,7 +29,7 @@ const TS_WAIT = TR('Vérification anti-robot…','Checking you are human…');
 // Même markup/ids que l'accueil → submitLead/leadClose/ccInit/Turnstile le
 // reprennent tels quels. ───
 (function(){
-  if(document.getElementById('lead-modal')||!document.body)return;
+  return;  /* EMBED : pas d'injection du popup lead-modal */
   var m=document.createElement('div');
   m.className='lead-modal';m.id='lead-modal';
   m.setAttribute('onclick','if(event.target===this)leadClose()');
@@ -58,7 +58,7 @@ const TS_WAIT = TR('Vérification anti-robot…','Checking you are human…');
 // Skip si un #contact-form existe déjà (accueil/contact/produits) ou hors sous-page. ───
 (function(){
   if(!document.body)return;
-  if(document.getElementById('contact-form'))return;
+  return;  /* EMBED : pas d'injection de la section contact */
   if(!document.body.classList.contains('souspage'))return;
   var sec=document.createElement('section');
   sec.id='contact-section';
@@ -1351,7 +1351,7 @@ function toggleSound(){
     // borné par la LARGEUR ET LA HAUTEUR (écran large mais peu haut = zoom
     // réduit, sinon le hero déborde verticalement), plafond 1.6
     var z=Math.max(1,Math.min(window.innerWidth/1440,window.innerHeight/860,1.6));
-    document.body.style.zoom='';  /* EMBED : zoom body désactivé (le catalogue/mix gère sa largeur façon Alibaba) */
+    document.body.style.zoom='';  /* EMBED : zoom body désactivé */
   }
   fit();
   window.addEventListener('resize',fit);
@@ -1424,7 +1424,7 @@ function toggleSound(){
   },true);
 })();
 
-/* ==== exports onclick ==== */
+/* exports */
 try{window._leadBtnMode=window._leadBtnMode||_leadBtnMode;}catch(e){}
 try{window._leadErr=window._leadErr||_leadErr;}catch(e){}
 try{window._leadValide=window._leadValide||_leadValide;}catch(e){}
