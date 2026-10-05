@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prodi · Outils internes</title>
+<meta name="robots" content="noindex, nofollow">
+<style>
+  :root{ --rouge:#FE0000; --noir:#1d1d1f; --gris:#86868b; --ligne:#e0e0e5; --fond:#F5F3EE; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--fond);color:var(--noir);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased;font-size:16px;line-height:1.5}
+  header.app{display:flex;align-items:center;gap:14px;padding:18px 26px;background:#fff;
+    border-bottom:1px solid var(--ligne);position:sticky;top:0;z-index:10}
+  header.app img{height:30px}
+  header.app span{font-weight:700;letter-spacing:-.2px}
+  main{max-width:680px;margin:0 auto;padding:40px 22px 70px}
+  .btns{display:flex;flex-direction:column;gap:13px}
+  a.outil{display:flex;align-items:center;width:100%;background:#fff;border-radius:16px;
+    padding:17px 22px;text-decoration:none;color:inherit;font-weight:700;font-size:17px;
+    letter-spacing:-.2px;box-shadow:0 1px 2px rgba(0,0,0,.05);border:1px solid rgba(0,0,0,.03);
+    transition:transform .14s,box-shadow .14s}
+  a.outil::after{content:"›";margin-left:auto;color:#c7c7cc;font-size:20px;font-weight:400}
+  a.outil:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(0,0,0,.09)}
+  a.outil:active{transform:scale(.98)}
+  .ico{font-size:22px;line-height:1}
+  @media (min-width:561px){ body{zoom:1.15} }
+  @media (max-width:560px){
+    header.app span{display:none}
+    main{padding:24px 14px 50px}
+    h1{font-size:24px}
+    .grille{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<!-- ── PORTE CODE D'ACCÈS (même mécanique que /catalogue/ : localStorage
+     'prodi_cat_ok' partagé — déjà validé ailleurs = pas de re-saisie.
+     Code = constante PWD ci-dessous (garder SYNCHRO avec catalogue + vitrine). -->
+<script>(function(){try{if(localStorage.getItem('prodi_cat_ok')==='1'){document.documentElement.classList.add('cat-unlocked');localStorage.setItem('prodi_prof_ok','1');localStorage.setItem('prodi_offres_code','PRODI2026');}}catch(e){document.documentElement.classList.add('cat-unlocked');}})();</script>
+<style>
+#cat-gate{position:fixed;inset:0;z-index:100000;background:#F5F3EE;display:flex;align-items:center;justify-content:center;padding:24px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
+html.cat-unlocked #cat-gate{display:none !important;}
+.cat-gate-card{background:#fff;border-radius:20px;box-shadow:0 16px 44px rgba(0,0,0,.16);padding:38px 34px 28px;width:100%;max-width:370px;text-align:center;box-sizing:border-box;}
+.cat-gate-logo{height:32px;margin-bottom:16px;}
+.cat-gate-t{font-size:22px;font-weight:800;color:#1d1d1f;letter-spacing:-.3px;}
+.cat-gate-s{font-size:13.5px;color:#86868b;margin:7px 0 20px;line-height:1.4;}
+#cat-gate-form{display:flex;flex-direction:column;gap:10px;}
+#cat-gate-input{height:46px;border:1.5px solid #e0e0e5;border-radius:12px;padding:0 16px;font-size:16px;outline:none;box-sizing:border-box;text-align:center;}
+#cat-gate-input:focus{border-color:#1d1d1f;}
+#cat-gate-form button{height:46px;border:none;border-radius:12px;background:#1d1d1f;color:#fff;font-size:16px;font-weight:700;cursor:pointer;}
+#cat-gate-form button:active{transform:scale(.98);}
+.cat-gate-err{color:#FE0000;font-size:13px;font-weight:600;min-height:17px;margin-top:11px;}
+.cat-gate-shake{animation:catShake .34s;}
+@keyframes catShake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+</style>
+<div id="cat-gate">
+  <div class="cat-gate-card">
+    <img src="/img/logo.png" alt="Prodiconseil" class="cat-gate-logo">
+    <div class="cat-gate-t">Accès réservé</div>
+    <div class="cat-gate-s">Outils internes Prodiconseil.<br>Entrez le code d'accès pour continuer.</div>
+    <form id="cat-gate-form" autocomplete="off">
+      <input type="password" id="cat-gate-input" placeholder="Code d'accès" autocomplete="off" spellcheck="false">
+      <button type="submit">Confirmer</button>
+    </form>
+    <div class="cat-gate-err" id="cat-gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){
+  var PWD='PRODI2026'; /* ← même code que catalogue/vitrine — changer ensemble */
+  if(document.documentElement.classList.contains('cat-unlocked'))return;
+  function boot(){
+    var g=document.getElementById('cat-gate'),f=document.getElementById('cat-gate-form'),i=document.getElementById('cat-gate-input'),err=document.getElementById('cat-gate-err');
+    if(!f)return;
+    setTimeout(function(){try{i.focus();}catch(e){}},60);
+    f.addEventListener('submit',function(e){
+      e.preventDefault();
+      if(i.value.trim()===PWD){try{localStorage.setItem('prodi_cat_ok','1');localStorage.setItem('prodi_prof_ok','1');localStorage.setItem('prodi_offres_code',PWD);}catch(e){}document.documentElement.classList.add('cat-unlocked');}
+      else{err.textContent='Code incorrect';var card=g.querySelector('.cat-gate-card');card.classList.remove('cat-gate-shake');void card.offsetWidth;card.classList.add('cat-gate-shake');i.select();}
+    });
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})();
+</script>
+
+<header class="app">
+  <img src="/img/logo.png" alt="Prodiconseil">
+  <span>Outils internes</span>
+</header>
+
+<main>
+  <div class="btns">
+    <a class="outil" href="/catalogue/">Catalogue</a>
+    <a class="outil" href="/proforma/">Proforma</a>
+    <a class="outil" href="/invitation/">Invitations</a>
+    <a class="outil" href="/brochure/">Brochure</a>
+    <a class="outil" href="/fret/">Cotations fret</a>
+    <a class="outil" href="/intelligence/">Offres</a>
+    <a class="outil" href="https://prodi-arrivages.vercel.app" target="_blank" rel="noopener">Logistique dépôt</a>
+  </div>
+</main>
+
+</body>
+</html>

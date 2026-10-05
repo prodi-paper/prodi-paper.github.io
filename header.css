@@ -98,7 +98,7 @@
 
 /* ── LAYOUT du header partagé (barre + recherche) ── */
 header{border-bottom:1px solid #f0f0f2;padding:13px 0;}
-.h-in{display:flex;align-items:center;gap:24px;max-width:min(1880px,calc(100vw - 64px));margin:0 auto;}
+.h-in{display:flex;align-items:center;gap:24px;max-width:min(1880px,92vw);margin:0 auto;}
 header a .logo,header img.logo{height:40px;display:block;}
 .h-sp{flex:1;}
 .hsearch{flex:1;display:flex;align-items:center;gap:8px;height:40px;border:1.5px solid #e0e0e4;border-radius:999px;padding:3px 3px 3px 16px;background:#fff;}

@@ -1,0 +1,691 @@
+/* ═══ Prodi Cotations Fret — prototype (aucun envoi réel) ═══ */
+
+let demandes = DEMANDES.map(d => ({ ...d }));
+let reponses = REPONSES.map(r => ({ ...r }));
+let selPays = null;        // code pays du formulaire
+let selPaysH = null;       // code pays de l'historique
+let nextRef = 2605;
+let detailRef = null;
+
+const $ = id => document.getElementById(id);
+const paysByCode = c => PAYS.find(p => p.code === c);
+const carrById = id => TRANSPORTEURS.find(t => t.id === id);
+const fmtEUR = v => v == null ? '—' : v.toLocaleString('fr-FR') + ' €';
+
+function demandePays(ref) {
+  const d = demandes.find(x => x.ref === ref);
+  if (d) return d.pays;
+  if (DEMANDES_ARCHIVE[ref]) return DEMANDES_ARCHIVE[ref].pays;
+  return null;
+}
+
+function relTime(iso) {
+  const ms = Date.now() - new Date(iso).getTime();
+  const min = Math.round(ms / 60000);
+  if (min < 1) return "à l'instant";
+  if (min < 60) return `il y a ${min} min`;
+  const h = Math.round(min / 60);
+  if (h < 24) return `il y a ${h} h`;
+  const j = Math.round(h / 24);
+  if (j < 31) return `il y a ${j} j`;
+  return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+}
+const dateFmt = iso => new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: undefined });
+
+/* ── navigation ── */
+function go(view) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
+  $('view-' + view).classList.add('on');
+  document.querySelectorAll('.tab').forEach(t =>
+    t.classList.toggle('on', t.dataset.view === (view === 'detail' ? 'demandes' : view)));
+  if (view === 'demandes') renderDemandes();
+  window.scrollTo({ top: 0 });
+}
+
+/* ── picker pays ── */
+function ciblesFor(code) {
+  const p = paysByCode(code);
+  if (!p) return [];
+  return TRANSPORTEURS.filter(t => t.zones.includes(p.zone) || t.zones.includes('monde'));
+}
+
+function buildPaysList(input, listEl, onPick) {
+  const q = input.value.trim().toLowerCase();
+  const hits = PAYS.filter(p => p.nom.toLowerCase().includes(q) || p.port.toLowerCase().includes(q));
+  listEl.innerHTML = hits.map(p =>
+    `<button class="pp-item" onmousedown="${onPick}('${p.code}')">
+       <span class="f">${p.flag}</span> ${p.nom}
+       <span class="z">${ZONES[p.zone]} · ${p.port}</span>
+     </button>`).join('') || '<div class="pp-item mut">Aucun pays</div>';
+  listEl.classList.add('open');
+}
+/* ── 4 cases : PAYS/PORT départ + PAYS/PORT destination, texte libre partout.
+   Choisir un port remplit aussi la case pays si elle est vide. ── */
+const LIBRE = '<div class="pp-item mut">Texte libre — partira tel quel</div>';
+function majEnvoiActif() {
+  $('f-send').disabled = !($('f-pays').value.trim() || $('f-pays-port').value.trim());
+}
+
+/* destination : pays */
+function filterPays() {
+  /* GROUPÉ PAR PAYS (14/09, comme le DÉPART — sans ligne dépôt) :
+     pays en tête (cliquable), ses ports dessous ; un port choisi ici
+     remplit PAYS + PORT d'un coup. */
+  /* valeur issue d'un choix du menu → focus = liste complète (pas un filtre) */
+  const raw = $('f-pays').value.trim();
+  const q = (window._destPicked && raw === window._destPicked) ? '' : raw.toLowerCase();
+  if (q) window._destPicked = null;
+  const exact = PAYS.find(p => p.nom.toLowerCase() === q);
+  if (q) selPays = exact ? exact.code : null;
+  if (q) $('pp-flag').textContent = exact ? exact.flag : '🌍';
+  let html = '';
+  PAYS.forEach(c => {
+    const ports = DEST_PORTS.filter(p => p.code === c.code);
+    const cMatch = !q || c.nom.toLowerCase().includes(q);
+    const pHits = q ? ports.filter(p => p.nom.toLowerCase().includes(q)) : ports;
+    if (!cMatch && !pHits.length) return;
+    html += `<button class="pp-item pp-grp" onmousedown="pickDest('${c.code}')"><span class="f">${c.flag}</span> ${c.nom}<span class="z">${ZONES[c.zone]}</span></button>`;
+    (cMatch ? ports : pHits).forEach(p => {
+      html += `<button class="pp-item pp-port" onmousedown="pickDestBoth('${p.id}')">${p.nom}</button>`;
+    });
+  });
+  $('pp-list').innerHTML = html || LIBRE;
+  $('pp-list').classList.add('open');
+  majEnvoiActif();
+  regenMail();
+}
+/* clic port depuis le menu PAYS : remplit les deux champs */
+function pickDestBoth(id) {
+  const s = DEST_PORTS.find(x => x.id === id);
+  const c = paysByCode(s.code);
+  /* case unique : « Port, Pays » ; le champ port caché reste vide (le mail
+     construit destTxt à partir de la case visible) */
+  $('f-pays').value = s.nom + ', ' + c.nom;
+  $('f-pays-port').value = '';
+  window._destPicked = $('f-pays').value;
+  selPays = c.code;
+  $('pp-flag').textContent = c.flag;
+  $('pp-list').classList.remove('open');
+  majEnvoiActif();
+  regenMail();
+}
+function pickDest(code) {
+  const p = paysByCode(code);
+  $('f-pays').value = p.nom;
+  $('f-pays-port').value = '';
+  window._destPicked = p.nom;
+  selPays = code;
+  $('pp-flag').textContent = p.flag;
+  $('pp-list').classList.remove('open');
+  majEnvoiActif();
+  regenMail();
+}
+/* destination : port */
+function filterPaysPort() {
+  const q = $('f-pays-port').value.trim().toLowerCase();
+  // pays déjà choisi → ne proposer QUE ses ports ; sinon tous
+  const base = selPays ? DEST_PORTS.filter(p => p.code === selPays) : DEST_PORTS;
+  const hits = base.filter(p => p.nom.toLowerCase().includes(q)).slice(0, 12);
+  $('ppp-list').innerHTML = hits.map(p =>
+    `<button class="pp-item" onmousedown="pickDestPort('${p.id}')">
+       <span class="f">${p.flag}</span> ${p.nom}
+       <span class="z">${p.pays}</span>
+     </button>`).join('') || LIBRE;
+  $('ppp-list').classList.add('open');
+  majEnvoiActif();
+  regenMail();
+}
+function pickDestPort(id) {
+  const s = DEST_PORTS.find(x => x.id === id);
+  $('f-pays-port').value = s.nom;
+  if (!$('f-pays').value.trim()) {
+    $('f-pays').value = s.pays;
+    selPays = s.code;
+    $('pp-flag').textContent = s.flag;
+  }
+  $('ppp-list').classList.remove('open');
+  majEnvoiActif();
+  regenMail();
+}
+function filterPaysH() { buildPaysList($('h-pays'), $('hp-list'), 'pickPaysH'); }
+
+/* départ : bouton Dépôt (adresse fixe) OU case libre pays/ville/port */
+const DEPOT_ADRESSE = '80610 SAINT-OUEN (FRANCE)';
+const provTexte = p => p.pays ? `${p.nom}, ${p.pays}` : p.nom;
+function depotChange() {
+  if ($('f-depot').checked) {
+    $('f-prov').value = '';
+    $('pv-flag').textContent = '🌍';
+  }
+  regenMail();
+}
+function provInput() {
+  if ($('f-prov').value.trim()) $('f-depot').checked = false;   // taper = quitter le dépôt
+  filterProv();
+}
+function filterProv() {
+  /* GROUPÉ PAR PAYS : le pays en tête de groupe (cliquable), ses ports
+     dessous — les plus gros ports d'abord (ordre de PORTS_PROV). */
+  /* dépôt actif : le champ contient son libellé → liste COMPLÈTE au focus */
+  const q = $('f-depot').checked ? '' : $('f-prov').value.trim().toLowerCase();
+  const exact = PROV_SUGG.find(p => p.nom.toLowerCase() === q || provTexte(p).toLowerCase() === q);
+  $('pv-flag').textContent = $('f-depot').checked ? '🏭' : (exact ? exact.flag : '🌍');
+  let html = '';
+  /* 1re ligne : le DÉPÔT (14/09 Ethan) — clic = coche le segment Dépôt */
+  if (!q || 'dépôt depot saint-ouen amiens'.includes(q))
+    html += `<button class="pp-item pp-grp" onmousedown="pickProvDepot()"><span class="f">🏭</span> Dépôt<span class="z">${DEPOT_ADRESSE}</span></button>`;
+  PAYS_PROV.forEach(c => {
+    const ports = PORTS_PROV.filter(p => p.pays === c.nom);
+    const cMatch = !q || c.nom.toLowerCase().includes(q);
+    const pHits = q ? ports.filter(p => provTexte(p).toLowerCase().includes(q)) : ports;
+    if (!cMatch && !pHits.length) return;
+    html += `<button class="pp-item pp-grp" onmousedown="pickProv('${c.code}')"><span class="f">${c.flag}</span> ${c.nom}</button>`;
+    (cMatch ? ports : pHits).forEach(p => {
+      html += `<button class="pp-item pp-port" onmousedown="pickProv('${p.code}')">${p.nom}</button>`;
+    });
+  });
+  $('pv-list').innerHTML = html || LIBRE;
+  $('pv-list').classList.add('open');
+  regenMail();
+}
+
+function pickProvDepot() {
+  $('f-depot').checked = true;
+  $('f-prov').value = 'Dépôt — Saint-Ouen (80)';
+  $('pv-flag').textContent = '🏭';
+  $('pv-list').classList.remove('open');
+  regenMail();
+}
+/* pas de départ par défaut (14/09) : champ vide, Dépôt reste la 1re ligne du menu */
+function pickProv(code) {
+  const p = PROV_SUGG.find(x => x.code === code);
+  $('f-prov').value = provTexte(p);
+  $('pv-flag').textContent = p.flag;
+  $('f-depot').checked = false;
+  $('pv-list').classList.remove('open');
+  regenMail();
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.pays-pick')) document.querySelectorAll('.pp-list').forEach(l => l.classList.remove('open'));
+});
+
+
+/* ── destinataires : Zouhir fixe + extras À + copies, tous cochables ── */
+let ccActifs = new Set(CC_INTERNE);
+const TO_EXTRA = [];
+let toActifs = new Set();
+let ajoutCible = 'cc';   // le popup ajoute en À ou en Cc
+
+function renderDest() {
+  $('f-to-chips').innerHTML =
+    `<span class="chip to">${DEST_FRET}</span>` +
+    TO_EXTRA.map(c =>
+      `<button type="button" class="chip cc${toActifs.has(c) ? '' : ' off'}" onclick="toggleTo('${c}')">${c}</button>`).join('') +
+    `<button type="button" class="chip add" onclick="ajouterEmail('to')">+ Ajouter un email</button>`;
+  $('f-cc-chips').innerHTML =
+    CC_INTERNE.map(c =>
+      `<button type="button" class="chip cc${ccActifs.has(c) ? '' : ' off'}" onclick="toggleCc('${c}')">${c}</button>`).join('') +
+    `<button type="button" class="chip add" onclick="ajouterEmail('cc')">+ Ajouter un email</button>`;
+}
+function ajouterEmail(cible) {
+  ajoutCible = cible;
+  $('cc-titre').textContent = cible === 'to' ? 'Ajouter un destinataire' : 'Ajouter un email en copie';
+  $('cc-err').classList.remove('on');
+  $('cc-input').value = '';
+  $('cc-fond').classList.add('ouvert');
+  $('cc-input').focus();
+}
+function fermerAjoutCc() { $('cc-fond').classList.remove('ouvert'); }
+function validerAjoutCc() {
+  const em = $('cc-input').value.trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { $('cc-err').classList.add('on'); return; }
+  if (ajoutCible === 'to') {
+    if (!TO_EXTRA.includes(em)) TO_EXTRA.push(em);
+    toActifs.add(em);
+  } else {
+    if (!CC_INTERNE.includes(em)) CC_INTERNE.push(em);
+    ccActifs.add(em);
+  }
+  renderDest();
+  if (mailOuvert()) renderMail();
+  fermerAjoutCc();
+}
+function toggleCc(c) {
+  ccActifs.has(c) ? ccActifs.delete(c) : ccActifs.add(c);
+  renderDest();
+  if (mailOuvert()) renderMail();   // ne touche pas au corps modifié : seul le Cc change
+}
+function toggleTo(c) {
+  toActifs.has(c) ? toActifs.delete(c) : toActifs.add(c);
+  renderDest();
+  if (mailOuvert()) renderMail();
+}
+const ccList = () => CC_INTERNE.filter(c => ccActifs.has(c));
+const toList = () => TO_EXTRA.filter(c => toActifs.has(c));
+
+/* ── nb de containers : boutons − / + , mot « container(s) » dans la case ── */
+function majContSuffixe() {
+  const n = Math.max(1, +$('f-nb-cont').value || 1);
+  $('st-suffix').textContent = n > 1 ? 'containers' : 'container';
+}
+function stepCont(d) {
+  const el = $('f-nb-cont');
+  el.value = Math.max(1, (+el.value || 1) + d);
+  majContSuffixe();
+  regenMail();
+}
+
+/* ── marchandise : cases Bobines / Formats, au moins une cochée ── */
+function marchandiseVal() {
+  const b = $('f-m-bobines').checked, f = $('f-m-formats').checked;
+  return b && f ? 'Bobines + Formats' : f ? 'Formats' : 'Bobines';
+}
+function marchChange(cb) {
+  if (!$('f-m-bobines').checked && !$('f-m-formats').checked) cb.checked = true;
+  regenMail();
+}
+
+/* ── taille : cases 20' / 40', exclusives (défaut 40') ── */
+function tailleVal() { return $('f-t-20').checked ? '20' : '40'; }
+function tailleChange(cb) {
+  const autre = cb.id === 'f-t-20' ? $('f-t-40') : $('f-t-20');
+  if (cb.checked) autre.checked = false;
+  else cb.checked = true;
+  regenMail();
+}
+
+/* ── incoterm : cases CFR / FOB, exclusives (toujours exactement une) ── */
+function incotermVal() { return $('f-i-fob').checked ? 'FOB' : 'CFR'; }
+function incoChange(cb) {
+  const autre = cb.id === 'f-i-cfr' ? $('f-i-fob') : $('f-i-cfr');
+  if (cb.checked) autre.checked = false;
+  else cb.checked = true;
+  regenMail();
+}
+
+/* ── génération du mail (variantes aléatoires — en prod : API Claude) ── */
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+/* Gabarit UNIQUE (base : modèle maison Prodi), pensé pour être transféré
+   tel quel par Zouhir aux transporteurs. Les lignes vides disparaissent. */
+function genMail() {
+  // « Port, Pays » si les deux cases sont remplies, sinon ce qu'il y a
+  const destTxt = [$('f-pays-port').value.trim(), $('f-pays').value.trim()].filter(Boolean).join(', ');
+  if (!destTxt) return null;
+  const prov = $('f-depot').checked ? DEPOT_ADRESSE : $('f-prov').value.trim();
+  const client = $('f-client').value.trim();
+  const num = $('f-num').value.trim();
+  const nb = Math.max(1, +$('f-nb-cont').value || 1);
+  const taille = tailleVal();
+  const march = marchandiseVal().toLowerCase().replace(' + ', ' et ');
+  const inco = incotermVal();
+  // Réf de l'objet = le n° de proforma s'il est saisi, sinon FR-xxxx auto
+  const ref = num || 'FR-' + nextRef;
+
+  const objet = `Cotation fret — ${destTxt} — Réf ${ref}`;
+
+  const lignes = [];
+  if (prov) lignes.push(`– Lieu de chargement : ${prov}`);
+  lignes.push(`– Lieu de livraison : ${destTxt}`);
+  lignes.push(`– Containers : ${nb} x ${taille}'`);
+  lignes.push(`– Marchandise : papier en ${march} (sous famille HS 48)`);
+  lignes.push(`– Incoterm : ${inco}`);
+  if (client) lignes.push(`– Client : ${client}`);
+  lignes.push(`– Motif de la demande : commande ferme`);
+
+  const texte =
+`Bonjour,
+
+Pourriez-vous, s'il vous plaît, nous faire parvenir votre cotation pour le transport suivant :
+
+${lignes.join('\n')}
+
+Merci par avance.
+
+Cordialement,`;
+  return { ref, objet, texte };
+}
+
+/* ── popup mail : aperçu + édition (façon /invitation/) ── */
+let mailCustom = null;   // corps modifié à la main, gardé jusqu'à envoi / reformulation
+const mailOuvert = () => $('mail-fond').classList.contains('ouvert');
+
+function regenMail() {
+  mailCustom = null;
+  if (mailOuvert()) renderMail();
+}
+function renderMail() {
+  const m = genMail();
+  if (!m) return;
+  $('mail-meta').innerHTML =
+    `<div><b>De</b> ethan@prodi.com</div>
+     <div><b>À</b> ${[DEST_FRET, ...toList()].join(', ')}</div>
+     <div><b>Cc</b> ${ccList().join(', ') || '—'}</div>
+     <div><b>Objet</b> ${m.objet}</div>`;
+  $('mail-zone').value = mailCustom ?? m.texte;
+}
+function ouvrirMail() {
+  if ($('f-send').disabled) return;
+  renderMail();
+  $('mail-fond').classList.add('ouvert');
+  $('mail-zone').scrollTop = 0;
+}
+function fermerMail() { $('mail-fond').classList.remove('ouvert'); }
+function resetMail() { mailCustom = null; renderMail(); }
+
+/* ── envoi RÉEL via prodi-arrivages (canal ethan@ de /api/notify) ──
+   Depuis localhost, le serveur redirige tout sur ethan@ sans cc (mode test). */
+const API_FRET = 'https://prodi-arrivages.vercel.app/api/fret-envoi';
+let envoiEnCours = false;
+async function confirmerEnvoi() {
+  if (envoiEnCours) return;
+  const m = genMail();
+  if (!m) return;
+  const p = paysByCode(selPays) || { flag: '🌍' };
+  const corps = $('mail-zone').value.trim();   // ce qui est à l'écran part tel quel
+  if (!corps) return;
+  const btn = $('mp-envoyer');
+  envoiEnCours = true;
+  btn.disabled = true;
+  btn.textContent = 'Envoi…';
+  try {
+    const r = await fetch(API_FRET, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ objet: m.objet, corps, cc: ccList(), to_extra: toList() }),
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ok) throw new Error(j.error || 'HTTP ' + r.status);
+    const ref = m.ref;
+    if (!$('f-num').value.trim()) nextRef++;   // la réf auto n'avance que si pas de proforma
+    demandes.push({
+      ref, pays: selPays,
+      destination: [$('f-pays-port').value.trim(), $('f-pays').value.trim()].filter(Boolean).join(', '),
+      client: $('f-client').value.trim(),
+      numero: $('f-num').value.trim(),
+      provenance: $('f-depot').checked ? DEPOT_ADRESSE : $('f-prov').value.trim(),
+      nbCont: Math.max(1, +$('f-nb-cont').value || 1),
+      taille: tailleVal(),
+      marchandise: marchandiseVal(),
+      incoterm: incotermVal(),
+      date: new Date().toISOString(), cibles: ciblesFor(selPays).map(t => t.id),
+    });
+    mailCustom = null;
+    fermerMail();
+    toast(p.flag, j.test
+      ? `Demande ${ref} envoyée en <b>TEST</b> sur ethan@ (appel local)`
+      : `Demande ${ref} envoyée à <b>Zouhir</b>`);
+    openDetail(ref);
+  } catch (e) {
+    toast('⚠️', `Envoi raté : ${e.message || e}`);
+  } finally {
+    envoiEnCours = false;
+    btn.disabled = false;
+    btn.textContent = 'Envoyer';
+  }
+}
+
+/* réponses fictives qui « arrivent » en direct */
+const BIAIS = { translog: -.035, atlas: .02, seafret: -.005, capouest: -.025, bernardi: -.015, eurocargo: .015, mtl: .075, globalwave: .045 };
+function simulerReponses(d) {
+  const p = paysByCode(d.pays);
+  const mult = d.taille === '40' ? 1.45 : 1;
+  const base = (PRIX_BASE[d.pays] || 1000) * mult;
+  const muet = pick(d.cibles);                       // un qui ne répond pas
+  let delai = 3500;
+  d.cibles.forEach(id => {
+    if (id === muet) return;
+    delai += 2500 + Math.random() * 5000;
+    const t = carrById(id);
+    const prix = Math.round((base * (1 + (BIAIS[id] || 0) + (Math.random() - .5) * .06)) / 5) * 5;
+    const transit = (p.zone === 'europe' ? 3 : p.zone === 'maghreb' ? 4 : 9) + Math.floor(Math.random() * 3);
+    setTimeout(() => {
+      reponses.push({
+        demande: d.ref, transporteur: id, prix, unite: d.taille, incoterm: d.incoterm,
+        transit: `${transit} j`, recu: new Date().toISOString(),
+        texte: `Bonjour,\n\nPour ${p.port} nous sommes à ${prix.toLocaleString('fr-FR')} € le container ${d.taille}' ${d.incoterm}, transit ${transit} jours.\nValidité 15 jours.\n\nCordialement,\n${t.contact}`,
+      });
+      toast(p.flag, `${t.nom} a répondu : <b>${fmtEUR(prix)}</b>`);
+      if (detailRef === d.ref) renderDetail(d.ref);
+      if ($('view-demandes').classList.contains('on')) renderDemandes();
+    }, delai);
+  });
+}
+
+/* ── liste des demandes ── */
+function renderDemandes() {
+  const list = [...demandes].sort((a, b) => b.date.localeCompare(a.date));
+  $('dem-list').innerHTML = list.map(d => {
+    const p = paysByCode(d.pays) || { flag: '🌍', nom: d.destination || '—' };
+    const reps = reponses.filter(r => r.demande === d.ref);
+    const prix = reps.filter(r => r.prix != null).map(r => r.prix);
+    const best = prix.length ? Math.min(...prix) : null;
+    const complete = reps.length >= d.cibles.length - 1 && reps.length > 0;
+    return `<button class="dem-item" onclick="openDetail('${d.ref}')">
+      <span class="flag">${p.flag}</span>
+      <span>
+        <span class="t1">${p.nom} <span class="ref">· ${d.ref}</span></span><br>
+        <span class="t2">${d.client ? d.client + ' · ' : ''}${d.marchandise} · ${d.nbCont} × ${d.taille}' · ${d.incoterm} · ${relTime(d.date)}</span>
+      </span>
+      <span class="dem-right">
+        ${best ? `<span class="best-mini">${fmtEUR(best)}</span>` : ''}
+        <span class="badge ${complete ? 'ok' : 'wait'}">${reps.length}/${d.cibles.length} réponses</span>
+      </span>
+    </button>`;
+  }).join('') || '<div class="card empty">Aucune demande pour le moment.</div>';
+}
+
+/* ── détail / comparatif ── */
+function openDetail(ref) { detailRef = ref; renderDetail(ref); go('detail'); }
+
+function renderDetail(ref) {
+  const d = demandes.find(x => x.ref === ref);
+  if (!d) return;
+  const p = paysByCode(d.pays) || { flag: '🌍', nom: d.destination || '—', zone: '' };
+  const reps = reponses.filter(r => r.demande === ref);
+  const avecPrix = reps.filter(r => r.prix != null).sort((a, b) => a.prix - b.prix);
+  const best = avecPrix[0];
+  const repondu = new Set(reps.map(r => r.transporteur));
+  const enAttente = d.cibles.filter(id => !repondu.has(id));
+
+  const rows = avecPrix.map((r, i) => {
+    const t = carrById(r.transporteur);
+    return `<tr class="${i === 0 ? 'best' : ''} clickable" onclick="toggleRaw('${ref}-${r.transporteur}')">
+      <td><span class="t-carrier"><span class="dot" style="background:${t.couleur}"></span>${t.nom}
+        ${i === 0 ? '<span class="tag-best">Meilleur prix</span>' : ''}</span></td>
+      <td class="t-price">${fmtEUR(r.prix)}<div class="t-sub">/ container ${r.unite || '20'}'</div></td>
+      <td>${r.incoterm}</td>
+      <td>${r.transit}</td>
+      <td class="t-sub">${relTime(r.recu)}</td>
+    </tr>
+    <tr><td colspan="5" style="padding:0 12px"><div class="mail-raw" id="raw-${ref}-${r.transporteur}">${r.texte}</div></td></tr>`;
+  }).join('');
+
+  const flaggedRows = reps.filter(r => r.prix == null).map(r => {
+    const t = carrById(r.transporteur);
+    return `<tr class="clickable" onclick="toggleRaw('${ref}-${r.transporteur}')">
+      <td><span class="t-carrier"><span class="dot" style="background:${t.couleur}"></span>${t.nom}</span></td>
+      <td colspan="3"><span class="tag-flag">⚠ Réponse à vérifier — prix non extrait</span></td>
+      <td class="t-sub">${relTime(r.recu)}</td>
+    </tr>
+    <tr><td colspan="5" style="padding:0 12px"><div class="mail-raw" id="raw-${ref}-${r.transporteur}">${r.texte}</div></td></tr>`;
+  }).join('');
+
+  const pendingRows = enAttente.map(id => {
+    const t = carrById(id);
+    return `<tr class="pending">
+      <td><span class="t-carrier"><span class="dot" style="background:${t.couleur};opacity:.35"></span>${t.nom}</span></td>
+      <td colspan="4"><span class="pulse"></span>En attente de réponse…</td>
+    </tr>`;
+  }).join('');
+
+  const ecart = avecPrix.length > 1 ? avecPrix[avecPrix.length - 1].prix - best.prix : null;
+
+  $('detail-body').innerHTML = `
+    <div class="page-head">
+      <div>
+        <h1>${p.flag} ${p.nom} <span class="ref mono" style="font-size:15px;color:var(--mut2)">${d.ref}</span></h1>
+        <p>${d.client ? 'Client : ' + d.client + (d.numero ? ' — ' + d.numero : '') + ' · ' : ''}${d.marchandise} · ${d.nbCont} × ${d.taille}' · ${d.incoterm} · ${d.provenance ? d.provenance + ' → ' : ''}${d.destination || p.nom} · envoyée ${relTime(d.date)}</p>
+      </div>
+    </div>
+    <div class="stat-row">
+      <div class="stat"><div class="v">${best ? fmtEUR(best.prix) : '—'}</div>
+        <div class="l">Meilleur prix ${best ? '· ' + carrById(best.transporteur).nom : ''}</div></div>
+      <div class="stat"><div class="v">${ecart != null ? '+' + fmtEUR(ecart) : '—'}</div>
+        <div class="l">Écart le plus cher / moins cher</div></div>
+      <div class="stat"><div class="v">${reps.length}<small> / ${d.cibles.length}</small></div>
+        <div class="l">Réponses reçues</div></div>
+    </div>
+    <div class="card">
+      <div class="table-scroll">
+      <table>
+        <thead><tr><th>Transporteur</th><th>Prix</th><th>Incoterm</th><th>Transit</th><th>Reçu</th></tr></thead>
+        <tbody>${rows}${flaggedRows}${pendingRows}</tbody>
+      </table>
+      </div>
+      <p class="t-sub" style="margin:12px 4px 0">Clique sur une ligne pour voir le mail d'origine.</p>
+    </div>`;
+}
+
+function toggleRaw(key) { $('raw-' + key)?.classList.toggle('open'); }
+
+/* ── historique pays ── */
+function pickPaysH(code) {
+  selPaysH = code;
+  const p = paysByCode(code);
+  $('h-pays').value = p.nom;
+  $('hp-flag').textContent = p.flag;
+  $('hp-list').classList.remove('open');
+  renderHisto(code);
+}
+
+function quotesForPays(code) {
+  return reponses
+    .filter(r => r.prix != null && (r.pays || demandePays(r.demande)) === code)
+    .sort((a, b) => a.recu.localeCompare(b.recu));
+}
+
+function renderHisto(code) {
+  const p = paysByCode(code);
+  const qs = quotesForPays(code);
+  if (!qs.length) {
+    $('histo-body').innerHTML = `<div class="card empty">Aucune cotation encore pour ${p.flag} ${p.nom}. Envoie une première demande !</div>`;
+    return;
+  }
+  const derniere = qs[qs.length - 1];
+  const bestNow = Math.min(...qs.slice(-6).map(q => q.prix));
+  /* tendance : moyenne 45 derniers jours vs 45 précédents */
+  const now = Date.now(), J45 = 45 * 864e5;
+  const rec = qs.filter(q => now - new Date(q.recu) < J45).map(q => q.prix);
+  const old = qs.filter(q => { const a = now - new Date(q.recu); return a >= J45 && a < 2 * J45; }).map(q => q.prix);
+  const avg = a => a.length ? a.reduce((x, y) => x + y) / a.length : null;
+  let tendance = '—', tCol = 'var(--mut)';
+  if (avg(rec) && avg(old)) {
+    const pct = (avg(rec) - avg(old)) / avg(old) * 100;
+    tendance = (pct > 0 ? '+' : '') + pct.toFixed(1) + ' %';
+    tCol = pct > 1 ? 'var(--accent)' : pct < -1 ? 'var(--ok)' : 'var(--mut)';
+  }
+  /* champion : le + souvent moins cher par demande */
+  const parDem = {};
+  qs.forEach(q => { (parDem[q.demande] ??= []).push(q); });
+  const wins = {};
+  Object.values(parDem).forEach(list => {
+    const w = list.reduce((a, b) => a.prix <= b.prix ? a : b).transporteur;
+    wins[w] = (wins[w] || 0) + 1;
+  });
+  const champ = Object.entries(wins).sort((a, b) => b[1] - a[1])[0];
+
+  const carriers = [...new Set(qs.map(q => q.transporteur))].map(carrById);
+
+  $('histo-body').innerHTML = `
+    <div class="stat-row">
+      <div class="stat"><div class="v">${fmtEUR(bestNow)}</div><div class="l">Meilleur prix récent / container</div></div>
+      <div class="stat"><div class="v" style="color:${tCol}">${tendance}</div><div class="l">Tendance 45 jours</div></div>
+      <div class="stat"><div class="v">${champ ? carrById(champ[0]).nom : '—'}</div>
+        <div class="l">Le + souvent moins cher (${champ ? champ[1] + '×' : ''})</div></div>
+      <div class="stat"><div class="v">${relTime(derniere.recu).replace('il y a ', '')}</div><div class="l">Dernière cotation</div></div>
+    </div>
+    <div class="card chart-card">
+      <div class="chart-head">
+        <h3 style="font-size:15px">Évolution du prix / container — ${p.flag} ${p.nom}</h3>
+        <div class="legend">${carriers.map(t =>
+          `<span><span class="dot" style="background:${t.couleur}"></span>${t.nom}</span>`).join('')}</div>
+      </div>
+      ${chartSVG(qs)}
+    </div>
+    <div class="card">
+      <div class="table-scroll">
+      <table>
+        <thead><tr><th>Date</th><th>Transporteur</th><th>Prix</th><th>Incoterm</th><th>Transit</th><th>Réf</th></tr></thead>
+        <tbody>${[...qs].reverse().map(q => {
+          const t = carrById(q.transporteur);
+          return `<tr>
+            <td>${dateFmt(q.recu)}</td>
+            <td><span class="t-carrier"><span class="dot" style="background:${t.couleur}"></span>${t.nom}</span></td>
+            <td class="t-price">${fmtEUR(q.prix)}</td>
+            <td>${q.incoterm}</td><td>${q.transit || '—'}</td>
+            <td class="t-sub mono">${q.demande}</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>
+      </div>
+    </div>`;
+}
+
+/* petit graphe SVG maison — points + lignes par transporteur */
+function chartSVG(qs) {
+  const W = 720, H = 250, PL = 52, PR = 14, PT = 14, PB = 30;
+  const ts = qs.map(q => new Date(q.recu).getTime());
+  const ps = qs.map(q => q.prix);
+  let t0 = Math.min(...ts), t1 = Math.max(...ts);
+  if (t1 - t0 < 864e5) { t0 -= 864e5 * 15; t1 += 864e5 * 15; }
+  const pad = (Math.max(...ps) - Math.min(...ps)) * .18 || 50;
+  const p0 = Math.min(...ps) - pad, p1 = Math.max(...ps) + pad;
+  const X = t => PL + (t - t0) / (t1 - t0) * (W - PL - PR);
+  const Y = p => PT + (1 - (p - p0) / (p1 - p0)) * (H - PT - PB);
+
+  let grid = '';
+  for (let i = 0; i <= 3; i++) {
+    const v = p0 + (p1 - p0) * i / 3, y = Y(v);
+    grid += `<line x1="${PL}" y1="${y}" x2="${W - PR}" y2="${y}" stroke="#e7e8ec"/>
+             <text x="${PL - 8}" y="${y + 4}" text-anchor="end" font-size="11" fill="#9aa0a8">${Math.round(v / 10) * 10}</text>`;
+  }
+  /* repères mois */
+  const mois = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+  const d = new Date(t0); d.setDate(1);
+  let ticks = '';
+  while (d.getTime() < t1) {
+    if (d.getTime() > t0) ticks += `<text x="${X(d.getTime())}" y="${H - 8}" font-size="11" fill="#9aa0a8">${mois[d.getMonth()]}</text>`;
+    d.setMonth(d.getMonth() + 1);
+  }
+  /* lignes + points par transporteur */
+  const byCarr = {};
+  qs.forEach(q => { (byCarr[q.transporteur] ??= []).push(q); });
+  let series = '';
+  Object.entries(byCarr).forEach(([id, list]) => {
+    const t = carrById(id);
+    if (list.length > 1) {
+      const pts = list.map(q => `${X(new Date(q.recu).getTime()).toFixed(1)},${Y(q.prix).toFixed(1)}`).join(' ');
+      series += `<polyline points="${pts}" fill="none" stroke="${t.couleur}" stroke-width="2" stroke-opacity=".45" stroke-linejoin="round"/>`;
+    }
+    list.forEach(q => {
+      series += `<circle cx="${X(new Date(q.recu).getTime()).toFixed(1)}" cy="${Y(q.prix).toFixed(1)}" r="4.6"
+        fill="${t.couleur}" stroke="#fff" stroke-width="1.6"><title>${t.nom} — ${fmtEUR(q.prix)} (${dateFmt(q.recu)})</title></circle>`;
+    });
+  });
+  return `<svg id="chart" viewBox="0 0 ${W} ${H}">${grid}${ticks}${series}</svg>`;
+}
+
+/* ── toasts ── */
+function toast(flag, html) {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `<span class="f">${flag}</span><span>${html}</span>`;
+  $('toasts').appendChild(el);
+  setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 350); }, 4200);
+}
+
+/* ── init ── */
+renderDest();
+renderDemandes();
+$('cc-input').addEventListener('keydown', e => { if (e.key === 'Enter') validerAjoutCc(); });
+$('cc-fond').addEventListener('click', e => { if (e.target.id === 'cc-fond') fermerAjoutCc(); });

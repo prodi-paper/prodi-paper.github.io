@@ -2,6 +2,7 @@
 <html lang="fr">
 <head>
 <script src="/i18n.js?v=2"></script>
+<script src="/analytics.js?v=6"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Prodiconseil — Panier</title>
@@ -18,7 +19,7 @@
 body{margin:0;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#1d1d1f;min-height:100vh;display:flex;flex-direction:column;min-width:1200px;}
 /* même gabarit que le catalogue : contenu borné à min(1500px, 100vw − 64px), centré */
 header{border-bottom:1px solid #f0f0f2;padding:13px 0;}
-.h-in{display:flex;align-items:center;gap:24px;max-width:min(1880px,calc(100vw - 64px));margin:0 auto;}
+.h-in{display:flex;align-items:center;gap:24px;max-width:min(1880px,92vw);margin:0 auto;}
 header img.logo{height:40px;display:block;}
 .h-sp{flex:1;}
 /* barre de recherche façon Alibaba */
@@ -39,7 +40,7 @@ header img.logo{height:40px;display:block;}
 /* même bouton que le catalogue (#ali-join) : dégradé orange→rouge */
 .hcta{background:linear-gradient(90deg,#ff7a1a,#ff3c00 45%,#fe0000);color:#fff;border-radius:999px;padding:10px 20px;font-weight:800;font-size:15.8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;text-decoration:none;white-space:nowrap;flex-shrink:0;}
 .hcta:hover{filter:brightness(.93);}
-main{flex:1;max-width:min(1880px,calc(100vw - 64px));width:100%;margin:0 auto;padding:22px 0 70px;}
+main{flex:1;max-width:min(1880px,92vw);width:100%;margin:0 auto;padding:22px 0 70px;}
 h1{font-size:30px;font-weight:800;margin:0 0 22px;}
 .empty{display:flex;align-items:center;justify-content:center;gap:64px;}
 .empty img{height:220px;width:auto;}
@@ -67,6 +68,12 @@ h1{font-size:30px;font-weight:800;margin:0 0 22px;}
 .plist-table tbody tr:last-child td{border-bottom:1.5px solid #8f9aae;}
 .plist-table tbody tr:nth-child(even) td{background:#f5f8fc;}
 .plist-table tbody tr:hover td{background:#fff3c4;}
+/* bouton « Voir le prix » (pilule gradient, engageante comme Réserver) */
+.plist-seep{display:inline-flex;align-items:center;gap:6px;border:none;border-radius:999px;background:linear-gradient(90deg,#ff7a1a,#ff3c00 45%,#fe0000);color:#fff;font:800 12.5px 'DM Sans',sans-serif;padding:7px 14px;cursor:pointer;box-shadow:0 2px 7px rgba(254,0,0,.28);transition:filter .15s,box-shadow .15s,transform .12s;white-space:nowrap;}
+.plist-seep:hover{filter:brightness(.95);box-shadow:0 4px 12px rgba(254,0,0,.42);transform:translateY(-1px);}
+.plist-seep svg{flex-shrink:0;}
+/* prix déstockage public (badge jaune, pas de bouton) */
+.plist-destk{display:inline-block;background:#fff3c4;color:#b45309;font-weight:800;font-size:14px;padding:4px 11px;border-radius:7px;white-space:nowrap;}
 .plist-table .plist-thumb-wrap{cursor:zoom-in;position:relative;}
 .plist-table .plist-thumb-wrap .plist-thumb{transition:transform .15s ease,box-shadow .15s ease;border-radius:5px;display:block;}
 .plist-table tbody tr:hover .plist-thumb-wrap .plist-thumb{transform:scale(1.35);box-shadow:0 5px 16px rgba(0,0,0,.3);}
@@ -102,14 +109,15 @@ h1{font-size:30px;font-weight:800;margin:0 0 22px;}
 .cf-px small{font-size:11.5px;font-weight:700;color:#6e6e73;}
 .cf-del{width:36px;height:36px;border:none;border-radius:50%;background:none;color:#6e6e73;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
 .cf-del:hover{background:#ffecec;color:#fe0000;}
-.cf-sum{display:flex;align-items:center;gap:14px 30px;flex-wrap:wrap;background:#fff;border:1.5px solid #e8e8e4;border-radius:18px;padding:18px 26px;margin-bottom:18px;}
-.cfs-t{font-size:22px;font-weight:800;margin-right:8px;}
-.cfs-l{display:flex;align-items:baseline;gap:9px;font-size:16px;font-weight:600;color:#1d1d1f;white-space:nowrap;}
-.cfs-l b{font-weight:800;font-size:19px;}
-.cfs-tot{font-size:17px;}
-.cfs-tot b{font-size:26px;}
+.cf-sum{display:flex;align-items:center;gap:20px 42px;flex-wrap:wrap;background:#fff;border:1.5px solid #e8e8e4;border-radius:18px;padding:24px 34px;margin-bottom:18px;}
+.cfs-t{font-size:29px;font-weight:800;margin-right:8px;}
+.cfs-l{display:flex;align-items:baseline;gap:12px;font-size:21px;font-weight:600;color:#1d1d1f;white-space:nowrap;}
+.cfs-l b{font-weight:800;font-size:25px;}
+.cfs-br{flex-basis:100%;height:0;}
+.cfs-tot{font-size:22px;}
+.cfs-tot b{font-size:34px;}
 .cfs-note{flex:1;min-width:220px;font-size:12.5px;font-weight:500;color:#6e6e73;line-height:1.45;margin-right:16px;align-self:center;}
-#cfs-dest{border:1.5px solid #d2d2d7;border-radius:10px;padding:7px 10px;font:800 15px 'DM Sans',sans-serif;color:#1d1d1f;background:#fff;cursor:pointer;max-width:190px;}
+#cfs-dest{border:1.5px solid #d2d2d7;border-radius:12px;padding:9px 13px;font:800 20px 'DM Sans',sans-serif;color:#1d1d1f;background:#fff;cursor:pointer;max-width:240px;}
 #cfs-dest:focus{outline:none;border-color:#1d1d1f;}
 /* barre d'actions : propre ligne, alignée à droite, compacte */
 .cfb{display:flex;align-items:center;gap:12px;flex-basis:100%;justify-content:flex-end;margin-top:4px;padding-top:14px;border-top:1px solid #f0f0f2;}
@@ -121,6 +129,26 @@ h1{font-size:30px;font-weight:800;margin:0 0 22px;}
 .cfb-go:hover{filter:brightness(.93);box-shadow:0 5px 16px rgba(254,0,0,.4);}
 #px-toast{position:fixed;left:50%;transform:translateX(-50%) translateY(16px);bottom:26px;background:#fff;border:1px solid rgba(0,0,0,.22);border-radius:999px;padding:12px 22px;font:700 14px 'DM Sans',sans-serif;color:#1d1d1f;box-shadow:0 8px 30px rgba(0,0,0,.18);opacity:0;transition:opacity .25s,transform .3s;pointer-events:none;z-index:9700;}
 #px-toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+/* ── Modal réservation 72 h ── */
+#pxr-modal{position:fixed;inset:0;background:rgba(10,10,12,.55);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;visibility:hidden;transition:opacity .2s,visibility .2s;z-index:9600;}
+#pxr-modal.open{opacity:1;visibility:visible;}
+.pxr-card{background:#fff;border-radius:22px;max-width:440px;width:100%;padding:34px 32px 26px;text-align:center;box-shadow:0 30px 90px rgba(0,0,0,.4);transform:translateY(8px);transition:transform .22s;}
+#pxr-modal.open .pxr-card{transform:none;}
+.pxr-ico{width:62px;height:62px;border-radius:50%;background:#ffecec;color:#fe0000;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;}
+.pxr-ico.pxr-ok{background:#e9f9ee;color:#18a957;}
+.pxr-t{font-size:23px;font-weight:800;color:#1d1d1f;margin-bottom:8px;}
+.pxr-sub{font-size:15px;font-weight:500;color:#6e6e73;line-height:1.5;margin-bottom:20px;}
+.pxr-reca{text-align:left;background:#f7f7f5;border-radius:14px;padding:12px 18px;margin-bottom:22px;}
+.pxr-rl{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:5px 0;font-size:14.5px;font-weight:600;color:#1d1d1f;}
+.pxr-rl span{color:#6e6e73;}
+.pxr-rl.pxr-tot{border-top:1px solid #e3e3e0;margin-top:5px;padding-top:11px;font-size:16px;}
+.pxr-rl.pxr-tot b{font-size:20px;}
+.pxr-btns{display:flex;gap:12px;}
+.pxr-cancel,.pxr-go{flex:1;border-radius:13px;padding:14px 16px;font:800 15px 'DM Sans',sans-serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:9px;text-decoration:none;transition:filter .15s,box-shadow .15s;}
+.pxr-cancel{background:#fff;border:1.5px solid #e8e8e4;color:#1d1d1f;}
+.pxr-cancel:hover{background:#f5f5f7;}
+.pxr-go{background:linear-gradient(90deg,#ff7a1a,#ff3c00 45%,#fe0000);border:none;color:#fff;box-shadow:0 2px 10px rgba(254,0,0,.3);}
+.pxr-go:hover{filter:brightness(.94);box-shadow:0 5px 16px rgba(254,0,0,.4);}
 footer{padding:26px 20px 30px;text-align:center;color:#6e6e73;font-size:13px;font-weight:500;border-top:1px solid #f0f0f2;}
 footer a{color:#6e6e73;text-decoration:none;margin:0 9px;}
 footer a:hover{color:#fe0000;text-decoration:underline;}
@@ -129,10 +157,10 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
 @media(max-width:1024px){
   body{min-width:0;}
   main{max-width:none;padding:18px 16px 60px;}
-  .cf-sum{gap:12px 22px;padding:16px 18px;}
-  .cfs-t{font-size:20px;}
-  .cfs-l{font-size:15px;}.cfs-l b{font-size:17px;}
-  .cfs-tot b{font-size:22px;}
+  .cf-sum{gap:14px 28px;padding:20px 22px;}
+  .cfs-t{font-size:24px;}
+  .cfs-l{font-size:18px;}.cfs-l b{font-size:20px;}
+  .cfs-tot b{font-size:27px;}
   .cfb{flex-wrap:wrap;justify-content:flex-start;gap:10px;}
   .cfs-note{min-width:100%;margin-right:0;order:9;}
   .empty{gap:32px;}
@@ -183,7 +211,7 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
           <div class="acct-hi">Bienvenue chez Prodiconseil !</div>
           <a class="acct-login" href="/compte/">Se connecter</a>
           <div class="acct-or">Ou continuer avec :</div>
-          <a class="acct-google" href="#" onclick="location.href='https://bvcgpdoukhcatjibmvnb.supabase.co/auth/v1/authorize?provider=google&amp;redirect_to='+encodeURIComponent('http://localhost:8101/compte/');return false;">
+          <a class="acct-google" href="#" onclick="window.prodiTrack&&window.prodiTrack('login_tentative',{m:'google',via:'popup'});location.href='https://bvcgpdoukhcatjibmvnb.supabase.co/auth/v1/authorize?provider=google&amp;redirect_to='+encodeURIComponent(location.origin+'/compte/');return false;">
             <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
             <span>Continuer avec Google</span>
           </a>
@@ -211,6 +239,7 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
         <div class="cfs-l"><span>Tonnage</span><b id="cfs-kg">—</b></div>
         <div class="cfs-l"><span>Prix moyen (EXW)</span><b id="cfs-avg">—</b></div>
         <div class="cfs-l"><span>Marchandise (EXW)</span><b id="cfs-eur">—</b></div>
+        <div class="cfs-br"></div>
         <div class="cfs-l cfs-ship"><span>Destination</span><select id="cfs-dest"></select></div>
         <div class="cfs-l"><span>Transport estimé</span><b id="cfs-ship">—</b></div>
         <div class="cfs-l cfs-tot"><span>Total estimé (CFR)</span><b id="cfs-cfr">—</b></div>
@@ -219,7 +248,7 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
           <button class="cfb-btn cfb-clear" onclick="pxVider()" title="Vider la sélection"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9.2"/><path d="m9 9 6 6M15 9l-6 6"/></svg></button>
           <button class="cfb-btn" onclick="pxExcel(this)">Télécharger <svg width="24" height="24" viewBox="0 0 32 32" style="flex-shrink:0;"><rect x="9" y="2" width="21" height="14" rx="3.5" fill="#8bd47e"/><rect x="20" y="2" width="10" height="14" rx="3.5" fill="#b9e695"/><path d="M9 9h17.5A3.5 3.5 0 0 1 30 12.5V26.5a3.5 3.5 0 0 1-3.5 3.5H12.5A3.5 3.5 0 0 1 9 26.5Z" fill="#2f9e55"/><rect x="2" y="12" width="16" height="16" rx="3.5" fill="#185c37"/><path d="M6.4 16.5h2.7l1.8 3.2 1.8-3.2h2.7l-3.1 4.7 3.2 4.8h-2.8l-1.8-3.3-1.9 3.3H6.2l3.2-4.8z" fill="#fff"/></svg></button>
           <button class="cfb-btn" onclick="pxAlbum(this)">Album photo <img src="/img/pdf_icon.png" alt="" style="height:24px;width:auto;flex-shrink:0;"></button>
-          <button class="cfb-btn cfb-go" onclick="pxReserver()">Réserver</button>
+          <button class="cfb-btn cfb-go" onclick="pxReserver()"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Réserver</button>
         </div>
       </aside>
       <div id="cart-items"></div>
@@ -250,6 +279,7 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
   </div>
   <div class="cr">&copy; 1991-2026 Prodiconseil &mdash; Amiens, France</div>
 </footer>
+<script src="/account-sync.js?v=1"></script>
 <script src="/header.js"></script>
 <script src="/login-pop.js"></script>
 <script src="/footer.js"></script>
@@ -264,6 +294,46 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
   function lire(){try{return JSON.parse(localStorage.getItem('prodi_cart')||'[]')||[];}catch(e){return [];}}
   function sauver(c){try{localStorage.setItem('prodi_cart',JSON.stringify(c));}catch(e){}}
   function eurT(p){return Math.round(p*1000/10)*10;}
+  /* Déstockage : refs à prix PUBLIC fixe (250 / 500 €/t) → badge jaune, jamais « Voir le prix » */
+  var _destk={};
+  function _loadDestock(){
+    return Promise.all([250,500].map(function(n){
+      return fetch('/destockage_'+n+'.json').then(function(r){return r.json();}).then(function(list){
+        (list||[]).forEach(function(x){_destk[String(x).replace(/^Photo_/i,'').toUpperCase()]=n;});
+      }).catch(function(){});
+    }));
+  }
+  /* ── DEVISE € / $ : MÊME règle que le catalogue — taux MARCHÉ (frankfurter),
+     prix arrondis à la DIZAINE. Devise persistée dans prodi_ccy, taux dans prodi_usd. ── */
+  var _ccy='EUR', _usdRate=0;
+  try{ if(/usd/i.test(localStorage.getItem('prodi_ccy')||''))_ccy='USD'; }catch(e){}
+  try{ var _uc=JSON.parse(localStorage.getItem('prodi_usd')||'null'); if(_uc&&+_uc.r>0)_usdRate=+_uc.r; }catch(e){}
+  function _ccyOn(){return _ccy==='USD'&&_usdRate>0;}
+  function _ccyNum(prixT){ var v=_ccyOn()?prixT*_usdRate:prixT; return Math.round(v/10)*10; } // prix €/T → devise, arrondi DIZAINE
+  function _ccyUnit(){ return _ccyOn()?'$/T':'€/T'; }
+  function _ccySym(){ return _ccyOn()?'$':'€'; }
+  function _ccyFmtT(prixT){ return _ccyNum(prixT).toLocaleString('fr-FR')+' '+_ccyUnit(); }
+  function _moneyFmt(nEur){ var v=_ccyOn()?nEur*_usdRate:nEur; return Math.round(v).toLocaleString('fr-FR')+' '+_ccySym(); } // montant total → devise
+  function _rateFresh(){ try{var c=JSON.parse(localStorage.getItem('prodi_usd')||'null'); return !!(c&&c.d===new Date().toISOString().slice(0,10)&&+c.r>0);}catch(e){return false;} }
+  function _fetchRate(){
+    fetch('https://api.frankfurter.dev/v1/latest?base=EUR&symbols=USD').then(function(r){return r.json();}).then(function(j){
+      var r=j&&j.rates&&+j.rates.USD;
+      if(r>0){ _usdRate=r; try{localStorage.setItem('prodi_usd',JSON.stringify({d:new Date().toISOString().slice(0,10),r:r}));}catch(e){} if(_ccy==='USD'){_refreshDestLabels();rendre();} }
+    }).catch(function(){});
+  }
+  function _refreshDestLabels(){
+    var sel=document.getElementById('cfs-dest'); if(!sel||typeof ZONES==='undefined')return;
+    var ogs=sel.getElementsByTagName('optgroup');
+    for(var i=0;i<ZONES.length&&i<ogs.length;i++){ ogs[i].label=ZONES[i][0]+' (+'+_ccyFmtT(ZONES[i][1])+')'; }
+  }
+  /* appelé par le sélecteur devise du header (header.js) */
+  window.toggleCurrency=function(c){
+    _ccy=(c==='USD'||c==='EUR')?c:(_ccy==='USD'?'EUR':'USD');
+    try{localStorage.setItem('prodi_ccy',_ccy);}catch(e){}
+    if(_ccy==='USD'&&!(_usdRate>0)){_fetchRate();}
+    _refreshDestLabels(); rendre();
+    window.prodiTrack&&window.prodiTrack('devise',{ccy:_ccy,p:'panier'});
+  };
   function logged(){try{var s=JSON.parse(localStorage.getItem('sb-bvcgpdoukhcatjibmvnb-auth-token')||'null');return !!(s&&s.user);}catch(e){return false;}}
   /* ── Destinations + barème transport CFR €/T (container ~25 T) — même barème
      que le sélecteur du header du site. Le choix est persisté dans ali_ship2. ── */
@@ -287,7 +357,7 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
     var sel=document.getElementById('cfs-dest'); if(!sel||sel._done)return; sel._done=1;
     var h='<option value="">— Choisir un pays —</option>';
     ZONES.forEach(function(z){
-      h+='<optgroup label="'+esc(z[0])+' (+'+z[1]+' €/T)">';
+      h+='<optgroup label="'+esc(z[0])+' (+'+_ccyFmtT(z[1])+')">';
       z[2].forEach(function(c){h+='<option value="'+z[1]+'" data-f="'+c[0]+'" data-p="'+esc(c[1])+'">'+esc(c[1])+'</option>';});
       h+='</optgroup>';
     });
@@ -303,7 +373,8 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
       try{localStorage.setItem('ali_ship2',JSON.stringify({id:o.getAttribute('data-f')+'|'+o.getAttribute('data-p'),t:+o.value,port:o.getAttribute('data-p'),pays:o.getAttribute('data-p'),f:o.getAttribute('data-f')}));}catch(e){}}}
     sel.addEventListener('change',function(){
       var o=sel.options[sel.selectedIndex];
-      if(o&&o.value){try{localStorage.setItem('ali_ship2',JSON.stringify({id:o.getAttribute('data-f')+'|'+o.getAttribute('data-p'),t:+o.value,port:o.getAttribute('data-p'),pays:o.getAttribute('data-p'),f:o.getAttribute('data-f')}));}catch(e){}}
+      if(o&&o.value){try{localStorage.setItem('ali_ship2',JSON.stringify({id:o.getAttribute('data-f')+'|'+o.getAttribute('data-p'),t:+o.value,port:o.getAttribute('data-p'),pays:o.getAttribute('data-p'),f:o.getAttribute('data-f')}));}catch(e){}
+        window.prodiTrack&&window.prodiTrack('dest_change',{port:o.getAttribute('data-p'),rate:+o.value});}
       rendre();
     });
   }
@@ -361,6 +432,7 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
   }
   window.pxExcel=function(btn){
     if(!lire().length){pxToast('Panier vide');return;}
+    window.prodiTrack&&window.prodiTrack('excel_telecharge',{n:lire().length,ccy:_ccy});
     var old=btn.firstChild.textContent;btn.firstChild.textContent='Génération… ';btn.disabled=true;
     _catFrame().then(function(w){return w.exportListExcelTest(null);})
       .then(function(){pxToast('Excel téléchargé');})
@@ -369,17 +441,73 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
   };
   window.pxAlbum=function(btn){
     if(!lire().length){pxToast('Panier vide');return;}
+    window.prodiTrack&&window.prodiTrack('album_pdf',{n:lire().length});
     var old=btn.firstChild.textContent;btn.firstChild.textContent='Génération… ';btn.disabled=true;
     _catFrame().then(function(w){return w.exportAlbumPdf(null);})
       .then(function(){pxToast('Album PDF téléchargé');})
       .catch(function(){pxToast('Erreur album — réessayez');})
       .finally(function(){btn.firstChild.textContent=old;btn.disabled=false;});
   };
-  window.pxVider=function(){sauver([]);rendre();pxToast('Panier vidé');};
+  window.pxVider=function(){window.prodiTrack&&window.prodiTrack('panier_vide',{n:lire().length,via:'panier'});sauver([]);rendre();pxToast('Panier vidé');};
+  /* ── Réservation 72 h : panier → commande bloquée → Mon Prodiconseil ── */
+  function _totaux(){
+    var c=lire(),kg=0,eur=0,bobs=0,pals=0;
+    c.forEach(function(it){kg+=(+it.poids_net||0);if(it.price)eur+=it.price*(+it.poids_net||0);if(it.format==='Bobine')bobs++;else pals++;});
+    var T=kg/1000,sel=document.getElementById('cfs-dest');
+    var opt=sel&&sel.selectedIndex>=0?sel.options[sel.selectedIndex]:null;
+    var rate=sel?(+sel.value||0):0,port=opt?(opt.getAttribute('data-p')||''):'';
+    return {c:c,n:c.length,bobs:bobs,pals:pals,T:T,eur:eur,rate:rate,port:port,tr:rate*T,cfr:eur+rate*T,logged:logged()};
+  }
+  function _eurFmt(n){return _moneyFmt(n);}
+  function _qteTxt(bobs,pals,n){return (bobs?bobs+' bobine'+(bobs>1?'s':''):'')+(bobs&&pals?' · ':'')+(pals?pals+' format'+(pals>1?'s':''):'')||((n||0)+' article'+(n>1?'s':''));}
+  function _orderId(){var d=new Date(),p=function(n){return(n<10?'0':'')+n;};return 'CMD-'+String(d.getFullYear()).slice(2)+p(d.getMonth()+1)+p(d.getDate())+'-'+Math.random().toString(36).slice(2,6).toUpperCase();}
+  window._pxrClose=function(){var m=document.getElementById('pxr-modal');if(m)m.classList.remove('open');};
   window.pxReserver=function(){
     if(!lire().length){pxToast('Panier vide');return;}
     if(window.prodiRequireAccount&&!window.prodiRequireAccount())return;
-    pxToast('✅ Demande de réservation envoyée — nous revenons vers vous.');
+    var t=_totaux(),m=document.getElementById('pxr-modal');
+    window.prodiTrack&&window.prodiTrack('reserve_ouvert',{n:t.n,t:Math.round(t.T),dest:t.port||'',ccy:_ccy});
+    if(!m){
+      m=document.createElement('div');m.id='pxr-modal';
+      m.onclick=function(e){if(e.target===m)window._pxrClose();};
+      document.addEventListener('keydown',function(e){if(e.key==='Escape')window._pxrClose();});
+      document.body.appendChild(m);
+    }
+    m.innerHTML='<div class="pxr-card">'
+      +'<div class="pxr-ico"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>'
+      +'<div class="pxr-t">Réserver pendant 72 h</div>'
+      +'<div class="pxr-sub">Nous bloquons ces références pendant <b>72 heures</b>, le temps de finaliser votre commande avec vous.</div>'
+      +'<div class="pxr-reca">'
+        +'<div class="pxr-rl"><span>Sélection</span><b>'+esc(_qteTxt(t.bobs,t.pals,t.n))+'</b></div>'
+        +'<div class="pxr-rl"><span>Tonnage</span><b>'+t.T.toLocaleString('fr-FR',{maximumFractionDigits:1})+' T</b></div>'
+        +(t.port?'<div class="pxr-rl"><span>Destination</span><b>'+esc(t.port)+'</b></div>':'')
+        +((t.logged&&t.cfr)?'<div class="pxr-rl pxr-tot"><span>Total estimé (CFR)</span><b>'+_eurFmt(t.cfr)+'</b></div>':'')
+      +'</div>'
+      +'<div class="pxr-btns"><button class="pxr-cancel" onclick="window._pxrClose()">Annuler</button>'
+      +'<button class="pxr-go" onclick="window.pxReserveConfirm()"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Confirmer la réservation</button></div>'
+    +'</div>';
+    m.classList.add('open');
+  };
+  window.pxReserveConfirm=function(){
+    var t=_totaux();if(!t.n)return;
+    var now=Date.now();
+    var order={id:_orderId(),created_at:now,expires_at:now+72*3600*1000,status:'reserved',
+      items:t.c,n:t.n,bobines:t.bobs,formats:t.pals,tonnage:t.T,
+      dest_port:t.port,dest_rate:t.rate,marchandise_eur:t.eur,transport_eur:t.tr,total_cfr_eur:t.cfr};
+    var all=[];try{all=JSON.parse(localStorage.getItem('prodi_orders')||'[]')||[];}catch(e){}
+    all.unshift(order);
+    try{localStorage.setItem('prodi_orders',JSON.stringify(all));}catch(e){}
+    try{ window.prodiPushOrder && window.prodiPushOrder(order); }catch(e){}   // persiste la commande sur le compte (Supabase)
+    window.prodiTrack&&window.prodiTrack('reserve_confirme',{id:order.id,n:order.n,t:Math.round(order.tonnage||0),cfr:Math.round(order.total_cfr_eur||0),dest:order.dest_port||'',ccy:_ccy});
+    sauver([]);rendre();
+    var m=document.getElementById('pxr-modal');
+    if(m)m.innerHTML='<div class="pxr-card">'
+      +'<div class="pxr-ico pxr-ok"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>'
+      +'<div class="pxr-t">Réservé pour 72 h ✓</div>'
+      +'<div class="pxr-sub">Commande <b>'+esc(order.id)+'</b> bloquée.<br>Retrouvez-la dans <b>Mon Prodiconseil › Mes commandes</b>.</div>'
+      +'<div class="pxr-btns"><button class="pxr-cancel" onclick="window._pxrClose()">Continuer</button>'
+      +'<a class="pxr-go" href="/mon-prodiconseil/">Voir mes commandes</a></div>'
+    +'</div>';
   };
   /* lightbox photo en place (clic photo = agrandir ICI, pas un nouvel onglet) */
   var ICO_X='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9.2"/><path d="m9 9 6 6M15 9l-6 6"/></svg>';
@@ -392,6 +520,7 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
      styles fiche.css (.prodi-fiche). Plus de copie de code (05/10). */
   window.pxFiche=function(i){
     var c=lire(); var it=c[i]; if(!it)return;
+    window.prodiTrack&&window.prodiTrack('fiche_vue',{ref:String(it.ref||'').replace(/^Photo_/i,''),p:'panier'});
     var bg=document.getElementById('px-fiche');
     if(!bg){
       bg=document.createElement('div');bg.id='px-fiche';
@@ -406,7 +535,7 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
       hs:function(){return '';},         /* code douanier non stocké dans le panier */
       mm:function(v){return v;},          /* déjà en mm */
       showPriceRow:true,
-      priceVal:function(x){return (x.price&&logged())?esc(eurT(x.price).toLocaleString('fr-FR'))+' <small>€/T</small>':'—';}
+      priceVal:function(x){return (x.price&&logged())?esc(_ccyNum(x.price*1000).toLocaleString('fr-FR'))+' <small>'+_ccyUnit()+'</small>':'—';}
     };
     var photo=ProdiFiche.photoColHTML({image_url:it.img,ref:it.ref,usine:it.usine,name:it.name,grammage:it.grammage,couleur:it.couleur},{});
     bg.innerHTML='<button class="pxf-x" aria-label="Fermer" onclick="document.getElementById(\'px-fiche\').classList.remove(\'open\')">✕</button>'
@@ -425,9 +554,12 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
     var ref=String(it.ref||'').replace(/^Photo_/i,'').toUpperCase();
     var img=safeUrl(it.img);
     var det=it.details?String(it.details).replace(/[-–—\s]+/g,' ').trim():'';
-    var prix=logged()
-      ?(it.price?eurT(it.price).toLocaleString('fr-FR')+' €/T':'—')
-      :'<button class="plist-seep" onclick="window.prodiLoginPop&&window.prodiLoginPop()" style="border:none;background:none;color:#fe0000;font:700 12.5px \'DM Sans\',sans-serif;cursor:pointer;">Voir le prix</button>';
+    var _dtier=_destk[ref];
+    var prix=_dtier
+      ?'<span class="plist-destk">'+_ccyFmtT(_dtier)+'</span>'
+      :(logged()
+        ?(it.price?_ccyFmtT(it.price*1000):'—')
+        :'<button class="plist-seep" onclick="window.prodiTrack&&window.prodiTrack(\'voir_prix\',{ref:\''+ref+'\',p:\'panier\'});window.prodiLoginPop&&window.prodiLoginPop()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>Voir le prix</button>');
     return '<tr>'
       +'<td class="plist-td" style="text-align:center;"><button class="plist-del" title="Retirer du panier" data-i="'+i+'">'+ICO_X+'</button></td>'
       +'<td class="plist-td plist-thumb-wrap"'+(img?' onclick="pxFiche('+i+')"':'')+'>'+(img?'<img class="plist-thumb" loading="lazy" src="'+esc(img)+'" alt="" onerror="this.style.visibility=\'hidden\'">':'')+'</td>'
@@ -478,25 +610,29 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
     document.getElementById('cfs-fmt-wrap').style.display=pals.length?'':'none';
     document.getElementById('cfs-kg').textContent=T.toLocaleString('fr-FR',{maximumFractionDigits:1})+' T';
     var ok=eur&&logged();
-    var eurFmt=function(n){return Math.round(n).toLocaleString('fr-FR')+' €';};
-    // Prix moyen EXW (€/T) + marchandise EXW
-    document.getElementById('cfs-avg').textContent=ok&&T>0?Math.round(eur/T/10)*10+' €/T':'—';
-    document.getElementById('cfs-eur').textContent=ok?eurFmt(eur):'—';
+    // Prix moyen EXW + marchandise EXW (devise courante : taux marché, prix arrondi dizaine)
+    document.getElementById('cfs-avg').textContent=ok&&T>0?_ccyFmtT(eur/T):'—';
+    document.getElementById('cfs-eur').textContent=ok?_moneyFmt(eur):'—';
     // Transport estimé selon la destination choisie (barème €/T, container ~25 T)
     var rate=+document.getElementById('cfs-dest').value||0;
     var shipEl=document.getElementById('cfs-ship'), cfrEl=document.getElementById('cfs-cfr');
     if(rate){
       var tr=rate*T;
-      shipEl.textContent=ok?('≈ '+eurFmt(tr)+'  ('+rate+' €/T)'):(rate+' €/T');
-      cfrEl.textContent=ok?eurFmt(eur+tr):'—';
-    }else{ shipEl.textContent='—'; cfrEl.textContent=ok?eurFmt(eur):'—'; }
+      shipEl.textContent=ok?('≈ '+_moneyFmt(tr)+'  ('+_ccyFmtT(rate)+')'):_ccyFmtT(rate);
+      cfrEl.textContent=ok?_moneyFmt(eur+tr):'—';
+    }else{ shipEl.textContent='—'; cfrEl.textContent=ok?_moneyFmt(eur):'—'; }
     document.querySelectorAll('.plist-del').forEach(function(b){
       b.onclick=function(e){e.stopPropagation();var c2=lire();c2.splice(+b.dataset.i,1);sauver(c2);rendre();};
     });
   }
   rendre();
+  _loadDestock().then(rendre);   // re-rend avec les prix déstockage publics dès que les listes sont chargées
+  if(!_rateFresh())_fetchRate();  // taux EUR→USD du jour (frankfurter) pour la conversion $
+  try{ var _t0=_totaux(); window.prodiTrack&&window.prodiTrack('panier_vue',{n:_t0.n,t:Math.round(_t0.T),vide:_t0.n===0}); }catch(e){}
   /* la sélection change dans l'onglet catalogue → le panier suit en direct */
   window.addEventListener('storage',function(e){if(e.key==='prodi_cart')rendre();});
+  /* panier fusionné depuis le compte (connexion) → re-render */
+  window.addEventListener('prodi-cart-synced',function(){rendre();});
 })();
 </script>
 </body>

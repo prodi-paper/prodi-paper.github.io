@@ -16,14 +16,14 @@
 *{box-sizing:border-box;}
 body{margin:0;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#1d1d1f;min-height:100vh;display:flex;flex-direction:column;min-width:1200px;}
 header{border-bottom:1px solid #f0f0f2;padding:13px 0;}
-.h-in{display:flex;align-items:center;gap:24px;max-width:min(1880px,calc(100vw - 64px));margin:0 auto;}
+.h-in{display:flex;align-items:center;gap:24px;max-width:min(1880px,92vw);margin:0 auto;}
 header img.logo{height:40px;display:block;}
 .hsearch{flex:1;display:flex;align-items:center;gap:8px;height:40px;border:1.5px solid #e0e0e4;border-radius:999px;padding:3px 3px 3px 16px;background:#fff;}
 .hsearch:focus-within{border-color:#b8b8bd;}
 .hsearch input{flex:1;min-width:60px;border:none;outline:none;background:none;font:500 14.5px 'DM Sans',sans-serif;color:#1d1d1f;}
 .hsearch button{height:32px;padding:0 16px;border:none;border-radius:999px;background:#fe0000;color:#fff;font:700 14px 'DM Sans',sans-serif;display:flex;align-items:center;gap:7px;cursor:pointer;flex-shrink:0;}
 .hsearch button:hover{background:#cc0000;}
-main{flex:1;max-width:min(1880px,calc(100vw - 64px));width:100%;margin:0 auto;padding:40px 0 70px;display:flex;flex-direction:column;justify-content:center;}
+main{flex:1;max-width:min(1880px,92vw);width:100%;margin:0 auto;padding:40px 0 70px;display:flex;flex-direction:column;justify-content:center;}
 .head-row{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:8px;}
 h1{font-size:36px;font-weight:800;margin:0;}
 .axsub-badge{display:inline-block;background:linear-gradient(90deg,#ff7a1a,#fe0000);color:#fff;font-size:14px;font-weight:900;font-style:italic;letter-spacing:.3px;padding:6px 18px 6px 14px;border-radius:3px;clip-path:polygon(0 0,100% 0,calc(100% - 8px) 50%,100% 100%,0 100%);flex-shrink:0;}
@@ -113,6 +113,7 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
   .head-row{flex-wrap:wrap;}
 }
 </style>
+<script src="/analytics.js?v=6"></script>
 </head>
 <body>
 <header>
@@ -144,7 +145,7 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
           <div class="acct-hi">Bienvenue chez Prodiconseil !</div>
           <a class="acct-login" href="/compte/">Se connecter</a>
           <div class="acct-or">Ou continuer avec :</div>
-          <a class="acct-google" href="#" onclick="location.href='https://bvcgpdoukhcatjibmvnb.supabase.co/auth/v1/authorize?provider=google&amp;redirect_to='+encodeURIComponent('http://localhost:8101/compte/');return false;">
+          <a class="acct-google" href="#" onclick="window.prodiTrack&&window.prodiTrack('login_tentative',{m:'google',via:'popup'});location.href='https://bvcgpdoukhcatjibmvnb.supabase.co/auth/v1/authorize?provider=google&amp;redirect_to='+encodeURIComponent(location.origin+'/compte/');return false;">
             <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
             <span>Continuer avec Google</span>
           </a>
