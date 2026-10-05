@@ -182,6 +182,12 @@ gtag('config', 'G-KYEHH64T17');
 #ali-cats-pop .mm-side-row[data-g="top"]{display:none !important;}
 /* bouton WhatsApp flottant retiré (demande Ethan) */
 .wa-sticky{display:none !important;}
+/* /catalogue/ MOBILE épuré : on garde header (burger+logo+panier) + bande grise (tonnage+Filtres),
+   on enlève la barre de recherche et la barre pastilles/tri. */
+@media(max-width:1135px){
+  body.cat-page #cat-hsearch,
+  body.cat-page #results-bar{display:none !important;}
+}
 /* table Excel : scroll horizontal DÉCOUVRABLE sur mobile/tablette (barre visible + tactile) */
 @media(max-width:1135px){
   /* boîte scroll 2 axes + momentum tactile (même réglage que /catalogue/) → slide horizontal fiable au doigt */
