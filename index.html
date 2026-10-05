@@ -177,6 +177,9 @@ gtag('config', 'G-KYEHH64T17');
    le full-bleed (width:100vw / translateX) et le sur-padding des sections → marges
    de côté cohérentes avec le header/catalogue. */
 .vitrine-embed{max-width:min(1880px,92vw);margin:0 auto;overflow-x:hidden;}
+/* « Catégories pour vous » retiré PARTOUT (home sidebar/rail + méga-menu) — toutes largeurs */
+#ali-cards .ac-cats .ac-row-hd{display:none !important;}
+#ali-cats-pop .mm-side-row[data-g="top"]{display:none !important;}
 /* la vitrine n'apparaît QUE sur l'accueil (/) — jamais sur /catalogue/ (même fichier via symlink) */
 body.cat-page .vitrine-embed{display:none !important;}
 /* INVERSE : le CATALOGUE (filtres + rails/grille produits = .body-wrap) n'apparaît QUE sur /catalogue/.
