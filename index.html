@@ -201,6 +201,55 @@ body:not(.cat-page) .mob-filtres-btn{display:none !important;}
   right:auto !important;
   transform:none !important;
 }
+/* ════ STOREFRONT MOBILE (≤1135px) : version mobile du storefront Alibaba desktop
+   (hero + recherche + cartes catégories + bannière) — il était desktop-only, donc
+   masqué/non-stylé sur mobile. Uniquement sur la home (pas /catalogue/). ════ */
+@media(max-width:1135px){
+  body:not(.cat-page) #ali-hero{display:flex !important;flex-direction:column;align-items:center;padding:22px 16px 16px;background:linear-gradient(180deg,#fff 0%,#fff6f3 55%,#fff 100%);}
+  body:not(.cat-page) #ali-welcome{display:block !important;background:#f5f5f7;}
+  body:not(.cat-page) #ali-cards{display:grid !important;grid-template-columns:1fr 1fr;gap:10px;max-width:92vw;margin:14px auto 4px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
+  body:not(.cat-page) #ali-banner{display:block !important;max-width:92vw;margin:12px auto 6px;}
+  /* hero */
+  #ali-hero .ah-slogan{font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:clamp(28px,8vw,42px);line-height:1;letter-spacing:.5px;color:#111;margin:0 0 5px;text-align:center;}
+  #ali-hero .ah-slogan em{font-style:normal;color:#fe0000;}
+  #ali-hero .ah-sub{font:800 10px 'DM Sans',sans-serif;letter-spacing:2.5px;color:#1d1d1f;margin-bottom:16px;text-align:center;}
+  #ali-hero .ah-banner{display:none;}
+  #ali-hero .ah-search{display:flex;align-items:center;width:100%;height:52px;background:#fff;border:2px solid #fe0000;border-radius:14px;padding:4px 4px 4px 15px;box-sizing:border-box;}
+  #ali-hero .ah-search input{flex:1;border:none;outline:none;font:500 15px 'DM Sans',sans-serif;background:transparent;min-width:0;color:#1d1d1f;}
+  #ali-hero .ah-search button{flex-shrink:0;display:flex;align-items:center;gap:6px;height:42px;padding:0 15px;border:none;border-radius:999px;background:linear-gradient(90deg,#ff3c00,#fe0000);color:#fff;font:800 14px 'DM Sans',sans-serif;cursor:pointer;}
+  #ali-hero .ah-review{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:5px 8px;margin-top:14px;font:500 12.5px 'DM Sans',sans-serif;color:#1d1d1f;}
+  #ali-hero .ah-review svg{width:20px;height:20px;}
+  #ali-hero .ah-review b,#ali-hero .ah-note{font-weight:800;}
+  #ali-hero .ah-stars{color:#f5b301;letter-spacing:1px;}
+  #ali-hero .ah-div{display:none;}
+  #ali-hero .ah-eu{width:28px;height:auto;border-radius:3px;box-shadow:0 0 0 1px rgba(0,0,0,.12);}
+  /* bandeau bienvenue */
+  #ali-welcome .aw-in{max-width:92vw;margin:0 auto;height:auto;display:flex;flex-direction:column;align-items:flex-start;gap:9px;padding:12px 0;}
+  #ali-welcome .aw-title{font-size:17px;font-weight:700;color:#111;}
+  #ali-welcome .aw-links{display:flex;flex-wrap:wrap;gap:12px 16px;}
+  #ali-welcome .aw-links a{display:flex;align-items:center;gap:7px;font:600 13.5px 'DM Sans',sans-serif;color:#111;text-decoration:none;}
+  #ali-welcome .aw-links svg{width:18px;height:18px;}
+  #ali-welcome .aw-sep{display:none;}
+  /* cartes catégories */
+  #ali-cards>*{height:auto !important;box-sizing:border-box;}
+  #ali-cards .ac-cats{grid-column:1/-1;background:#f5f5f7;border-radius:12px;padding:6px;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;}
+  #ali-cards .ac-cats::-webkit-scrollbar{display:none;}
+  #ali-cards .ac-cats .ac-row{white-space:nowrap;padding:8px 12px;border-radius:9px;font:600 13.5px 'DM Sans',sans-serif;color:#111;text-decoration:none;display:flex;align-items:center;gap:8px;}
+  #ali-cards .ac-cats .ac-row svg{width:17px;height:17px;flex-shrink:0;}
+  #ali-cards .ac-cats .ac-row .chv{display:none;}
+  #ali-cards .ac-card{background:#f5f5f7;border-radius:12px;overflow:hidden;padding:12px;text-decoration:none;color:#111;display:flex;flex-direction:column;}
+  #ali-cards .ac-card .ac-t{font-size:15px;font-weight:700;line-height:1.15;}
+  #ali-cards .ac-card .ac-s{font-size:12px;font-weight:500;color:#6e6e73;margin:2px 0 8px;}
+  #ali-cards .ac-card .ac-imgbox{width:100%;height:120px;background:#fff;border-radius:10px;overflow:hidden;position:relative;}
+  #ali-cards .ac-card .ac-imgbox img{width:100%;height:100%;object-fit:contain;padding:12px;box-sizing:border-box;}
+  #ali-cards .ac-card .ac-pill{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);background:rgba(17,17,17,.85);color:#fff;font-size:11px;font-weight:700;padding:5px 11px;border-radius:999px;white-space:nowrap;}
+  #ali-cards .ac-video{grid-column:1/-1;border-radius:12px;overflow:hidden;position:relative;background:#000;aspect-ratio:16/9;}
+  #ali-cards .ac-video video{width:100%;height:100%;object-fit:cover;display:block;}
+  #ali-cards .acc-ar{width:30px;height:30px;}
+  /* bande arrivages */
+  #ali-banner .alb-link{display:block;position:relative;aspect-ratio:5/1;border-radius:14px;overflow:hidden;background:#f5f5f7;}
+  #ali-banner .alb-link img{width:100%;height:100%;object-fit:cover;object-position:center 40%;display:block;}
+}
 </style>
 </head>
 <body>

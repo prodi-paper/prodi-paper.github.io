@@ -203,6 +203,7 @@ if(window._hideReserved){const _hr=()=>document.body.classList.add('hide-reserve
 // ?pchint=1 force l'affichage (test). ──
 (function(){
   const _force=/[?&]pchint=1/.test(location.search);
+  if(!_force) return;  // DÉSACTIVÉ 05/10 : le mobile a maintenant un vrai storefront + catalogue en cartes (?pchint=1 pour retester)
   if(!_force){
     try{
       if(!window.matchMedia('(max-width:768px)').matches) return;
