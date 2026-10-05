@@ -433,6 +433,7 @@ const STOCK_DAY=(()=>{try{
   return p.toISOString().slice(0,10);
 }catch(_){return new Date().toISOString().slice(0,10);}})();
 async function _loadAllProducts(){
+  if(window._dkRaw&&window._dkRaw.length)return (_allProductsCache=window._dkRaw);  // déstockage : facettes sur le sous-ensemble, jamais le catalogue complet
   if(_allProductsCache)return _allProductsCache;
   if(_allProductsLoading)return _allProductsLoading;
   _allProductsLoading=(async()=>{
@@ -442,7 +443,7 @@ async function _loadAllProducts(){
     const CK='prodi_facets:v3:'+(/[?&]promo=1/.test(location.search)?'promo:':'')+STOCK_DAY; // v3 = prix max(PUNET,AR_PRIXVEN) du 04/08 (réimport manuel intrajour)
     try{
       const hit=localStorage.getItem(CK);
-      if(hit){const rows=JSON.parse(hit);if(Array.isArray(rows)&&rows.length>100){_allProductsCache=rows;return rows;}}
+      if(hit){const rows=JSON.parse(hit);if(Array.isArray(rows)&&rows.length>100){_allProductsCache=(window._dkRaw&&window._dkRaw.length)?window._dkRaw:rows;return _allProductsCache;}}
     }catch(_){}
     const CHUNK=1000;
     // Colonnes = celles de rowToUi (le fuzzy-fallback réutilise ce cache) —
@@ -459,8 +460,8 @@ async function _loadAllProducts(){
         Object.keys(localStorage).filter(k=>k.startsWith('prodi_facets:')&&k!==CK).forEach(k=>localStorage.removeItem(k));
         localStorage.setItem(CK,JSON.stringify(all));
       }catch(_){}
-      _allProductsCache=all;
-      return all;
+      _allProductsCache=(window._dkRaw&&window._dkRaw.length)?window._dkRaw:all;
+      return _allProductsCache;
     }
     let offset=0;
     for(let i=0;i<20;i++){
@@ -7723,9 +7724,14 @@ async function _dkInit(n){
     }
     rows.forEach(r=>{r.price=n/1000;r.promo=false;});   // prix unique (base €/kg)
     window._dkRaw=rows;window._dkMode=n;
+    // Facettes (Qualité, Couleur, Détails, sliders grammage/laize, usines…) basées
+    // sur le SOUS-ENSEMBLE déstockage et non sur tout le catalogue (04/10 Ethan).
+    _allProductsCache=rows; _usineOptionsBuilt=false; _detailsLastSig=null;
+    try{Object.keys(_facetSig).forEach(k=>delete _facetSig[k]);Object.keys(_facetPending).forEach(k=>delete _facetPending[k]);}catch(e){}
     document.body.classList.add('dk-mode');   // prix en badge JAUNE promo
     _landingRows=false;_showLandingRows(false);
     filterProducts();
+    _refreshAllFacets();   // recalcule les compteurs des sélecteurs depuis _dkRaw
   }catch(e){ console.error('destock',e); _doFilter(); }
 }
 function _dkRender(){
