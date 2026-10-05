@@ -205,6 +205,10 @@ body:not(.cat-page) .mob-filtres-btn{display:none !important;}
    (hero + recherche + cartes catégories + bannière) — il était desktop-only, donc
    masqué/non-stylé sur mobile. Uniquement sur la home (pas /catalogue/). ════ */
 @media(max-width:1135px){
+  /* header home sur UNE ligne : burger | logo | panier alignés (bat catalogue.css:672 display:block) */
+  body.topbar-view:not(.shared-view):not(.cat-page) .header-inner{display:flex !important;align-items:center;gap:6px;height:auto !important;}
+  body:not(.cat-page) #mob-hdr-r1{flex:1;min-width:0;}
+  body:not(.cat-page) #mob-hdr-r2{display:none !important;}
   body:not(.cat-page) #ali-hero{display:flex !important;flex-direction:column;align-items:center;padding:22px 16px 16px;background:linear-gradient(180deg,#fff 0%,#fff6f3 55%,#fff 100%);}
   body:not(.cat-page) #ali-welcome{display:block !important;background:#f5f5f7;}
   body:not(.cat-page) #ali-cards{display:grid !important;grid-template-columns:1fr 1fr;gap:10px;max-width:92vw;margin:14px auto 4px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
