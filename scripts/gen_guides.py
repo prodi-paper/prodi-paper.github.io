@@ -11,7 +11,7 @@ et met à jour sitemap.xml (bloc borné par les marqueurs GUIDES).
 import os, re
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CSS_V, ANALYTICS_V, JS_V = "326", "6", "191"
+CSS_V, ANALYTICS_V, JS_V = "326", "7", "191"
 WA = "https://wa.me/33632096840?text=Welcome%20!"
 
 CSP = ("default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net "

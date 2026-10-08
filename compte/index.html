@@ -11,7 +11,7 @@ gtag('config', 'AW-18393110999');
 gtag('config', 'G-KYEHH64T17');
 </script>
 <script src="/i18n.js?v=2"></script>
-<script src="/analytics.js?v=6"></script>
+<script src="/analytics.js?v=7"></script>
 <meta charset="UTF-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.googletagmanager.com https://googleads.g.doubleclick.net https://www.googleadservices.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://flagcdn.com https://images.pexels.com https://stock.prodi.net https://prodi.com https://prodi-paper.github.io https://images.unsplash.com https://images.weserv.nl https://www.googletagmanager.com https://googleads.g.doubleclick.net https://www.google.com https://www.google.fr; connect-src 'self' https://api.country.is https://bvcgpdoukhcatjibmvnb.supabase.co https://prodi-arrivages.vercel.app https://api.emailjs.com https://cdn.jsdelivr.net https://stock.prodi.net https://images.weserv.nl https://api.frankfurter.dev https://www.googletagmanager.com https://googleads.g.doubleclick.net https://www.google.com https://stats.g.doubleclick.net https://www.google-analytics.com https://region1.google-analytics.com https://analytics.google.com https://region1.analytics.google.com https://www.googleadservices.com https://ad.doubleclick.net; frame-src https://challenges.cloudflare.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -80,6 +80,30 @@ main{flex:1;display:grid;grid-template-columns:auto 380px;column-gap:clamp(70px,
 .cfg-selwrap img{width:25px;height:17px;object-fit:cover;border-radius:2px;box-shadow:0 0 0 1px rgba(0,0,0,.08);}
 .cfg-selwrap select{appearance:none;-webkit-appearance:none;flex:1;border:none;outline:none;background:none;font:600 17px 'DM Sans',sans-serif;color:#1d1d1f;padding-right:28px;cursor:pointer;}
 .cfg-selwrap svg{position:absolute;right:2px;pointer-events:none;}
+/* port : bouton + panneau déroulant avec recherche en haut (clic = ouvre) */
+#cfg-portbtn{flex:1;min-width:0;border:none;outline:none;background:none;font:600 17px 'DM Sans',sans-serif;color:#1d1d1f;padding:0 26px 0 0;cursor:pointer;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cfg-selwrap svg{transition:transform .2s;}
+.cfg-selwrap.port-open svg{transform:rotate(180deg);}
+.cfg-portpan{display:none;position:absolute;bottom:calc(100% + 12px);left:-18px;right:-18px;z-index:60;background:#fff;border:1px solid #e8e8e4;border-radius:16px;box-shadow:0 -12px 50px rgba(0,0,0,.16);padding:10px;}
+.cfg-portpan.open{display:block;}
+#cfg-portsearch{width:100%;box-sizing:border-box;border:1px solid #d2d2d7;border-radius:10px;padding:10px 12px;font:500 16px 'DM Sans',sans-serif;color:#1d1d1f;outline:none;margin-bottom:8px;}
+#cfg-portsearch:focus{border-color:#1d1d1f;}
+.cfg-portlist{max-height:240px;overflow:auto;display:flex;flex-direction:column;}
+.cfg-portlist button{display:flex;align-items:center;gap:9px;width:100%;border:none;background:none;text-align:left;padding:9px 10px;border-radius:9px;font:400 16.5px 'DM Sans',sans-serif;color:#1d1d1f;cursor:pointer;}
+.cfg-portlist button:hover{background:#f5f5f7;}
+.cfg-portlist .cfg-portopt em{margin-left:auto;font-style:normal;color:#86868b;font-size:14px;}
+.cfg-portlist .cfg-portopt img{width:22px;height:15px;flex-shrink:0;object-fit:cover;border-radius:2px;box-shadow:0 0 0 1px rgba(0,0,0,.08);}
+.cfg-portfree{color:#fe0000;font-weight:600;background:#fff4f4;margin-top:2px;}
+.cfg-portfree:hover{background:#ffe8e8 !important;}
+.cfg-portempty{padding:11px 12px;color:#86868b;font-size:14.5px;line-height:1.4;}
+/* bouton « Importer un fichier » (à côté de la TVA) — remplit la case, texte gras centré */
+.cfg-upwrap{display:flex;align-items:center;}
+.cfg-upload{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:23px;cursor:pointer;color:#1d1d1f;font:700 15.5px 'DM Sans',sans-serif;}
+.cfg-upload span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cfg-upload svg{flex-shrink:0;}
+.cfg-upload:hover{color:#fe0000;}
+.cfg-upload.has-file{color:#1a7a38;}
+.cfg-upload.cfg-uploading{color:#6e6e73;}
 .cfg-note{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;font-size:12.5px;color:#6e6e73;line-height:1.45;margin:-6px 2px 14px;}
 .cfg-2col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:26px;}
 .cfg-2col .cfg-box{margin-bottom:0;}
@@ -165,17 +189,25 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
       <div class="cfg-lab">E-mail <b>*</b></div>
       <div class="cfg-val" id="cfg-mail">&nbsp;</div>
     </div>
-    <div class="cfg-box" style="margin-bottom:20px;">
-      <div class="cfg-lab">Port de destination pr&eacute;f&eacute;r&eacute;</div>
-      <div class="cfg-selwrap">
-        <img id="cfg-flag" src="https://flagcdn.com/w40/fr.png" alt="">
-        <select id="cfg-port" onchange="cfgFlag()"></select>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" stroke-width="2.2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
-      </div>
+    <div class="cfg-box">
+      <div class="cfg-lab">Soci&eacute;t&eacute; <b>*</b></div>
+      <input id="cfg-soc" autocomplete="organization">
     </div>
     <div class="cfg-2col">
       <div class="cfg-box"><div class="cfg-lab">Pr&eacute;nom <b>*</b></div><input id="cfg-prenom" autocomplete="given-name"></div>
       <div class="cfg-box"><div class="cfg-lab">Nom <b>*</b></div><input id="cfg-nom" autocomplete="family-name"></div>
+    </div>
+    <div class="cfg-box" style="margin-bottom:20px;">
+      <div class="cfg-lab">T&eacute;l&eacute;phone / WhatsApp <b>*</b></div>
+      <div class="cfg-telrow">
+        <button type="button" class="tel-cc" id="cfg-cc"><span>&#127467;&#127479;</span> +33</button>
+        <input id="cfg-tel" type="tel" autocomplete="tel">
+        <div class="tel-cc-pan" id="cfg-ccpan">
+          <input type="text" class="tel-cc-search" placeholder="Pays ou indicatif (+245)&hellip;" aria-label="Rechercher un pays ou saisir un indicatif" autocomplete="off" name="cc-recherche">
+          <button type="button" class="tel-cc-custom" style="display:none"></button>
+          <div class="tel-cc-list"></div>
+        </div>
+      </div>
     </div>
     <button type="button" class="cfg-go" onclick="cfgGo()">Cr&eacute;ez un compte</button>
     <div class="cfg-err" id="cfg-err"></div>
@@ -195,27 +227,33 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" stroke-width="2.2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
       </div>
     </div>
-    <div class="cfg-box">
-      <div class="cfg-lab">Soci&eacute;t&eacute; <b>*</b></div>
-      <input id="cfg-soc" autocomplete="organization">
+    <div class="cfg-2col">
+      <div class="cfg-box">
+        <div class="cfg-lab">Num&eacute;ro soci&eacute;t&eacute; / TVA</div>
+        <input id="cfg-tva">
+      </div>
+      <div class="cfg-box cfg-upwrap">
+        <label class="cfg-upload" for="cfg-file" id="cfg-uplab">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+          <span id="cfg-fname">Importer un fichier</span>
+        </label>
+        <input type="file" id="cfg-file" accept=".pdf,.jpg,.jpeg,.png,.webp,.heic,application/pdf,image/*" onchange="cfgUpload()" style="display:none">
+      </div>
     </div>
-    <div class="cfg-box">
-      <div class="cfg-lab">Num&eacute;ro soci&eacute;t&eacute; / TVA</div>
-      <input id="cfg-tva">
-    </div>
-    <div class="cfg-2col" style="margin-bottom:16px;">
+    <div class="cfg-2col">
       <div class="cfg-box"><div class="cfg-lab">Adresse</div><input id="cfg-adr" autocomplete="street-address"></div>
       <div class="cfg-box"><div class="cfg-lab">Code postal / ZIP</div><input id="cfg-cp" autocomplete="postal-code"></div>
     </div>
     <div class="cfg-box" style="margin-bottom:26px;">
-      <div class="cfg-lab">T&eacute;l&eacute;phone / WhatsApp <b>*</b></div>
-      <div class="cfg-telrow">
-        <button type="button" class="tel-cc" id="cfg-cc"><span>&#127467;&#127479;</span> +33</button>
-        <input id="cfg-tel" type="tel" autocomplete="tel">
-        <div class="tel-cc-pan" id="cfg-ccpan">
-          <input type="text" class="tel-cc-search" placeholder="Pays ou indicatif (+245)&hellip;" aria-label="Rechercher un pays ou saisir un indicatif" autocomplete="off" name="cc-recherche">
-          <button type="button" class="tel-cc-custom" style="display:none"></button>
-          <div class="tel-cc-list"></div>
+      <div class="cfg-lab">Port de destination pr&eacute;f&eacute;r&eacute;</div>
+      <div class="cfg-selwrap" id="cfg-portrow">
+        <img id="cfg-flag" src="https://flagcdn.com/w40/fr.png" alt="">
+        <button type="button" id="cfg-portbtn" onclick="cfgPortToggle()"><span id="cfg-portlabel">Le Havre — France</span></button>
+        <input type="hidden" id="cfg-port">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" stroke-width="2.2" stroke-linecap="round" onclick="cfgPortToggle()" style="pointer-events:auto;cursor:pointer;"><path d="m6 9 6 6 6-6"/></svg>
+        <div class="cfg-portpan" id="cfg-portpan">
+          <input id="cfg-portsearch" type="text" autocomplete="off" placeholder="Rechercher ou saisir un port&hellip;" oninput="cfgPortSearch()">
+          <div class="cfg-portlist" id="cfg-portlist"></div>
         </div>
       </div>
     </div>
@@ -292,7 +330,82 @@ var CFG_Z=[
   ['za','Afrique du Sud',['Durban','Le Cap']],['mz','Mozambique',['Maputo']],['na','Namibie',['Walvis Bay']],['ao','Angola',['Luanda']],['mg','Madagascar',['Tamatave']],
   ['au','Australie',['Sydney','Melbourne']],['nz','Nouvelle-Zélande',['Auckland']]
 ];
-function cfgFlag(){var v=document.getElementById('cfg-port').value;document.getElementById('cfg-flag').src='https://flagcdn.com/w40/'+v.split('|')[0]+'.png';}
+/* ── PORT : bouton → panneau déroulant avec BARRE DE RECHERCHE en haut
+   (clic sur le champ = ouvre la liste + focus recherche). Choisir dans la
+   liste OU saisir un port libre (option « Utiliser … » si aucun ne colle). ── */
+var CFG_PORTS=[];
+CFG_Z.forEach(function(c){c[2].forEach(function(pt){CFG_PORTS.push({id:c[0]+'|'+pt,iso:c[0],port:pt,pays:c[1],label:pt+' — '+c[1]});});});
+function _cfgNorm(s){return (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');}
+function _cfgEsc(s){return (s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function cfgFlag(){
+  var inp=document.getElementById('cfg-port'),img=document.getElementById('cfg-flag');
+  var iso=(inp.dataset.id||'').split('|')[0];
+  if(iso){img.src='https://flagcdn.com/w40/'+iso+'.png';img.style.display='';}
+  else{img.style.display='none';}                       /* port libre : pas de drapeau */
+}
+/* pose la valeur : input caché (value=label libellé, dataset.id=iso|Port si connu) + libellé visible + drapeau */
+function _cfgPortApply(label,id){
+  var inp=document.getElementById('cfg-port');
+  inp.value=label||''; inp.dataset.id=id||'';
+  document.getElementById('cfg-portlabel').textContent=label||'Choisir un port…';
+  cfgFlag();
+}
+function cfgPortRender(q){
+  var list=document.getElementById('cfg-portlist'),nq=_cfgNorm(q);
+  var items=CFG_PORTS.filter(function(p){return !nq||_cfgNorm(p.label).indexOf(nq)>=0;});
+  var html=items.map(function(p){return '<button type="button" class="cfg-portopt" data-id="'+p.id+'"><img src="https://flagcdn.com/w40/'+p.iso+'.png" alt=""><span>'+p.port+'</span><em>'+p.pays+'</em></button>';}).join('');
+  var v=(q||'').trim();
+  if(v){var exact=items.some(function(p){return _cfgNorm(p.label)===nq||_cfgNorm(p.port)===nq;});
+    if(!exact) html+='<button type="button" class="cfg-portfree" data-free="1">Utiliser « '+_cfgEsc(v)+' »</button>';}
+  if(!html) html='<div class="cfg-portempty">Tapez le nom de votre port.</div>';
+  list.innerHTML=html;
+}
+function cfgPortClose(){document.getElementById('cfg-portpan').classList.remove('open');document.getElementById('cfg-portrow').classList.remove('port-open');}
+function cfgPortToggle(){
+  var pan=document.getElementById('cfg-portpan');
+  if(pan.classList.contains('open')){cfgPortClose();return;}
+  document.getElementById('cfg-portrow').classList.add('port-open');
+  pan.classList.add('open');
+  var se=document.getElementById('cfg-portsearch'); se.value=''; cfgPortRender('');
+  setTimeout(function(){try{se.focus();}catch(e){}},30);
+}
+function cfgPortSearch(){cfgPortRender(document.getElementById('cfg-portsearch').value);}
+function cfgPortPick(id){var p=CFG_PORTS.filter(function(x){return x.id===id;})[0];if(!p)return;_cfgPortApply(p.label,p.id);cfgPortClose();}
+/* résout une valeur ENREGISTRÉE (compte ou ali_ship2) en un port affichable, sans
+   jamais montrer l'id brut : exact → sinon port du même nom → sinon 1er port du
+   pays (legacy « iso|Pays » type « ma|Maroc » → Casablanca) → sinon texte libre. */
+function _cfgPortSetFromStored(saved){
+  if(!saved)saved='fr|Le Havre';
+  var exact=CFG_PORTS.filter(function(p){return p.id===saved;})[0];
+  if(exact){_cfgPortApply(exact.label,exact.id);return;}
+  if(saved.indexOf('|')>=0){
+    var parts=saved.split('|'),iso=parts[0],rest=parts.slice(1).join('|');
+    var byPort=CFG_PORTS.filter(function(p){return _cfgNorm(p.port)===_cfgNorm(rest);})[0];
+    if(byPort){_cfgPortApply(byPort.label,byPort.id);return;}
+    var byIso=CFG_PORTS.filter(function(p){return p.iso===iso;})[0];   /* 1er port du pays */
+    if(byIso){_cfgPortApply(byIso.label,byIso.id);return;}
+    _cfgPortApply(rest||saved,'');return;                              /* corrompu : on retire le préfixe iso| */
+  }
+  _cfgPortApply(saved,'');                                             /* vraie saisie libre */
+}
+function _cfgPortFree(){var v=document.getElementById('cfg-portsearch').value.trim();if(v)_cfgPortApply(v,'');cfgPortClose();}
+(function(){
+  var list=document.getElementById('cfg-portlist');
+  if(list)list.addEventListener('mousedown',function(e){
+    var opt=e.target.closest('.cfg-portopt'); if(opt){e.preventDefault();cfgPortPick(opt.dataset.id);return;}
+    if(e.target.closest('.cfg-portfree')){e.preventDefault();_cfgPortFree();}
+  });
+  document.addEventListener('click',function(e){var row=document.getElementById('cfg-portrow');if(row&&!row.contains(e.target))cfgPortClose();});
+  var se=document.getElementById('cfg-portsearch');
+  if(se)se.addEventListener('keydown',function(e){
+    if(e.key==='Enter'){e.preventDefault();
+      var m=CFG_PORTS.filter(function(p){return _cfgNorm(p.label)===_cfgNorm(se.value)||_cfgNorm(p.port)===_cfgNorm(se.value);})[0];
+      if(m){cfgPortPick(m.id);return;}
+      var first=document.querySelector('#cfg-portlist .cfg-portopt');
+      if(first){cfgPortPick(first.dataset.id);} else {_cfgPortFree();}
+    } else if(e.key==='Escape'){cfgPortClose();}
+  });
+})();
 /* ── indicatif téléphone façon vitrine (ccInit compact) ── */
 var CC_PAYS=[
 ["France","fr","+33"],["Maroc","ma","+212"],["Algérie","dz","+213"],["Tunisie","tn","+216"],["Égypte","eg","+20"],["Sénégal","sn","+221"],["Côte d'Ivoire","ci","+225"],
@@ -372,12 +485,10 @@ function cfgStep(n){
 function cfgOpen(user){
   var m=user.user_metadata||{};
   document.getElementById('cfg-mail').textContent=user.email||'';
-  var sel=document.getElementById('cfg-port');
-  if(!sel.options.length){CFG_Z.forEach(function(c){c[2].forEach(function(pt){var o=document.createElement('option');o.value=c[0]+'|'+pt;o.textContent=pt+' — '+c[1];sel.appendChild(o);});});}
   var def='fr|Le Havre';
   try{var sh=JSON.parse(localStorage.getItem('ali_ship2')||'null');if(sh&&sh.id)def=sh.id;}catch(e){}
-  sel.value=m.port||def; if(!sel.value)sel.value='fr|Le Havre';
-  cfgFlag();
+  var saved=m.port||def;
+  _cfgPortSetFromStored(saved);                          /* résolution robuste (jamais d'id brut) */
   document.getElementById('cfg-prenom').value=m.prenom||'';
   document.getElementById('cfg-nom').value=m.nom||'';
   /* préremplissage étape 2 */
@@ -385,60 +496,100 @@ function cfgOpen(user){
   document.getElementById('cfg-tva').value=m.tva||'';
   document.getElementById('cfg-tel').value=m.tel||'';
   /* pas encore de numéro : indicatif aligné sur le pays du port choisi */
-  if(!m.tel&&window._cfgSetCcFromIso)_cfgSetCcFromIso((m.port||def).split('|')[0]);
+  if(!m.tel&&window._cfgSetCcFromIso)_cfgSetCcFromIso((document.getElementById('cfg-port').dataset.id||'fr|').split('|')[0]||'fr');
   document.getElementById('cfg-adr').value=m.adresse||'';
   document.getElementById('cfg-cp').value=m.cp||'';
   if(m.activite)document.getElementById('cfg-act').value=m.activite;
-  /* identité déjà remplie → directement l'étape activité */
-  cfgStep((!m.prenom&&!m.nom)?1:2);
+  /* document société déjà envoyé → afficher son nom */
+  window._cfgDoc=m.doc||null;
+  if(m.doc){var _b=m.doc.split('/').pop().replace(/^\d+_/,'');document.getElementById('cfg-fname').textContent=_cfgFnameShort(_b);document.getElementById('cfg-uplab').classList.add('has-file');}
+  else{document.getElementById('cfg-fname').textContent='Importer un fichier';document.getElementById('cfg-uplab').classList.remove('has-file');}
+  /* étape 1 = société + nom + tél + port ; si déjà remplis → directement l'étape 2 (activité) */
+  cfgStep(((m.prenom||m.nom)&&m.societe&&m.tel)?2:1);
   document.getElementById('cfg-bg').classList.add('open');
 }
 function cfgClose(){document.getElementById('cfg-bg').classList.remove('open');}
+/* ── UPLOAD document société → bucket privé Supabase « user-docs » (dossier = uid) ── */
+window._cfgDoc=null;
+function _cfgUid(){try{var s=JSON.parse(localStorage.getItem('sb-bvcgpdoukhcatjibmvnb-auth-token')||'null');return s&&s.user&&s.user.id;}catch(e){return null;}}
+function _cfgFnameShort(n){return (n||'').length>24?(n.slice(0,22)+'…'):n;}
+function cfgUpload(){
+  var inp=document.getElementById('cfg-file'),f=inp.files&&inp.files[0];if(!f)return;
+  var lab=document.getElementById('cfg-uplab'),nm=document.getElementById('cfg-fname');
+  lab.classList.remove('has-file');
+  if(f.size>10*1024*1024){nm.textContent='Trop lourd (max 10 Mo)';return;}
+  var uid=_cfgUid();
+  if(!uid){nm.textContent='Connectez-vous d\'abord';return;}
+  lab.classList.add('cfg-uploading');nm.textContent='Envoi…';
+  var safe=f.name.replace(/[^\w.\-]+/g,'_').slice(-80);
+  var path=uid+'/'+Date.now()+'_'+safe;
+  sb.storage.from('user-docs').upload(path,f,{upsert:true,contentType:f.type||'application/octet-stream'}).then(function(r){
+    lab.classList.remove('cfg-uploading');
+    if(r.error){nm.textContent='Échec de l\'envoi';return;}
+    window._cfgDoc=path;
+    nm.textContent=_cfgFnameShort(f.name);lab.classList.add('has-file');
+    try{window.prodiTrack&&window.prodiTrack('compte_doc',{});}catch(e){}
+  }).catch(function(){lab.classList.remove('cfg-uploading');nm.textContent='Échec de l\'envoi';});
+}
 function cfgGo(){
+  var soc=document.getElementById('cfg-soc').value.trim();
   var pre=document.getElementById('cfg-prenom').value.trim(), nom=document.getElementById('cfg-nom').value.trim();
+  var tel=document.getElementById('cfg-tel').value.trim();
   var er=document.getElementById('cfg-err');
+  var nd=(tel.match(/\d/g)||[]).length;
+  if(!soc){er.textContent='Le nom de votre société est requis.';er.style.display='block';return;}
   if(!pre||!nom){er.textContent='Prénom et nom requis.';er.style.display='block';return;}
+  if(nd<8||nd>15){er.textContent='Numéro de téléphone invalide (8 à 15 chiffres).';er.style.display='block';return;}
   er.style.display='none';
+  /* numéro nu → préfixé par l'indicatif choisi */
+  if(tel.charAt(0)!=='+')tel=((document.getElementById('cfg-tel').dataset.cc||'')+' '+tel).trim();
   var b=document.querySelector('#cfg-c1 .cfg-go'); b.disabled=true; b.textContent='Enregistrement…';
-  var port=document.getElementById('cfg-port').value;
-  sb.auth.updateUser({data:{prenom:pre,nom:nom,port:port}}).then(function(r){
+  sb.auth.updateUser({data:{prenom:pre,nom:nom,societe:soc,tel:tel}}).then(function(r){
     b.disabled=false; b.textContent='Créez un compte';
     if(r.error){er.textContent=r.error.message;er.style.display='block';return;}
-    try{localStorage.setItem('ali_ship2',JSON.stringify({id:port}));}catch(e){}   /* synchro widget CFR du catalogue */
-    cfgStep(2);   /* la suite : infos activité */
+    try{window.prodiTrack&&window.prodiTrack('compte_cree',{});}catch(e){}  /* identité posée (étape 1) */
+    cfgStep(2);   /* la suite : activité + adresse + port de destination */
   });
 }
 function cfg2Go(){
-  var soc=document.getElementById('cfg-soc').value.trim(), tel=document.getElementById('cfg-tel').value.trim();
   var er=document.getElementById('cfg-err2');
-  var nd=(tel.match(/\d/g)||[]).length;
   if(!document.getElementById('cfg-act').value){er.textContent='Choisissez votre secteur d\'activité.';er.style.display='block';return;}
-  if(!soc){er.textContent='Le nom de votre société est requis.';er.style.display='block';return;}
-  if(nd<8||nd>15){er.textContent='Numéro de téléphone invalide (8 à 15 chiffres).';er.style.display='block';return;}
   er.style.display='none';
-  /* numéro nu → préfixé par l'indicatif choisi (comme la vitrine) */
-  if(tel.charAt(0)!=='+')tel=((document.getElementById('cfg-tel').dataset.cc||'')+' '+tel).trim();
   var b=document.querySelector('#cfg-c2 .cfg-go'); b.disabled=true; b.textContent='Enregistrement…';
-  sb.auth.updateUser({data:{
-    societe:soc, tel:tel,
+  var pinp=document.getElementById('cfg-port');
+  var port=pinp.dataset.id||pinp.value.trim();            /* id canonique « iso|Port » si choisi, sinon texte libre */
+  var data={
     tva:document.getElementById('cfg-tva').value.trim(),
     adresse:document.getElementById('cfg-adr').value.trim(),
     cp:document.getElementById('cfg-cp').value.trim(),
-    activite:document.getElementById('cfg-act').value
-  }}).then(function(r){
+    activite:document.getElementById('cfg-act').value,
+    port:port
+  };
+  if(window._cfgDoc)data.doc=window._cfgDoc;              /* chemin du document société uploadé */
+  sb.auth.updateUser({data:data}).then(function(r){
     b.disabled=false; b.textContent='Valider mon profil';
     if(r.error){er.textContent=r.error.message;er.style.display='block';return;}
+    if(pinp.dataset.id){try{localStorage.setItem('ali_ship2',JSON.stringify({id:port}));}catch(e){}}  /* synchro widget CFR du catalogue (ports connus seulement) */
+    try{window.prodiTrack&&window.prodiTrack('compte_active',{act:document.getElementById('cfg-act').value,port:(pinp.dataset.id?'liste':'libre')});}catch(e){}  /* secteur + adresse + port validés */
     location.replace('/');   /* profil complet → accueil */
   });
 }
 /* Session détectée (retour de lien magique ou déjà connecté) :
    profil incomplet → pages de configuration ; sinon DIRECTEMENT l'accueil
    (aucune raison de montrer une page « Connecté ! ») */
+/* Aperçu local : /compte/?cfg=1 force l'écran de configuration (prénom/nom + port)
+   sans session — pour voir/tester la page sans créer de compte. */
+try{ var _cfgp=new URLSearchParams(location.search).get('cfg'); if(_cfgp==='1'||_cfgp==='2'){ cfgOpen({email:'apercu@prodi.com',user_metadata:{}}); cfgStep(+_cfgp); } }catch(e){}
 sb.auth.getSession().then(function(r){
+  if(new URLSearchParams(location.search).get('cfg'))return;   /* aperçu (?cfg=1/2) : pas de redirection */
   var s=r.data&&r.data.session;
   if(!s)return;
   var m=s.user.user_metadata||{};
-  if((!m.prenom&&!m.nom)||!m.societe||!m.tel){cfgOpen(s.user);}
+  var complet=!((!m.prenom&&!m.nom)||!m.societe||!m.tel);
+  var prov=(s.user.app_metadata&&s.user.app_metadata.provider)||'email';
+  /* connexion réussie confirmée (après Google/lien magique) — tracé pour le parcours */
+  try{window.prodiTrack&&window.prodiTrack('login_ok',{m:prov,cfg:complet});}catch(e){}
+  if(!complet){cfgOpen(s.user);}
   else{location.replace('/');}
 });
 </script>

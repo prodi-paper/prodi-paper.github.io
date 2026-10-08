@@ -339,30 +339,30 @@ if(_catPage)(function(){
      L'accès aux PRIX internes passe désormais par la CONNEXION + AUTORISATION,
      plus par un code. -->
 <script>
-/* ── AUTORISATION PRIX (12/09) ─────────────────────────────────────────────
-   Les prix internes (€/t) ne s'affichent QUE pour un compte connecté À QUI
-   L'ÉQUIPE A ACCORDÉ LE DROIT : drapeau `app_metadata.prix_ok` du compte
-   Supabase — posé CÔTÉ SERVEUR (dashboard/service_role), NON modifiable par le
-   client, mais lisible dans le JWT de session. On synchronise `prodi_cat_ok`
-   (clé lue par catalogue.js) à chaque chargement : posée si autorisé, retirée
-   sinon → par défaut AUCUN prix pour le public et les comptes non autorisés.
+/* ── AUTORISATION PRIX (12/09 ; OUVERT À TOUT COMPTE CONNECTÉ le 08/10) ──────
+   Les prix internes (€/t) s'affichent désormais pour TOUT compte CONNECTÉ
+   (Google ou e-mail), sans validation préalable (décision Ethan 08/10). On
+   synchronise `prodi_cat_ok` (clé lue par catalogue.js) à chaque chargement :
+   posée dès qu'une session Supabase valide est présente, retirée si déconnecté
+   → seul le PUBLIC non connecté ne voit aucun prix (mode lead). L'ancien drapeau
+   `app_metadata.prix_ok` n'est PLUS requis (conservé pour restreindre un jour).
    Les liens client ?s=/?share= gardent leur propre logique (?p=) : on n'y touche pas. */
 (function(){
   try{
     var p=new URLSearchParams(location.search);
     if(p.get('s')||p.get('share'))return;               /* lien client : ne pas toucher */
     var raw=localStorage.getItem('sb-bvcgpdoukhcatjibmvnb-auth-token'), ok=false, tok=null;
-    if(raw){var s=JSON.parse(raw);var am=s&&s.user&&s.user.app_metadata;ok=!!(am&&am.prix_ok);tok=s&&s.access_token;}
+    if(raw){var s=JSON.parse(raw);ok=!!(s&&s.user);tok=s&&s.access_token;}   /* connecté = voit les prix */
     if(ok)localStorage.setItem('prodi_cat_ok','1');
     else localStorage.removeItem('prodi_cat_ok');
-    /* 04/10 : la session en cache peut dater d'AVANT la pose du drapeau prix_ok →
-       vérif LIVE auprès de Supabase, et application sans re-login ni rechargement */
+    /* session en cache incomplète (token présent mais user absent) → confirmation
+       LIVE auprès de Supabase, et affichage des prix sans re-login ni rechargement */
     if(!ok&&tok){
       fetch('https://bvcgpdoukhcatjibmvnb.supabase.co/auth/v1/user',{headers:{
         apikey:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2Y2dwZG91a2hjYXRqaWJtdm5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNzg5MjgsImV4cCI6MjA4Nzg1NDkyOH0.Ip3ykSUS9sajTH04yXBerOG1haBKMD1kAvMQNjnGL1Q',
         Authorization:'Bearer '+tok
       }}).then(function(r){return r.json();}).then(function(u){
-        if(u&&u.app_metadata&&u.app_metadata.prix_ok){
+        if(u&&u.id){                                     /* n'importe quel compte valide */
           localStorage.setItem('prodi_cat_ok','1');
           try{
             _leadMode=false;
@@ -3915,7 +3915,7 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
 </div>
 <div class="spin-bg" id="spinner"><div class="spin"></div></div>
 
-<script src="/analytics.js?v=6"></script>
+<script src="/analytics.js?v=7"></script>
 <script src="/login-pop.js"></script>
 <script src="/fiche.js?v=1"></script>
 <script src="/catalogue.js?v=824"></script>

@@ -85,6 +85,21 @@
     } catch (e) { /* jamais bloquant */ }
   }
 
+  // ── IDENTITÉ DU COMPTE CONNECTÉ (08/10) : uid + e-mail du compte Supabase
+  // joints à CHAQUE événement (props.uid / props.em) → on reconstruit le
+  // parcours NOMMÉ d'un client (pageviews, filtres, fiches, panier, résa…)
+  // au lieu d'un visitor_id anonyme. Relu à chaque envoi (la connexion peut
+  // survenir en cours de session). Aucun appel réseau : lecture localStorage.
+  function authInfo() {
+    try {
+      var raw = localStorage.getItem('sb-bvcgpdoukhcatjibmvnb-auth-token');
+      if (!raw) return null;
+      var s = JSON.parse(raw); var u = s && s.user;
+      if (!u || !u.id) return null;
+      return { uid: u.id, em: (u.email || '').slice(0, 120) };
+    } catch (e) { return null; }
+  }
+
   // Événements métier reflétés vers Google Ads (balise AW du <head>) pour les
   // conversions des campagnes. Jamais pour l'équipe interne.
   // 25/08 : chaque événement pingue en plus SON action de conversion (labels
@@ -122,6 +137,7 @@
             if (attr.g) b.g = attr.g;
             if (attr.u) b.u = attr.u;
             if (geo) b.geo = geo;
+            var ai = authInfo(); if (ai) { b.uid = ai.uid; if (ai.em) b.em = ai.em; }
             return b;
           })(), props || {}),
         referrer: ref,

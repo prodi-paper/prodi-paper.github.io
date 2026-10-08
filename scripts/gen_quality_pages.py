@@ -522,7 +522,7 @@ TEMPLATE = '''<!DOCTYPE html>
   </div>
 </div>
 
-<script src="/analytics.js?v=6"></script>
+<script src="/analytics.js?v=7"></script>
 <script src="/vitrine.js?v=@@JSV@@"></script>
 <a href="@@WAURL@@" target="_blank" rel="noopener noreferrer" class="wa-sticky" title="WhatsApp" aria-label="Nous contacter sur WhatsApp">
   @@WASVGBIG@@
