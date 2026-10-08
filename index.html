@@ -2147,7 +2147,7 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
 <div id="ali-hero">
   <h1 class="ah-slogan">Votre fournisseur papier &amp; carton <em>depuis 1991</em></h1>
   <div class="ah-sub">LOTS ET FABRICATION</div>
-  <form class="ah-search" onsubmit="var q=document.getElementById('ah-q').value.trim();var si=document.getElementById('search-input');if(si){si.value=q;if(typeof filterProducts==='function')filterProducts();}return false;">
+  <form class="ah-search" onsubmit="var q=document.getElementById('ah-q').value.trim();location.href='/catalogue/'+(q?('?q='+encodeURIComponent(q)):'');return false;">
     <input id="ah-q" placeholder="Que recherchez-vous ?" autocomplete="off">
     <button type="submit">
       <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.6" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
