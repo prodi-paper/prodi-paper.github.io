@@ -97,7 +97,7 @@ function _fitCardImg(img){
 const attrJs = s => esc(JSON.stringify(String(s ?? '')));
 // numId: coerce id to integer for use in onclick handlers (prevents JS injection if id is non-numeric string)
 const numId = v => Number.isFinite(+v) ? +v : 0;
-const WA='33632096840';
+const WA='33609997407';
 let all=[],cur=null;
 // 08/08 (Ethan « enlève les tuiles, je veux voir les derniers arrivages en
 // premier ») : atterrissage PAR DÉFAUT = GRILLE triée « Arrivage : plus récents ».
@@ -8375,7 +8375,7 @@ async function cartPrixMail(btn){
   const sujet=encodeURIComponent('Demande de prix — ma sélection Prodiconseil');
   const corps=encodeURIComponent('Bonjour,\n\nJe souhaite recevoir le prix pour ma sélection :\n'+url+'\n\nMerci.');
   window.prodiTrack?.('prix_mail');
-  window.location.href='mailto:ethan@prodi.com?subject='+sujet+'&body='+corps;
+  window.location.href='mailto:clients@prodi.com?subject='+sujet+'&body='+corps;
 }
 async function cartPrixWa(btn){
   const url=await _cartShareUrl(btn); if(!url)return;
@@ -8726,7 +8726,7 @@ async function exportListExcelTest(btn){
         ['Contacts : ',18,true,NOIR,true],
         ['Véronique ELBILIA : Whatsapp :  + 33 6 09 46 77 48 / ve@prodi.com',18,true,NOIR,false],
         ['Julien CARON : Whatsapp :   +33 6 20 25 85 83 / vente@prodi.com',18,true,NOIR,false],
-        ['Service client : Whatsapp :  + 33 6 32 09 68 40 / clients@prodi.com',18,true,NOIR,false],
+        ['Service client : Whatsapp :  + 33 6 09 99 74 07 / clients@prodi.com',18,true,NOIR,false],
         ['Site : www.prodi.com ',16,false,BLEU_LIEN,true],
       ];
       let r=4;
@@ -9202,9 +9202,9 @@ function _buildSharedInfo(list){
     </div>
     <div class="si-card">
       <div class="si-title">Une question ?</div>
-      <a class="si-btn si-wa" href="https://wa.me/33632096840?text=Welcome%20!" target="_blank" rel="noopener noreferrer" onclick="window.prodiTrack?.('whatsapp_click',{via:'shared'})">WhatsApp</a>
-      <a class="si-btn" href="tel:+33632096840" onclick="window.prodiTrack?.('tel_click',{via:'shared'})">+33 6 32 09 68 40</a>
-      <a class="si-btn" href="mailto:ethan@prodi.com" onclick="window.prodiTrack?.('email_click',{via:'shared'})">ethan@prodi.com</a>
+      <a class="si-btn si-wa" href="https://wa.me/33609997407?text=Welcome%20!" target="_blank" rel="noopener noreferrer" onclick="window.prodiTrack?.('whatsapp_click',{via:'shared'})">WhatsApp</a>
+      <a class="si-btn" href="tel:+33609997407" onclick="window.prodiTrack?.('tel_click',{via:'shared'})">+33 6 09 99 74 07</a>
+      <a class="si-btn" href="mailto:clients@prodi.com" onclick="window.prodiTrack?.('email_click',{via:'shared'})">clients@prodi.com</a>
       <div class="si-row" style="color:#999"><span>Lun – Ven · 9h – 18h</span></div>
     </div>
     <div class="si-card">

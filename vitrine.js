@@ -307,7 +307,7 @@ async function submitContact(e) {
   } catch(err) {
     btn.disabled = false;
     btn.textContent = TR('Commencer','Get started');
-    alert(TR('Erreur — veuillez réessayer ou écrire à ethan@prodi.com','Something went wrong — please try again or email ethan@prodi.com'));
+    alert(TR('Erreur — veuillez réessayer ou écrire à clients@prodi.com','Something went wrong — please try again or email clients@prodi.com'));
   }
 }
 
@@ -581,7 +581,7 @@ async function submitLead(e){
     }
   }catch(err){
     btn.disabled=false; _leadBtnMode(!!_waUrl);
-    alert(TR('Erreur — veuillez réessayer ou écrire à ethan@prodi.com','Something went wrong — please try again or email ethan@prodi.com'));
+    alert(TR('Erreur — veuillez réessayer ou écrire à clients@prodi.com','Something went wrong — please try again or email clients@prodi.com'));
   }
 }
 
@@ -610,7 +610,7 @@ async function submitRappel(e){
     setTimeout(()=>{location.href='/merci/';},1200);
   }catch(err){
     btn.disabled=false; btn.textContent=TR('On vous rappelle','Request a call back');
-    alert(TR('Erreur — veuillez réessayer ou écrire à ethan@prodi.com','Something went wrong — please try again or email ethan@prodi.com'));
+    alert(TR('Erreur — veuillez réessayer ou écrire à clients@prodi.com','Something went wrong — please try again or email clients@prodi.com'));
   }
 }
 

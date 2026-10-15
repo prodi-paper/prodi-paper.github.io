@@ -12,7 +12,7 @@ import os, re
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CSS_V, ANALYTICS_V, JS_V = "326", "7", "191"
-WA = "https://wa.me/33632096840?text=Welcome%20!"
+WA = "https://wa.me/33609997407?text=Welcome%20!"
 
 CSP = ("default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net "
 "https://www.googletagmanager.com https://googleads.g.doubleclick.net https://www.googleadservices.com "
@@ -99,7 +99,7 @@ def header(lang):
       <a href="/">\U0001F1EB\U0001F1F7 Français</a>
     </nav>
     <div class="hd-divider"></div>
-    <a href="mailto:ethan@prodi.com" class="btn-cat">Contact →</a>
+    <a href="mailto:clients@prodi.com" class="btn-cat">Contact →</a>
   </div>
 </header>"""
     return """<header class="hd">
@@ -149,8 +149,8 @@ def footer(lang):
     <div class="ft2-col">
       <div class="ft2-h">Contact us</div>
       <a href="{WA}" target="_blank" rel="noopener noreferrer">WhatsApp</a>
-      <a href="tel:+33632096840">+33 6 32 09 68 40</a>
-      <a href="mailto:ethan@prodi.com">ethan@prodi.com</a>
+      <a href="tel:+33609997407">+33 6 09 99 74 07</a>
+      <a href="mailto:clients@prodi.com">clients@prodi.com</a>
     </div>
   </div>
   <div class="ft2-bottom">© 2026 Prodiconseil · Paper &amp; board stock · Warehouse Amiens, France — 14,000 m² · <a href="/confidentialite/" style="color:inherit">Privacy</a> · <a href="/">Site en français</a></div>
@@ -190,8 +190,8 @@ def footer(lang):
     <div class="ft2-col">
       <div class="ft2-h">Nous joindre</div>
       <a href="{WA}" target="_blank" rel="noopener noreferrer">WhatsApp</a>
-      <a href="tel:+33632096840">+33 6 32 09 68 40</a>
-      <a href="mailto:ethan@prodi.com">ethan@prodi.com</a>
+      <a href="tel:+33609997407">+33 6 09 99 74 07</a>
+      <a href="mailto:clients@prodi.com">clients@prodi.com</a>
     </div>
   </div>
   <div class="ft2-markets">
@@ -207,7 +207,7 @@ def gate(lang):
              code="Access code" if lang=="en" else "Code d'accès",
              confirm="Confirm" if lang=="en" else "Confirmer",
              notyet="Not a customer yet?" if lang=="en" else "Pas encore client ?",
-             dest="'mailto:ethan@prodi.com'" if lang=="en" else "'/contact/'")
+             dest="'mailto:clients@prodi.com'" if lang=="en" else "'/contact/'")
     return f"""<div id="stock-gate" class="stock-gate" style="display:none" role="dialog" aria-modal="true" aria-label="{t['label']}">
   <div class="stock-gate-overlay" onclick="closeStockGate()"></div>
   <div class="stock-gate-card">
@@ -357,7 +357,7 @@ def render(g):
     <h2>{g['cta_h']}</h2>
     <p>{g['cta_p']}</p>
     <div class="gp-cta-btns">
-      <a href="{'mailto:ethan@prodi.com' if g['lang']=='en' else '/contact/'}" class="btn-cat">{T['cta_btn']}</a>
+      <a href="{'mailto:clients@prodi.com' if g['lang']=='en' else '/contact/'}" class="btn-cat">{T['cta_btn']}</a>
       <a class="gp-wa" href="{WA}" target="_blank" rel="noopener noreferrer">{WA_SVG} WhatsApp</a>
     </div>
   </section>
