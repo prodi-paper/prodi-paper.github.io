@@ -3939,14 +3939,15 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
 </div>
 <div class="spin-bg" id="spinner"><div class="spin"></div></div>
 
-<script src="/analytics.js?v=7"></script>
+<script src="/analytics.js?v=8"></script>
 <script src="/login-pop.js"></script>
 <script src="/fiche.js?v=1"></script>
-<script src="/catalogue.js?v=825"></script>
+<script src="/catalogue.js?v=826"></script>
 <script>
 (function(){var Q=window._preQ||[];document.documentElement.style.cursor='';window._preQ=[];
   if(window._axDispoLater&&window.axDispo){window._axDispoLater=0;try{window.axDispo();}catch(e){}} /* défaut Dispo AVANT les clics du visiteur */
-  Q.forEach(function(c){var f=window[c[0]];if(typeof f==='function'&&!f._stub){try{f.apply(c[1],c[2]);}catch(e){}}});})();
+  Q.forEach(function(c){var f=window[c[0]];if(typeof f==='function'&&!f._stub){try{f.apply(c[1],c[2]);}catch(e){}}});
+  if(Q.length)try{window.prodiTrack&&window.prodiTrack('clic_avant_charge',{n:Q.length,f:Q.map(function(c){return c[0]}).join(',').slice(0,200),ms:Math.round(performance.now())});}catch(e){}})();
 </script>
 <script src="/account-sync.js?v=1"></script>
 <script src="/nav-menu.js?v=1"></script>

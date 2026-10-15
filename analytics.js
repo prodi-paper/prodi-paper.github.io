@@ -194,7 +194,7 @@
   // sur un navigateur qu'on ne teste pas (vieux Safari, webviews…) ──────────
   var errN = 0;
   addEventListener('error', function (e) {
-    if (errN >= 3 || !e.message) return;
+    if (errN >= 5 || !e.message) return;
     errN++;
     send('js_error', {
       m: String(e.message).slice(0, 120),
@@ -203,13 +203,157 @@
     });
   });
 
+  // ════════════════════════════════════════════════════════════════════════
+  // TRAQUEURS D'USAGE (15/10) — « où ça va, où ça coince ». Tout est générique,
+  // plafonné par page et fire-and-forget. Bilan : ~/Code/prodi_dashboard/bilan_ux.py
+  //   ui_clic          chaque clic sur un élément interactif (libellé + élément)
+  //   rage_clic        ≥3 clics en 1 s au même endroit (frustration)
+  //   clic_mort        clic sur un élément interactif SANS aucun effet en 1,2 s
+  //   ui_erreur        message d'erreur rendu visible à l'écran (#…err…, .…err…)
+  //   form_invalide    champ refusé par la validation native du navigateur
+  //   popup_vu/_ferme  fenêtres modales (ouverture, fermeture + durée + action ?)
+  //   perf             vitesse réelle (TTFB, DOM prêt, chargement, LCP, réseau)
+  //   recherche        + barre de recherche du header (via:'header')
+  //   duree            + nb de clics et DERNIER élément cliqué avant de partir
+  // ════════════════════════════════════════════════════════════════════════
+  var INTER = 'a,button,[onclick],[role=button],summary,select,label,input[type=checkbox],input[type=radio],input[type=submit],tr[onclick],[data-xli]';
+  function lbl(el) {
+    try {
+      var t = (el.getAttribute('aria-label') || el.innerText || el.value || el.title || '').replace(/\s+/g, ' ').trim();
+      return t.slice(0, 40);
+    } catch (e) { return ''; }
+  }
+  function sig(el) {
+    try {
+      var c = (typeof el.className === 'string' ? el.className : '').trim().split(/\s+/).slice(0, 2).join('.');
+      return (el.tagName || '').toLowerCase() + (el.id ? '#' + el.id : '') + (c ? '.' + c : '');
+    } catch (e) { return '?'; }
+  }
+  var nClic = 0, lastClic = null, clicN = 0, mortN = 0, rageSeen = {}, recent = [];
+  var mut = 0;
+  try { new MutationObserver(function (m) { mut += m.length; }).observe(document.documentElement, { subtree: true, childList: true, attributes: true, characterData: true }); } catch (e) {}
+  document.addEventListener('click', function (e) {
+    try {
+      if (!e.isTrusted) return; /* clics simulés par le code (ex. « Dispo » auto) ≠ visiteur */
+      var el = e.target && e.target.closest && e.target.closest(INTER);
+      var now = Date.now();
+      // rage : 3 clics en 1 s dans un rayon de 40 px (même sur zone non interactive)
+      recent.push({ t: now, x: e.clientX, y: e.clientY });
+      recent = recent.filter(function (r) { return now - r.t < 1000 && Math.abs(r.x - e.clientX) < 40 && Math.abs(r.y - e.clientY) < 40; });
+      if (recent.length >= 3) {
+        var tgt = el || e.target, k = sig(tgt);
+        if (!rageSeen[k]) { rageSeen[k] = 1; send('rage_clic', { t: lbl(tgt), el: k }); }
+        recent = [];
+      }
+      if (!el) return;
+      nClic++; lastClic = (lbl(el) || sig(el)).slice(0, 40);
+      if (clicN < 80) { clicN++; send('ui_clic', { t: lbl(el), el: sig(el), y: Math.round(e.clientY / innerHeight * 100) }); }
+      // clic mort : aucune mutation DOM, pas de navigation, pas de nouveau focus
+      if (mortN < 10 && !/^(select|label|input)$/i.test(el.tagName)) {
+        var m0 = mut, u0 = location.href, f0 = document.activeElement;
+        setTimeout(function () {
+          if (mut === m0 && location.href === u0 && document.activeElement === f0 && !document.hidden) {
+            mortN++; send('clic_mort', { t: lbl(el), el: sig(el) });
+          }
+        }, 1200);
+      }
+    } catch (err) { /* jamais bloquant */ }
+  }, true);
+
+  // erreurs : plafond relevé 3 → 5 + promesses rejetées non gérées
+  addEventListener('unhandledrejection', function (e) {
+    if (errN >= 5) return; errN++;
+    try { send('js_error', { m: ('promesse: ' + String((e.reason && (e.reason.message || e.reason)) || '')).slice(0, 120), s: 'promise', l: 0 }); } catch (x) {}
+  });
+
+  // messages d'erreur rendus visibles (login, formulaires, panier…)
+  var errSeen = {}, errChk = null, uiErrN = 0;
+  function scanErr() {
+    errChk = null;
+    try {
+      document.querySelectorAll('[id*="err"],[class*="-err"],[class*="err-"],[class*="error"],[role=alert]').forEach(function (n) {
+        if (uiErrN >= 10 || !n.offsetParent) return;
+        var t = (n.innerText || '').replace(/\s+/g, ' ').trim();
+        if (t.length < 3 || errSeen[t]) return;
+        errSeen[t] = 1; uiErrN++;
+        send('ui_erreur', { id: sig(n), m: t.slice(0, 140) });
+      });
+    } catch (e) {}
+  }
+  try { new MutationObserver(function () { if (!errChk) errChk = setTimeout(scanErr, 600); }).observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['style', 'class', 'hidden'], characterData: true }); } catch (e) {}
+
+  // champs refusés par la validation native (required, type=email, minlength…)
+  var invSeen = {};
+  document.addEventListener('invalid', function (e) {
+    try {
+      var i = e.target, f = i.form, k = (f ? sig(f) : '') + '|' + (i.name || i.id || i.type);
+      if (invSeen[k]) return; invSeen[k] = 1;
+      send('form_invalide', { f: f ? sig(f) : null, c: (i.name || i.id || i.type || '').slice(0, 30), m: (i.validationMessage || '').slice(0, 80) });
+    } catch (x) {}
+  }, true);
+
+  // recherche du header (formulaire présent sur toutes les pages)
+  document.addEventListener('submit', function (e) {
+    try {
+      var f = e.target; if (!f || !f.querySelector) return;
+      if (/hsearch|ah-search/.test(f.className || '')) {
+        var q = (f.querySelector('input[type=search],input[type=text],input:not([type])') || {}).value || '';
+        if (q.trim()) send('recherche', { q: q.trim().toLowerCase().slice(0, 80), via: 'header' });
+      }
+    } catch (x) {}
+  }, true);
+
+  // fenêtres modales : vues, fermées sans action, durée d'exposition
+  var POPS = ['axsub-bg', 'ali-exit', 'lgp-bg', 'lead-modal', 'cat-lead-pop', 'px-fiche', 'detail-bg', 'filter-drawer', 'cart-drawer', 'equipe-modal'];
+  var popOpen = {};
+  function isOpen(n) {
+    if (!n) return false;
+    var cs = getComputedStyle(n), r = n.getBoundingClientRect();
+    /* tiroirs fermés = affichés mais translatés HORS écran → exiger un vrai recouvrement du viewport */
+    return cs.display !== 'none' && cs.visibility !== 'hidden' && +cs.opacity > 0.05 && r.height > 40
+      && Math.min(r.right, innerWidth) - Math.max(r.left, 0) > innerWidth * 0.3
+      && Math.min(r.bottom, innerHeight) - Math.max(r.top, 0) > innerHeight * 0.3;
+  }
+  function scanPops() {
+    POPS.forEach(function (id) {
+      var n = document.getElementById(id), o = isOpen(n);
+      if (o && !popOpen[id]) { popOpen[id] = { t: Date.now(), c: nClic }; send('popup_vu', { id: id }); }
+      else if (!o && popOpen[id]) {
+        var d = popOpen[id]; delete popOpen[id];
+        send('popup_ferme', { id: id, sec: Math.round((Date.now() - d.t) / 1000), clics: nClic - d.c });
+      }
+    });
+  }
+  var popChk = null;
+  try { new MutationObserver(function () { if (!popChk) popChk = setTimeout(function () { popChk = null; scanPops(); }, 300); }).observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['class', 'style', 'hidden', 'open'] }); } catch (e) {}
+
+  // vitesse réelle vécue par le visiteur (1×/page, 4 s après le chargement)
+  var lcp = 0;
+  try { new PerformanceObserver(function (l) { var es = l.getEntries(); if (es.length) lcp = Math.round(es[es.length - 1].startTime); }).observe({ type: 'largest-contentful-paint', buffered: true }); } catch (e) {}
+  addEventListener('load', function () {
+    setTimeout(function () {
+      try {
+        var nv = performance.getEntriesByType('navigation')[0] || {};
+        var cj = performance.getEntriesByType('resource').filter(function (r) { return /catalogue\.js/.test(r.name); })[0];
+        var cn = navigator.connection || {};
+        send('perf', {
+          ttfb: Math.round(nv.responseStart || 0), dom: Math.round(nv.domContentLoadedEventEnd || 0),
+          load: Math.round(nv.loadEventEnd || performance.now()), lcp: lcp,
+          cjs: cj ? Math.round(cj.responseEnd) : null, net: cn.effectiveType || null, dl: cn.downlink || null,
+        });
+      } catch (e) {}
+    }, 4000);
+  });
+
   // ── Durée de visite : un ping à la sortie (sendBeacon-like via keepalive) ─
+  // 15/10 : + nombre de clics et dernier élément cliqué (où part-on ?)
   var t0 = Date.now();
   var sent = false;
   addEventListener('pagehide', function () {
     if (sent) return;
     sent = true;
     var sec = Math.round((Date.now() - t0) / 1000);
-    if (sec >= 5) send('duree', { sec: Math.min(sec, 3600), depth: maxDepth });
+    try { Object.keys(popOpen).forEach(function (id) { send('popup_ferme', { id: id, sec: Math.round((Date.now() - popOpen[id].t) / 1000), sortie: 1 }); }); } catch (e) {}
+    if (sec >= 5) send('duree', { sec: Math.min(sec, 3600), depth: maxDepth, clics: nClic, dernier: lastClic });
   });
 })();

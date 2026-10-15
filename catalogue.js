@@ -3972,6 +3972,7 @@ async function _fetchAndRender(token){
     clearTimeout(_to);
     if(_reqToken!==token)return;
     const msg=e?.name==='AbortError'?'Délai dépassé — vérifiez votre connexion.':'Impossible de joindre le serveur.';
+    window.prodiTrack?.('erreur_chargement',{m:String(e?.name||e?.message||'reseau').slice(0,60)});
     if(g)g.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="empty-lbl">${'ERREUR RÉSEAU'}</div><div class="empty-sub">${msg}</div><button class="btn-empty-reset" onclick="_doFilter()">${'↺ Réessayer'}</button></div>`;
     return;
   }
@@ -3980,6 +3981,7 @@ async function _fetchAndRender(token){
 
   if(error){
     console.error(error);
+    window.prodiTrack?.('erreur_chargement',{m:String(error.message||error).slice(0,100)});
     if(g)g.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="empty-lbl">${'ERREUR'}</div><div class="empty-sub">${esc(error.message||'Impossible de charger les produits.')}</div><button class="btn-empty-reset" onclick="_doFilter()">${'↺ Réessayer'}</button></div>`;
     return;
   }
@@ -4851,8 +4853,12 @@ function _xlSetSel(p,on){   // silencieux (pas de toast/re-render par unité) �
     if(on&&i<0){
       const u=all.find(x=>x.id===+id)||(typeof _landingUnitsById!=='undefined'&&_landingUnitsById.get(+id))||p;
       cart.push({id:+id,name:u.name,ref:u.ref,type:u.type,qualite:u.qualite||null,details:u.details||null,grammage:u.grammage,largeur:u.largeur,longueur:u.longueur||null,noyau:u.noyau||null,format:u.format,poids_net:u.poids_net,price:u.price||null,img:u.image_url||null,couleur:u.couleur||null,usine:u.usine||null,zone:u.zone||null,emplacement:u.emplacement||null,allee:u.allee||null,reserve_client:u.reserve_client||null,titre:(typeof formatProductTitle==='function'?formatProductTitle(u.qualite,u.name):u.name),detailTxt:(typeof getProductDetailText==='function'?getProductDetailText(u):(u.details||null))});
-      window.prodiTrack?.('panier_ajout',{ref:u.ref,via:'vue_excel'});
-    } else if(!on&&i>=0)cart.splice(i,1);
+      window.prodiTrack?.('panier_ajout',{ref:u.ref,via:window._xlVia||'vue_excel'});(window._addT=window._addT||{})[+id]=Date.now();
+    } else if(!on&&i>=0){
+      // 15/10 traqueur : retrait + délai depuis l'ajout (ajout ACCIDENTEL si < 10 s)
+      const t=(window._addT||{})[+id];window.prodiTrack?.('panier_retrait',{ref:cart[i].ref,via:window._xlVia||'vue_excel',s:t?Math.round((Date.now()-t)/1000):null});
+      cart.splice(i,1);
+    }
   });
 }
 /* re-rendu de la vue Excel SANS perdre la position de scroll du cadre */
@@ -4896,12 +4902,15 @@ function _xlRowClick(ev,i){
   const rows=window._xlRows||[];const p=rows[i];if(!p)return;
   if(ev&&ev.shiftKey&&_xlAnchor>=0){
     const a=Math.min(_xlAnchor,i),b=Math.max(_xlAnchor,i);
+    window._xlVia='ligne_maj';
     for(let k=a;k<=b;k++)_xlSetSel(rows[k],true);
     try{document.getSelection().removeAllRanges();}catch(e){}
   }else{
+    window._xlVia='ligne'; /* clic sur la LIGNE (pas le +) — mesurer les ajouts involontaires */
     _xlSetSel(p,!_xlIsSel(p));
     _xlAnchor=i;
   }
+  window._xlVia=null;
   window._xlActive=i;
   _xlFlush();
 }
@@ -5272,13 +5281,13 @@ document.addEventListener('keydown',function(e){
     window._xlActive=i;
     // clavier : on SUIT toujours la ligne active (le no-scroll ne vaut que
     // pour le clic souris — Maj+↓ partait hors écran, 04/10 Ethan)
-    if(e.shiftKey){_xlSetSel(rows[i],true);_xlFlush();_xlPaintActive(true);}
+    if(e.shiftKey){window._xlVia='clavier';_xlSetSel(rows[i],true);window._xlVia=null;_xlFlush();_xlPaintActive(true);}
     else{_xlAnchor=i;_xlPaintActive(true);}
   } else if(e.key===' '){
     if(window._xlActive<0||!rows.length)return;
     e.preventDefault();
     const p=rows[window._xlActive];
-    _xlSetSel(p,!_xlIsSel(p));_xlAnchor=window._xlActive;_xlFlush();_xlPaintActive(true);
+    window._xlVia='clavier';_xlSetSel(p,!_xlIsSel(p));window._xlVia=null;_xlAnchor=window._xlActive;_xlFlush();_xlPaintActive(true);
   } else if(e.key==='Enter'){
     if(window._xlActive<0||!rows.length)return;
     e.preventDefault();
@@ -5310,6 +5319,9 @@ function render(list){
       const idx=FILTER_INTENTS.indexOf(fi);
       return `<button class="btn-empty-reset" style="margin:4px 4px 0;background:var(--ink);color:#fff;" onclick="_applyFilterIntent(FILTER_INTENTS[${idx}])">→ Filtre : ${fi.label}</button>`;
     }).join(''):'';
+    try{const _zq=(document.getElementById('search-input')?.value||new URLSearchParams(location.search).get('q')||'').trim().slice(0,80);
+      const _zf=[...document.querySelectorAll('#filter-chips .fchip,#topbar-row2 .fchip')].map(c=>c.textContent.replace(/[✕×]/g,'').trim()).filter(Boolean).join(' | ').slice(0,300);
+      const _zk=_zq+'§'+_zf;if(window._zLast!==_zk){window._zLast=_zk;window.prodiTrack?.('zero_resultat',{q:_zq,f:_zf});}}catch(_){} /* 15/10 traqueur */
     g.innerHTML=`<div class="empty" style="grid-column:1/-1">
       <div class="empty-svg">
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -6013,7 +6025,8 @@ function _trackMasse(via,avant){
 function addToCart(id,productObj){
   const p=productObj||all.find(x=>x.id===+id)||_landingUnitsById.get(+id);if(!p)return; // repli accueil (rangées)
   const alreadyIn=cart.find(x=>x.id===+id);
-  if(!alreadyIn)window.prodiTrack?.('panier_ajout',{ref:p.ref});
+  if(!alreadyIn){window.prodiTrack?.('panier_ajout',{ref:p.ref,via:'plus'});(window._addT=window._addT||{})[+id]=Date.now();}
+  else{const t=(window._addT||{})[+id];window.prodiTrack?.('panier_retrait',{ref:p.ref,via:'plus',s:t?Math.round((Date.now()-t)/1000):null});}
   const mab=document.getElementById('modal-add-btn');
   if(alreadyIn){
     // Toggle OFF — remove from cart
