@@ -210,7 +210,7 @@ gtag('config', 'G-KYEHH64T17');
   /* header /catalogue/ : burger + logo + panier alignés sur UNE ligne ; bande grise (r2) en dessous */
   body.cat-page.topbar-view:not(.shared-view) .header-inner{display:flex !important;flex-wrap:wrap;align-items:center;gap:6px;height:auto !important;}
   body.cat-page #mob-hdr-r1{flex:1 1 auto;width:auto !important;min-width:0;overflow:visible !important;}
-  body.cat-page #mob-hdr-r2{flex-basis:100%;width:100%;}
+  body.cat-page #mob-hdr-r2{flex-basis:calc(100% + 40px);width:calc(100% + 40px);} /* + les marges -20px : bande grise bord à bord (15/10) */
 }
 /* table Excel : scroll horizontal DÉCOUVRABLE sur mobile/tablette (barre visible + tactile) */
 @media(max-width:1135px){
@@ -1498,7 +1498,20 @@ window.axLotGo=function(i){
     if(b&&!document.body.classList.contains('shared-view'))b.classList.add('open');
   },150);
 })();
+/* Échap ferme les popups d'arrivée / de sortie (15/10 : seule la croix marchait) */
+document.addEventListener('keydown',function(e){if(e.key!=='Escape')return;['axsub-bg','ali-exit'].forEach(function(id){var b=document.getElementById(id);if(b)b.classList.remove('open');});});
+var AXK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2Y2dwZG91a2hjYXRqaWJtdm5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNzg5MjgsImV4cCI6MjA4Nzg1NDkyOH0.Ip3ykSUS9sajTH04yXBerOG1haBKMD1kAvMQNjnGL1Q'; /* clé anon publique */
 function axSubGo(f,bgId){
+  /* 15/10 : le formulaire n'enregistrait RIEN (affichait « Bien reçu » seulement) → email perdu.
+     Désormais → proforma_requests statut vitrine_contact (même circuit que le contact : trigger → Bitrix). */
+  try{
+    var em=(f.querySelector('[name=mail]')||{}).value||'';
+    var qs=[].map.call(f.querySelectorAll('.axsub-q.on'),function(q){return q.textContent.trim();}).join(', ');
+    fetch('https://bvcgpdoukhcatjibmvnb.supabase.co/rest/v1/proforma_requests',{method:'POST',keepalive:true,
+      headers:{'apikey':AXK,'Authorization':'Bearer '+AXK,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify({email:em.trim().slice(0,200),message:('Inscription offres par email (popup) — Qualités : '+(qs||'non précisées')).slice(0,2000),quantite_souhaitee:'Newsletter — '+location.pathname,statut:'vitrine_contact'})});
+    window.prodiTrack&&window.prodiTrack('contact_envoye',{via:'newsletter',q:qs});
+  }catch(e){}
   f.style.display='none';
   var ok=f.parentElement.querySelector('.axsub-ok'); ok.style.display='block';
   setTimeout(function(){
@@ -3573,8 +3586,8 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
             <div class="pcard pcard-video">
               <!-- Pas d'autoplay : chargée + lancée par IntersectionObserver quand la
                    section approche (vitrine.js) — elle est loin sous le fold. -->
-              <video id="depot-vid" muted loop playsinline preload="none" poster="assets/depot-amiens-poster.jpg">
-                <source src="assets/depot-amiens.mp4" type="video/mp4">
+              <video id="depot-vid" muted loop playsinline preload="none" poster="/assets/depot-amiens-poster.jpg">
+                <source src="/assets/depot-amiens.mp4" type="video/mp4">
               </video>
               <button class="qtile-btn qtile-btn-red pcard-cta" type="button" onclick="window.prodiTrack?.('pcard',{q:'depot_contact'});showPage('contact')">Visite →</button>
             </div>
@@ -3587,7 +3600,7 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
             <div class="pcard pcard-flipcard" id="pcard-log">
               <div class="pcard-flip">
                 <div class="pcard-face pcard-front">
-                  <img class="pcard-img" src="img/carte_logistique.webp" alt="Logistique conteneur" loading="lazy">
+                  <img class="pcard-img" src="/img/carte_logistique.webp" alt="Logistique conteneur" loading="lazy">
                   <button class="qtile-btn qtile-btn-white pcard-cta" type="button" onclick="pcardFlip('log',1)">En savoir +</button>
                 </div>
                 <div class="pcard-face pcard-back">
@@ -3607,7 +3620,7 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
             <div class="pcard pcard-flipcard" id="pcard-stock">
               <div class="pcard-flip">
                 <div class="pcard-face pcard-front">
-                  <img class="pcard-img" src="img/carte_stock.webp" alt="Stock papier au dépôt" loading="lazy">
+                  <img class="pcard-img" src="/img/carte_stock.webp" alt="Stock papier au dépôt" loading="lazy">
                   <button class="qtile-btn qtile-btn-red pcard-cta" type="button" onclick="window.prodiTrack?.('pcard',{q:'stock_voir'});openStock()">Voir le stock</button>
                 </div>
                 <div class="pcard-face pcard-back">
@@ -3625,7 +3638,7 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
               <div class="pcard-title">+ 30 ans d'expertise</div>
             </div>
             <div class="pcard" onclick="equipeOpen()" style="cursor:pointer;">
-              <img class="pcard-img" src="img/carte_leadership.webp?v=2" alt="Chariot élévateur transportant une bobine de papier au dépôt Prodiconseil" loading="lazy">
+              <img class="pcard-img" src="/img/carte_leadership.webp?v=2" alt="Chariot élévateur transportant une bobine de papier au dépôt Prodiconseil" loading="lazy">
               <button class="qtile-btn qtile-btn-white pcard-cta" type="button" onclick="equipeOpen()">Voir l'équipe</button>
             </div>
           </div>

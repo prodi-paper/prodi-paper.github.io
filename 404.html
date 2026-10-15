@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+<script>
+/* Anciennes URLs de l'ex-site (paper.prodi.com/default/…, /login) encore indexées :
+   paper.prodi.com redirige le chemin tel quel vers prodi.com → 404 (15/10 : ~20 visites/sem). */
+(function(){var p=location.pathname.toLowerCase(),d=null;
+  if(/^\/default\//.test(p))d='/catalogue/';
+  else if(/^\/(login|connexion|signin|sign-in|account|mon-compte)\/?$/.test(p))d='/compte/';
+  if(d)location.replace(d+location.search);})();
+</script>
 <script src="/analytics.js?v=7"></script>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18393110999"></script>
