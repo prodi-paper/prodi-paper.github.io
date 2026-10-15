@@ -2,6 +2,16 @@
 <html lang="fr" data-lang="fr">
 <head>
 <script src="/i18n.js?v=2"></script>
+<script>
+/* Boutons actifs AVANT catalogue.js (15/10) : catalogue.js (~530 Ko) est chargé en fin de page ;
+   sur connexion lente un clic sur Filtres/Réservés/€$… levait « X is not defined » (js_error EG/PK/TN/MA).
+   Stubs qui mettent les clics en file, rejoués dans l'ordre juste après catalogue.js
+   (les déclarations function de catalogue.js remplacent ces stubs). */
+(function(){var Q=window._preQ=[];["_clearList", "_editListPrompt", "addPageToCart", "addToCart", "cartPrixMail", "cartPrixWa", "closeCartDrawer", "closeCartProforma", "closeDetail", "closeFilterDrawer", "closeProforma", "closeScanModal", "copyCartLink", "doClearCart", "exportListExcelTest", "filterProducts", "navDetail", "openCartDrawer", "openFilterDrawer", "openProdix", "openScanModal", "resetFilters", "scheduleFilter", "sendCartProforma", "sendProforma", "syncMobFilter", "toggleCurrency", "toggleFabMenu", "toggleFbMsd", "toggleFbPill", "toggleFdSection", "toggleFormatPill", "toggleGroupedMode", "toggleMobFilters", "toggleMobSearch", "toggleMsd", "toggleOffreMenu", "togglePhotoPill", "toggleResaPill", "toggleView"].forEach(function(n){
+  if(typeof window[n]==='function')return;
+  var s=function(){Q.push([n,this,arguments]);document.documentElement.style.cursor='progress';};
+  s._stub=1;window[n]=s;});})();
+</script>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18393110999"></script>
 <script>
@@ -2614,6 +2624,7 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
        SAUF en mode accueil (ax-nofil) : aucun filtre actif pour laisser le
        moteur servir le mix vitrine des derniers arrivages */
     window.axDispo=function(){
+      if(window.toggleResaPill&&window.toggleResaPill._stub){window._axDispoLater=1;return;} /* catalogue.js pas encore là : rejoué après */
       var pd=document.querySelector('.sidebar-col .fpill-resa[data-resa="without"]');
       if(pd&&!(pd.classList.contains('active')||pd.classList.contains('selected'))) pd.click();
     };
@@ -3918,7 +3929,12 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
 <script src="/analytics.js?v=7"></script>
 <script src="/login-pop.js"></script>
 <script src="/fiche.js?v=1"></script>
-<script src="/catalogue.js?v=824"></script>
+<script src="/catalogue.js?v=825"></script>
+<script>
+(function(){var Q=window._preQ||[];document.documentElement.style.cursor='';window._preQ=[];
+  if(window._axDispoLater&&window.axDispo){window._axDispoLater=0;try{window.axDispo();}catch(e){}} /* défaut Dispo AVANT les clics du visiteur */
+  Q.forEach(function(c){var f=window[c[0]];if(typeof f==='function'&&!f._stub){try{f.apply(c[1],c[2]);}catch(e){}}});})();
+</script>
 <script src="/account-sync.js?v=1"></script>
 <script src="/nav-menu.js?v=1"></script>
 <script>

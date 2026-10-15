@@ -4887,6 +4887,11 @@ function _xlFlush(){
   }
   _xlPaintActive();
 }
+// Clic sur la cellule Réf. de la vue Excel → copie la référence (appelée par le rendu des lignes, manquait : ReferenceError 08-09/10)
+function _xlCopyRef(ref,el){
+  const done=()=>toast('📋 Réf. '+ref+' copiée');
+  try{navigator.clipboard.writeText(ref).then(done,()=>toast('Réf. '+ref));}catch(e){toast('Réf. '+ref);}
+}
 function _xlRowClick(ev,i){
   const rows=window._xlRows||[];const p=rows[i];if(!p)return;
   if(ev&&ev.shiftKey&&_xlAnchor>=0){
