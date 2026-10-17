@@ -36,6 +36,14 @@ STYLE = """.geopage{padding-top:64px;}
 .gp-links a:hover{text-decoration:underline;}"""
 
 # region key -> libellé
+# Titres/descriptions réécrits pour le CTR (Ludo, T0004, 17/10/2026) — < 60 / < 155 car.
+SEO_OVERRIDE = {
+ "maroc": ("Fournisseur papier & carton au Maroc | Prodiconseil",
+           "Offset, couché, kraft et cartons en bobines et formats, expédiés vers Casablanca, Tanger Med et Agadir. Stock en France, EUR.1 fourni, devis 24 h."),
+ "turquie": ("Fournisseur papier & carton en Turquie | Prodiconseil",
+             "Offset, couché, kraft et cartons en bobines et formats, expédiés vers Istanbul, Izmir et Mersin. Stock en France, document A.TR fourni, devis 24 h."),
+}
+
 REGIONS = {
  "maghreb": "Maghreb",
  "afrique-ouest": "Afrique de l'Ouest",
@@ -269,10 +277,11 @@ def build(slug, d):
     foot_zones = "\n".join('      <a href="/'+flag[rk]+'/">'+html.escape(lbl)+'</a>' for rk,lbl in REGIONS.items())
     lead = d["ctx"]+" Avec un stock permanent de plus de 10 000 tonnes en France, nous répondons rapidement — bobines et formats disponibles immédiatement."
     para = "Nous proposons une large gamme de papier offset et de papier journal pour l'édition, de couché pour le packaging, de kraft pour l'emballage et de cartons pour la boîte pliante. Notre équipe connaît les contraintes documentaires de l'import "+au+" et accompagne chaque expédition."
-    return TEMPL.replace("@@TITLE@@", html.escape("Fournisseur de papier & carton "+au+" — Import export | Prodiconseil")) \
-      .replace("@@DESC@@", html.escape("Fournisseur et grossiste de papier & carton pour "+("le "+nom if region in ('europe',) or nom in ('Maroc','Sénégal','Cameroun','Gabon','Congo','Togo','Bénin','Mali','Tchad','Kenya','Liban','Portugal') else nom)+" : offset, couché, kraft, cartons en bobines et formats. Expédition vers "+", ".join(d["cities"][:3])+". Devis 24 h.")) \
+    _seo = SEO_OVERRIDE.get(slug)
+    return TEMPL.replace("@@TITLE@@", html.escape(_seo[0] if _seo else "Fournisseur de papier & carton "+au+" — Import export | Prodiconseil")) \
+      .replace("@@DESC@@", html.escape(_seo[1]) if _seo else html.escape("Fournisseur et grossiste de papier & carton pour "+("le "+nom if region in ('europe',) or nom in ('Maroc','Sénégal','Cameroun','Gabon','Congo','Togo','Bénin','Mali','Tchad','Kenya','Liban','Portugal') else nom)+" : offset, couché, kraft, cartons en bobines et formats. Expédition vers "+", ".join(d["cities"][:3])+". Devis 24 h.")) \
       .replace("@@URL@@", url).replace("@@REGION@@", html.escape(reglabel)) \
-      .replace("@@OGT@@", html.escape("Fournisseur de papier & carton "+au+" — Prodiconseil")) \
+      .replace("@@OGT@@", html.escape(_seo[0] if _seo else "Fournisseur de papier & carton "+au+" — Prodiconseil")) \
       .replace("@@BREAD@@", html.escape("Papier & carton "+au)) \
       .replace("@@H1@@", html.escape("Fournisseur de papier & carton "+au)) \
       .replace("@@SUB@@", html.escape("Négociant français depuis 1991 — nous approvisionnons imprimeurs, transformateurs et distributeurs "+("de "+nom if False else au.replace('en ','de ').replace('au ','du ').replace('aux ','des ').replace('à ','de '))+" en bobines et formats, expédiés vers "+", ".join(d["cities"][:3])+".")) \

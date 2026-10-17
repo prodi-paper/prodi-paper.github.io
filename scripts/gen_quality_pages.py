@@ -107,8 +107,8 @@ PAGES = {
  },
  "carton-couche": {
   "t": "Carton couché", "code": "RBOA",
-  "title": "Carton couché GC1, GC2, GD, GT — Fournisseur | Prodiconseil",
-  "desc": "Fournisseur de carton couché pour boîte pliante et packaging : GC1/GC2 dos blanc ou crème, GD2 dos gris, GT4/CKB dos kraft, face aluminium. Stock, devis 24 h.",
+  "title": "Carton couché GC1, GC2, GD2 en stock | Prodiconseil",
+  "desc": "Carton couché pour étuis et boîtes pliantes : GC1, GC2, GD2, dos kraft CKB, face alu, en formats et bobines. Stock en France, export, devis sous 24 h.",
   "sub": "Le carton du packaging et de la belle boîte — GC, GD, GT et faces spéciales, en bobines et en formats.",
   "lead": "Le carton couché est le support de la boîte pliante et du packaging premium. Sa face couchée reçoit une impression nette ; son dos (blanc, crème, gris ou kraft) et son grammage se choisissent selon l'usage. Prodiconseil tient en stock les principales familles.",
   "para": "GC1 et GC2 (dos blanc ou crème) pour le packaging haut de gamme, GD2 (dos gris, à base de fibres recyclées) pour la boîte économique, GT4 et CKB (dos kraft) pour le naturel et l'alimentaire. Nous proposons aussi des faces aluminium pour l'emballage alimentaire. En bobines et en formats, disponibles immédiatement.",
@@ -245,8 +245,8 @@ PAGES = {
  },
  "ramette": {
   "t": "Ramette", "code": "CUT",
-  "title": "Papier ramette A4 A3 pour reprographie et bureautique | Prodiconseil",
-  "desc": "Fournisseur de papier ramette : formats bureautiques A4, A3, SRA3 pour reprographie, laser et jet d'encre. Blancheur, palettes complètes. Stock, devis sous 24 h.",
+  "title": "Papier ramette A4 et A3 en stock | Prodiconseil",
+  "desc": "Papier ramette A4 et A3 pour copieurs, laser et jet d'encre, au carton ou à la palette. Stock en France, export, devis sous 24 h.",
   "sub": "Le papier de reprographie prêt à l'emploi — A4, A3, formats bureautiques — en ramettes et en palettes.",
   "lead": "La ramette, c'est le papier bureautique en formats standards, prêt pour le photocopieur, l'imprimante laser ou jet d'encre. Prodiconseil en propose en volumes, du carton de ramettes à la palette complète.",
   "para": "Formats A4, A3 et SRA3, blancheur soignée pour un rendu net, grammage 80 g courant (et autres sur demande). Idéal pour l'imprimeur, le reprographe, l'administration, l'école et l'entreprise. Livré en palettes complètes pour les gros consommateurs.",
