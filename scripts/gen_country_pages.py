@@ -39,7 +39,7 @@ STYLE = """.geopage{padding-top:64px;}
 # Titres/descriptions réécrits pour le CTR (Ludo, T0004, 17/10/2026) — < 60 / < 155 car.
 SEO_OVERRIDE = {
  "maroc": ("Fournisseur papier & carton au Maroc | Prodiconseil",
-           "Offset, couché, kraft et cartons en bobines et formats, expédiés vers Casablanca, Tanger Med et Agadir. Stock en France, EUR.1 fourni, devis 24 h."),
+           "Offset, couché, kraft et cartons en bobines et formats, expédiés vers Casablanca, Tanger Med et Agadir. Stock en France, export depuis 1991, devis 24 h."),
  "turquie": ("Fournisseur papier & carton en Turquie | Prodiconseil",
              "Offset, couché, kraft et cartons en bobines et formats, expédiés vers Istanbul, Izmir et Mersin. Stock en France, document A.TR fourni, devis 24 h."),
 }
