@@ -26,6 +26,7 @@
       +'<a href="/logistique/">Logistique</a>'
       +'<a href="/export/">Export</a>'
       +'<a href="/guides/">Guides d\'import</a>'
+      +'<a href="https://hiredov.com/" target="_blank" rel="noopener">HireDov · sourcing IA (partenaire)</a>'
     +'</div>'
     +'<div class="ft2-col">'
       +'<div class="ft2-h">Nos papiers</div>'
