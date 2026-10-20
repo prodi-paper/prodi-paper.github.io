@@ -8,8 +8,8 @@
 
    Invité (non connecté) : tout reste en localStorage, aucun appel réseau.
    RLS : apikey = anon, Authorization = JWT utilisateur (role authenticated,
-   auth.uid() = user_id). Token non rafraîchi ici → valable ~1 h après login
-   (suffisant pour la maquette ; compte/ recharge le token via supabase-js).
+   auth.uid() = user_id). Token rafraîchi ici (_fresh, refresh_token) avant
+   chaque appel → l'appareil reste connecté sans re-login (20/10).
 ──────────────────────────────────────────────────────────────────────────── */
 (function(){
   var SB='https://bvcgpdoukhcatjibmvnb.supabase.co';
@@ -23,6 +23,30 @@
   function _auth(){try{return JSON.parse(localStorage.getItem(AUTH_KEY)||'null');}catch(e){return null;}}
   function _tok(){var s=_auth();return s&&s.access_token;}
   function _uid(){var s=_auth();return s&&s.user&&s.user.id;}
+  /* Access token ~1 h : on le renouvelle avec le refresh_token (même format que
+     supabase-js, même clé localStorage) → session durable sur l'appareil.
+     Refresh token invalide (révoqué) → session purgée = déconnexion propre. */
+  var _fp=null;
+  function _fresh(){
+    var s=_auth();
+    if(!s||!s.refresh_token||(s.expires_at&&s.expires_at*1000>Date.now()+120000))return Promise.resolve();
+    if(_fp)return _fp;
+    _fp=fetch(SB+'/auth/v1/token?grant_type=refresh_token',{method:'POST',
+      headers:{'apikey':ANON,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:s.refresh_token})})
+      .then(function(r){
+        if(r.status===400||r.status===401){localStorage.removeItem(AUTH_KEY);return null;}
+        return r.ok?r.json():null;
+      })
+      .then(function(j){
+        if(j&&j.access_token){
+          if(!j.expires_at)j.expires_at=Math.floor(Date.now()/1000)+(j.expires_in||3600);
+          localStorage.setItem(AUTH_KEY,JSON.stringify(j));
+        }
+      })
+      .catch(function(){}).then(function(){_fp=null;});
+    return _fp;
+  }
+  window.prodiAuthFresh=_fresh;
   function _hdr(extra){
     var h={'apikey':ANON,'Authorization':'Bearer '+(_tok()||ANON),'Content-Type':'application/json'};
     if(extra)for(var k in extra)h[k]=extra[k];
@@ -39,18 +63,18 @@
     clearTimeout(_pt);
     _pt=setTimeout(function(){
       _pushing=true;
-      fetch(SB+'/rest/v1/user_carts?on_conflict=user_id',{
+      _fresh().then(function(){if(_uid())return fetch(SB+'/rest/v1/user_carts?on_conflict=user_id',{
         method:'POST',
         headers:_hdr({'Prefer':'resolution=merge-duplicates,return=minimal'}),
         body:JSON.stringify({user_id:_uid(),items:data,updated_at:new Date().toISOString()})
-      }).catch(function(){}).then(function(){_pushing=false;});
+      });}).catch(function(){}).then(function(){_pushing=false;});
     },600);
   };
 
   /* ── À la connexion : FUSION panier local + panier compte (union par réf) ── */
   window.prodiSyncCartOnLogin=function(cb){
     if(!_uid()||_SHARED){cb&&cb(null);return;}
-    fetch(SB+'/rest/v1/user_carts?select=items&user_id=eq.'+_uid(),{headers:_hdr()})
+    _fresh().then(function(){return fetch(SB+'/rest/v1/user_carts?select=items&user_id=eq.'+_uid(),{headers:_hdr()});})
       .then(function(r){return r.ok?r.json():[];})
       .then(function(rows){
         var remote=(rows&&rows[0]&&rows[0].items)||[];
@@ -84,12 +108,12 @@
       dest_port:order.dest_port||null, dest_rate:order.dest_rate||0,
       marchandise_eur:order.marchandise_eur||0, transport_eur:order.transport_eur||0, total_cfr_eur:order.total_cfr_eur||0
     };
-    return fetch(SB+'/rest/v1/user_orders',{method:'POST',headers:_hdr({'Prefer':'return=minimal'}),body:JSON.stringify(o)})
+    return _fresh().then(function(){return fetch(SB+'/rest/v1/user_orders',{method:'POST',headers:_hdr({'Prefer':'return=minimal'}),body:JSON.stringify(o)});})
       .then(function(r){return r.ok;}).catch(function(){return false;});
   };
   window.prodiPullOrders=function(){
     if(!_uid())return Promise.resolve(null);
-    return fetch(SB+'/rest/v1/user_orders?select=*&user_id=eq.'+_uid()+'&order=created_at.desc',{headers:_hdr()})
+    return _fresh().then(function(){return fetch(SB+'/rest/v1/user_orders?select=*&user_id=eq.'+_uid()+'&order=created_at.desc',{headers:_hdr()});})
       .then(function(r){return r.ok?r.json():null;}).catch(function(){return null;});
   };
 
@@ -104,7 +128,9 @@
     };
   }catch(e){}
 
-  /* ── Au chargement : si connecté, fusionner le panier ── */
+  /* ── Au chargement : token renouvelé tout de suite si expiré (header/login-pop
+     lisent la même clé), puis fusion du panier ── */
+  _fresh();
   if(document.readyState==='loading'){
     document.addEventListener('DOMContentLoaded',function(){ if(_uid()&&!_SHARED) window.prodiSyncCartOnLogin(); });
   } else { if(_uid()&&!_SHARED) window.prodiSyncCartOnLogin(); }
