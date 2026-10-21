@@ -20,12 +20,15 @@
     background: var(--fond); color: var(--encre);
     min-height: 100vh; display: flex; flex-direction: column; align-items: center;
   }
+  /* header standard des 3 outils (/proforma/, /invitation/, /fret/) */
   header.app {
     width: 100%; background: #fff; border-bottom: 1px solid var(--ligne);
-    padding: 14px 20px; display: flex; align-items: center; gap: 12px;
+    position: sticky; top: 0; z-index: 50;
   }
-  header.app img { height: 26px; }
-  header.app span { font-size: 14px; color: var(--gris); }
+  .h-in { max-width: 1180px; margin: 0 auto; padding: 14px 20px; display: flex; align-items: center; gap: 14px; }
+  .logo-lien { display: flex; align-items: center; }
+  .h-in img { height: 31px; }
+  .h-sub { font-size: 17px; color: var(--gris); }
   main { width: 100%; max-width: 900px; padding: 32px 20px 56px; }
 
   .card { background: #fff; border: 1px solid var(--ligne); border-radius: 12px; padding: 24px; }
@@ -63,7 +66,7 @@
   .btn-word .badge { color: #2b579a; font-size: 17px; font-family: Georgia, serif; }
   .btn-pdf .badge { color: #d93025; font-size: 9px; letter-spacing: .2px; }
 
-  .histo-btn { margin-left: auto; font-size: 15px; padding: 8px 16px; border-radius: 8px; }
+  .histo-btn { margin-left: auto; font-size: 18px; padding: 10px 19px; border-radius: 10px; }
   #histo-fond {
     display: none; position: fixed; inset: 0; background: rgba(0,0,0,.35);
     z-index: 10; align-items: flex-start; justify-content: center; padding: 60px 16px;
@@ -109,6 +112,13 @@
   .sugg div { padding: 11px 14px; cursor: pointer; font-size: 16px; }
   .sugg div:hover { background: var(--fond); }
   .sugg small { color: var(--gris); }
+
+  /* Société émettrice (21/10) : Prodiconseil ou Woluwe Paper — même principe que
+     le « Format d'étiquette » de la prépa arrivages */
+  .soc { display: flex; gap: 6px; background: var(--fond); border-radius: 11px; padding: 5px; margin-bottom: 18px; }
+  .soc button { flex: 1; border: none; background: none; font-size: 17px; font-weight: 600;
+    color: var(--gris); padding: 11px 8px; border-radius: 8px; }
+  .soc button.actif { background: #fff; color: var(--encre); box-shadow: 0 1px 4px rgba(0,0,0,.12); }
 
   .champ-date { cursor: pointer; }
   #cal-fond {
@@ -158,9 +168,11 @@
      le mobile garde sa taille (déjà plein écran) */
   @media (min-width: 561px) {
     body { zoom: 1.3; }
+    /* le header reste à taille standard (identique /proforma/ et /fret/) malgré le zoom global */
+    header.app { zoom: calc(1 / 1.3); }
   }
   @media (max-width: 560px) {
-    header.app span { display: none; }
+    .h-sub { display: none; }
     main { padding: 20px 12px 40px; }
     .card { padding: 18px; }
   }
@@ -222,9 +234,11 @@ html.cat-unlocked #cat-gate{display:none !important;}
 </script>
 
 <header class="app">
-  <img src="assets/logo.png" alt="Prodiconseil">
-  <span>Invitations professionnelles</span>
-  <button class="histo-btn" onclick="ouvrirHisto()">Historique</button>
+  <div class="h-in">
+    <a href="./" class="logo-lien" title="Recharger"><img src="assets/logo.png" alt="Prodiconseil"></a>
+    <span class="h-sub">Invitations professionnelles</span>
+    <button class="histo-btn" onclick="ouvrirHisto()">Historique</button>
+  </div>
 </header>
 
 <div id="histo-fond" onclick="fermerHisto()">
@@ -243,6 +257,10 @@ html.cat-unlocked #cat-gate{display:none !important;}
 
 <main>
   <section class="card">
+    <div class="soc">
+      <button type="button" id="soc-prodi" onclick="choisirSociete('prodi')">Prodiconseil</button>
+      <button type="button" id="soc-woluwe" onclick="choisirSociete('woluwe')">Woluwe Paper</button>
+    </div>
     <div class="grid">
       <div class="full" style="display:flex;gap:12px">
         <select id="civilite" style="width:82px;flex:none;padding-right:4px"><option>M.</option><option>Mme</option></select>
@@ -412,9 +430,22 @@ function choisirJourRange(iso) {
   setTimeout(fermerCal, 200);  // …puis ferme
 }
 
+// Société émettrice : "prodi" (lettre historique Ivry) ou "woluwe" (en-tête
+// WOLUWE PAPER SRL Bruxelles + cachet Woluwe). Dernier choix mémorisé sur l'appareil.
+let _societe = "prodi";
+try { if (localStorage.getItem("invitations_societe") === "woluwe") _societe = "woluwe"; } catch (e) {}
+function choisirSociete(v) {
+  _societe = v === "woluwe" ? "woluwe" : "prodi";
+  try { localStorage.setItem("invitations_societe", _societe); } catch (e) {}
+  $("soc-prodi").classList.toggle("actif", _societe === "prodi");
+  $("soc-woluwe").classList.toggle("actif", _societe === "woluwe");
+}
+choisirSociete(_societe);
+
 function donnees() {
   const civilite = $("civilite").value;
   return {
+    emetteur: _societe,
     civilite,
     salutation: civilite === "Mme" ? "Madame" : "Monsieur",
     prenom: $("prenom").value.trim().replace(/^./, c => c.toUpperCase()),
@@ -723,6 +754,19 @@ async function construireLettrePDF(d) {
   const KH = 1.2;  // agrandissement supplémentaire de l'en-tête (+20 %), proportions conservées
   const ENCRE = [26, 26, 26], GRIS = [110, 110, 110], LIGNE = [214, 212, 208];
 
+  const woluwe = d.emetteur === "woluwe";
+  let hy;
+  if (woluwe) {
+    // ── EN-TÊTE WOLUWE PAPER : pas de logo (il n'en existe pas), identité belge
+    // exactement comme sur les proformas Woluwe — aucune coordonnée d'Ivry ──
+    doc.setTextColor(...ENCRE);
+    doc.setFont("times", "bold"); doc.setFontSize(17 * K);
+    doc.text("WOLUWE PAPER SRL", M, 22);
+    doc.setFont("times", "normal"); doc.setFontSize(10.5 * K);
+    doc.text("Avenue Louise 143 /4", M, 28.5);
+    doc.text("1050 BRUXELLES – BELGIQUE", M, 33.5);
+    hy = 33.5 + 4.3;
+  } else {
   // ── EN-TÊTE façon PROFORMA : logo à gauche + bloc société aligné à gauche ──
   const lw = 54 * K * KH, lh = lw / 7.7041;
   doc.addImage(await imageBase64("assets/logo.png"), "PNG", M, 15, lw, lh);
@@ -734,15 +778,16 @@ async function construireLettrePDF(d) {
     ["NAF 4676Z – TVA FR50 382 445922 RCS Créteil", "normal"],
   ];
   doc.setFontSize(8.5 * K * KH); doc.setTextColor(...ENCRE);
-  let hy = 15 + lh + 5 * KH;
+  hy = 15 + lh + 5 * KH;
   for (const [t, w] of H) { doc.setFont("times", w); doc.text(t, M, hy); hy += 3.9 * KH; }
+  }
 
   const yf = hy + 0.4;
 
   // date (droite)
   const yDate = yf + 9;
   doc.setFont("times", "normal"); doc.setFontSize(12 * K); doc.setTextColor(...ENCRE);
-  doc.text(`Ivry-sur-Seine, le ${d.date_courrier}`, DROITE, yDate, { align: "right" });
+  doc.text(`${woluwe ? "Bruxelles" : "Ivry-sur-Seine"}, le ${d.date_courrier}`, DROITE, yDate, { align: "right" });
 
   // destinataire (aligné à la marge, sans liseré)
   const yb = yDate + 7;
@@ -774,11 +819,16 @@ async function construireLettrePDF(d) {
   doc.text(d.signataire, sx, y + 6);
   doc.setFont("times", "italic"); doc.setFontSize(11 * K); doc.setTextColor(...GRIS);
   doc.text(d.titre_signataire, sx, y + 12.5);
-  doc.addImage(await imageBase64("assets/tampon.png"), "PNG", sx - 2, y + 16, 44 * K, 26.4 * K);
+  if (woluwe) doc.addImage(await imageBase64("assets/tampon-woluwe.png"), "PNG", sx - 2, y + 15, 40 * K, 40 * K / 1.353);
+  else doc.addImage(await imageBase64("assets/tampon.png"), "PNG", sx - 2, y + 16, 44 * K, 26.4 * K);
 
   // pied
   doc.setDrawColor(...LIGNE); doc.setLineWidth(0.3); doc.line(M, 267, 210 - M, 267);
   doc.setFont("times", "normal"); doc.setFontSize(9); doc.setTextColor(...GRIS);
+  if (woluwe) {
+    doc.text("WOLUWE PAPER SRL – Avenue Louise 143 /4 – 1050 Bruxelles – Belgique", 105, 272, { align: "center" });
+    return doc;
+  }
   doc.text("Sarl au capital de 516 000,00 € - RCS : Créteil B382445922", 105, 272, { align: "center" });
   doc.text("9 Promenée Jeanne hachette 94200 Ivry sur Seine – Tél : 331 46 42 03 69 – fax : 331 49 59 87 31", 105, 276.2, { align: "center" });
   doc.text("Entrepôt  Tél : 03 22 39 23 – Fax : 03 22 39 24 47", 105, 280.4, { align: "center" });
@@ -790,8 +840,41 @@ async function telechargerPDF() {
   if (!valide()) return;
   enregistrerHisto("pdf");
   const d = donnees();
-  (await construireLettrePDF(d)).save(`INVITATION ${d.civilite}${d.nom}.pdf`);
+  const doc = await construireLettrePDF(d);
+  const nom = `INVITATION ${d.civilite}${d.nom}${d.emetteur === "woluwe" ? " - WOLUWE PAPER" : ""}.pdf`;
+  // Téléphone : feuille de partage native avec le FICHIER SEUL (ni texte ni
+  // lien — partager depuis l'aperçu Safari collait l'URL de la page avec).
+  const mobile = navigator.maxTouchPoints > 1 || /iPhone|iPad|Android/i.test(navigator.userAgent);
+  if (mobile && navigator.canShare) {
+    try {
+      const f = new File([doc.output("blob")], nom, { type: "application/pdf" });
+      if (navigator.canShare({ files: [f] })) {
+        await navigator.share({ files: [f] });
+        return;
+      }
+    } catch (e) {
+      if (e && e.name === "AbortError") return; // partage annulé par l'utilisateur
+    }
+  }
+  doc.save(nom);
 }
+</script>
+<script>
+// Préremplissage par lien (serveur MCP prodi-mcp) : /invitation/#d=<base64url JSON>
+// {civilite, prenom, nom, societe, passeport, debut, fin} — dates YYYY-MM-DD
+(function(){
+  try{
+    var m=location.hash.match(/[#&]d=([A-Za-z0-9_-]+)/); if(!m) return;
+    var s=atob(m[1].replace(/-/g,'+').replace(/_/g,'/'));
+    var j=JSON.parse(decodeURIComponent(escape(s)));
+    var set=function(id,v){var el=document.getElementById(id); if(el&&v!=null&&v!=='') el.value=v;};
+    if(j.civilite){var c=/^m(me|adame)/i.test(String(j.civilite).trim())?'Mme':'M.';set('civilite',c);}
+    set('prenom',j.prenom); set('nom',j.nom); set('societe',j.societe); set('passeport',j.passeport);
+    var okIso=function(v){return v&&/^\d{4}-\d{2}-\d{2}$/.test(v);};
+    if(okIso(j.debut)) poserDate('date_debut',j.debut);
+    if(okIso(j.fin)) poserDate('date_fin',j.fin);
+  }catch(e){console.warn('prefill',e);}
+})();
 </script>
 </body>
 </html>
