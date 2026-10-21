@@ -706,6 +706,16 @@ const CORPS_DEFAUT = [
   `Nous nous engageons à prendre en charge les frais d’hébergement et de restauration de {civilite} {prenom} {nom}.`,
   `Dans cette attente, veuillez agréer l’expression de nos salutations distinguées.`,
 ].join("\n\n");
+// Woluwe Paper (21/10) : même fond, formulation différente — les deux lettres ne
+// doivent pas ressembler à un copier-coller l'une de l'autre.
+const CORPS_WOLUWE = [
+  `{salutation},`,
+  `Dans le cadre des commandes confirmées pour l’année en cours, notre programme prévoit des livraisons échelonnées, à raison de {conteneurs} conteneurs par mois en moyenne.`,
+  `Afin d’arrêter ensemble les modalités de chargement et de paiement, nous avons le plaisir de vous inviter dans nos bureaux du {date_debut} au {date_fin}.`,
+  `Les frais d’hébergement et de restauration de {civilite} {prenom} {nom} seront intégralement pris en charge par notre société.`,
+  `Nous vous prions d’agréer, {salutation}, l’expression de nos salutations distinguées.`,
+].join("\n\n");
+function corpsDefaut() { return _societe === "woluwe" ? CORPS_WOLUWE : CORPS_DEFAUT; }
 // Texte personnalisé UNIQUEMENT pour la lettre en cours (en mémoire) :
 // on repart toujours du modèle par défaut après un rechargement de la page.
 let _corpsPerso = null;
@@ -719,7 +729,7 @@ function substituerInfos(txt) {
 
 // Texte affiché/imprimé : version en cours si modifiée, sinon le modèle rempli.
 function corpsTemplate() {
-  return _corpsPerso != null ? _corpsPerso : substituerInfos(CORPS_DEFAUT);
+  return _corpsPerso != null ? _corpsPerso : substituerInfos(corpsDefaut());
 }
 
 // Paragraphes prêts à imprimer : découpés sur les lignes vides, {champs} restants substitués.
@@ -737,36 +747,24 @@ function ouvrirCorps() {
 }
 function fermerCorps() { $("corps-fond").classList.remove("ouvert"); }
 
-function reinitCorps() { _corpsPerso = null; $("corps-zone").value = substituerInfos(CORPS_DEFAUT); }
+function reinitCorps() { _corpsPerso = null; $("corps-zone").value = substituerInfos(corpsDefaut()); }
 
 function enregistrerCorps() {
   const v = $("corps-zone").value.trim();
-  _corpsPerso = (!v || v === substituerInfos(CORPS_DEFAUT).trim()) ? null : v;
+  _corpsPerso = (!v || v === substituerInfos(corpsDefaut()).trim()) ? null : v;
   fermerCorps();
 }
 
 // Lettre PDF vectorielle — en-tête façon PROFORMA (logo à gauche + bloc société),
 // corps justifié, titre « Invitation Professionnelle » (A4, marges 25 mm)
 async function construireLettrePDF(d) {
+  if (d.emetteur === "woluwe") return construireLettreWoluwe(d);
   const doc = new jspdf.jsPDF({ unit: "mm", format: "a4" });
   const M = 25, W = 160, DROITE = 185;
   const K = 1.15;  // agrandissement global police + logo (+15 %)
   const KH = 1.2;  // agrandissement supplémentaire de l'en-tête (+20 %), proportions conservées
   const ENCRE = [26, 26, 26], GRIS = [110, 110, 110], LIGNE = [214, 212, 208];
 
-  const woluwe = d.emetteur === "woluwe";
-  let hy;
-  if (woluwe) {
-    // ── EN-TÊTE WOLUWE PAPER : pas de logo (il n'en existe pas), identité belge
-    // exactement comme sur les proformas Woluwe — aucune coordonnée d'Ivry ──
-    doc.setTextColor(...ENCRE);
-    doc.setFont("times", "bold"); doc.setFontSize(17 * K);
-    doc.text("WOLUWE PAPER SRL", M, 22);
-    doc.setFont("times", "normal"); doc.setFontSize(10.5 * K);
-    doc.text("Avenue Louise 143 /4", M, 28.5);
-    doc.text("1050 BRUXELLES – BELGIQUE", M, 33.5);
-    hy = 33.5 + 4.3;
-  } else {
   // ── EN-TÊTE façon PROFORMA : logo à gauche + bloc société aligné à gauche ──
   const lw = 54 * K * KH, lh = lw / 7.7041;
   doc.addImage(await imageBase64("assets/logo.png"), "PNG", M, 15, lw, lh);
@@ -778,16 +776,15 @@ async function construireLettrePDF(d) {
     ["NAF 4676Z – TVA FR50 382 445922 RCS Créteil", "normal"],
   ];
   doc.setFontSize(8.5 * K * KH); doc.setTextColor(...ENCRE);
-  hy = 15 + lh + 5 * KH;
+  let hy = 15 + lh + 5 * KH;
   for (const [t, w] of H) { doc.setFont("times", w); doc.text(t, M, hy); hy += 3.9 * KH; }
-  }
 
   const yf = hy + 0.4;
 
   // date (droite)
   const yDate = yf + 9;
   doc.setFont("times", "normal"); doc.setFontSize(12 * K); doc.setTextColor(...ENCRE);
-  doc.text(`${woluwe ? "Bruxelles" : "Ivry-sur-Seine"}, le ${d.date_courrier}`, DROITE, yDate, { align: "right" });
+  doc.text(`Ivry-sur-Seine, le ${d.date_courrier}`, DROITE, yDate, { align: "right" });
 
   // destinataire (aligné à la marge, sans liseré)
   const yb = yDate + 7;
@@ -819,20 +816,75 @@ async function construireLettrePDF(d) {
   doc.text(d.signataire, sx, y + 6);
   doc.setFont("times", "italic"); doc.setFontSize(11 * K); doc.setTextColor(...GRIS);
   doc.text(d.titre_signataire, sx, y + 12.5);
-  if (woluwe) doc.addImage(await imageBase64("assets/tampon-woluwe.png"), "PNG", sx - 2, y + 15, 40 * K, 40 * K / 1.353);
-  else doc.addImage(await imageBase64("assets/tampon.png"), "PNG", sx - 2, y + 16, 44 * K, 26.4 * K);
+  doc.addImage(await imageBase64("assets/tampon.png"), "PNG", sx - 2, y + 16, 44 * K, 26.4 * K);
 
   // pied
   doc.setDrawColor(...LIGNE); doc.setLineWidth(0.3); doc.line(M, 267, 210 - M, 267);
   doc.setFont("times", "normal"); doc.setFontSize(9); doc.setTextColor(...GRIS);
-  if (woluwe) {
-    doc.text("WOLUWE PAPER SRL – Avenue Louise 143 /4 – 1050 Bruxelles – Belgique", 105, 272, { align: "center" });
-    return doc;
-  }
   doc.text("Sarl au capital de 516 000,00 € - RCS : Créteil B382445922", 105, 272, { align: "center" });
   doc.text("9 Promenée Jeanne hachette 94200 Ivry sur Seine – Tél : 331 46 42 03 69 – fax : 331 49 59 87 31", 105, 276.2, { align: "center" });
   doc.text("Entrepôt  Tél : 03 22 39 23 – Fax : 03 22 39 24 47", 105, 280.4, { align: "center" });
 
+  return doc;
+}
+
+// Lettre WOLUWE PAPER — mise en page volontairement DIFFÉRENTE de Prodiconseil :
+// Helvetica, en-tête centré + filet bleu (couleur du cachet), destinataire à droite,
+// ligne « Objet : » au lieu du titre centré, signature à gauche. Pas de logo (il
+// n'en existe pas) ni aucune coordonnée d'Ivry.
+async function construireLettreWoluwe(d) {
+  const doc = new jspdf.jsPDF({ unit: "mm", format: "a4" });
+  const M = 22, W = 166, DROITE = 188;
+  const ENCRE = [30, 30, 34], GRIS = [105, 108, 118], BLEU = [32, 44, 120];
+
+  // en-tête centré
+  doc.setTextColor(...BLEU);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(19);
+  doc.setCharSpace(1.2);
+  doc.text("WOLUWE PAPER", 105, 24, { align: "center" });
+  doc.setCharSpace(0);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(9.5); doc.setTextColor(...GRIS);
+  doc.text("SRL  ·  Avenue Louise 143 /4  ·  1050 Bruxelles  ·  Belgique", 105, 30.5, { align: "center" });
+  doc.setDrawColor(...BLEU); doc.setLineWidth(0.6); doc.line(M, 35, DROITE, 35);
+
+  // date à gauche
+  doc.setFontSize(10.5); doc.setTextColor(...ENCRE);
+  doc.text(`Bruxelles, le ${d.date_courrier}`, M, 48);
+
+  // destinataire à droite
+  const dx = 112;
+  doc.setFont("helvetica", "bold"); doc.setFontSize(11);
+  doc.text(`${d.civilite} ${d.prenom} ${d.nom}`, dx, 58);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10.5);
+  doc.text(d.societe, dx, 64, { maxWidth: DROITE - dx });
+  doc.text(`Passeport n° ${d.passeport}`, dx, 70);
+
+  // objet
+  doc.setFont("helvetica", "bold"); doc.setFontSize(11);
+  doc.text("Objet : invitation professionnelle", M, 88);
+
+  // corps
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10.5); doc.setTextColor(...ENCRE);
+  const lhCorps = 10.5 * 0.3527 * 1.45;
+  let y = 100;
+  for (const p of corpsParas(d)) {
+    const n = doc.splitTextToSize(p, W).length;
+    doc.text(p, M, y, { maxWidth: W, align: "justify", lineHeightFactor: 1.45 });
+    y += n * lhCorps + 4.2;
+  }
+
+  // signature à gauche + cachet
+  y += 6;
+  doc.setFont("helvetica", "bold"); doc.setFontSize(10.5);
+  doc.text(d.signataire, M, y);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(9.5); doc.setTextColor(...GRIS);
+  doc.text(`${d.titre_signataire} — Woluwe Paper SRL`, M, y + 5.5);
+  doc.addImage(await imageBase64("assets/tampon-woluwe.png"), "PNG", M - 2, y + 9, 46, 46 / 1.353);
+
+  // pied
+  doc.setDrawColor(...BLEU); doc.setLineWidth(0.3); doc.line(M, 274, DROITE, 274);
+  doc.setFontSize(8.5); doc.setTextColor(...GRIS);
+  doc.text("WOLUWE PAPER SRL  ·  Avenue Louise 143 /4  ·  1050 Bruxelles  ·  Belgique", 105, 279, { align: "center" });
   return doc;
 }
 
