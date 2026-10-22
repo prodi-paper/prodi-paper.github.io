@@ -4747,6 +4747,7 @@ function renderList(list){
         ?`<td class="plist-td plist-td-num" colspan="3">${esc(paletteDims2)}</td>`
         :`<td class="plist-td plist-td-num">${esc(laize)}</td><td class="plist-td plist-td-num">${esc(dim2)}</td><td class="plist-td plist-td-num plist-col-mandrin">${esc(mandrin||'—')}</td>`}
       <td class="plist-td plist-td-num">${esc(_poidsTxt)}</td>
+      <td class="plist-td plist-td-usine">${esc(_usineTxt)}</td>
       ${_xlPrice?`<td class="plist-td plist-td-num plist-price">${_xlLogged()?(p.price?(window._dkMode?`<span class="dk-px">${esc(_ccyNum(p.price*1000)+' '+_ccyUnit())}</span>`:esc(_ccyNum(p.price*1000)+' '+_ccyUnit())):'—'):`<button class="plist-seep" onclick="event.stopPropagation();window.prodiLoginPop&&window.prodiLoginPop()" title="Connectez-vous pour voir le prix">Voir le prix</button>`}</td>`:''}
     </tr>`;
   };
@@ -4783,6 +4784,7 @@ function renderList(list){
       ${_xlTh('GSM','grammage')}
       ${head}
       ${_xlTh('Poids (kg)','poids')}
+      ${_xlTh('Usine','usine','plist-col-usine')}
       ${_xlPrice?_xlTh('Prix','price'):''}
     </tr></thead>
     <tbody>${rowsHtml}</tbody>
@@ -4792,7 +4794,7 @@ function renderList(list){
   // filtré (cache client du mode groupé), pas seulement les lignes chargées.
   let _totB='',_totF='';
   if(_viewMode==='list'&&document.body.classList.contains('cat-page')&&!_sharedMode){
-    const _mk=(n,kg,lbl)=>n?`<tr class="xl-total"><td class="plist-td" colspan="10">TOTAL ${lbl} · ${n.toLocaleString('fr-FR')} unité${n>1?'s':''} · ${(kg/1000).toLocaleString('fr-FR',{minimumFractionDigits:1,maximumFractionDigits:1})} T</td><td class="plist-td plist-td-num">${Math.round(kg).toLocaleString('fr-FR')}</td>${_xlPrice?'<td class="plist-td"></td>':''}</tr>`:'';
+    const _mk=(n,kg,lbl)=>n?`<tr class="xl-total"><td class="plist-td" colspan="10">TOTAL ${lbl} · ${n.toLocaleString('fr-FR')} unité${n>1?'s':''} · ${(kg/1000).toLocaleString('fr-FR',{minimumFractionDigits:1,maximumFractionDigits:1})} T</td><td class="plist-td plist-td-num">${Math.round(kg).toLocaleString('fr-FR')}</td><td class="plist-td plist-td-usine"></td>${_xlPrice?'<td class="plist-td"></td>':''}</tr>`:'';
     let b={n:0,kg:0},f={n:0,kg:0};
     if(!window._dkRaw&&_groupedMode&&typeof _groupsList!=='undefined'&&_groupsList&&!_groupsListIsLanding){
       _groupsList.forEach(gr=>gr.units.forEach(u=>{const t=_estFormat(u)?f:b;t.n++;t.kg+=(+u.poids_net||0);}));
@@ -4833,6 +4835,7 @@ const _XLV={
   title:p=>String(formatProductTitle(p.qualite,p.name)||'').replace(/^(BOBINE|PALETTE|FORMAT|FEUILLE)\s*[—-]\s*/i,''),
   details:p=>String(p.details||''),
   couleur:p=>String(p.couleur||''),
+  usine:p=>parseInt(String(p.usine||'').replace(/\D/g,''),10)||0,
   grammage:p=>+p.grammage||0,
   largeur:p=>+p.largeur||0,
   longueur:p=>+p.longueur||0,
