@@ -189,7 +189,7 @@ def page_html(f, d, hub=False):
 <meta http-equiv="Content-Security-Policy" content="{CSP}">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<link rel="icon" type="image/png" href="/img/panda.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/img/favicon-192.png">
 <title>{title}</title>
 <meta name="description" content="{desc}">
 <meta name="robots" content="index, follow">
@@ -282,7 +282,7 @@ def hub_html(data):
 <meta http-equiv="Content-Security-Policy" content="{CSP}">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<link rel="icon" type="image/png" href="/img/panda.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/img/favicon-192.png">
 <title>Stock papier &amp; carton disponible — {total_t:.0f} tonnes, mise à jour quotidienne | Prodiconseil</title>
 <meta name="description" content="Le stock réel de Prodiconseil : {total_r} références et {total_t:.0f} tonnes de papier et carton disponibles — offset, couché, kraft, cartons, spécialités. Bobines et formats, départ France. Prix sur demande.">
 <meta name="robots" content="index, follow">

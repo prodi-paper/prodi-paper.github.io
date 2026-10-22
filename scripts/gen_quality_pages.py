@@ -374,7 +374,7 @@ TEMPLATE = '''<!DOCTYPE html>
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://stock.prodi.net https://prodi.com https://prodi-paper.github.io https://images.unsplash.com; connect-src 'self' https://api.country.is https://bvcgpdoukhcatjibmvnb.supabase.co https://api.emailjs.com https://cdn.jsdelivr.net; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<link rel="icon" type="image/png" href="/img/panda.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/img/favicon-192.png">
 <title>@@TITLE@@</title>
 <meta name="description" content="@@DESC@@">
 <meta name="robots" content="index, follow">

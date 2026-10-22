@@ -259,7 +259,7 @@ def render(g):
 <meta http-equiv="Content-Security-Policy" content="{CSP}">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<link rel="icon" type="image/png" href="/img/panda.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/img/favicon-192.png">
 <title>{g['title']}</title>
 <meta name="description" content="{g['desc']}">
 <meta name="robots" content="index, follow">
@@ -770,7 +770,7 @@ def render_hub():
 <meta http-equiv="Content-Security-Policy" content="{CSP}">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<link rel="icon" type="image/png" href="/img/panda.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/img/favicon-192.png">
 <title>Guides d'import papier &amp; carton — douane, incoterms, stocklots | Prodiconseil</title>
 <meta name="description" content="Nos guides pratiques pour importer du papier et du carton : Maroc, Algérie, Afrique de l'Ouest et centrale, Europe, Turquie, Égypte, Nigeria, et le fonctionnement des stocklots.">
 <meta name="robots" content="index, follow">
