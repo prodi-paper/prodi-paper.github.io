@@ -5022,7 +5022,12 @@ async function _albumBuildPdf(JsPdf,data,logoUrl,noph,onProg){
   const M=7,GAP=4,CW=(210-2*M-GAP)/2,PH=93,TH=10.5,DH=7.2,RH=11.5;
   const CH=PH+TH+DH+2*RH;                       // hauteur carte ≈ 133,7 mm (2×133,7+4+en-tête 11 = 289 ≤ 290)
   const Y0=M+8+3;                               // marge + logo 8 + espace 3
-  const pdf=new JsPdf({unit:'mm',format:'a4',orientation:'portrait'});
+  // compress + métadonnées : un PDF non compressé et sans titre/auteur
+  // ressemble à un PDF forgé pour les heuristiques antivirus (Avast a mis un
+  // album en quarantaine « PDF:MalwareX-gen [Scam] », vécu 22/10)
+  const pdf=new JsPdf({unit:'mm',format:'a4',orientation:'portrait',compress:true});
+  pdf.setProperties({title:'Album photo Prodiconseil',subject:'Album photo stock papier',
+    author:'Prodiconseil',creator:'prodi.com'});
   // logo (PNG transparent) : dataURL + ratio naturel
   let logo=null;
   try{
@@ -5122,7 +5127,7 @@ async function exportAlbumPdf(btn){
     // Téléchargement EXACTEMENT comme l'Excel (22/10) : pdf.save() laissait le
     // navigateur AFFICHER le PDF (onglet/aperçu) au lieu de l'enregistrer —
     // blob octet-stream + <a download> = fichier dans Téléchargements.
-    const blob=new Blob([pdf.output('arraybuffer')],{type:'application/octet-stream'});
+    const blob=new Blob([pdf.output('arraybuffer')],{type:'application/pdf'});
     const a=document.createElement('a');
     a.href=URL.createObjectURL(blob);
     a.download='ALBUM PHOTO '+_exportNomQualite()+'PRODICONSEIL.pdf';
