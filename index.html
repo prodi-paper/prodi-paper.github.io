@@ -2395,6 +2395,13 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
       if(opts.length<3) return;
       var parent=opts[0].parentElement;
       if(!opts.every(function(o){return o.parentElement===parent;})) return;
+      /* Grammages : ordre CROISSANT fixe (22/10), « Autres » en dernier */
+      if(p.closest('#sb-msd-grammage')){
+        var gv=function(o){var v=parseFloat(o.dataset.val);return isNaN(v)?1e9:v;};
+        opts.sort(function(a,b){return gv(a)-gv(b);});
+        opts.forEach(function(o){parent.appendChild(o);});
+        return;
+      }
       /* cochées d'abord, puis tri par volume décroissant */
       opts.sort(function(a,b){
         var sa=a.classList.contains('selected')?1:0, sb=b.classList.contains('selected')?1:0;
@@ -3942,7 +3949,7 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
 <script src="/analytics.js?v=8"></script>
 <script src="/login-pop.js"></script>
 <script src="/fiche.js?v=1"></script>
-<script src="/catalogue.js?v=826"></script>
+<script src="/catalogue.js?v=828"></script>
 <script>
 (function(){var Q=window._preQ||[];document.documentElement.style.cursor='';window._preQ=[];
   if(window._axDispoLater&&window.axDispo){window._axDispoLater=0;try{window.axDispo();}catch(e){}} /* défaut Dispo AVANT les clics du visiteur */

@@ -1247,10 +1247,13 @@ function _fmtPg(f){
   const c2=`and(width.gte.${b-t},width.lte.${b+t},longueur.gte.${a-t},longueur.lte.${a+t})`;
   return `and(format.neq.Bobine,or(${c1},${c2}))`;
 }
-// ── FAMILLES DE GRAMMAGES (16/07) : ±5 g/m², ancres = grammages du stock
-// (familles ≥30 produits). Sans grammage ou hors familles → Autres.
-const GRAMMAGE_TOL=5;
-const GRAMMAGE_FAMILLES=[17,32,40,52,60,70,80,90,100,110,120,130,140,150,160,170,180,190,200,220,240,250,275,300,325,350,400,850];
+// ── FAMILLES DE GRAMMAGES (22/10, Ethan) : regroupement à ±5 % autour des
+// grammages les plus fréquents du stock (calculé sur l'histogramme du 22/10 :
+// ancre la plus vendue d'abord, fenêtre ±arrondi(5 %), fenêtres disjointes).
+// [ancre, borne basse incluse, borne haute EXCLUE] en g entiers (colonne gsm = int). Hors fenêtres → Autres.
+const GRAMMAGE_RANGES=[[10,9,12],[12,12,14],[15,14,16],[17,16,19],[20,19,22],[23,22,25],[25,25,27],[27,27,28],[30,28,33],[35,33,38],[40,38,43],[45,43,48],[50,48,53],[56,53,57],[60,57,64],[65,64,66],[70,66,75],[75,75,76],[80,76,85],[85,85,86],[90,86,95],[100,95,106],[110,106,114],[120,114,127],[130,127,137],[140,137,142],[150,142,152],[160,152,169],[170,169,171],[180,171,190],[200,190,211],[220,211,232],[235,232,238],[250,238,263],[265,263,266],[280,266,295],[300,295,316],[325,316,332],[350,332,369],[375,369,380],[400,380,421],[440,421,463],[470,463,475],[500,475,526],[545,526,573],[600,573,631],[650,631,665],[700,665,736],[800,760,808],[850,808,893],[1500,1425,1576],[2100,1995,2206],[5000,4750,5251]];
+const GRAMMAGE_FAMILLES=GRAMMAGE_RANGES.map(r=>r[0]);
+const _GSM_RG={};GRAMMAGE_RANGES.forEach(r=>{_GSM_RG[r[0]]=r;});
 
 // ── GRAMMAGES en DOUBLE CURSEUR (31/07) : remplace la liste à cases. Pilote
 // les champs cachés f-gmin/f-gmax (déjà branchés : requête serveur, prédicat
@@ -1387,19 +1390,19 @@ function _gslAdapt(){
 }
 const GRAMMAGE_AUTRES='__gsm_autres__';
 const _gsmLbl=g=>g+' g/m²';
-const GRAMMAGE_OPTIONS=[80,70,90,60,100].map(_gsmLbl)
-  .concat(GRAMMAGE_FAMILLES.filter(g=>![80,70,90,60,100].includes(g)).map(_gsmLbl))
-  .concat([GRAMMAGE_AUTRES]);
+// ordre croissant (22/10), « Autres » en dernier
+const GRAMMAGE_OPTIONS=GRAMMAGE_FAMILLES.map(_gsmLbl).concat([GRAMMAGE_AUTRES]);
 function _grammageFamilleOf(row){
   const g=+row.gsm||0;
   if(!g)return GRAMMAGE_AUTRES;
-  for(const a of GRAMMAGE_FAMILLES){
-    if(Math.abs(g-a)<=GRAMMAGE_TOL)return _gsmLbl(a);
+  for(const r of GRAMMAGE_RANGES){
+    if(g>=r[1]&&g<r[2])return _gsmLbl(r[0]);
   }
   return GRAMMAGE_AUTRES;
 }
 function _gsmPg(a){
-  return `and(gsm.gte.${a-GRAMMAGE_TOL},gsm.lte.${a+GRAMMAGE_TOL})`;
+  const r=_GSM_RG[a];
+  return `and(gsm.gte.${r[1]},gsm.lt.${r[2]})`;
 }
 // ── LAIZES bobines : TRANCHES façon Poids (19/07, Ethan — fini les 40
 // familles fines, même catégorisation que les tranches logistiques).
@@ -3860,8 +3863,7 @@ async function _fetchAndRender(token){
     const _gcl=[];
     GRAMMAGE_FAMILLES.forEach(a=>{if(gsmSel.has(_gsmLbl(a)))_gcl.push(_gsmPg(a));});
     if(gsmSel.has(GRAMMAGE_AUTRES)){
-      const t=GRAMMAGE_TOL;
-      _gcl.push(`or(gsm.is.null,and(${GRAMMAGE_FAMILLES.map(a=>`or(gsm.lt.${a-t},gsm.gt.${a+t})`).join(',')}))`);
+      _gcl.push(`or(gsm.is.null,and(${GRAMMAGE_RANGES.map(r=>`or(gsm.lt.${r[1]},gsm.gte.${r[2]})`).join(',')}))`);
     }
     if(_gcl.length)p.append('or',`(${_gcl.join(',')})`);
   }
