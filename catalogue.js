@@ -5119,7 +5119,15 @@ async function exportAlbumPdf(btn){
       location.origin+'/img/logo.png',noph,
       (d,t)=>{if(lbl)lbl.textContent='Photos '+d+'/'+t+'…';});
     if(lbl)lbl.textContent='Génération…';
-    pdf.save('ALBUM PHOTO '+_exportNomQualite()+'PRODICONSEIL.pdf');
+    // Téléchargement EXACTEMENT comme l'Excel (22/10) : pdf.save() laissait le
+    // navigateur AFFICHER le PDF (onglet/aperçu) au lieu de l'enregistrer —
+    // blob octet-stream + <a download> = fichier dans Téléchargements.
+    const blob=new Blob([pdf.output('arraybuffer')],{type:'application/octet-stream'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='ALBUM PHOTO '+_exportNomQualite()+'PRODICONSEIL.pdf';
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),2000);
     window.prodiTrack?.('album_pdf',{n:cart.length});
     toast('Album PDF téléchargé');
   }catch(e){
