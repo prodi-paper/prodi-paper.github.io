@@ -5103,20 +5103,8 @@ function _jspdfLoad(){
   });
   return _jpdfP;
 }
-// « Enregistrer sous » natif (Chrome/Edge) : DOIT être appelé dans le clic,
-// avant toute génération (Chrome exige le geste utilisateur). null = non
-// supporté (Safari/Firefox → téléchargement classique), 'annule' = Annuler.
-async function _albumPicker(nom){
-  if(typeof window.showSaveFilePicker!=='function')return null;
-  try{
-    return await window.showSaveFilePicker({suggestedName:nom,
-      types:[{description:'PDF',accept:{'application/pdf':['.pdf']}}]});
-  }catch(e){return e&&e.name==='AbortError'?'annule':null;}
-}
-async function exportAlbumPdf(btn,fh){
+async function exportAlbumPdf(btn){
   if(!cart.length){toast('Aucune ligne sélectionnée');return;}
-  if(fh===undefined)fh=await _albumPicker('ALBUM PHOTO '+_exportNomQualite()+'PRODICONSEIL.pdf');
-  if(fh==='annule')return;
   const lbl=btn?btn.firstChild:null;   /* nœud texte « Album photo » du bouton */
   const old=lbl?lbl.textContent:'';
   if(btn)btn.disabled=true;
@@ -5134,20 +5122,13 @@ async function exportAlbumPdf(btn,fh){
     // Téléchargement EXACTEMENT comme l'Excel (22/10) : pdf.save() laissait le
     // navigateur AFFICHER le PDF (onglet/aperçu) au lieu de l'enregistrer —
     // blob octet-stream + <a download> = fichier dans Téléchargements.
-    if(fh){
-      // emplacement choisi par l'utilisateur → écrit direct, aucun téléchargement
-      const w=await fh.createWritable();
-      await w.write(new Blob([pdf.output('arraybuffer')],{type:'application/pdf'}));
-      await w.close();
-    }else{
     const blob=new Blob([pdf.output('arraybuffer')],{type:'application/octet-stream'});
     const a=document.createElement('a');
     a.href=URL.createObjectURL(blob);
     a.download='ALBUM PHOTO '+_exportNomQualite()+'PRODICONSEIL.pdf';
     document.body.appendChild(a);a.click();a.remove();
     setTimeout(()=>URL.revokeObjectURL(a.href),2000);
-    }
-    window.prodiTrack?.('album_pdf',{n:cart.length,via:fh?'picker':'dl'});
+    window.prodiTrack?.('album_pdf',{n:cart.length});
     toast('Album PDF téléchargé');
   }catch(e){
     _albumImpression(); // repli : onglet imprimable
