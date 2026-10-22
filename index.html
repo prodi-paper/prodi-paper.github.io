@@ -2393,6 +2393,9 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
     document.querySelectorAll('.sidebar-col .msd .msd-panel').forEach(function(p){
       var opts=Array.prototype.slice.call(p.querySelectorAll('.msd-option:not(.axcie-opt)'));
       if(opts.length<3) return;
+      /* menu SOUS LA SOURIS : ordre figé (sinon la case cochée remonte et le clic
+         suivant tombe sur une autre ligne — 22/10) ; re-tri à la sortie du menu */
+      var _ms=p.closest('.msd'); if(_ms&&_ms.matches(':hover')) return;
       var parent=opts[0].parentElement;
       if(!opts.every(function(o){return o.parentElement===parent;})) return;
       /* Grammages : ordre CROISSANT fixe (22/10), « Autres » en dernier */
@@ -2470,6 +2473,11 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
     /* re-tri au clic sur une case (le changement de classe .selected n'émet pas de mutation observée) */
     (fp.closest('.sidebar-col')||fp).addEventListener('click',function(e){
       if(e.target.closest('.msd-option')||e.target.closest('.axq-opt')){clearTimeout(deb);deb=setTimeout(sortPanels,180);}
+    });
+    (fp.closest('.sidebar-col')||fp).addEventListener('mouseout',function(e){
+      var ms=e.target.closest&&e.target.closest('.msd'); if(!ms) return;
+      if(e.relatedTarget&&ms.contains(e.relatedTarget)) return;
+      clearTimeout(deb);deb=setTimeout(sortPanels,250);
     });
   }
   setTimeout(arm,2200);
