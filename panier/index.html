@@ -454,11 +454,21 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
   window.pxAlbum=function(btn){
     if(!lire().length){pxToast('Panier vide');return;}
     window.prodiTrack&&window.prodiTrack('album_pdf',{n:lire().length});
+    /* « Enregistrer sous » ouvert ICI, dans le clic (le geste ne traverse pas
+       vers l'iframe ni l'attente de son chargement) ; repli téléchargement */
+    var pick=typeof window.showSaveFilePicker==='function'
+      ?window.showSaveFilePicker({suggestedName:'ALBUM PHOTO PRODICONSEIL.pdf',
+          types:[{description:'PDF',accept:{'application/pdf':['.pdf']}}]})
+          .catch(function(e){return e&&e.name==='AbortError'?'annule':null;})
+      :Promise.resolve(null);
+    pick.then(function(fh){
+    if(fh==='annule')return;
     var old=btn.firstChild.textContent;btn.firstChild.textContent='Génération… ';btn.disabled=true;
-    _catFrame().then(function(w){return w.exportAlbumPdf(null);})
+    _catFrame().then(function(w){return w.exportAlbumPdf(null,fh);})
       .then(function(){pxToast('Album PDF téléchargé');})
       .catch(function(){pxToast('Erreur album — réessayez');})
       .finally(function(){btn.firstChild.textContent=old;btn.disabled=false;});
+    });
   };
   window.pxVider=function(){window.prodiTrack&&window.prodiTrack('panier_vide',{n:lire().length,via:'panier'});sauver([]);rendre();pxToast('Panier vidé');};
   /* ── Réservation 72 h : panier → commande bloquée → Mon Prodiconseil ── */
