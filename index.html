@@ -442,9 +442,11 @@ body.topbar-view .plist-table th:last-child,body.topbar-view .plist-table td:las
 body.topbar-view .plist-table tbody tr:last-child td{border-bottom:1.5px solid #8f9aae !important;}
 body.topbar-view .plist-table tbody tr:nth-child(even) td{background:#f5f8fc;}
 body.topbar-view .plist-table tbody tr{cursor:cell;}
-body.topbar-view .plist-table tbody tr:hover td{background:#fff3c4;}
+/* survol semi-jaune : SOURIS seulement — sur téléphone le :hover reste collé après
+   un tap → la ligne décochée restait semi-jaune (25/10) */
+@media (hover:hover) and (pointer:fine){body.topbar-view .plist-table tbody tr:hover td{background:#fff3c4;}}
 body.topbar-view .plist-table tbody tr.xl-sel td{background:#ffe978 !important;}
-body.topbar-view .plist-table tbody tr.xl-sel:hover td{background:#ffe14e !important;}
+@media (hover:hover) and (pointer:fine){body.topbar-view .plist-table tbody tr.xl-sel:hover td{background:#ffe14e !important;}}
 body.topbar-view .plist-table tbody tr.xl-active{outline:2.5px solid #1a7a38;outline-offset:-2px;}
 body.topbar-view .plist-table .plist-td-num{font-variant-numeric:tabular-nums;}
 /* survol de la photo : zoom + loupe → on comprend qu'elle ouvre la fiche */
