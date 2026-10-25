@@ -2822,9 +2822,7 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
     _axmTries++;
     var host=document.getElementById('filters-panel');
     if(host){
-      [['gram','Grammage <small>(g/m²)</small>','f-gmin','f-gmax',1,'','sb-msd-grammage'],
-       ['laize','Laize <small>(mm)</small>','f-lmin','f-lmax',1,'','sb-msd-laize'],
-       ['diam','Diamètre <small>(mm)</small>','f-longmin','f-longmax',1,'','sb-msd-diametre'],
+      [['diam','Diamètre <small>(mm)</small>','f-longmin','f-longmax',1,'','sb-msd-diametre'],
        ['poids','Poids <small>(kg)</small>','f-wmin','f-wmax',1,'','sb-msd-poids']].forEach(function(c){
         var natif=document.getElementById(c[6]);
         if(natif){var fg=natif.closest('.fg');if(fg)fg.classList.add('ax-hide');}
@@ -3957,7 +3955,7 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
 <script src="/analytics.js?v=8"></script>
 <script src="/login-pop.js"></script>
 <script src="/fiche.js?v=1"></script>
-<script src="/catalogue.js?v=836"></script>
+<script src="/catalogue.js?v=837"></script>
 <script>
 (function(){var Q=window._preQ||[];document.documentElement.style.cursor='';window._preQ=[];
   if(window._axDispoLater&&window.axDispo){window._axDispoLater=0;try{window.axDispo();}catch(e){}} /* défaut Dispo AVANT les clics du visiteur */

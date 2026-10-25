@@ -1070,11 +1070,11 @@ async function init(){
   buildMsdOptions('sb-msd-mandrin',['70','76','150','152'],'Mandrins',v=>v+' mm','msd-mandrin');
   buildMsdOptions('sb-msd-format',FORMAT_OPTIONS,'Dimensions',v=>v===FORMAT_AUTRES?'Autres dimensions':v,'msd-format');
   buildMsdOptions('sb-msd-grammage',GRAMMAGE_OPTIONS,'Grammages',v=>v===GRAMMAGE_AUTRES?'Autres grammages':v,'msd-grammage');
-  _buildGrammageSlider('sb-msd-grammage');
+  // 25/10 Ethan : Grammages + Laizes = LISTE À CASES (ordi + mobile), plus de curseur/Min–Max.
   // Accordéon Grammages (17/08) : le bouton déplie/replie le curseur dans la carte.
   // ⚠️ DESKTOP seulement — sur téléphone on garde le menu déroulant d'origine
   // (toggleMsd), sinon le curseur ne s'ouvre plus du tout (bug 18/08).
-  (function(){
+  if(0)(function(){
     const g=document.getElementById('sb-msd-grammage');
     const btn=g&&g.querySelector('.msd-btn');
     if(btn){btn.setAttribute('onclick','');btn.onclick=e=>{
@@ -1093,21 +1093,18 @@ async function init(){
   buildMsdOptions('msd-mandrin-mob',['70','76','150','152'],'Mandrin',v=>v+' mm','msd-mandrin');
   buildMsdOptions('msd-format-mob',FORMAT_OPTIONS,'Dimensions',v=>v===FORMAT_AUTRES?'Autres dimensions':v,'msd-format');
   buildMsdOptions('msd-grammage-mob',GRAMMAGE_OPTIONS,'Grammages',v=>v===GRAMMAGE_AUTRES?'Autres grammages':v,'msd-grammage');
-  _buildGrammageSlider('msd-grammage-mob');
   buildMsdOptions('msd-laize-mob',LAIZE_OPTIONS,'Laizes',v=>v===LAIZE_AUTRES?'Autres laizes':v,'msd-laize');
   buildMsdOptions('msd-diametre-mob',DIAM_OPTIONS,'Diamètre',v=>v===DIAM_AUTRES?'Autres Ø':v,'msd-diametre');
   buildMsdOptions('msd-poids-mob',POIDS_OPTIONS,'Poids',undefined,'msd-poids');
   // Laize/Ø/Poids = DUPLICATION du curseur Grammages : sections du RAIL (accordéon
   // .gsl-open, mêmes markup + CSS que Grammages) + tiroir mobile.
-  _initRangeSliderMenu('sb-msd-laize','laize');
   _initRangeSliderMenu('sb-msd-diametre','diam');
   _initRangeSliderMenu('sb-msd-poids','poids');
-  _initRangeSliderMenu('msd-laize-mob','laize');
   _initRangeSliderMenu('msd-diametre-mob','diam');
   _initRangeSliderMenu('msd-poids-mob','poids');
   // Accordéon desktop identique à Grammages : clic titre = déplie le curseur en
   // place (mobile ≤768px garde le dropdown toggleMsd).
-  ['sb-msd-laize','sb-msd-diametre','sb-msd-poids'].forEach(id=>{
+  ['sb-msd-diametre','sb-msd-poids'].forEach(id=>{
     const g=document.getElementById(id),btn=g&&g.querySelector('.msd-btn');
     if(btn){btn.setAttribute('onclick','');btn.onclick=e=>{e.stopPropagation();
       if(window.matchMedia('(max-width: 768px)').matches){toggleMsd(id);}
@@ -1488,12 +1485,11 @@ function _poidsPg(t){
 //   laize→f-lmin/f-lmax (width) · diam→f-longmin/f-longmax (longueur, bobines) ·
 //   poids→f-wmin/f-wmax (weight). Plage affichée en haut à droite (comme gram.).
 const _RS_CFG={
-  laize:{minField:'f-lmin',maxField:'f-lmax',unit:'mm',excludeKey:'msd-laize',all:'Toutes les laizes',bobineOnly:true,defLo:0,defHi:2500,step:10,rowVal:r=>+r.width||0},
   diam:{minField:'f-longmin',maxField:'f-longmax',unit:'mm',excludeKey:'msd-diametre',all:'Tous les diamètres',bobineOnly:true,defLo:0,defHi:1600,step:10,rowVal:r=>(String(r.format||'')==='Bobine'?(+r.longueur||0):0)},
   poids:{minField:'f-wmin',maxField:'f-wmax',unit:'kg',excludeKey:'msd-poids',all:'Tous les poids',bobineOnly:false,defLo:0,defHi:5000,step:10,rowVal:r=>+r.weight||+r.poids_net||0},
 };
-const _RS_MOB={laize:'msd-laize-mob',diam:'msd-diametre-mob',poids:'msd-poids-mob'};
-const _RS_DESK={laize:'sb-msd-laize',diam:'sb-msd-diametre',poids:'sb-msd-poids'}; // sections du rail (comme Grammages)
+const _RS_MOB={diam:'msd-diametre-mob',poids:'msd-poids-mob'};
+const _RS_DESK={diam:'sb-msd-diametre',poids:'sb-msd-poids'}; // sections du rail (comme Grammages)
 const _rsBounds={laize:null,diam:null,poids:null}; // {lo,hi} adaptées au stock, ou null si aucune donnée
 // Texte de plage affiché à droite (comme Grammages) : plage COURANTE = sélection
 // si posée, sinon les bornes du stock. Vide seulement si aucune donnée.
@@ -8009,8 +8005,6 @@ function syncFilterPills(){
 // pour les plages → une ligne « Libellé [min] – [max] unité » ; Photo/Réservation
 // en pastilles côte à côte. Pilote les mêmes champs cachés que le rail desktop.
 const _FDI_RANGES=[
-  ['msd-grammage-mob','Grammage','g/m²','f-gmin','f-gmax',null],
-  ['msd-laize-mob','Laize','mm','f-lmin','f-lmax','laize'],
   ['msd-diametre-mob','Diamètre','mm','f-longmin','f-longmax','diam'],
   ['msd-poids-mob','Poids','kg','f-wmin','f-wmax','poids'],
 ];
