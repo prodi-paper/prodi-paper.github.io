@@ -2338,6 +2338,12 @@ body.apple-view .pcard-promo-overlay{-webkit-backdrop-filter:none;backdrop-filte
 .gsl-bub::after{content:'';position:absolute;left:50%;top:100%;transform:translateX(-50%);
   border:5px solid transparent;border-top-color:#1d1d1f;}
 .gsl-bornes{display:flex;justify-content:space-between;font-size:11.5px;color:var(--g3);margin-top:-7px;}
+.gsl-type{display:flex;align-items:center;gap:8px;margin-top:2px;}
+.gsl-type input{flex:1 1 0;min-width:0;height:44px;border:1.5px solid var(--border,#d2d2d7);border-radius:10px;background:#fff;font:inherit;font-size:16px;font-weight:600;text-align:center;padding:0 8px;outline:none;-moz-appearance:textfield;appearance:textfield;}
+.gsl-type input:focus{border-color:#1d1d1f;}
+.gsl-type input::-webkit-outer-spin-button,.gsl-type input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+.gsl-type span{color:var(--g3,#86868b);}
+.gsl-type em{font-style:normal;font-size:13px;color:var(--g3,#86868b);}
 /* Curseur CIE dans le menu Détails (même dessin, encart dans la liste) */
 .gsl-cie{padding:12px 14px 12px;gap:11px;border-bottom:1px solid #ececf0;}
 .gsl-cie .gsl-val{font-size:14px;}
@@ -3043,3 +3049,30 @@ body.landing-rows #desk-toolbar{display:none !important;}
   body.shared-view .pgrid .sc-card .sc-cell .sc-val{font-size:12px !important;}
   body.shared-view .pgrid .sc-card .sc-det-only .sc-val{font-size:12px !important;}
 }
+
+/* ── Tiroir mobile « on tape » (25/10) : lignes Libellé [min]–[max], pastilles ── */
+#filter-drawer .msd.fdi>.msd-btn,#filter-drawer .msd.fdi>.msd-panel{display:none !important;}
+#filter-drawer .fdi-row,#filter-drawer .fd-seg .fd-acc-body{display:flex !important;align-items:center;gap:10px;background:#fff;border-radius:14px;box-shadow:var(--sh-sm);padding:8px 10px 8px 16px;min-height:56px;box-sizing:border-box;}
+#filter-drawer .fdi-l{flex:1 1 auto;min-width:0;font-size:16px;font-weight:700;color:#1d1d1f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#filter-drawer .fdi-in{display:flex;align-items:center;gap:6px;flex:0 0 auto;}
+#filter-drawer .fdi-in input{width:84px;height:40px;border:1.5px solid #e3e3e8;border-radius:10px;background:#f7f7f9;font:inherit;font-size:16px;font-weight:600;text-align:center;padding:0 6px;outline:none;box-sizing:border-box;-moz-appearance:textfield;appearance:textfield;color:#1d1d1f;}
+#filter-drawer .fdi-in input::placeholder{color:#a1a1a6;font-weight:500;font-size:14px;}
+#filter-drawer .fdi-in input:focus{border-color:#1d1d1f;background:#fff;}
+#filter-drawer .fdi-in input::-webkit-outer-spin-button,#filter-drawer .fdi-in input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+#filter-drawer .fdi-sep{color:#a1a1a6;}
+#filter-drawer .fdi-u{font-size:12.5px;color:#86868b;min-width:30px;}
+#filter-drawer .fdi-row.on{box-shadow:inset 0 0 0 2px #1d1d1f;}
+#filter-drawer .fdi-row.on input{border-color:#1d1d1f;background:#fff;}
+#filter-drawer .fd-seg .fd-acc-head{display:none !important;}
+#filter-drawer .fd-seg .fd-acc-body .msd-option{flex:0 0 auto;padding:0 14px;height:38px;border-radius:999px;border:1.5px solid #e3e3e8;background:#f7f7f9;font-size:14.5px;font-weight:600;gap:0;}
+#filter-drawer .fd-seg .fd-acc-body .msd-option .msd-check{display:none;}
+#filter-drawer .fd-seg .fd-acc-body .msd-option.selected{background:#1d1d1f;border-color:#1d1d1f;color:#fff;}
+@media (max-width:360px){#filter-drawer .fdi-in input{width:68px;}#filter-drawer .fdi-u{display:none;}}
+/* Menus du tiroir = TOUS en accordéon inline, même gabarit (25/10) */
+#filter-drawer .msd-panel.show{position:static !important;width:auto !important;max-height:55vh !important;overflow-y:auto !important;border:none !important;box-shadow:none !important;border-radius:0 0 14px 14px !important;background:#fff !important;margin-top:-8px;padding:8px 6px 6px !important;}
+#filter-drawer .msd-btn.open{border-radius:14px 14px 0 0 !important;box-shadow:none !important;}
+#filter-drawer .msd-panel .msd-option{min-height:44px;padding:8px 10px !important;font-size:16px !important;gap:12px;}
+#filter-drawer .msd-panel .msd-option .msd-label{font-size:16px !important;}
+#filter-drawer .msd-panel .msd-option .msd-check{width:22px;height:22px;border-radius:6px;}
+#filter-drawer .msd-panel .msd-search-wrap{padding:4px 4px 8px !important;}
+#filter-drawer .msd-panel .msd-search-wrap input{height:40px;font-size:16px !important;border-radius:10px;}

@@ -1264,6 +1264,18 @@ function _gslSyncAll(){
     if(m&&m._gslSync)m._gslSync();
   });
 }
+// Saisie CLAVIER Min – Max sous les curseurs (25/10, mobile « on tape » comme
+// les champs Min–Max du rail ordi). Vide = pas de borne.
+function _gslTypeRow(wrap,unit,onSet){
+  const row=document.createElement('div');row.className='gsl-type';
+  row.innerHTML='<input type="number" inputmode="numeric" placeholder="Min" aria-label="Minimum"><span>–</span><input type="number" inputmode="numeric" placeholder="Max" aria-label="Maximum"><em>'+unit+'</em>';
+  wrap.appendChild(row);
+  const [tn,tx]=row.querySelectorAll('input');
+  const go=()=>{let a=tn.value,b=tx.value;if(a!==''&&b!==''&&+a>+b){tn.value=b;tx.value=a;}onSet(tn.value,tx.value);};
+  [tn,tx].forEach(i=>{i.addEventListener('change',go);i.addEventListener('keydown',e=>{if(e.key==='Enter'){i.blur();}});});
+  row.addEventListener('click',e=>e.stopPropagation());
+  return (a,b)=>{if(document.activeElement===tn||document.activeElement===tx)return;tn.value=a;tx.value=b;};
+}
 function _buildGrammageSlider(msdId){
   const msd=document.getElementById(msdId);
   const panel=msd?msd.querySelector('.msd-panel'):null;
@@ -1287,6 +1299,10 @@ function _buildGrammageSlider(msdId){
   const _gbtn=msd.querySelector('.msd-btn');let btnval=_gbtn&&_gbtn.querySelector('.gsl-btnval');if(_gbtn&&!btnval){btnval=document.createElement('span');btnval.className='gsl-btnval';_gbtn.insertBefore(btnval,_gbtn.querySelector('.msd-arrow'));}
   const bornes=wrap.querySelectorAll('.gsl-bornes span');
   const gn=document.getElementById('f-gmin'),gx=document.getElementById('f-gmax');
+  const typeSet=_gslTypeRow(wrap,'g/m²',(a,b)=>{
+    gn.value=a;gx.value=b;
+    _gslSyncAll();typeSet(a,b);filterProducts();
+  });
   function paint(){
     let a=+iMin.value,b=+iMax.value;
     if(a>b){const t=a;a=b;b=t;}
@@ -1296,6 +1312,7 @@ function _buildGrammageSlider(msdId){
     const plein=(a<=LO&&b>=HI);
     if(btnval)btnval.textContent=a+' – '+b+' g';
     lbl.textContent=plein?'Tous les grammages':a+' – '+b+' g/m²';
+    typeSet(gn.value!==''||!plein?a:'',gx.value!==''||!plein?b:'');
     return {a,b,plein};
   }
   function apply(){
@@ -1528,8 +1545,15 @@ function _buildRangeSlider(container,key){
     fill.style.left=(a-LO)/(HI-LO)*100+'%';fill.style.right=(100-(c-LO)/(HI-LO)*100)+'%';
     const plein=(a<=LO&&c>=HI);
     lbl.textContent=plein?cfg.all:a+' – '+c+' '+cfg.unit;
+    typeSet(plein?'':a,plein?'':c);
     return {a,c,plein};
   }
+  const typeSet=_gslTypeRow(wrap,cfg.unit,(a,c)=>{
+    if(fMin)fMin.value=a;if(fMax)fMax.value=c;
+    iMin.value=a!==''?Math.min(HI,Math.max(LO,+a)):LO;
+    iMax.value=c!==''?Math.min(HI,Math.max(LO,+c)):HI;
+    paint();typeSet(a,c);_rsUpdateHeader(key);filterProducts();
+  });
   function apply(){
     const r=paint();
     if(fMin)fMin.value=r.plein?'':r.a;
@@ -1807,7 +1831,9 @@ function formatProductTitle(qualite, fallback){
 // feuille du bas — 29/08 Ethan : réservé aux menus à peu de choix. Les gros
 // (Type/Détails/Couleurs/Réf usine) gardent la feuille du bas.
 const _MSD_INLINE=['msd-grammage-mob','msd-mandrin-mob','msd-laize-mob','msd-diametre-mob','msd-poids-mob'];
-function _msdIsInline(panel){const m=panel&&panel.closest&&panel.closest('.msd');return !!(m&&_MSD_INLINE.includes(m.id));}
+// 25/10 Ethan : « pas logique, certains en feuille, d'autres en accordéon » → TOUS
+// les menus du tiroir mobile s'ouvrent en accordéon inline.
+function _msdIsInline(panel){const m=panel&&panel.closest&&panel.closest('.msd');return !!(m&&(_MSD_INLINE.includes(m.id)||m.closest('#filter-drawer')));}
 function _msdReparentOpen(panel){
   if(!panel||panel._msdHome) return;
   if(_msdIsInline(panel)) return; // reste dans le tiroir en accordéon (pas de feuille)
@@ -5732,6 +5758,7 @@ function resetFilters(){
     // 9. Reload products
     currentPage=1;
     filterProducts();
+    _fdInlineSync();
   } catch(e){ console.error('resetFilters error:',e); filterProducts(); }
 }
 function toggleMobFilters(){
@@ -7978,7 +8005,72 @@ function syncFilterPills(){
   document.querySelectorAll('.fpill-photo').forEach(b=>b.classList.toggle('active',_photoFilter===b.dataset.photo));
   updateFilterVisibility(); // resync des sections bobine/format (tags, 18/07)
 }
+// ── Tiroir mobile « on tape » (25/10 Ethan) : plus de curseurs ni d'accordéons
+// pour les plages → une ligne « Libellé [min] – [max] unité » ; Photo/Réservation
+// en pastilles côte à côte. Pilote les mêmes champs cachés que le rail desktop.
+const _FDI_RANGES=[
+  ['msd-grammage-mob','Grammage','g/m²','f-gmin','f-gmax',null],
+  ['msd-laize-mob','Laize','mm','f-lmin','f-lmax','laize'],
+  ['msd-diametre-mob','Diamètre','mm','f-longmin','f-longmax','diam'],
+  ['msd-poids-mob','Poids','kg','f-wmin','f-wmax','poids'],
+];
+function _fdiRow(label,unit){
+  const row=document.createElement('div');row.className='fdi-row';
+  row.innerHTML='<span class="fdi-l">'+label+'</span><div class="fdi-in"><input type="number" inputmode="numeric" placeholder="Min" aria-label="'+label+' minimum"><span class="fdi-sep">–</span><input type="number" inputmode="numeric" placeholder="Max" aria-label="'+label+' maximum">'+(unit?'<span class="fdi-u">'+unit+'</span>':'')+'</div>';
+  return row;
+}
+function _fdInlineInit(){
+  const dr=document.getElementById('filter-drawer');
+  if(!dr||dr.dataset.fdi)return;dr.dataset.fdi='1';
+  _FDI_RANGES.forEach(([id,label,unit,fn,fx,rsKey])=>{
+    const m=document.getElementById(id);if(!m)return;
+    m.classList.add('fdi');
+    const row=_fdiRow(label,unit);m.prepend(row);
+    const [a,b]=row.querySelectorAll('input');
+    const go=()=>{
+      if(a.value!==''&&b.value!==''&&+a.value>+b.value){const t=a.value;a.value=b.value;b.value=t;}
+      document.getElementById(fn).value=a.value;document.getElementById(fx).value=b.value;
+      if(rsKey){try{_rsRefreshOpen();}catch(_){}}else{try{_gslSyncAll();}catch(_){}}
+      row.classList.toggle('on',a.value!==''||b.value!=='');
+      filterProducts();
+    };
+    [a,b].forEach(i=>{i.addEventListener('change',go);i.addEventListener('keydown',e=>{if(e.key==='Enter')i.blur();});});
+  });
+  // Réf. article : mêmes champs, même ligne
+  const rmin=document.getElementById('f-refmin-mob'),rmax=document.getElementById('f-refmax-mob');
+  if(rmin&&rmax){
+    const sec=rmin.closest('.fd-section');
+    const row=_fdiRow('Réf. article','');
+    const box=row.querySelector('.fdi-in');box.innerHTML='';
+    rmin.className='';rmax.className='';rmin.inputMode='numeric';rmax.inputMode='numeric';
+    const sep=document.createElement('span');sep.className='fdi-sep';sep.textContent='–';
+    const u=document.createElement('span');u.className='fdi-u';
+    box.append(rmin,sep,rmax,u);
+    sec.innerHTML='';sec.classList.add('fdi');sec.appendChild(row);
+  }
+  // Photo / Réservation : pastilles côte à côte
+  dr.querySelectorAll('.fd-acc').forEach(acc=>{
+    const lbl=acc.querySelector('.fd-acc-head .msd-btn-label');
+    const body=acc.querySelector('.fd-acc-body');if(!lbl||!body)return;
+    acc.classList.add('fd-seg');
+    const l=document.createElement('span');l.className='fdi-l';l.textContent=lbl.textContent;
+    body.prepend(l);
+  });
+}
+function _fdInlineSync(){
+  _FDI_RANGES.forEach(([id,,,fn,fx])=>{
+    const m=document.getElementById(id);if(!m)return;
+    const row=m.querySelector('.fdi-row');if(!row)return;
+    const [a,b]=row.querySelectorAll('input');
+    a.value=document.getElementById(fn).value;b.value=document.getElementById(fx).value;
+    row.classList.toggle('on',a.value!==''||b.value!=='');
+    // bornes du stock filtré en placeholder (texte « 15 – 850 g » du bouton)
+    const bv=m.querySelector('.gsl-btnval');const n=bv?(bv.textContent.match(/\d+/g)||[]):[];
+    a.placeholder=n[0]?'Min '+n[0]:'Min';b.placeholder=n[1]?'Max '+n[1]:'Max';
+  });
+}
 function openFilterDrawer(){
+  _fdInlineInit();_fdInlineSync();
   syncFilterPills(); // Évite que les pills du drawer soient désync avec l'état réel
   document.getElementById('filter-drawer').classList.add('open');
   document.getElementById('filter-drawer-overlay').classList.add('show');
