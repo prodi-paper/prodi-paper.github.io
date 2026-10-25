@@ -1429,13 +1429,13 @@ const LAIZE_TRANCHES=[
  {label:'> 1600 mm',min:1600,max:99999},
 ];
 const LAIZE_AUTRES='__laize_autres__';
-const LAIZE_OPTIONS=LAIZE_TRANCHES.map(t=>t.label).concat([LAIZE_AUTRES]);
+// 25/10 Ethan : laizes EXACTES comme les grammages (plus de tranches) — options
+// construites depuis le stock du jour (_buildLaizeOptions), tri croissant.
+const LAIZE_OPTIONS=[];
 function _laizeFamilleOf(row){
   if(String(row.format||'')!=='Bobine')return null;
   const w=+row.width||0;
-  if(!w)return LAIZE_AUTRES;
-  const t=LAIZE_TRANCHES.find(t=>w>=t.min&&w<t.max);
-  return t?t.label:LAIZE_AUTRES;
+  return w?w+' mm':LAIZE_AUTRES;
 }
 function _laizePgT(t){
   return `and(format.eq.Bobine,width.gte.${t.min},width.lt.${t.max})`;
@@ -2468,9 +2468,28 @@ function _buildUsineOptions(){
   buildMsdOptions('msd-usine-mob',vals,'Réf usine',undefined,'msd-usine');
   _usineOptionsBuilt=true;
 }
+let _laizeOptionsBuilt=false;
+function _buildLaizeOptions(){
+  if(_laizeOptionsBuilt||!_allProductsCache)return;
+  const ws=new Set();let autres=false;
+  _allProductsCache.forEach(r=>{
+    if(String(r.format||'')!=='Bobine')return;
+    const w=+r.width||0;if(w)ws.add(w);else autres=true;
+  });
+  if(!ws.size)return;
+  const vals=[...ws].sort((a,b)=>a-b).map(w=>w+' mm');
+  if(autres)vals.push(LAIZE_AUTRES);
+  const lf=v=>v===LAIZE_AUTRES?'Autres laizes':v;
+  const keep=new Set(getMsdValues('msd-laize'));
+  buildMsdOptions('sb-msd-laize',vals,'Laizes',lf,'msd-laize');
+  buildMsdOptions('msd-laize-mob',vals,'Laizes',lf,'msd-laize');
+  if(keep.size){document.querySelectorAll('#sb-msd-laize .msd-option,#msd-laize-mob .msd-option').forEach(o=>{if(keep.has(o.dataset.val))o.classList.add('selected');});}
+  _laizeOptionsBuilt=true;
+}
 function _refreshAllFacets(){
   _fafBump();
   _buildUsineOptions();
+  _buildLaizeOptions();
   _rebuildDetailsMsd();
   _updateMsdFacetCounts('msd-type');
   _updateMsdFacetCounts('msd-couleur');
@@ -3892,7 +3911,8 @@ async function _fetchAndRender(token){
   const lzSel=getMsdValues('msd-laize');
   if(lzSel.size>0){
     const _lcl=[];
-    LAIZE_TRANCHES.forEach(t=>{if(lzSel.has(t.label))_lcl.push(_laizePgT(t));});
+    const _lw=[...lzSel].map(v=>parseInt(v,10)).filter(n=>n>0);
+    if(_lw.length)_lcl.push(`and(format.eq.Bobine,width.in.(${_lw.join(',')}))`);
     if(lzSel.has(LAIZE_AUTRES)){
       _lcl.push('and(format.eq.Bobine,width.is.null)');
     }
@@ -7785,7 +7805,7 @@ async function _dkInit(n){
     window._dkRaw=rows;window._dkMode=n;
     // Facettes (Qualité, Couleur, Détails, sliders grammage/laize, usines…) basées
     // sur le SOUS-ENSEMBLE déstockage et non sur tout le catalogue (04/10 Ethan).
-    _allProductsCache=rows; _usineOptionsBuilt=false; _detailsLastSig=null;
+    _allProductsCache=rows; _usineOptionsBuilt=false; _laizeOptionsBuilt=false; _detailsLastSig=null;
     try{Object.keys(_facetSig).forEach(k=>delete _facetSig[k]);Object.keys(_facetPending).forEach(k=>delete _facetPending[k]);}catch(e){}
     document.body.classList.add('dk-mode');   // prix en badge JAUNE promo
     _landingRows=false;_showLandingRows(false);
