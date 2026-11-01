@@ -20,6 +20,8 @@
     +'<div class="ft2-col">'
       +'<div class="ft2-h">Navigation</div>'
       +'<a href="/produits/">Produits</a>'
+      +'<a href="/catalogue/">Catalogue</a>'
+      +'<a href="/about/">À propos</a>'
       +'<a href="/histoire/">Histoire</a>'
       +'<a href="/contact/">Contact</a>'
       +'<a href="/faq/">FAQ</a>'
