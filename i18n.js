@@ -64,10 +64,10 @@
     'Service achat':'Purchasing service',
     'Se connecter / Devenir client':'Sign in / Become a client',
     // ── Bandeau haut ──
-    'Offres de la rentrée':'Back-to-school offers',
-    'Recevez nos offres pour la rentrée !':'Get our back-to-school offers!',
+    'Offres de novembre':'November offers',
+    'Recevez nos offres de novembre !':'Get our November offers!',
     "S'inscrire":'Sign up','S’inscrire':'Sign up',
-    'Octobre 2026':'October 2026',
+    'Novembre 2026':'November 2026',
     // ── Catalogue : rail filtres (terminologie papetière) ──
     'Filtres':'Filters',
     'Filtres avancés':'Advanced filters',

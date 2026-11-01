@@ -10,7 +10,7 @@ gtag('js', new Date());
 gtag('config', 'AW-18393110999');
 gtag('config', 'G-KYEHH64T17');
 </script>
-<script src="/i18n.js?v=2"></script>
+<script src="/i18n.js?v=3"></script>
 <script src="/analytics.js?v=8"></script>
 <meta charset="UTF-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.googletagmanager.com https://googleads.g.doubleclick.net https://www.googleadservices.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://flagcdn.com https://images.pexels.com https://stock.prodi.net https://prodi.com https://prodi-paper.github.io https://images.unsplash.com https://images.weserv.nl https://www.googletagmanager.com https://googleads.g.doubleclick.net https://www.google.com https://www.google.fr; connect-src 'self' https://api.country.is https://bvcgpdoukhcatjibmvnb.supabase.co https://prodi-arrivages.vercel.app https://api.emailjs.com https://cdn.jsdelivr.net https://stock.prodi.net https://images.weserv.nl https://api.frankfurter.dev https://www.googletagmanager.com https://googleads.g.doubleclick.net https://www.google.com https://stats.g.doubleclick.net https://www.google-analytics.com https://region1.google-analytics.com https://analytics.google.com https://region1.analytics.google.com https://www.googleadservices.com https://ad.doubleclick.net; frame-src https://challenges.cloudflare.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
@@ -70,15 +70,25 @@ main{flex:1;display:grid;grid-template-columns:auto 380px;column-gap:clamp(70px,
 #cfg-bg.open{display:flex;}
 .cfg-card{position:relative;width:min(580px,92vw);background:#fff;border-radius:16px;padding:28px 30px 26px;}
 .cfg-x{position:absolute;top:14px;right:14px;background:none;border:none;cursor:pointer;padding:6px;line-height:0;}
+.cfg-prog{display:flex;align-items:center;gap:12px;margin:0 0 26px;}
+.cfg-prog-bar{flex:1;height:6px;border-radius:3px;background:#e8e8ed;overflow:hidden;}
+.cfg-prog-bar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#ff7a1a 0%,#ff3c00 26%,#fe0000 55%,#ff7d5e 80%,#ffd7c9 90%,#b9efce 100%);}
+.cfg-prog span{font-size:13px;font-weight:700;color:#6e6e73;}
 .cfg-h{text-align:center;font-size:31px;font-weight:800;margin:0 0 30px;}
 .cfg-box{border:1.5px solid #d2d2d7;border-radius:12px;padding:12px 18px;margin-bottom:16px;}
-.cfg-box.ro{background:#f2f2f4;border-color:#e3e3e6;}
 .cfg-lab{font-size:13.5px;color:#6e6e73;font-weight:500;margin-bottom:3px;}
 .cfg-lab b{color:#e02020;font-weight:700;}
-.cfg-val{font-size:17px;font-weight:600;color:#1d1d1f;}
+.cfg-actwrap{margin-bottom:16px;}
+.cfg-actwrap .cfg-lab{margin-bottom:8px;}
+.cfg-checks{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.cfg-check{position:relative;display:flex;align-items:center;justify-content:center;min-height:64px;padding:10px 14px;border:1.5px solid #d2d2d7;border-radius:12px;text-align:center;cursor:pointer;font:600 15.5px/1.25 'DM Sans',sans-serif;color:#1d1d1f;transition:border-color .15s,background .15s,color .15s;}
+.cfg-check:hover{border-color:#86868b;}
+.cfg-check input{position:absolute;opacity:0;width:1px;height:1px;margin:0;}
+.cfg-check:has(input:checked){border-color:#1d1d1f;background:#e8e8ed;box-shadow:inset 0 0 0 1px #1d1d1f;font-weight:700;}
+.cfg-check:has(input:focus-visible){box-shadow:0 0 0 1px #1d1d1f;}
+.cfg-autre{margin:12px 0 0;}
 .cfg-selwrap{position:relative;display:flex;align-items:center;gap:10px;}
 .cfg-selwrap img{width:25px;height:17px;object-fit:cover;border-radius:2px;box-shadow:0 0 0 1px rgba(0,0,0,.08);}
-.cfg-selwrap select{appearance:none;-webkit-appearance:none;flex:1;border:none;outline:none;background:none;font:600 17px 'DM Sans',sans-serif;color:#1d1d1f;padding-right:28px;cursor:pointer;}
 .cfg-selwrap svg{position:absolute;right:2px;pointer-events:none;}
 /* port : bouton + panneau déroulant avec recherche en haut (clic = ouvre) */
 #cfg-portbtn{flex:1;min-width:0;border:none;outline:none;background:none;font:600 17px 'DM Sans',sans-serif;color:#1d1d1f;padding:0 26px 0 0;cursor:pointer;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -97,17 +107,11 @@ main{flex:1;display:grid;grid-template-columns:auto 380px;column-gap:clamp(70px,
 .cfg-portfree:hover{background:#ffe8e8 !important;}
 .cfg-portempty{padding:11px 12px;color:#86868b;font-size:14.5px;line-height:1.4;}
 /* bouton « Importer un fichier » (à côté de la TVA) — remplit la case, texte gras centré */
-.cfg-upwrap{display:flex;align-items:center;}
-.cfg-upload{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:23px;cursor:pointer;color:#1d1d1f;font:700 15.5px 'DM Sans',sans-serif;}
-.cfg-upload span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.cfg-upload svg{flex-shrink:0;}
-.cfg-upload:hover{color:#fe0000;}
-.cfg-upload.has-file{color:#1a7a38;}
-.cfg-upload.cfg-uploading{color:#6e6e73;}
 .cfg-note{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;font-size:12.5px;color:#6e6e73;line-height:1.45;margin:-6px 2px 14px;}
-.cfg-2col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:26px;}
+.cfg-2col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;}
 .cfg-2col .cfg-box{margin-bottom:0;}
 .cfg-box input{width:100%;border:none;outline:none;background:none;font:600 17px 'DM Sans',sans-serif;color:#1d1d1f;padding:0;}
+.cfg-box textarea{display:block;width:100%;border:none;outline:none;background:none;resize:vertical;font:600 16px 'DM Sans',sans-serif;color:#1d1d1f;padding:0;}
 .cfg-box input::placeholder{color:#b4b4b9;font-weight:500;}
 /* indicatif téléphone façon vitrine (drapeau + code + panneau) */
 .cfg-telrow{position:relative;display:flex;align-items:center;}
@@ -184,18 +188,15 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
 </main>
 <div id="cfg-bg">
   <div class="cfg-card" id="cfg-c1">
+    <div class="cfg-prog" role="progressbar" aria-valuemin="1" aria-valuemax="2" aria-valuenow="1" aria-label="&Eacute;tape 1 sur 2"><div class="cfg-prog-bar"><i style="width:50%"></i></div><span>1/2</span></div>
     <div class="cfg-h">Configurez votre compte</div>
-    <div class="cfg-box ro">
-      <div class="cfg-lab">E-mail <b>*</b></div>
-      <div class="cfg-val" id="cfg-mail">&nbsp;</div>
+    <div class="cfg-2col">
+      <div class="cfg-box"><div class="cfg-lab">Pr&eacute;nom <b>*</b></div><input id="cfg-prenom" autocomplete="given-name"></div>
+      <div class="cfg-box"><div class="cfg-lab">Nom <b>*</b></div><input id="cfg-nom" autocomplete="family-name"></div>
     </div>
     <div class="cfg-box">
       <div class="cfg-lab">Soci&eacute;t&eacute; <b>*</b></div>
       <input id="cfg-soc" autocomplete="organization">
-    </div>
-    <div class="cfg-2col">
-      <div class="cfg-box"><div class="cfg-lab">Pr&eacute;nom <b>*</b></div><input id="cfg-prenom" autocomplete="given-name"></div>
-      <div class="cfg-box"><div class="cfg-lab">Nom <b>*</b></div><input id="cfg-nom" autocomplete="family-name"></div>
     </div>
     <div class="cfg-box" style="margin-bottom:20px;">
       <div class="cfg-lab">T&eacute;l&eacute;phone / WhatsApp <b>*</b></div>
@@ -213,39 +214,24 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
     <div class="cfg-err" id="cfg-err"></div>
   </div>
   <div class="cfg-card" id="cfg-c2" style="display:none;">
+    <div class="cfg-prog" role="progressbar" aria-valuemin="1" aria-valuemax="2" aria-valuenow="2" aria-label="&Eacute;tape 2 sur 2"><div class="cfg-prog-bar"><i style="width:100%"></i></div><span>2/2</span></div>
     <div class="cfg-h">Votre activit&eacute;</div>
-    <div class="cfg-box">
+    <div class="cfg-actwrap">
       <div class="cfg-lab">Secteur d'activit&eacute; <b>*</b></div>
-      <div class="cfg-selwrap">
-        <select id="cfg-act">
-          <option value="" disabled selected hidden>S&eacute;lectionnez votre activit&eacute;&hellip;</option>
-          <option>Imprimeur / transformateur</option>
-          <option>Distributeur</option>
-          <option>Trader</option>
-          <option>Autre</option>
-        </select>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" stroke-width="2.2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      <div class="cfg-checks" id="cfg-act">
+        <label class="cfg-check"><input type="checkbox" name="cfg-act" value="Imprimeur"><span>Imprimeur</span></label>
+        <label class="cfg-check"><input type="checkbox" name="cfg-act" value="Transformateur"><span>Transformateur</span></label>
+        <label class="cfg-check"><input type="checkbox" name="cfg-act" value="Distributeur"><span>Distributeur</span></label>
+        <label class="cfg-check"><input type="checkbox" name="cfg-act" value="Autre" onchange="cfgAutre(true)"><span>Autre</span></label>
+      </div>
+      <div class="cfg-box cfg-autre" id="cfg-autre-box" hidden>
+        <label class="cfg-lab" for="cfg-autre" style="display:block;">Pr&eacute;cisez votre activit&eacute;</label>
+        <input id="cfg-autre" maxlength="100" autocomplete="off">
       </div>
     </div>
-    <div class="cfg-2col">
-      <div class="cfg-box">
-        <div class="cfg-lab">Num&eacute;ro soci&eacute;t&eacute; / TVA</div>
-        <input id="cfg-tva">
-      </div>
-      <div class="cfg-box cfg-upwrap">
-        <label class="cfg-upload" for="cfg-file" id="cfg-uplab">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
-          <span id="cfg-fname">Importer un fichier</span>
-        </label>
-        <input type="file" id="cfg-file" accept=".pdf,.jpg,.jpeg,.png,.webp,.heic,application/pdf,image/*" onchange="cfgUpload()" style="display:none">
-      </div>
-    </div>
-    <div class="cfg-2col">
-      <div class="cfg-box"><div class="cfg-lab">Adresse</div><input id="cfg-adr" autocomplete="street-address"></div>
-      <div class="cfg-box"><div class="cfg-lab">Code postal / ZIP</div><input id="cfg-cp" autocomplete="postal-code"></div>
-    </div>
-    <div class="cfg-box" style="margin-bottom:26px;">
+    <div class="cfg-actwrap">
       <div class="cfg-lab">Port de destination pr&eacute;f&eacute;r&eacute;</div>
+      <div class="cfg-box" style="margin-bottom:0;">
       <div class="cfg-selwrap" id="cfg-portrow">
         <img id="cfg-flag" src="https://flagcdn.com/w40/fr.png" alt="">
         <button type="button" id="cfg-portbtn" onclick="cfgPortToggle()"><span id="cfg-portlabel">Le Havre — France</span></button>
@@ -256,6 +242,11 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
           <div class="cfg-portlist" id="cfg-portlist"></div>
         </div>
       </div>
+      </div>
+    </div>
+    <div class="cfg-box" style="margin-bottom:26px;">
+      <label class="cfg-lab" for="cfg-msg" style="display:block;">Message</label>
+      <textarea id="cfg-msg" rows="3" maxlength="1000"></textarea>
     </div>
     <button type="button" class="cfg-later" onclick="location.replace('/')">Compl&eacute;ter plus tard</button>
     <button type="button" class="cfg-go" onclick="cfg2Go()">Valider mon profil</button>
@@ -484,7 +475,6 @@ function cfgStep(n){
 }
 function cfgOpen(user){
   var m=user.user_metadata||{};
-  document.getElementById('cfg-mail').textContent=user.email||'';
   var def='fr|Le Havre';
   try{var sh=JSON.parse(localStorage.getItem('ali_ship2')||'null');if(sh&&sh.id)def=sh.id;}catch(e){}
   var saved=m.port||def;
@@ -493,44 +483,21 @@ function cfgOpen(user){
   document.getElementById('cfg-nom').value=m.nom||'';
   /* préremplissage étape 2 */
   document.getElementById('cfg-soc').value=m.societe||'';
-  document.getElementById('cfg-tva').value=m.tva||'';
   document.getElementById('cfg-tel').value=m.tel||'';
   /* pas encore de numéro : indicatif aligné sur le pays du port choisi */
   if(!m.tel&&window._cfgSetCcFromIso)_cfgSetCcFromIso((document.getElementById('cfg-port').dataset.id||'fr|').split('|')[0]||'fr');
-  document.getElementById('cfg-adr').value=m.adresse||'';
-  document.getElementById('cfg-cp').value=m.cp||'';
-  if(m.activite)document.getElementById('cfg-act').value=m.activite;
-  /* document société déjà envoyé → afficher son nom */
-  window._cfgDoc=m.doc||null;
-  if(m.doc){var _b=m.doc.split('/').pop().replace(/^\d+_/,'');document.getElementById('cfg-fname').textContent=_cfgFnameShort(_b);document.getElementById('cfg-uplab').classList.add('has-file');}
-  else{document.getElementById('cfg-fname').textContent='Importer un fichier';document.getElementById('cfg-uplab').classList.remove('has-file');}
+  document.getElementById('cfg-msg').value=m.message||'';
+  /* « Distributeur, Autre : emballage » : le texte libre est toujours en fin de valeur */
+  var _am=(m.activite||'').match(/^(.*?)(?: : (.*))?$/)||[];
+  var _acts=(_am[1]||'').split(', ');
+  document.getElementById('cfg-autre').value=_am[2]||'';
+  document.querySelectorAll('#cfg-act input').forEach(function(c){c.checked=_acts.indexOf(c.value)>=0;});
+  cfgAutre(false);
   /* étape 1 = société + nom + tél + port ; si déjà remplis → directement l'étape 2 (activité) */
   cfgStep(((m.prenom||m.nom)&&m.societe&&m.tel)?2:1);
   document.getElementById('cfg-bg').classList.add('open');
 }
 function cfgClose(){document.getElementById('cfg-bg').classList.remove('open');}
-/* ── UPLOAD document société → bucket privé Supabase « user-docs » (dossier = uid) ── */
-window._cfgDoc=null;
-function _cfgUid(){try{var s=JSON.parse(localStorage.getItem('sb-bvcgpdoukhcatjibmvnb-auth-token')||'null');return s&&s.user&&s.user.id;}catch(e){return null;}}
-function _cfgFnameShort(n){return (n||'').length>24?(n.slice(0,22)+'…'):n;}
-function cfgUpload(){
-  var inp=document.getElementById('cfg-file'),f=inp.files&&inp.files[0];if(!f)return;
-  var lab=document.getElementById('cfg-uplab'),nm=document.getElementById('cfg-fname');
-  lab.classList.remove('has-file');
-  if(f.size>10*1024*1024){nm.textContent='Trop lourd (max 10 Mo)';return;}
-  var uid=_cfgUid();
-  if(!uid){nm.textContent='Connectez-vous d\'abord';return;}
-  lab.classList.add('cfg-uploading');nm.textContent='Envoi…';
-  var safe=f.name.replace(/[^\w.\-]+/g,'_').slice(-80);
-  var path=uid+'/'+Date.now()+'_'+safe;
-  sb.storage.from('user-docs').upload(path,f,{upsert:true,contentType:f.type||'application/octet-stream'}).then(function(r){
-    lab.classList.remove('cfg-uploading');
-    if(r.error){nm.textContent='Échec de l\'envoi';return;}
-    window._cfgDoc=path;
-    nm.textContent=_cfgFnameShort(f.name);lab.classList.add('has-file');
-    try{window.prodiTrack&&window.prodiTrack('compte_doc',{});}catch(e){}
-  }).catch(function(){lab.classList.remove('cfg-uploading');nm.textContent='Échec de l\'envoi';});
-}
 function cfgGo(){
   var soc=document.getElementById('cfg-soc').value.trim();
   var pre=document.getElementById('cfg-prenom').value.trim(), nom=document.getElementById('cfg-nom').value.trim();
@@ -548,29 +515,34 @@ function cfgGo(){
     b.disabled=false; b.textContent='Créez un compte';
     if(r.error){er.textContent=r.error.message;er.style.display='block';return;}
     try{window.prodiTrack&&window.prodiTrack('compte_cree',{});}catch(e){}  /* identité posée (étape 1) */
-    cfgStep(2);   /* la suite : activité + adresse + port de destination */
+    cfgStep(2);   /* la suite : activité + port de destination */
   });
+}
+function cfgAutre(focus){
+  var on=document.querySelector('#cfg-act input[value="Autre"]').checked;
+  document.getElementById('cfg-autre-box').hidden=!on;
+  if(on&&focus)document.getElementById('cfg-autre').focus();
 }
 function cfg2Go(){
   var er=document.getElementById('cfg-err2');
-  if(!document.getElementById('cfg-act').value){er.textContent='Choisissez votre secteur d\'activité.';er.style.display='block';return;}
+  /* plusieurs secteurs possibles, enregistrés dans le même champ : « Distributeur, Trader » */
+  var act=Array.prototype.map.call(document.querySelectorAll('#cfg-act input:checked'),function(c){return c.value;}).join(', ');
+  var autre=document.querySelector('#cfg-act input[value="Autre"]').checked?document.getElementById('cfg-autre').value.trim():'';
+  if(!act){er.textContent='Choisissez votre secteur d\'activité.';er.style.display='block';return;}
   er.style.display='none';
   var b=document.querySelector('#cfg-c2 .cfg-go'); b.disabled=true; b.textContent='Enregistrement…';
   var pinp=document.getElementById('cfg-port');
   var port=pinp.dataset.id||pinp.value.trim();            /* id canonique « iso|Port » si choisi, sinon texte libre */
   var data={
-    tva:document.getElementById('cfg-tva').value.trim(),
-    adresse:document.getElementById('cfg-adr').value.trim(),
-    cp:document.getElementById('cfg-cp').value.trim(),
-    activite:document.getElementById('cfg-act').value,
+    activite:act+(autre?' : '+autre:''),
+    message:document.getElementById('cfg-msg').value.trim(),
     port:port
   };
-  if(window._cfgDoc)data.doc=window._cfgDoc;              /* chemin du document société uploadé */
   sb.auth.updateUser({data:data}).then(function(r){
     b.disabled=false; b.textContent='Valider mon profil';
     if(r.error){er.textContent=r.error.message;er.style.display='block';return;}
     if(pinp.dataset.id){try{localStorage.setItem('ali_ship2',JSON.stringify({id:port}));}catch(e){}}  /* synchro widget CFR du catalogue (ports connus seulement) */
-    try{window.prodiTrack&&window.prodiTrack('compte_active',{act:document.getElementById('cfg-act').value,port:(pinp.dataset.id?'liste':'libre')});}catch(e){}  /* secteur + adresse + port validés */
+    try{window.prodiTrack&&window.prodiTrack('compte_active',{act:act,port:(pinp.dataset.id?'liste':'libre')});}catch(e){}  /* secteur + port validés */
     location.replace('/');   /* profil complet → accueil */
   });
 }
