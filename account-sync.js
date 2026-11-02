@@ -19,6 +19,8 @@
      PAS celui de l'utilisateur mais une sélection client → account-sync TOTALEMENT
      inerte (ne jamais fusionner ni pousser), pour garder /catalogue/?s=… intact. */
   var _SHARED=/[?&](s|share|edit)=/.test(location.search);
+  var TS_KEY='prodi_cart_ts', UID_KEY='prodi_cart_uid';
+  var _origSet=localStorage.setItem.bind(localStorage);
 
   function _auth(){try{return JSON.parse(localStorage.getItem(AUTH_KEY)||'null');}catch(e){return null;}}
   function _tok(){var s=_auth();return s&&s.access_token;}
@@ -78,11 +80,22 @@
       .then(function(r){return r.ok?r.json():[];})
       .then(function(rows){
         var remote=(rows&&rows[0]&&rows[0].items)||[];
+        var rTs=rows&&rows[0]&&rows[0].updated_at?Date.parse(rows[0].updated_at):0;
         var local=_lireCart();
-        var map={};
-        remote.forEach(function(it){if(it)map[_refKey(it)]=it;});
-        local.forEach(function(it){if(it)map[_refKey(it)]=it;}); // le local prime (données fraîches)
-        var merged=Object.keys(map).filter(function(k){return k;}).map(function(k){return map[k];});
+        var merged;
+        if(localStorage.getItem(UID_KEY)===_uid()){
+          /* 02/11 : appareil déjà lié à ce compte → PAS d'union (elle ressuscitait
+             les réfs vidées/retirées). Le plus récent gagne, en entier. */
+          var lTs=+localStorage.getItem(TS_KEY)||0;
+          merged=rTs>lTs?remote:local;
+        } else {
+          /* Vraie connexion sur cet appareil : union local + compte (le local prime). */
+          var map={};
+          remote.forEach(function(it){if(it)map[_refKey(it)]=it;});
+          local.forEach(function(it){if(it)map[_refKey(it)]=it;});
+          merged=Object.keys(map).filter(function(k){return k;}).map(function(k){return map[k];});
+          try{_origSet(UID_KEY,_uid());}catch(e){}
+        }
         var changed=JSON.stringify(merged)!==JSON.stringify(local);
         try{localStorage.setItem('prodi_cart',JSON.stringify(merged));}catch(e){} // (déclenche le push via le wrap)
         // rafraîchir l'UID catalogue si présent
@@ -120,11 +133,23 @@
   window.prodiAccountLogged=function(){return !!_uid();};
 
   /* ── WRAP localStorage.setItem : toute écriture du panier → push compte ── */
+  /* removeItem aussi : « vider la liste » passe par removeItem → sans ça le
+     compte gardait l'ancien panier, ré-fusionné au chargement suivant (02/11). */
   try{
-    var _origSet=localStorage.setItem.bind(localStorage);
     localStorage.setItem=function(k,v){
       _origSet(k,v);
-      if(k==='prodi_cart' && !_pushing && !_SHARED){ try{ window.prodiPushCart(JSON.parse(v||'[]')); }catch(e){} }
+      if(k==='prodi_cart' && !_SHARED){
+        try{_origSet(TS_KEY,String(Date.now()));}catch(e){}
+        if(!_pushing){ try{ window.prodiPushCart(JSON.parse(v||'[]')); }catch(e){} }
+      }
+    };
+    var _origRm=localStorage.removeItem.bind(localStorage);
+    localStorage.removeItem=function(k){
+      _origRm(k);
+      if(k==='prodi_cart' && !_SHARED){
+        try{_origSet(TS_KEY,String(Date.now()));}catch(e){}
+        window.prodiPushCart([]);
+      }
     };
   }catch(e){}
 
