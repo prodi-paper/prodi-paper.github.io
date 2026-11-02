@@ -4202,6 +4202,7 @@ function renderEquivBanner(){
     const grid=document.getElementById('pgrid');
     if(grid)grid.parentElement.insertBefore(banner,grid);
   }
+  banner.innerHTML='';return; // 02/11 Ethan : bandeau « Voir aussi » retiré (inutile)
   const equivTypes=_lastDetectedTypes.flatMap(t=>getEquivTypes(t));
   const unique=[...new Set(equivTypes)];
   if(!unique.length||!_lastDetectedTypes.length){banner.innerHTML='';return;}
@@ -8540,9 +8541,10 @@ async function _fetchImgB64(url){
 async function exportListExcelTest(btn){
   if(!cart.length){toast('Liste vide — ajoutez des produits d\'abord');return;}
   window.prodiTrack?.('excel_export',{nb:cart.length,mode:_sharedMode?'client':'catalogue'});
-  const span=btn&&btn.querySelector?btn.querySelector('span'):null;
+  // bouton sans <span> (barre vue Excel : texte + icône) → nœud texte, comme l'album PDF (02/11)
+  const span=btn&&btn.querySelector?(btn.querySelector('span')||(btn.firstChild&&btn.firstChild.nodeType===3?btn.firstChild:null)):null;
   const prev=span?span.textContent:null;
-  if(span)span.textContent='…';
+  if(span)span.textContent=span.nodeType===3?'Génération… ':'…';
   if(btn)btn.disabled=true;
   try{
     await _ensureExcelJS();
@@ -8759,7 +8761,10 @@ async function exportListExcelTest(btn){
       const phFr=AV?['PHOTO']:[], phEn=AV?['PICTURE']:[];
       let imgsBob=[],imgsFmt=[];
       if(AV){
+        const _tot=secBob.length+secFmt.length;let _done=0;
+        const _tick=()=>{_done++;if(span&&span.nodeType===3)span.textContent='Photos '+_done+'/'+_tot+'… ';};
         const fetchAll=(sec)=>Promise.all(sec.map(async d=>{
+          try{
           if(!d.img)return null;
           const b64=await _fetchImgB64(d.img);
           if(!b64)return null;
@@ -8768,6 +8773,7 @@ async function exportListExcelTest(btn){
           // url ORIGINALE (pas la vignette proxy) : clic sur la photo dans
           // Excel = ouvre la photo en grand dans le navigateur
           return iid==null?null:{id:iid,w:sz.w,h:sz.h,url:safeUrl(d.img)};
+          }finally{_tick();}
         }));
         [imgsBob,imgsFmt]=await Promise.all([fetchAll(secBob),fetchAll(secFmt)]);
       }
@@ -9175,6 +9181,7 @@ async function exportListExcelTest(btn){
     const _shOptsCartes={views:[{style:'pageBreakPreview',zoomScale:70}],pageSetup:{orientation:'landscape',paperSize:9,fitToPage:true,fitToWidth:1,fitToHeight:0,margins:{left:CARTES_MARGIN_IN,right:CARTES_MARGIN_IN,top:CARTES_MARGIN_IN,bottom:CARTES_MARGIN_IN,header:0,footer:0}}};
     await _buildCartes(wb.addWorksheet('Cartes',_shOptsCartes),bobines,formats,_photosImgs,{cols:5,land:true});
 
+    if(span&&span.nodeType===3)span.textContent='Génération… ';
     const buf=await wb.xlsx.writeBuffer();
     const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
     const a=document.createElement('a');

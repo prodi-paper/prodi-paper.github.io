@@ -217,7 +217,7 @@ gtag('config', 'G-KYEHH64T17');
 /* table Excel : scroll horizontal DÉCOUVRABLE sur mobile/tablette (barre visible + tactile) */
 @media(max-width:1135px){
   /* boîte scroll 2 axes + momentum tactile (même réglage que /catalogue/) → slide horizontal fiable au doigt */
-  #pgrid div:has(> .plist-table){overflow:auto !important;max-height:calc(100vh - 150px);-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-x pan-y;scrollbar-width:thin;scrollbar-color:#c4c4c9 #f0f0f2;}
+  #pgrid div:has(> .plist-table){overflow:auto !important;max-height:calc(100vh - 150px);-webkit-overflow-scrolling:touch;overscroll-behavior:auto;touch-action:pan-x pan-y;scrollbar-width:thin;scrollbar-color:#c4c4c9 #f0f0f2;}
   #pgrid div:has(> .plist-table)::-webkit-scrollbar{height:9px;width:9px;}
   #pgrid div:has(> .plist-table)::-webkit-scrollbar-thumb{background:#c4c4c9;border-radius:5px;}
   #pgrid div:has(> .plist-table)::-webkit-scrollbar-track{background:#f0f0f2;}
@@ -431,7 +431,7 @@ body.topbar-view .sidebar-col #vt-toggle span{display:inline !important;}
 /* Vue Excel : tableau façon fichier d'offre GD2 (colonnes tracées, en-tête bleu FIGÉ,
    sélection jaune persistante, ligne active verte, barre d'état somme) */
 /* data-grid : le tableau défile DANS son cadre (H+V), l'en-tête reste collé en haut du cadre */
-body.cat-page .pgrid.plist>div{overflow:auto !important;max-height:calc(100vh - 158px);overscroll-behavior:contain;}
+body.cat-page .pgrid.plist>div{overflow:auto !important;max-height:calc(100vh - 158px);overscroll-behavior:auto;}
 body.topbar-view .plist-table{border-collapse:separate !important;border-spacing:0 !important;border:none !important;background:#fff;}
 body.topbar-view .plist-table th{position:sticky;top:0;z-index:6;background:#dce6f1 !important;color:#111 !important;font-weight:800 !important;border:none !important;border-top:1.5px solid #8f9aae !important;border-bottom:1.5px solid #8f9aae !important;border-right:1px solid #8f9aae !important;padding:9px 10px !important;text-transform:uppercase;font-size:11.5px;letter-spacing:.3px;white-space:nowrap;}
 body.topbar-view .plist-table th:first-child{border-left:1.5px solid #8f9aae !important;}
@@ -3959,7 +3959,7 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
 <script src="/analytics.js?v=8"></script>
 <script src="/login-pop.js"></script>
 <script src="/fiche.js?v=1"></script>
-<script src="/catalogue.js?v=839"></script>
+<script src="/catalogue.js?v=842"></script>
 <script>
 (function(){var Q=window._preQ||[];document.documentElement.style.cursor='';window._preQ=[];
   if(window._axDispoLater&&window.axDispo){window._axDispoLater=0;try{window.axDispo();}catch(e){}} /* défaut Dispo AVANT les clics du visiteur */
