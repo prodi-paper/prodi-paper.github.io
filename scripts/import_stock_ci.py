@@ -75,12 +75,24 @@ def split_location(val):
         return "OUR WAREHOUSE", s.upper()
     return s, None
 
+def _select_stock_box(mail):
+    """Boîte « Tous les messages » (flag \\All) : les mails STOCK sont rangés
+    hors INBOX par une règle Apple Mail depuis le 02/11 (Ethan). Repli INBOX."""
+    _, boxes = mail.list()
+    for b in boxes or []:
+        line = b.decode('utf-8', 'replace')
+        if '\\All' in line:
+            name = line.rsplit(' "/" ', 1)[-1]
+            if mail.select(name, readonly=True)[0] == 'OK':
+                return
+    mail.select('INBOX', readonly=True)
+
 # ── STEP 1: FETCH EMAIL ──
 def fetch_latest_stock_email():
     log("Connexion IMAP...")
     mail = imaplib.IMAP4_SSL(IMAP_HOST, 993)
     mail.login(IMAP_USER, IMAP_PASS)
-    mail.select('INBOX')
+    _select_stock_box(mail)
 
     status, msgs = mail.search(None, f'(FROM "{SENDER}")')
     msg_ids = msgs[0].split()
@@ -438,7 +450,7 @@ def sync_offres_fab():
     from datetime import date
     mail = imaplib.IMAP4_SSL(IMAP_HOST, 993)
     mail.login(IMAP_USER, IMAP_PASS)
-    mail.select('INBOX')
+    _select_stock_box(mail)
     _, msgs = mail.search(None, f'(FROM "{SENDER}")')
     ids = list(reversed(msgs[0].split()))[:12]
 
