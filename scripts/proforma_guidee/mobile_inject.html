@@ -1,0 +1,59 @@
+
+<!-- ═══ 04/11 : iPhone (≤ 600 px) — pleine largeur, champs 16 px (pas de zoom iOS), barre du bas total + aperçu + partager ═══ -->
+<style>
+  #mbar{display:none;}
+  body.direct .panel .lbl{color:#5c5f66!important;font-size:12.5px!important;}
+  #sage-etat,.lien-main,#cli-resume{color:#5c5f66;}
+  #refaire small{color:#6b6e76!important;}
+  #fret-info{font-size:12.5px!important;}
+  body.direct .panel input::placeholder,body.direct .panel textarea::placeholder{color:#a9acb4;}
+  @media (max-width:600px){
+    body.direct .wrap{padding:10px 8px 120px!important;gap:14px;}
+    body.direct .panel{padding:14px 12px!important;border-radius:16px;}
+    body.direct .panel input,body.direct .panel textarea,body.direct .panel select,.lcard input,.lcard textarea,#prod-q,#sage-q,#paie-combo{font-size:16px!important;}
+    .lcard textarea.des{font-size:13px!important;}
+    body.direct .panel .modeles{gap:6px;flex-wrap:nowrap;}
+    body.direct .panel .seg2 .check{padding:8px 10px;font-size:14px;}
+    #pill-soc{margin-left:auto;}
+    .etape{font-size:17px;margin-top:20px;}
+    .lcard{padding:10px;}
+    .lcard .g4{grid-template-columns:1fr 1fr!important;gap:8px;}
+    .lcard .h b{font-size:15px;}
+    #deja button{font-size:14px;padding:7px 12px;}
+    .share{grid-template-columns:1fr 1fr;}
+    .share button{padding:13px 6px;font-size:15px;}
+    #sage-res{left:8px;right:8px;max-height:55vh;}
+    #sage-res button,#prod-res button{padding:12px;font-size:15px;}
+    .sheetbox{margin-top:4px;}
+    #mbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:80;gap:8px;align-items:center;
+      padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));background:rgba(255,255,255,.96);backdrop-filter:blur(10px);
+      -webkit-backdrop-filter:blur(10px);border-top:1px solid #e3e6ef;box-shadow:0 -6px 20px rgba(0,0,0,.06);}
+    #mbar .tot{flex:1;min-width:0;line-height:1.2;}
+    #mbar .tot b{display:block;font-size:17px;white-space:nowrap;} #mbar .tot small{color:#888;font-size:12px;}
+    #mbar button{all:unset;cursor:pointer;padding:12px 14px;border-radius:12px;font-weight:800;font-size:15px;border:1px solid #d5d8e0;background:#fff;}
+    #mbar button.rouge{background:#e30613;color:#fff;border-color:#e30613;}
+  }
+</style>
+<div id="mbar"><div class="tot"><b id="mb-tot">0,00 €</b><small id="mb-sub">aucune ligne</small></div>
+  <button type="button" id="mb-voir">Aperçu</button><button type="button" id="mb-share" class="rouge">Partager</button></div>
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  let surFeuille=false;
+  function majBar(){
+    const t=totaux();
+    $('mb-tot').textContent=eur(t.total)+' '+SYM();
+    const n=lignes.filter(l=>l.qte||l.pu).length;
+    $('mb-sub').textContent=n?(n+' ligne'+(n>1?'s':'')+' · '+String(Math.round(t.poids/100)/10).replace('.',',')+' t'+(numero?' · '+numero:'')):'aucune ligne';
+  }
+  const _m=window.maj;window.maj=function(){_m.apply(this,arguments);majBar();};
+  // « Aperçu » descend sur la feuille ; une fois dessus, le bouton remonte au formulaire
+  $('mb-voir').addEventListener('click',()=>{
+    if(surFeuille)window.scrollTo({top:0,behavior:'smooth'});
+    else document.querySelector('.sheetbox').scrollIntoView({behavior:'smooth',block:'start'});
+  });
+  new IntersectionObserver(es=>{surFeuille=es[0].isIntersecting;$('mb-voir').textContent=surFeuille?'Formulaire':'Aperçu';},{threshold:.35}).observe(document.querySelector('.sheetbox'));
+  $('mb-share').addEventListener('click',()=>document.querySelector('.share button[data-s="partager"]').click());
+  majBar();
+})();
+</script>

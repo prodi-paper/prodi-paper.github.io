@@ -1,0 +1,124 @@
+
+<!-- ═══ 04/11 : refaire le dernier devis, conteneurs + fret estimé, partage ═══ -->
+<style>
+  #refaire{all:unset;cursor:pointer;display:block;width:100%;box-sizing:border-box;margin-top:8px;padding:10px 12px;border:1px dashed #c9ccd6;border-radius:12px;font-size:13.5px;font-weight:700;color:#1d1d1f;background:#fafbfd;}
+  #refaire:hover{border-color:#999;background:#f3f4f8;} #refaire small{font-weight:400;color:#888;margin-left:6px;}
+  #cont{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;font-size:13.5px;color:#444;}
+  #cont:empty{display:none;}
+  #cont .n{display:inline-flex;align-items:center;border:1px solid #e3e6ef;border-radius:9px;overflow:hidden;}
+  #cont .n button{all:unset;cursor:pointer;width:28px;text-align:center;font-weight:800;color:#555;} #cont .n button:hover{background:#f3f4f8;}
+  #cont .n b{min-width:22px;text-align:center;}
+  #cont select{width:auto!important;padding:4px 8px!important;font-size:13px!important;}
+  #fret-info{font-size:12px;color:#0a7a3d;margin-top:4px;} #fret-info:empty{display:none;}
+  #fret-info button{all:unset;cursor:pointer;color:#e30613;font-weight:700;margin-left:6px;}
+  .share{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px;}
+  .share button{all:unset;cursor:pointer;text-align:center;padding:10px 6px;border:1px solid #e3e6ef;border-radius:10px;font-size:13px;font-weight:700;background:#fff;}
+  .share button:hover{border-color:#999;}
+</style>
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  const esc3=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const sbS=p=>window.sbSage(p);
+  const nb0=n=>Math.round(n).toLocaleString('fr-FR').replace(/ /g,' ');
+
+  // ── 1. Refaire le dernier devis du client (lignes, désignations Sage, prix, fret) ──
+  let dernierDE=null;
+  const _pc=window.produitsClient;
+  window.produitsClient=async function(pieces){
+    await _pc(pieces);
+    dernierDE=pieces.find(p=>/^DE/.test(p))||null;
+    const old=$('refaire');if(old)old.remove();
+    if(!dernierDE)return;
+    const r=await sbS('sage_vente_lignes?select=ligne,article,designation,quantite,prix_unitaire&piece=eq.'+dernierDE+'&order=ligne.asc');
+    if(!Array.isArray(r)||!r.length)return;
+    window._dernier=r;
+    const nl=r.filter(x=>x.article&&!/^(T9|TRT)/.test(x.article)&&+x.quantite>0).length;
+    $('deja').insertAdjacentHTML('afterend','<button type="button" id="refaire">↺ Refaire son dernier devis '+dernierDE+'<small>'+nl+' ligne'+(nl>1?'s':'')+', mêmes prix — il reste à changer les tonnages</small></button>');
+    $('refaire').addEventListener('click',refaire);
+  };
+  function refaire(){
+    const r=window._dernier||[];const out=[];let cur=null,fret=0,nc=0;
+    for(const x of r){
+      const d=String(x.designation||'').trim();
+      if(x.article&&/^(T9|TRT)/.test(x.article)){cur=null;if(+x.prix_unitaire>0&&!/APPRO/i.test(d)){fret+=x.prix_unitaire*(+x.quantite||1);nc+=(+x.quantite||1);}continue;}
+      if(x.article){cur={code:x.article,art:x.article,base:d.toUpperCase(),des:d,qte:+x.quantite||0,pu:+x.prix_unitaire||0,manuel:true,gsm:'',dim:'',extra:'',indice:'Repris de '+dernierDE};out.push(cur);continue;}
+      if(cur&&d)cur.des+='\n'+d;
+    }
+    if(!out.length)return;
+    lignes.length=0;out.forEach(l=>lignes.push(l));
+    if(fret){$('c-fret').value=Math.round(fret);fretManuel=true;}
+    if(nc)nbCont=nc;
+    renderForm();maj();majCont();
+    $('genok').textContent='Lignes reprises de '+dernierDE+' — vérifie les tonnages.';
+  }
+
+  // ── 3. Conteneurs (≈ 27 t par 40'HC, 22 t par 20' : charge utile papier) + 2. fret estimé (dernier transport facturé vers ce port) ──
+  let nbCont=0,typeCont='40',fretManuel=false,dernierFret=null;
+  const tonnes=()=>lignes.reduce((s,l)=>s+(+l.qte||0),0)/1000;
+  $('lignes').insertAdjacentHTML('afterend','<div id="cont"></div><div id="fret-info"></div>');
+  function majCont(){
+    const t=tonnes();
+    if(!t){$('cont').innerHTML='';$('fret-info').innerHTML='';return;}
+    const auto=Math.max(1,Math.ceil(t/(typeCont==='40'?27:22)));
+    if(!nbCont)nbCont=auto;
+    $('cont').innerHTML=`<span>${String(Math.round(t*10)/10).replace('.',',')} t ≈</span>
+      <span class="n"><button type="button" data-d="-1">−</button><b>${nbCont}</b><button type="button" data-d="1">+</button></span>
+      <select id="cont-type"><option value="40"${typeCont==='40'?' selected':''}>× 40'HC</option><option value="20"${typeCont==='20'?' selected':''}>× 20'</option></select>
+      ${nbCont!==auto?`<small style="color:#999">(conseillé : ${auto})</small>`:''}`;
+    estimerFret();
+  }
+  $('cont').addEventListener('click',e=>{const b=e.target.closest('button[data-d]');if(!b)return;nbCont=Math.max(1,nbCont+ +b.dataset.d);fretManuel=false;majCont();});
+  $('cont').addEventListener('change',e=>{if(e.target.id==='cont-type'){typeCont=e.target.value;nbCont=0;fretManuel=false;majCont();}});
+  $('c-fret').addEventListener('input',e=>{if(e.isTrusted)fretManuel=true;});
+  let portVu='',prixPort=[];
+  async function estimerFret(){
+    const port=$('c-lieu').value.trim().toUpperCase(),inco=$('c-inco').value;
+    if(!port||/^(FOB|EX WORKS)$/.test(inco)){$('fret-info').innerHTML='';return;}
+    if(port!==portVu){
+      portVu=port;prixPort=[];
+      try{const r=await sbS('sage_vente_lignes?select=piece,designation,quantite,prix_unitaire&article=like.T9*&prix_unitaire=gt.0&designation=ilike.*'+encodeURIComponent(port.replace(/[*,()]/g,' '))+'*&order=piece.desc&limit=30');
+        prixPort=(Array.isArray(r)?r:[]).filter(x=>!/APPRO/i.test(x.designation));}catch(e){}
+    }
+    const meme=prixPort.filter(x=>typeCont==='20'?/\b20\s*'?/.test(x.designation)&&!/40/.test(x.designation):/40/.test(x.designation));
+    dernierFret=meme[0]||null;
+    if(!dernierFret){$('fret-info').innerHTML=prixPort.length?'':'';return;}
+    const est=Math.round(dernierFret.prix_unitaire*nbCont);
+    if(!fretManuel&&!$('c-fret').value){$('c-fret').value=est;maj();}
+    $('fret-info').innerHTML=`Fret estimé ${nbCont} × ${nb0(dernierFret.prix_unitaire)} € = <b>${nb0(est)} €</b> — dernier ${esc3(dernierFret.designation.trim())} (${dernierFret.piece})`+
+      (+$('c-fret').value!==est?`<button type="button" id="fret-app">appliquer</button>`:'');
+    const b=$('fret-app');if(b)b.onclick=()=>{$('c-fret').value=est;fretManuel=false;maj();estimerFret();};
+  }
+  ['c-lieu','c-inco'].forEach(id=>$(id).addEventListener('input',()=>{if(!fretManuel)$('c-fret').value='';estimerFret();}));
+  $('c-inco').addEventListener('change',()=>estimerFret());
+  const _rf=window.renderForm;window.renderForm=function(){_rf.apply(this,arguments);};
+  $('lignes').addEventListener('input',()=>{const a=nbCont;nbCont=0;majCont();if(!fretManuel&&a!==nbCont&&dernierFret){$('c-fret').value='';estimerFret();}});
+  const _majC=window.maj;window.maj=function(){_majC.apply(this,arguments);if(!document.activeElement||!document.activeElement.closest||!document.activeElement.closest('#lignes'))majContLeger();};
+  let _tPrev=-1;function majContLeger(){const t=tonnes();if(t!==_tPrev){_tPrev=t;majCont();}}
+
+  // ── coordonnées du client pour WhatsApp / e-mail ──
+  const _ch=window.produitsClient;
+  window.produitsClient=async function(pieces){
+    $('c-tel').value='';$('c-mail').value='';
+    const code=$('c-refint').value;
+    if(code){try{const r=await sbS('sage_clients?select=telephone,email&code=eq.'+encodeURIComponent(code));if(r&&r[0]){
+      // 1er numéro de la fiche (« 522443659/661178335 »), indicatif du pays s'il manque → format wa.me
+      const IND={MAROC:'212',ALGERIE:'213',TUNISIE:'216',SENEGAL:'221',MALI:'223','COTE D\'IVOIRE':'225','BURKINA FASO':'226',GUINEE:'224',CAMEROUN:'237',GHANA:'233',NIGERIA:'234',BENIN:'229',TOGO:'228',MAURITANIE:'222',EGYPTE:'20',LIBAN:'961',FRANCE:'33',BELGIQUE:'32',ESPAGNE:'34',PORTUGAL:'351',GRECE:'30',TURQUIE:'90',GEORGIE:'995'};
+      const pays=($('c-nom').value.split('\n').filter(Boolean).pop()||'').trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+      let t=String(r[0].telephone||'').split(/[\/;,]| - /)[0].replace(/[^\d+]/g,'');
+      if(t.startsWith('+'))t=t.slice(1);else if(t.startsWith('00'))t=t.slice(2);
+      else if(t&&IND[pays]&&!t.startsWith(IND[pays]))t=IND[pays]+t.replace(/^0/,'');
+      $('c-tel').value=t;$('c-mail').value=r[0].email||'';}}catch(e){}}
+    return _ch(pieces);
+  };
+
+  // ── partage complet dans le formulaire : numéro pris au besoin, puis l'action ──
+  $('genok').insertAdjacentHTML('beforebegin','<div class="share"><button type="button" data-s="pdf">Télécharger</button><button type="button" data-s="partager">Partager</button><button type="button" data-s="wa">WhatsApp</button><button type="button" data-s="mail">E-mail</button></div>');
+  document.querySelector('.share').addEventListener('click',async e=>{
+    const b=e.target.closest('button[data-s]');if(!b)return;
+    if(!numero){window._sansTelech=true;try{await generer();}finally{window._sansTelech=false;}if(!numero)return;}
+    ({pdf:telechargerPdf,partager:partagerPdf,wa:partagerWhatsapp,mail:partagerMail})[b.dataset.s]();
+  });
+  majCont();
+})();
+</script>

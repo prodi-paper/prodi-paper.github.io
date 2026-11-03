@@ -1,0 +1,237 @@
+
+<!-- ═══ FORMULAIRE INTELLIGENT (test local 03/11) : client → produits auto (code, désignation, code douanier) ═══ -->
+<style>
+  .etape{font-size:15px;font-weight:800;color:#1d1d1f;margin:22px 0 8px;display:flex;align-items:center;gap:8px;}
+  .etape:first-of-type{margin-top:6px;}
+  .prod-box{position:relative;}
+  #prod-q{font-size:15px;padding-left:38px!important;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='none' stroke='%23999' stroke-width='2'%3E%3Ccircle cx='8' cy='8' r='6'/%3E%3Cpath d='m13 13 4 4'/%3E%3C/svg%3E") no-repeat 12px center;}
+  #prod-res{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:30;background:#fff;border:1px solid #e3e6ef;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.12);overflow:hidden;}
+  #prod-res:empty{display:none;}
+  #prod-res button{all:unset;box-sizing:border-box;display:flex;gap:10px;align-items:baseline;width:100%;padding:9px 12px;cursor:pointer;font-size:14px;}
+  #prod-res button.sel,#prod-res button:hover{background:#f3f4f8;}
+  #prod-res code,.lcard code{font:700 11px ui-monospace,Menlo,monospace;background:#eef0f5;border-radius:6px;padding:2px 6px;color:#333;white-space:nowrap;}
+  #prod-res small{color:#999;margin-left:auto;white-space:nowrap;}
+  #deja{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+  #deja:empty{display:none;}
+  #deja .t{width:100%;font-size:12px;color:#888;font-weight:700;}
+  #deja button{all:unset;cursor:pointer;font-size:13px;background:#fff;border:1px solid #e3e6ef;border-radius:999px;padding:5px 11px;}
+  #deja button:hover{border-color:#999;} #deja button small{color:#999;margin-left:4px;}
+  .lcard{border:1px solid #e3e6ef;border-radius:12px;padding:10px 12px 12px;margin-top:10px;background:#fff;}
+  .lcard .h{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+  .lcard .h b{font-size:14px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .lcard .h .x{all:unset;cursor:pointer;color:#aaa;font-size:16px;padding:0 4px;} .lcard .h .x:hover{color:#e30613;}
+  .lcard .hs{font-size:11px;font-weight:700;color:#0a7a3d;background:#e8f6ee;border-radius:6px;padding:2px 6px;white-space:nowrap;}
+  .lcard .g4{display:grid;grid-template-columns:1fr 1.3fr .8fr 1fr;gap:8px;}
+  .lcard .g4 label,.lcard .lb{display:block;font-size:11px;font-weight:700;color:#888;margin:0 0 3px;}
+  .lcard input,.lcard textarea{padding:8px 10px!important;font-size:14px!important;}
+  .lcard .pr{margin-top:8px;}
+  .lcard textarea.des{margin-top:8px;font:12px/1.35 ui-monospace,Menlo,monospace!important;min-height:0!important;background:#fafafa;color:#333;}
+  .lcard .auto{all:unset;cursor:pointer;font-size:11px;color:#e30613;font-weight:700;margin-left:6px;}
+  .lcard .indice{font-size:11px;color:#999;margin-top:3px;}
+  .lcard .mt{font-size:12px;color:#666;text-align:right;margin-top:6px;}
+  /* lisibilité (04/11) : libellés 12,5 px gris foncé, désignation en police normale, montant lisible */
+  .lcard{padding:12px 14px 12px;}
+  .lcard .g4 label,.lcard .lb{font-size:12.5px!important;color:#5c5f66!important;font-weight:700;}
+  .lcard .g4.g2{grid-template-columns:1fr 1fr;}
+  .lcard input::placeholder,.lcard textarea::placeholder{color:#b9bcc4;}
+  .lcard .tag{display:inline-block;font-size:12px;font-weight:700;color:#5c5f66;background:#f1f2f5;border-radius:6px;padding:2px 8px;margin:-2px 0 8px;}
+  .lcard .lb.dl{display:flex;align-items:center;gap:8px;margin:10px 0 4px;}
+  .lcard textarea.des{margin-top:0!important;font:14px/1.45 -apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif!important;background:#fbfbfc;color:#1d1d1f;letter-spacing:.1px;}
+  .lcard .mt{font-size:15px;font-weight:800;color:#1d1d1f;margin-top:8px;}
+  .lcard .indice{font-size:12.5px;color:#5c5f66;}
+  #deja .t{font-size:12.5px!important;color:#5c5f66!important;}
+  #deja button small{color:#7a7d85!important;}
+  @media (max-width:560px){.lcard .g4{grid-template-columns:1fr 1fr;}}
+  body.direct #c-douane.auto{color:#0a7a3d;}
+</style>
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  $('inco-ici').appendChild($('c-inco')); // l'ancien renderForm l'a parqué au chargement
+  // ── articles Sage les plus vendus (codes + désignation de base) + mots-clés de recherche ──
+  const PRODUITS=[
+    ['GROFF','PAPIER OFFSET BLANC EN BOBINE','offset blanc'],
+    ['GSOFF','PAPIER OFFSET BLANC EN FORMAT','offset blanc'],
+    ['GR1SC','PAPIER COUCHÉ 1 FACE EN BOBINE','couche 1 face coated etiquette'],
+    ['GS1SC','PAPIER COUCHÉ 1 FACE EN FORMAT','couche 1 face coated'],
+    ['GR2SC','PAPIER COUCHÉ 2 FACES EN BOBINE','couche 2 faces coated brillant mat'],
+    ['GS2SC','PAPIER COUCHÉ 2 FACES EN FORMAT','couche 2 faces coated brillant mat'],
+    ['GRBOA','CARTON DUPLEX GD2 BLANC DOS GRIS EN BOBINE','carton duplex gd2 gc1 gc2 board'],
+    ['GSBOA','CARTON DUPLEX EN FORMAT','carton duplex gd2 gc1 gc2 board'],
+    ['GSSBS','CARTON COUCHÉ SBS EN FORMAT','carton sbs board couche'],
+    ['GSBON','CARTON GRIS GRIS EN FORMAT','carton gris board'],
+    ['GRKRA','PAPIER KRAFT BLANCHI EN BOBINE','kraft blanc blanchi'],
+    ['GRKRABRUN','PAPIER KRAFT BRUN EN BOBINE','kraft brun recycle'],
+    ['GSKRA','KRAFT LINER BRUN EN FORMAT','kraft liner brun'],
+    ['GRLINER','TESTLINER EN BOBINE','testliner liner fluting cannelure carton ondule'],
+    ['GRNEW','PAPIER JOURNAL EN BOBINE','journal newsprint'],
+    ['GRCOL','PAPIER COULEUR EN BOBINE','couleur bristol'],
+    ['GSCOL','PAPIER COULEUR EN FORMAT','couleur bristol'],
+    ['GRCAR','PAPIER AUTOCOPIANT EN BOBINE','autocopiant carbonless ncr'],
+    ['GSCAR','PAPIER AUTOCOPIANT EN FORMAT','autocopiant carbonless ncr'],
+    ['GRADH','PAPIER ADHÉSIF EN BOBINE','adhesif autocollant sticker etiquette'],
+    ['GSADH','PAPIER ADHÉSIF EN FORMAT','adhesif autocollant sticker etiquette'],
+    ['GSCUT','PAPIER BLANC EN RAMETTE A4','ramette a4 a3 reprographie copy'],
+    ['GRLWC','PAPIER LWC EN BOBINE','lwc magazine couche leger'],
+    ['GRLUX','PAPIER LUXE EN BOBINE','luxe creation fine'],
+    ['GSLUX','PAPIER LUXE EN FORMAT','luxe creation fine carte'],
+    ['GRSIL','PAPIER GLASSINE EN BOBINE','glassine silicone'],
+    ['GRBOU','PAPIER BOUFFANT EN BOBINE','bouffant livre edition'],
+    ['GRTHERM','PAPIER THERMIQUE EN BOBINE','thermique ticket caisse'],
+    ['GRCUI','PAPIER CUISSON EN BOBINE','cuisson sulfurise'],
+    ['GRAFF','PAPIER AFFICHE EN BOBINE','affiche poster'],
+  ].map(([code,des,mots])=>({code,des,bob:code[1]==='R',mots}));
+  // nb de lignes devis/factures Sage depuis 2024 (articles_stats 03/11)
+  const VENTES={GROFF:352,GSBOA:284,GSOFF:282,GRKRA:211,GS2SC:206,GRCOL:179,GSCAR:134,GRBOA:124,GSCOL:107,GRNEW:97,GSCUT:74,GRCAR:61,GSADH:61,GRKRABRUN:59,GR1SC:51,GSLUX:50,GS1SC:49,GRLINER:43,GRLWC:42,GRLUX:29,GRSIL:23,GSBON:22,GSSBS:20,GRBOU:19,GR2SC:15,GRTHERM:12,GSKRA:11,GRCUI:9,GRADH:9,GRAFF:4};
+  const norm=t=>String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+  PRODUITS.forEach(p=>p.cle=norm([p.code,p.des,p.mots,p.bob?'bobine bobines reel roll rouleau':'format formats feuille feuilles palette sheet rame'].join(' ')));
+  const parCode=c=>PRODUITS.find(p=>p.code===c);
+  // code article Sage → qualité catalogue (GROFF → ROFF) pour getHsCode
+  const QAL={GSBSS:'SSBS'};
+  const cn8=c=>c?String(c).replace(/^(\d{4})(\d{2})(\d{2})$/,'$1.$2.$3'):'';
+  function hsDe(l){
+    if(!l.art)return'';
+    const gs=String(l.gsm||'').match(/\d+/g)||[''];
+    try{return[...new Set(gs.map(g=>cn8(getHsCode(QAL[l.art]||l.art.slice(1),g,'',l.extra||'',(l.extra||'')+' '+(parCode(l.art)||{}).des))).filter(Boolean))].join(' / ');}catch(e){return'';}
+  }
+  // « 70 80 » → « 70 - 80 » ; pluriel si plusieurs valeurs (comme Sage : GRAMMAGES: 70 - 80 grs/m²)
+  const liste=t=>String(t||'').trim().split(/\s*(?:[,;/]|\s-\s|\set\s|\s+)\s*/i).filter(Boolean);
+  function designation(l){
+    const p=parCode(l.art)||{des:l.base||'',bob:true};
+    const out=[l.base||p.des];
+    if(l.extra)out.push(l.extra.toUpperCase());
+    const g=liste(l.gsm);
+    if(g.length)out.push((g.length>1?'GRAMMAGES: ':'GRAMMAGE: ')+g.join(' - ')+' grs/m²');
+    const d=liste(l.dim).map(x=>x.replace(/\s*[x×*]\s*/gi,'x'));
+    if(d.length)out.push(p.bob?(d.length>1?'LAIZES: ':'LAIZE: ')+d.join(' - ')+' cm':(d.length>1?'FORMATS: ':'FORMAT: ')+d.join(' - ')+' cm');
+    if(l._hsLigne)out.push('CODE DOUANIER : '+l._hsLigne);
+    return out.join('\n');
+  }
+  // code douanier : identique partout → case « CODE DOUANIER » de la feuille ; différents → sur chaque ligne
+  let douaneManuel=false;
+  $('c-douane').addEventListener('input',e=>{if(e.isTrusted)douaneManuel=true;$('c-douane').classList.remove('auto');});
+  function recalc(){
+    const sm=lignes.filter(l=>l.art);
+    sm.forEach(l=>l.hs=hsDe(l));
+    const set=[...new Set(sm.map(l=>l.hs).filter(Boolean))];
+    const parLigne=!douaneManuel&&set.length>1;
+    sm.forEach(l=>{l._hsLigne=parLigne?l.hs:'';if(!l.manuel)l.des=designation(l);});
+    if(!douaneManuel){$('c-douane').value=set.length===1?set[0]:'';$('c-douane').classList.toggle('auto',set.length===1);}
+  }
+  const t2=n=>n?String(Math.round(n)/1000):''; // input type=number : point décimal (« 11,5 » s'affichait vide)
+  const esc2=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  window.renderForm=function(){
+    recalc();
+    $('lignes').innerHTML=lignes.map((l,i)=>{
+      const p=parCode(l.art);
+      const nom=p?(p.des.replace(/ EN (BOBINE|FORMAT|RAMETTE).*$/,'')+(p.bob?' · bobine':' · format')):'Ligne libre';
+      // ligne reprise d'un devis Sage : sa désignation fait foi → pas de champs grammage/laize (vides, ils prêtaient à confusion)
+      const repris=l.manuel&&/^Repris de/.test(l.indice||'');
+      return `<div class="lcard" data-i="${i}">
+        <div class="h">${l.art?`<code>${esc2(l.art)}</code>`:''}<b>${esc2(nom.charAt(0)+nom.slice(1).toLowerCase())}</b>${l.hs?`<span class="hs" title="Code douanier">${esc2(l.hs)}</span>`:''}<button class="x" data-a="del" title="Supprimer">✕</button></div>
+        ${repris?`<div class="tag">${esc2(l.indice)}</div>`:''}
+        <div class="g4${repris?' g2':''}">
+          ${repris?'':l.art?`<div><label>Grammage g/m²</label><input data-k="gsm" value="${esc2(l.gsm)}" placeholder="ex. 80"></div>
+          <div><label>${p&&p.bob?'Laize cm':'Format cm'}</label><input data-k="dim" value="${esc2(l.dim)}" placeholder="${p&&p.bob?'ex. 65 70':'ex. 70x100'}"></div>`
+          :`<div style="grid-column:1/3"><label>Code article</label><input data-k="code" value="${esc2(l.code)}" placeholder="GROFF"></div>`}
+          <div><label>Tonnes</label><input data-k="t" type="number" min="0" step="0.5" inputmode="decimal" value="${t2(l.qte)}" placeholder="0"></div>
+          <div><label>Prix ${SYM()}/t</label><input data-k="pt" type="number" min="0" step="5" inputmode="decimal" value="${l.pu?Math.round(l.pu*100000)/100:''}" placeholder="0"></div>
+        </div>
+        ${l.indice&&!repris?`<div class="indice">${esc2(l.indice)}</div>`:''}
+        ${l.art&&!repris?`<div class="pr"><input data-k="extra" value="${esc2(l.extra)}" placeholder="Précisions (facultatif) : dos gris, couleur, REH…"></div>`:''}
+        <label class="lb dl">Désignation sur la proforma${l.manuel&&l.art&&!repris?' <button class="auto" data-a="auto">↺ revenir à l\'auto</button>':''}</label>
+        <textarea class="des" data-k="des" rows="${Math.max(2,String(l.des||'').split('\n').length)}" placeholder="DÉSIGNATION">${esc2(l.des)}</textarea>
+        <div class="mt">${l.qte&&l.pu?eur(l.qte*l.pu)+' '+SYM():''}</div>
+      </div>`;}).join('');
+  };
+  function majCarte(i){
+    const l=lignes[i],c=document.querySelector('.lcard[data-i="'+i+'"]');if(!c)return;
+    recalc();
+    lignes.forEach((m,j)=>{const cj=document.querySelector('.lcard[data-i="'+j+'"]');if(!cj)return;const ta=cj.querySelector('textarea.des');
+      if(ta&&document.activeElement!==ta){ta.value=m.des;ta.rows=Math.max(2,m.des.split('\n').length);}
+      const hs=cj.querySelector('.hs');if(hs)hs.textContent=m.hs;else if(m.hs){const b=cj.querySelector('.h b');b.insertAdjacentHTML('afterend','<span class="hs">'+esc2(m.hs)+'</span>');}});
+    c.querySelector('.mt').textContent=l.qte&&l.pu?eur(l.qte*l.pu)+' '+SYM():'';
+    maj();
+  }
+  $('lignes').addEventListener('input',e=>{
+    const el=e.target,c=el.closest('.lcard');if(!c||!el.dataset.k)return;e.stopPropagation();
+    const i=+c.dataset.i,l=lignes[i],k=el.dataset.k,v=el.value;
+    if(k==='t')l.qte=(+v||0)*1000;else if(k==='pt')l.pu=(+v||0)/1000;
+    else if(k==='des'){l.des=v;if(l.art)l.manuel=true;}
+    else l[k]=v;
+    majCarte(i);
+  });
+  $('lignes').addEventListener('change',e=>{if(e.target.dataset.k==='des'&&lignes[+e.target.closest('.lcard').dataset.i].manuel){renderForm();maj();}});
+  $('lignes').addEventListener('click',e=>{
+    const b=e.target.closest('button[data-a]');if(!b)return;const i=+b.closest('.lcard').dataset.i;
+    if(b.dataset.a==='del')lignes.splice(i,1);else lignes[i].manuel=false;
+    renderForm();maj();
+  });
+  function ajouter(code,init){
+    const p=parCode(code);
+    const l=Object.assign({art:code,code:code,base:p?p.des:'',gsm:'',dim:'',extra:'',qte:0,pu:0,des:''},init||{});
+    lignes.push(l);renderForm();maj();
+    const c=document.querySelector('.lcard[data-i="'+(lignes.length-1)+'"]');
+    if(c){c.scrollIntoView({block:'nearest',behavior:'smooth'});const f=c.querySelector(init&&init.gsm?'[data-k="t"]':'[data-k="gsm"]');if(f)f.focus();}
+  }
+  window.ajouterProduit=ajouter;
+
+  // ── recherche produit : « offset bobine », « carton gc2 », « kraft brun »… ──
+  let res=[],sel=0;
+  function chercherProd(){
+    const q=norm($('prod-q').value).trim();
+    if(!q){res=[];$('prod-res').innerHTML='';return;}
+    const tk=q.split(/\s+/);
+    res=PRODUITS.filter(p=>tk.every(t=>p.cle.includes(t))).sort((a,b)=>(VENTES[b.code]||0)-(VENTES[a.code]||0)).slice(0,8);
+    sel=0;
+    $('prod-res').innerHTML=res.map((p,i)=>`<button type="button" data-i="${i}" class="${i?'':'sel'}"><code>${p.code}</code><span>${esc2(p.des)}</span><small>${esc2(cn8(HS_CODES[QAL[p.code]||p.code.slice(1)])||'')}</small></button>`).join('')
+      ||'<button type="button" data-libre="1"><span>Aucun article — ajouter une <b>ligne libre</b></span></button>';
+  }
+  function prendre(i){
+    const p=res[i];$('prod-q').value='';$('prod-res').innerHTML='';res=[];
+    if(p)ajouter(p.code);else{lignes.push({code:'',des:'',qte:0,pu:0});renderForm();maj();}
+  }
+  $('prod-q').addEventListener('input',e=>{e.stopPropagation();chercherProd();});
+  $('prod-q').addEventListener('keydown',e=>{
+    const bs=[...$('prod-res').querySelectorAll('button')];if(!bs.length)return;
+    if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();sel=(sel+(e.key==='ArrowDown'?1:bs.length-1))%bs.length;bs.forEach((b,i)=>b.classList.toggle('sel',i===sel));}
+    else if(e.key==='Enter'){e.preventDefault();prendre(sel);}
+    else if(e.key==='Escape'){$('prod-res').innerHTML='';}
+  });
+  $('prod-res').addEventListener('mousedown',e=>{const b=e.target.closest('button');if(!b)return;e.preventDefault();prendre(b.dataset.libre?-1:+b.dataset.i);});
+  $('prod-q').addEventListener('blur',()=>setTimeout(()=>{$('prod-res').innerHTML='';},150));
+
+  // ── « Déjà acheté par ce client » : derniers articles Sage du client (grammage, laize/format, dernier prix) ──
+  const RX_G=/GRAMMAGES?\s*[:\/]?\s*(.+?)\s*(GRS?|G)\s*(\/\s*M²?|\/M2)?\s*$/i,RX_D=/^(LAIZES?|FORMATS?)\s*[:\/]?\s*(.+?)\s*(CM|MM)?\s*-?\s*$/i;
+  window.produitsClient=async function(pieces){
+    $('deja').innerHTML='';
+    let r;try{r=await window.sbSage('sage_vente_lignes?select=piece,ligne,article,designation,prix_unitaire&piece=in.('+pieces.join(',')+')&order=piece.desc,ligne.asc');}catch(e){return;}
+    if(!Array.isArray(r))return;
+    const ordre=pieces,vus={},items=[];
+    r.sort((a,b)=>ordre.indexOf(a.piece)-ordre.indexOf(b.piece)||a.ligne-b.ligne);
+    let cur=null;
+    for(const x of r){
+      if(x.article){cur=null;if(/^G[RS]/.test(x.article)&&parCode(x.article)&&!vus[x.article]&&+x.prix_unitaire>0){vus[x.article]=1;cur={art:x.article,pu:+x.prix_unitaire,piece:x.piece,base:String(x.designation||'').trim().toUpperCase(),gsm:'',dim:''};items.push(cur);}continue;}
+      if(!cur)continue;
+      const d=String(x.designation||'').trim();let m;
+      if(!cur.gsm&&(m=d.match(RX_G)))cur.gsm=m[1].replace(/\s*-\s*/g,' ');
+      else if(!cur.dim&&(m=d.match(RX_D))){cur.dim=m[2].replace(/\s*-\s*/g,' ').trim();if(/MM/i.test(m[3]||''))cur.dim=liste(cur.dim).map(v=>v.split(/x/i).map(n=>String(+n.replace(',','.')/10).replace('.',',')).join('x')).join(' ');}
+      else if(/^\d+\s*GR/i.test(d)&&!cur.gsm)cur.gsm=d.replace(/GRS?|ET/gi,' ').trim();
+    }
+    if(!items.length)return;
+    window._deja=items.slice(0,6);
+    $('deja').innerHTML='<div class="t">Déjà acheté par ce client</div>'+window._deja.map((it,i)=>{
+      const p=parCode(it.art);const nom=p.des.replace(/ EN (BOBINE|FORMAT|RAMETTE).*$/,'').toLowerCase();
+      return `<button type="button" data-i="${i}">${esc2(nom.charAt(0).toUpperCase()+nom.slice(1))} ${p.bob?'bobine':'format'}${it.gsm?' · '+esc2(it.gsm)+' g':''}<small>${Math.round(it.pu*1000)} ${SYM()}/t</small></button>`;}).join('');
+  };
+  $('deja').addEventListener('click',e=>{
+    const b=e.target.closest('button[data-i]');if(!b)return;const it=window._deja[+b.dataset.i];
+    const p=parCode(it.art);
+    ajouter(it.art,{gsm:it.gsm,dim:it.dim,pu:it.pu,base:it.base&&/ EN /.test(it.base)?it.base:p.des,indice:'Repris de '+it.piece+' : '+Math.round(it.pu*1000)+' '+SYM()+'/t'});
+  });
+
+  // ── démarrage : la ligne vide d'origine disparaît (la recherche produit la remplace) ──
+  if(lignes.length===1&&!lignes[0].des&&!lignes[0].qte)lignes.length=0;
+  renderForm();maj();
+})();
+</script>

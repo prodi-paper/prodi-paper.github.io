@@ -1,0 +1,267 @@
+
+<!-- ═══ TEST LOCAL 03/11 : formulaire complet À GAUCHE + feuille éditable À DROITE + client Sage ═══ -->
+<style>
+  body.direct .wrap{max-width:none;display:flex;flex-direction:row;align-items:flex-start;justify-content:center;gap:24px;}
+  body.direct:not(.apercu) .sheetbox{display:flex!important;}
+  body.direct .panel{zoom:1!important;width:500px;max-width:500px;flex:none;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow-y:auto;padding:18px 20px;}
+  body.direct .panel .lbl{display:block;font-size:12px;font-weight:700;color:#666;margin:10px 0 4px;text-transform:none;letter-spacing:0;}
+  body.direct .panel textarea#c-nom{min-height:96px;}
+  @media (max-width:1320px){body.direct .wrap{flex-direction:column;align-items:center;}body.direct .panel{position:static;max-height:none;width:100%;max-width:820px;}}
+  .sage-box{background:#f6f7fb;border:1px solid #e3e6ef;border-radius:12px;padding:10px 12px 12px;margin-bottom:6px;}
+  .sage-box .lbl{margin-top:0!important;}
+  .sage-row{display:flex;gap:8px;align-items:center;}
+  .sage-row input{flex:1;min-width:0;}
+  .sage-row button{height:42px;border-radius:10px;border:0;background:#1d1d1f;color:#fff;font-weight:700;padding:0 14px;cursor:pointer;}
+  #sage-etat{font-size:12px;color:#888;white-space:nowrap;display:block;margin-top:4px;}
+  #sage-etat:empty{display:none;}
+  #btn-pro25{background:#fff!important;color:#1d1d1f!important;border:1px solid #d5d8e0!important;}
+  #btn-pro25:hover{border-color:#999!important;}
+  /* liste déroulante PAR-DESSUS le formulaire (ne pousse plus rien vers le bas) */
+  .sage-box{position:relative;}
+  #sage-res{position:absolute;left:12px;right:12px;top:58px;z-index:40;background:#fff;border:1px solid #e3e6ef;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.14);overflow:hidden;max-height:340px;overflow-y:auto;}
+  #sage-res:empty{display:none;}
+  #sage-res button{all:unset;box-sizing:border-box;display:block;width:100%;cursor:pointer;padding:9px 12px;font-size:14px;border-bottom:1px solid #f0f1f5;}
+  #sage-res button:last-child{border-bottom:0;}
+  #sage-res button:hover,#sage-res button.sel{background:#f3f4f8;}
+  #sage-res b{font-weight:800;} #sage-res small{color:#888;margin-left:6px;}
+  /* client choisi : résumé compact + « Modifier les infos » (adresse, identifiants, port repliés) */
+  #cli-resume{border:1px solid #e3e6ef;border-radius:12px;padding:10px 12px;background:#fff;font-size:13px;color:#555;line-height:1.45;}
+  #cli-resume b{display:block;font-size:15px;color:#1d1d1f;}
+  #cli-resume .mod{all:unset;cursor:pointer;color:#e30613;font-weight:700;font-size:13px;margin-top:4px;display:inline-block;}
+  .lien-main{all:unset;cursor:pointer;font-size:12px;color:#888;text-decoration:underline;margin-top:6px;display:inline-block;}
+  .lien-main:hover{color:#1d1d1f;}
+  .sage-box .petit{font-size:12px;color:#888;margin-top:6px;}
+  /* édition façon Word : pas de cadre ni de couleur, juste le curseur texte qui clignote là où on clique */
+  .sheet [contenteditable]{outline:none;cursor:text;caret-color:#000;}
+  .sheet [contenteditable]:empty{display:inline-block;min-width:18mm;min-height:1em;vertical-align:bottom;}
+  .sheet td[contenteditable]:empty,.sheet .vn:empty,.sheet .vd:empty,.sheet .vf:empty{display:block;min-width:0;}
+  .sheet ::selection{background:#b4d5fe;}
+  /* survol léger : on voit la case modifiable, rien quand on écrit dedans ni à l'impression */
+  .sheet [contenteditable]:hover:not(:focus){background:rgba(40,90,200,.07);box-shadow:0 0 0 .5mm rgba(40,90,200,.07);border-radius:1px;}
+  @media print{.sheet [contenteditable]{background:none!important;box-shadow:none!important;}}
+</style>
+<script>
+(function(){
+  document.body.classList.add('direct');
+  const $=id=>document.getElementById(id);
+  const fire=id=>$(id).dispatchEvent(new Event('input'));
+
+  /* ── feuille éditable ↔ formulaire (les champs du formulaire restent la source) ── */
+  const SIMPLES={'p-comm':'c-comm','p-refint':'c-refint','p-ref':'c-ref','p-rc':'c-rc','p-ident':'c-ident','p-inco':'c-inco','p-lieu':'c-lieu',
+    'p-orig':'c-orig','p-prov':'c-prov','p-usine':'c-usine','p-douane':'c-douane'};
+  const num=t=>{const x=parseFloat(String(t).replace(/\s| |€|\$/g,'').replace(',','.'));return isFinite(x)?x:0;};
+  const editable=el=>{if(el){el.contentEditable='plaintext-only';el.spellcheck=false;}};
+  function brancher(){
+    Object.keys(SIMPLES).forEach(p=>editable($(p)));
+    editable($('p-client'));editable($('p-fret'));
+    document.querySelectorAll('#p-lignes td[data-k]').forEach(editable);
+  }
+  document.addEventListener('input',e=>{
+    const el=e.target.closest&&e.target.closest('.sheet [contenteditable]');if(!el)return;
+    const t=el.innerText.replace(/\n$/,'');
+    if(SIMPLES[el.id]){$(SIMPLES[el.id]).value=t;}
+    else if(el.id==='p-client'){$('c-nom').value=t.split('\n').map(s=>s.trim()).filter(Boolean).join('\n');}
+    else if(el.id==='p-fret'){$('c-fret').value=num(t)||'';}
+    else if(el.dataset.k){const l=lignes[+el.dataset.i];if(!l)return;const k=el.dataset.k;
+      if(k==='qte')l.qte=num(t);else if(k==='pu')l.pu=num(t);else{l[k]=t;if(k==='des')l.manuel=true;}renderForm();}
+    maj();
+  });
+  document.addEventListener('focusout',e=>{if(e.target.closest&&e.target.closest('.sheet'))setTimeout(()=>{if(!document.querySelector('.sheet [contenteditable]:focus')){maj();brancher();}},0);});
+  document.addEventListener('keydown',e=>{
+    const el=e.target.closest&&e.target.closest('.sheet [contenteditable]');if(!el||e.key!=='Enter')return;
+    if(el.id==='p-client'||el.dataset.k==='des')return;
+    e.preventDefault();const all=[...document.querySelectorAll('.sheet [contenteditable]')];const n=all[all.indexOf(el)+1];if(n)n.focus();else el.blur();
+  });
+  // tout ce qui re-rend la feuille (formulaire, langue, devise, lignes) → re-brancher l'édition
+  const _maj=window.maj;window.maj=function(){_maj.apply(this,arguments);if(!document.querySelector('.sheet [contenteditable]:focus'))brancher();};
+  const _gen=window.generer;window.generer=async function(){await _gen();document.body.classList.remove('apercu');brancher();};
+
+  /* ── CLIENT SAGE (sage_clients / sage_ventes… = réservés équipe, est_staff) ──
+     • sur le Mac / le Wi-Fi du bureau : relais local (sage_proxy.py, port 8102), sans connexion ;
+     • sur prodi.com : compte de l'app Arrivages, demandé UNE fois par appareil puis mémorisé
+       (jeton Supabase rafraîchi tout seul, localStorage prof_sb). */
+  const LOCAL=/^(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+)$/.test(location.hostname);
+  const CLE='prof_sb';
+  const lire=()=>{try{return JSON.parse(localStorage.getItem(CLE)||'null');}catch(e){return null;}};
+  const ecrire=j=>{try{localStorage.setItem(CLE,JSON.stringify({a:j.access_token,r:j.refresh_token,x:Date.now()+(j.expires_in-60)*1000,m:j.user&&j.user.email}));}catch(e){}};
+  async function auth(body,grant){
+    const r=await fetch(SURL+'/auth/v1/token?grant_type='+grant,{method:'POST',headers:{apikey:ANON,'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const j=await r.json();if(!r.ok||!j.access_token)throw new Error(j.error_description||j.msg||'Connexion refusée');ecrire(j);return j.access_token;
+  }
+  async function jeton(){
+    const t=lire();if(!t)return null;
+    if(Date.now()<t.x)return t.a;
+    try{return await auth({refresh_token:t.r},'refresh_token');}catch(e){try{localStorage.removeItem(CLE);}catch(_){}return null;}
+  }
+  async function sb(path){
+    if(LOCAL){const r=await fetch('http://'+location.hostname+':8102/'+path);if(!r.ok)throw new Error('proxy');return r.json();}
+    const tk=await jeton();if(!tk){montrerLogin();throw new Error('login');}
+    const r=await fetch(SURL+'/rest/v1/'+path,{headers:{apikey:ANON,Authorization:'Bearer '+tk}});
+    if(r.status===401){try{localStorage.removeItem(CLE);}catch(_){}montrerLogin();throw new Error('login');}
+    return r.json();
+  }
+  window.sbSage=sb;
+  // petit formulaire de connexion, une seule fois : il s'affiche à la 1re recherche si l'appareil n'est pas connecté
+  $('sage-res').insertAdjacentHTML('afterend','<form id="sage-login" hidden><div class="sage-row" style="margin-top:8px"><input id="sage-mail" type="email" placeholder="E-mail (compte Arrivages)" autocomplete="username"><input id="sage-mdp" type="password" placeholder="Mot de passe" autocomplete="current-password"><button type="submit">OK</button></div><div class="petit">Une seule fois sur cet appareil : les fiches Sage sont réservées à l\'équipe.</div></form>');
+  function montrerLogin(msg){$('sage-login').hidden=false;$('sage-etat').textContent=msg||'';$('sage-mail').focus();}
+  $('sage-login').addEventListener('submit',async e=>{
+    e.preventDefault();$('sage-etat').textContent='connexion…';
+    try{await auth({email:$('sage-mail').value.trim(),password:$('sage-mdp').value},'password');
+      $('sage-login').hidden=true;$('sage-mdp').value='';$('sage-etat').textContent='connecté';
+      // compte valide mais hors équipe = listes vides (RLS) : on le dit
+      const t=await sb('sage_clients?select=code&limit=1');
+      if(Array.isArray(t)&&!t.length){$('sage-etat').textContent='ce compte n\'a pas accès aux fiches Sage (équipe seulement)';try{localStorage.removeItem(CLE);}catch(_){}return;}
+      chercher();}
+    catch(err){$('sage-etat').textContent=err.message==='Invalid login credentials'?'e-mail ou mot de passe incorrect':err.message;}
+  });
+  const pg=s=>encodeURIComponent(s.replace(/[*,()%]/g,' ').trim());
+  let tempo=null,derniers=[];
+  // pourquoi ce client remonte quand ce n'est pas son nom : le contact ou l'e-mail qui correspond
+  function quiMatch(c,q){
+    const m=q.toLowerCase().split(/\s+/)[0];if((c.nom||'').toLowerCase().includes(m)||(c.code||'').toLowerCase().includes(m))return'';
+    const ct=(c.contact||'').split(' · ').find(x=>x.toLowerCase().includes(m));if(ct)return ct;
+    return (c.email||'').split(';').find(x=>x.toLowerCase().includes(m))||'';
+  }
+  async function chercher(){
+    const q=$('sage-q').value.trim();
+    if(q.length<2){$('sage-res').innerHTML='';return;}
+    $('sage-etat').textContent='…';
+    try{
+      const r=await sb('rpc/sage_recherche_clients?q='+encodeURIComponent(q)); // nom, code, e-mail ET contacts (migration 109)
+      derniers=Array.isArray(r)?r:[];
+      $('sage-etat').textContent=derniers.length?'':'aucun client';
+      if(Array.isArray(r)&&!r.length&&!lire())montrerLogin();
+      $('sage-res').innerHTML=derniers.map((c,i)=>'<button type="button" data-i="'+i+'"><b>'+esc(c.nom||'')+'</b><small>'+esc([c.code,c.ville,c.pays,quiMatch(c,q)].filter(Boolean).join(' · '))+'</small></button>').join('');
+    }catch(e){if(e.message!=='login')$('sage-etat').textContent='erreur';}
+  }
+  $('sage-q').addEventListener('input',()=>{clearTimeout(tempo);tempo=setTimeout(chercher,250);});
+  // clavier : flèches pour choisir, Entrée pour prendre, Échap pour fermer
+  let selC=0;
+  const marquer=()=>[...$('sage-res').querySelectorAll('button')].forEach((b,i)=>b.classList.toggle('sel',i===selC));
+  new MutationObserver(()=>{selC=0;marquer();}).observe($('sage-res'),{childList:true});
+  $('sage-q').addEventListener('keydown',e=>{
+    const bs=[...$('sage-res').querySelectorAll('button')];if(!bs.length)return;
+    if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();selC=(selC+(e.key==='ArrowDown'?1:bs.length-1))%bs.length;marquer();bs[selC].scrollIntoView({block:'nearest'});}
+    else if(e.key==='Enter'){e.preventDefault();choisir(derniers[selC]);}
+    else if(e.key==='Escape'){$('sage-res').innerHTML='';}
+  });
+  $('sage-q').addEventListener('blur',()=>setTimeout(()=>{$('sage-res').innerHTML='';},200));
+  $('sage-q').addEventListener('focus',()=>{if($('sage-q').value.trim().length>=2&&!$('sage-res').innerHTML)chercher();});
+  $('sage-res').addEventListener('mousedown',e=>{const b=e.target.closest('button[data-i]');if(b){e.preventDefault();choisir(derniers[+b.dataset.i]);}});
+
+  // conditions de paiement Sage (texte libre du devis) → mode du formulaire, sinon texte libre
+  function modePaie(t){
+    const u=String(t||'').toUpperCase();if(!u)return null;
+    if(/CR[ÉE]DIT|L\/C|CREDOC/.test(u))return'lc';
+    if(/30\s*%/.test(u)&&/70\s*%/.test(u))return'3070';
+    if(/50\s*%/.test(u))return'5050';
+    if(/^(100\s*%\s*)?CONTRE DOCUMENTS/.test(u)&&!/\+/.test(u))return'cad';
+    if(/100\s*%.*AVANT/.test(u))return'100av';
+    return'libre';
+  }
+  // « 1X40'HC SAINT OUEN CASABLANCA », « 1x40' SAINT OUEN - CASABLANCA », « 1x40'HC À CASABLANCA » → CASABLANCA
+  function portDe(d){
+    const x=String(d||'').toUpperCase().replace(/^\s*\d+\s*X\s*\d+\s*['’]?\s*(HC|DV|PIEDS)?/,'')
+      .replace(/SAINT[- ]OUEN|ST[- ]OUEN|ANVERS|ANTWERP|LE HAVRE|FOS/g,' ').replace(/\s(À|A|-|POUR|TO)\s/g,' ').replace(/^(À|A|-)\s/,'').replace(/\s+/g,' ').trim();
+    const y=x.replace(/^DRY\s+/,'');
+    if(/FRAIS|TAXE|DOUANE|RECUPER|PICK ?UP|WAREHOUSE|DEPOT|CAMION|LORRY|MANUTENTION|SURCHARGE|LTA|TRANSPORT|LIVRAISON|DELIVERY|APPRO|CONTAINER|CONTENEUR|FRET|FREIGHT/.test(y))return null;
+    return /^[A-Z][A-Z .'’-]{2,30}$/.test(y)?y:null;
+  }
+  async function choisir(c){
+    if(!c)return;
+    $('sage-res').innerHTML='';$('sage-q').value=c.nom||c.code;$('sage-etat').textContent=c.code;
+    const ville=[c.code_postal,c.ville].filter(Boolean).join(' ');
+    $('c-nom').value=[c.nom,c.adresse,c.complement,ville,c.pays].map(x=>(x||'').trim()).filter((x,i,t)=>x&&!(i&&t[i-1].toUpperCase().includes(x.toUpperCase()))).join('\n'); // complément déjà dans l'adresse = sauté
+    $('c-banque').value='';window._bqSage='';$('c-lieu').value='';$('c-fret').value='';    $('c-ident').value=c.identifiant||'';$('c-refint').value=c.code||''; // Sage : « Ref. Interne » = code client (LAM3, IMPO…)$('c-rc').value='';
+    fire('c-nom');
+    replier(true);
+    // dernier devis du client : incoterm, paiement, devise ; port = dernier transport facturé (« … - CASABLANCA »)
+    try{
+      const v=await sb('sage_ventes?select=piece,incoterm,reglement,devise&client_code=eq.'+encodeURIComponent(c.code)+'&type=in.(devis,facture)&order=date_piece.desc&limit=1');
+      const d=v&&v[0];
+      // langue + devise : aussi pour un client sans devis (le pays décide)
+        // devise et langue du client : Sage ne remplit pas CT_Langue → déduites du dernier devis (conditions rédigées
+        // en anglais : « TRANSFER AFTER LOADING… ») ou du pays (hors pays francophones = anglais, ex. Égypte, Ghana)
+        pillDev(String((d&&d.devise)||'').toUpperCase()==='USD'?'usd':'eur');
+        const FR_PAYS=/^(FRANCE|BELGIQUE|SUISSE|LUXEMBOURG|MONACO|MAROC|ALGERIE|TUNISIE|MAURITANIE|SENEGAL|MALI|BURKINA FASO|NIGER|TCHAD|GUINEE|COTE D'IVOIRE|BENIN|TOGO|CAMEROUN|GABON|CONGO|REPUBLIQUE DEMOCRATIQUE DU CONGO|CENTRAFRIQUE|MADAGASCAR|COMORES|DJIBOUTI|LIBAN|HAITI|CANADA|GUADELOUPE|MARTINIQUE|REUNION|GUYANE)$/;
+        const paysN=String(c.pays||'').trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+        const anglais=/\b(TRANSFER|PAYMENT|AGAINST|BEFORE|AFTER|LOADING|DAYS|SIGHT|ADVANCE|BALANCE|SHIPMENT)\b/i.test((d&&d.reglement)||'')||(paysN&&!FR_PAYS.test(paysN));
+        pillLang(anglais?'en':'fr');syncPills();
+      if(d){
+        if(d.incoterm){const sel=$('c-inco');const o=[...sel.options].find(o=>o.value.toUpperCase()===d.incoterm.trim().toUpperCase());if(o){sel.value=o.value;}}
+        const m=modePaie(d.reglement);
+        if(m){$('c-paiemode').value=m;if(m==='libre')$('c-paie').value=d.reglement;$('c-paiemode').dispatchEvent(new Event('input'));}
+
+        $('sage-etat').textContent=c.code+' · repris de '+d.piece;
+      }
+      const ps=await sb('sage_ventes?select=piece&client_code=eq.'+encodeURIComponent(c.code)+'&order=date_piece.desc&limit=30');
+      if(Array.isArray(ps)&&ps.length){
+        const tl=await sb('sage_vente_lignes?select=piece,designation&piece=in.('+ps.map(x=>x.piece).join(',')+')&or=(article.like.TRT*,article.like.T9*)');
+        const ordre=ps.map(x=>x.piece);
+        const port=(Array.isArray(tl)?tl:[]).sort((a,b)=>ordre.indexOf(a.piece)-ordre.indexOf(b.piece))
+          .map(l=>portDe(l.designation)).find(Boolean);
+        if(port&&!$('c-lieu').value)$('c-lieu').value=port.trim();
+      }
+      // pays d'origine / de provenance : ceux de son dernier devis ou de sa dernière facture Sage (migration 111)
+      const pz=await sb('rpc/sage_pays_client?client='+encodeURIComponent(c.code));
+      $('c-orig').value=(Array.isArray(pz)&&pz[0]&&pz[0].origine||'').toUpperCase();
+      $('c-prov').value=(Array.isArray(pz)&&pz[0]&&pz[0].provenance||'').toUpperCase();
+      // banque du client : relevée sur ses proformas Sage (table sage_banques_clients, migration 110)
+      const bq=await sb('sage_banques_clients?select=banque,piece&client_code=eq.'+encodeURIComponent(c.code));
+      window._bqSage=Array.isArray(bq)&&bq[0]?bq[0].banque:'';bqManuel=false;majBanque();
+      if(Array.isArray(ps)&&ps.length&&window.produitsClient)window.produitsClient(ps.map(x=>x.piece));
+      const PORT_PAYS={ALGERIE:'ALGER',MAROC:'CASABLANCA',TUNISIE:'TUNIS',SENEGAL:'DAKAR',MALI:'DAKAR','BURKINA FASO':'LOME',CAMEROUN:'DOUALA',BENIN:'COTONOU',GRECE:'PIRAEUS',MAURITANIE:'NOUAKCHOTT',GUINEE:'CONAKRY',URUGUAY:'MONTEVIDEO',LIBAN:'BEYROUTH',GHANA:'TEMA',"COTE D'IVOIRE":'ABIDJAN',EGYPTE:'ALEXANDRIE',GEORGIE:'POTI',TURQUIE:'MERSIN',QATAR:'HAMAD',BRESIL:'SANTOS',TOGO:'LOME',GABON:'LIBREVILLE',CONGO:'POINTE-NOIRE',NIGERIA:'LAGOS'};
+      const _py=String(c.pays||'').trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+      if(!$('c-lieu').value&&PORT_PAYS[_py])$('c-lieu').value=PORT_PAYS[_py];
+    }catch(e){}
+    maj();resume();
+  }
+  // ── résumé client : une carte, les détails repliés derrière « Modifier les infos » ──
+  function resume(){
+    const l=$('c-nom').value.split('\n').map(x=>x.trim()).filter(Boolean);
+    $('cli-resume').innerHTML='<b>'+esc(l[0]||'')+'</b>'+esc(l.slice(1).join(' · '))+
+      (($('c-ident').value||$('c-rc').value)?'<br>'+esc([$('c-ident').value,$('c-rc').value].filter(Boolean).join(' · ')):'')+
+      ($('c-lieu').value?'<br>Port : '+esc($('c-lieu').value):'')+
+      '<br><button type="button" class="mod">'+($('cli-detail').hidden?'Modifier les infos':'Masquer les infos')+'</button>';
+  }
+  function replier(oui){$('cli-detail').hidden=oui;$('cli-resume').hidden=!$('c-nom').value.trim();resume();}
+  $('cli-resume').addEventListener('click',e=>{if(e.target.closest('.mod')){replier(!$('cli-detail').hidden);if(!$('cli-detail').hidden)$('c-nom').focus();}});
+  ['c-nom','c-ident','c-rc','c-lieu'].forEach(id=>$(id).addEventListener('input',resume));
+  // au départ : rien que la recherche ; les cases client n'apparaissent qu'après un choix, PRO25 ou « à la main »
+  $('sage-etat').insertAdjacentHTML('afterend','<button type="button" id="cli-main" class="lien-main">ou saisir un client à la main</button>');
+  $('cli-main').addEventListener('click',()=>{replier(false);$('cli-resume').hidden=true;$('c-nom').focus();});
+  if(!$('c-nom').value.trim())replier(true);
+  // « PRO25 » = proforma sans client Sage (anonyme) : Réf. interne PRO25, rien repris d'une fiche
+  $('btn-pro25').addEventListener('click',()=>{
+    $('sage-q').value='';$('sage-res').innerHTML='';$('sage-etat').textContent='sans client Sage';
+    $('c-refint').value='PRO25';$('c-ident').value='';$('c-rc').value='';
+    const dj=$('deja');if(dj)dj.innerHTML='';
+    replier(false);$('cli-resume').hidden=true;maj();$('c-nom').focus();
+  });
+
+  const PM=[...$('c-paiemode').options].filter(o=>o.value!=='libre').map(o=>[o.value,o.textContent.trim()]);
+  $('c-paiemode').insertAdjacentHTML('beforebegin','<input id="paie-combo" list="paie-liste" autocomplete="off" placeholder="Choisis ou écris la condition de paiement"><datalist id="paie-liste">'+PM.map(m=>'<option value="'+m[1].replace(/"/g,'&quot;')+'">').join('')+'</datalist>');
+  $('c-paiemode').hidden=true;$('paie-libre-wrap').hidden=true;$('paie-libre-wrap').style.cssText='display:none!important';
+  window.syncPaie=function(){const m=$('c-paiemode').value;$('paie-combo').value=m==='libre'?$('c-paie').value:((PM.find(x=>x[0]===m)||[])[1]||'');};
+  $('paie-combo').addEventListener('input',e=>{e.stopPropagation();const t=$('paie-combo').value.trim(),hit=PM.find(x=>x[1].toLowerCase()===t.toLowerCase());
+    if(hit){$('c-paiemode').value=hit[0];$('c-paie').value='';}else{$('c-paiemode').value='libre';$('c-paie').value=t;}maj();});
+  $('paie-combo').addEventListener('focus',()=>{$('paie-combo').dataset.avant=$('paie-combo').value;$('paie-combo').value='';});
+  $('paie-combo').addEventListener('blur',()=>{if(!$('paie-combo').value)$('paie-combo').value=$('paie-combo').dataset.avant||'';});
+  // ── banque du client selon le mode de paiement (proformas Sage : traite 87 %, à terme 62 %, remise doc 57 %, virement d'avance 32 %) ──
+  let bqManuel=false,bqOuvert=false;
+  const bqUtile=()=>{const m=$('c-paiemode').value;if(m==='cad'||m==='lc')return true;
+    return m==='libre'&&/TRAITE|ACCEPTATION|REMISE|D\/P|DOCUMENT|CREDOC|CR[EÉ]DIT DOC|L\/C|JOURS|DAYS|AVAL/i.test($('c-paie').value);};
+  window.majBanque=function(){
+    const u=bqUtile();
+    if(u&&!bqManuel&&!$('c-banque').value&&window._bqSage)$('c-banque').value=window._bqSage;
+    if(!u&&!bqManuel&&!bqOuvert)$('c-banque').value='';
+    const vis=u||bqOuvert||!!$('c-banque').value;
+    $('bq-wrap').hidden=!vis;$('bq-ajout').hidden=vis;
+  };
+  $('c-banque').addEventListener('input',()=>{bqManuel=true;});
+  $('bq-ajout').addEventListener('click',()=>{bqOuvert=true;if(!$('c-banque').value&&window._bqSage)$('c-banque').value=window._bqSage;majBanque();maj();$('c-banque').focus();});
+  const _majP=window.maj;window.maj=function(){_majP.apply(this,arguments);if(document.activeElement!==$('paie-combo'))syncPaie();};
+  const _majB=window.maj;window.maj=function(){majBanque();_majB.apply(this,arguments);};
+  maj();brancher();if(typeof fitSheet==='function')fitSheet();requestAnimationFrame(etirerBas);
+})();
+</script>
