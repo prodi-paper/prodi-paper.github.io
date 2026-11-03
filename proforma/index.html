@@ -122,7 +122,7 @@
      Polices Sage : Helvetica (corps), Calibri (banques → Carlito), High Tower
      Text (titre → Goudy Bookletter 1911, la plus proche en Google Fonts). */
   .sheetbox{flex:none;display:flex;justify-content:center;}
-  .sheet{width:210mm;height:297mm;background:#fff;box-shadow:0 4px 22px rgba(0,0,0,.13);font-family:Helvetica,Arial,sans-serif;font-size:8.82pt;line-height:1.15;color:#000;position:relative;overflow:hidden;}
+  .sheet{width:210mm;height:auto;min-height:297mm;background:#fff;box-shadow:0 4px 22px rgba(0,0,0,.13);font-family:Helvetica,Arial,sans-serif;font-size:8.82pt;line-height:1.15;color:#000;position:relative;overflow:hidden;}
   .sheet *{line-height:1.15;}
   .sheet .zh{position:relative;height:86.40mm;}
   .sheet .zb{position:relative;height:90.26mm;}
@@ -262,7 +262,10 @@
     .wrap{padding:0;display:block;}
     /* page sans marge imprimante : la feuille garde ses propres marges (7/6 mm)
        → impression = même mise en page que le PDF html2pdf */
-    .sheet{box-shadow:none;min-height:auto;zoom:1!important;}
+    .sheetbox{display:block!important;}
+    /* beaucoup de lignes : la feuille s'allonge et le bas (totaux, paiement, banques) passe page 2 */
+    .sheet{box-shadow:none;height:auto;min-height:296mm;overflow:visible;zoom:1!important;}
+    .sheet table.corps tr,.sheet .zb{break-inside:avoid;page-break-inside:avoid;}
     @page{size:A4;margin:0;}
   }
 </style>
@@ -406,7 +409,7 @@ html.cat-unlocked #cat-gate{display:none !important;}
       <input id="c-paie" value="" placeholder="TEXTE LIBRE">
     </div>
 
-    <button class="btn btn-red" onclick="generer()"><svg viewBox="0 0 60 58.5" width="30" height="29" aria-hidden="true"><path d="M48.2 33.9C47 32.6 44.7 32 41.4 32c-1.8 0-3.7.2-5.5.5-1.2-1.1-2.2-2.4-3.2-3.7-.7-1-1.4-2-2-3.1 1-2.8 1.6-5.8 1.8-8.8 0-2.7-1.1-5.6-4.1-5.6-1 0-2 .6-2.5 1.5-1.3 2.2-.8 6.7 1.3 11.4-.7 2.1-1.5 4.2-2.4 6.5-.8 2-1.7 3.9-2.8 5.7-3.1 1.2-9.6 4.2-10.2 7.5-.2 1 .1 2 .9 2.6.7.6 1.7 1 2.7.9 3.9 0 7.8-5.4 10.5-10.1 1.5-.5 3-1 4.6-1.4 1.7-.4 3.3-.8 4.8-1.1 4.2 3.6 7.9 4.2 9.7 4.2 2.5 0 3.5-1.1 3.8-2 .4-1.1.2-2.3-.6-3.1zm-2.7 1.9c-.1.7-.9 1.2-1.9 1.2-.3 0-.6 0-.9-.1-2-.5-3.9-1.5-5.5-2.8 1.3-.2 2.7-.3 4-.3.9 0 1.8.1 2.7.2.9.2 1.9.6 1.6 1.8zM27.6 13.7c.2-.3.5-.5.9-.6 1 0 1.2 1.1 1.2 2.1-.1 2.3-.5 4.5-1.2 6.7-1.7-4.3-1.5-7.2-.9-8.2zm5.6 19.2c-1.1.2-2.2.5-3.3.8-.8.2-1.6.5-2.5.7.4-.9.8-1.8 1.2-2.6.5-1.1.9-2.2 1.3-3.3.4.6.7 1.1 1.1 1.6.7 1 1.5 1.9 2.2 2.8zm-12.1 5.8c-2.5 4-5 6.6-6.4 6.6-.2 0-.5-.1-.6-.2-.3-.2-.4-.6-.3-.9.2-1.5 3.1-3.6 7.3-5.5z" fill="#fff"/></svg>PDF</button>
+    <button class="btn btn-red" id="btn-gen" onclick="generer()"><svg viewBox="0 0 60 58.5" width="30" height="29" aria-hidden="true"><path d="M48.2 33.9C47 32.6 44.7 32 41.4 32c-1.8 0-3.7.2-5.5.5-1.2-1.1-2.2-2.4-3.2-3.7-.7-1-1.4-2-2-3.1 1-2.8 1.6-5.8 1.8-8.8 0-2.7-1.1-5.6-4.1-5.6-1 0-2 .6-2.5 1.5-1.3 2.2-.8 6.7 1.3 11.4-.7 2.1-1.5 4.2-2.4 6.5-.8 2-1.7 3.9-2.8 5.7-3.1 1.2-9.6 4.2-10.2 7.5-.2 1 .1 2 .9 2.6.7.6 1.7 1 2.7.9 3.9 0 7.8-5.4 10.5-10.1 1.5-.5 3-1 4.6-1.4 1.7-.4 3.3-.8 4.8-1.1 4.2 3.6 7.9 4.2 9.7 4.2 2.5 0 3.5-1.1 3.8-2 .4-1.1.2-2.3-.6-3.1zm-2.7 1.9c-.1.7-.9 1.2-1.9 1.2-.3 0-.6 0-.9-.1-2-.5-3.9-1.5-5.5-2.8 1.3-.2 2.7-.3 4-.3.9 0 1.8.1 2.7.2.9.2 1.9.6 1.6 1.8zM27.6 13.7c.2-.3.5-.5.9-.6 1 0 1.2 1.1 1.2 2.1-.1 2.3-.5 4.5-1.2 6.7-1.7-4.3-1.5-7.2-.9-8.2zm5.6 19.2c-1.1.2-2.2.5-3.3.8-.8.2-1.6.5-2.5.7.4-.9.8-1.8 1.2-2.6.5-1.1.9-2.2 1.3-3.3.4.6.7 1.1 1.1 1.6.7 1 1.5 1.9 2.2 2.8zm-12.1 5.8c-2.5 4-5 6.6-6.4 6.6-.2 0-.5-.1-.6-.2-.3-.2-.4-.6-.3-.9.2-1.5 3.1-3.6 7.3-5.5z" fill="#fff"/></svg>PDF</button>
     <div class="num-ok" id="genok"></div>
   </div>
 
@@ -494,7 +497,8 @@ let lignes=[];
 let numero=null;
 
 // ── Langue + devise du DOCUMENT (le formulaire reste en français) ──
-let LANG='fr',DEV='eur',USD=null; // USD = taux BCE EUR→USD du jour
+let LANG='fr',DEV='eur';
+let dateDoc=null; // date du document (génération / reprise) — sinon aujourd'hui
 const SYM=()=>DEV==='usd'?'$':'€';
 const I18N={
   // lignes posées une par une aux positions Sage (gen_sheet.py)
@@ -570,20 +574,6 @@ function devChange(){
   // QUE les libellés €/$ — les chiffres saisis restent tels quels
   syncPills();applyLang();renderForm();maj();
 }
-// taux BCE EUR→USD via frankfurter.dev (⚠️ pas frankfurter.APP : 301), caché 1 jour
-// (plus affiché à l'écran — sert toujours à la conversion €→$ au clic sur la pilule $)
-(async function(){
-  try{
-    const d=new Date().toISOString().slice(0,10);
-    const c=JSON.parse(localStorage.getItem('prodi_prof_usd')||'null');
-    if(c&&c.d===d){USD=c.v;}
-    else{
-      const r=await fetch('https://api.frankfurter.dev/v1/latest?base=EUR&symbols=USD');
-      USD=(await r.json()).rates.USD;
-      localStorage.setItem('prodi_prof_usd',JSON.stringify({d,v:USD}));
-    }
-  }catch(e){/* hors ligne : bascule $ sans conversion auto */}
-})();
 
 const _loc=()=>LANG==='en'?'en-US':'fr-FR';
 const eur=n=>n.toLocaleString(_loc(),{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -630,8 +620,10 @@ function totaux(){
   // le total = somme des lignes ; le fret n'est qu'une VENTILATION affichée
   // (MONTANT FOB = total − fret, COÛT ET FRET = total).
   const total=lignes.reduce((s,l)=>s+l.qte*l.pu,0);
-  const fret=+document.getElementById('c-fret').value||0;
-  return{total,fret,fob:total-fret,poids:lignes.reduce((s,l)=>s+l.qte,0)};
+  // FOB / EX WORKS : prix sans fret → pas de ventilation (MONTANT FOB = total)
+  const sansFret=/^(FOB|EX WORKS)$/.test(document.getElementById('c-inco').value);
+  const fret=sansFret?0:(+document.getElementById('c-fret').value||0);
+  return{total,fret,fob:total-fret,sansFret,poids:lignes.reduce((s,l)=>s+l.qte,0)};
 }
 
 function maj(){
@@ -651,7 +643,7 @@ function maj(){
   document.getElementById('p-lieu').textContent=v('c-lieu');
   document.getElementById('p-orig').textContent=v('c-orig');
   document.getElementById('p-prov').textContent=v('c-prov');
-  document.getElementById('p-date').textContent=new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'2-digit'});
+  document.getElementById('p-date').textContent=new Date(dateDoc||Date.now()).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'2-digit'});
   document.getElementById('p-num').textContent=numero||'—';
   document.getElementById('p-lignes').innerHTML=lignes.map((l,i)=>`
     <tr class="${i?'':'l1'}"><td class="lref">${esc(l.code)}</td><td class="desig">${desHtml(l.des)}</td>
@@ -667,7 +659,7 @@ function maj(){
   const _vm=n=>eur(n)+'&nbsp;&nbsp; '+SYM();
   document.getElementById('p-fob').innerHTML=t.total?_vm(t.fob):'';
   document.getElementById('p-fret').innerHTML=t.fret>0?_vm(t.fret):'';
-  document.getElementById('p-cf').innerHTML=t.total?_vm(t.total):'';
+  document.getElementById('p-cf').innerHTML=t.total&&!t.sansFret?_vm(t.total):'';
   document.getElementById('p-ht').innerHTML=eurS(t.total)+'&nbsp; '+SYM();
   document.getElementById('p-ttc').innerHTML=eurS(t.total)+'&nbsp; '+SYM();
   document.getElementById('p-poids').textContent=kg(t.poids);
@@ -675,11 +667,12 @@ function maj(){
   // conditions de paiement : modes standard du négoce export ou texte libre
   const mode=document.getElementById('c-paiemode').value;
   document.getElementById('paie-libre-wrap').style.display=mode==='libre'?'':'none';
+  const _r2=n=>Math.round(n*100)/100;
   const _pl=(m,k)=>`<div><span class="m">${eur(m)}</span>${I18N[k][LANG]}</div>`;
   const PAIE={
-    '5050':()=>_pl(t.total/2,'v5050a')+_pl(t.total/2,'v5050b'),
+    '5050':()=>_pl(_r2(t.total/2),'v5050a')+_pl(_r2(t.total)-_r2(t.total/2),'v5050b'),
     '100av':()=>_pl(t.total,'v5050a'),
-    '3070':()=>_pl(t.total*0.3,'vcmd')+_pl(t.total*0.7,'v5050b'),
+    '3070':()=>_pl(_r2(t.total*0.3),'vcmd')+_pl(_r2(t.total)-_r2(t.total*0.3),'v5050b'),
     'cad':()=>_pl(t.total,'vcad'),
     'lc':()=>_pl(t.total,'vlc'),
     'libre':()=>`<div>${esc(v('c-paie'))}</div>`,
@@ -696,7 +689,7 @@ function lireHisto(){try{return JSON.parse(localStorage.getItem(HISTO_CLE)||'[]'
 function enregistrerHistoLocal(){
   const v=id=>document.getElementById(id).value;
   const t=totaux();
-  const e={quand:Date.now(),numero,nom:v('c-nom'),rc:v('c-rc'),comm:v('c-comm'),refint:v('c-refint'),refc:v('c-ref'),
+  const e={quand:Date.now(),date:dateDoc,numero,nom:v('c-nom'),rc:v('c-rc'),comm:v('c-comm'),refint:v('c-refint'),refc:v('c-ref'),
     inco:v('c-inco'),lieu:v('c-lieu'),fret:v('c-fret'),orig:v('c-orig'),prov:v('c-prov'),usine:v('c-usine'),douane:v('c-douane'),
     paiemode:v('c-paiemode'),paie:v('c-paie'),lang:LANG,dev:DEV,total:t.total,poids:t.poids,
     lignes:JSON.parse(JSON.stringify(lignes))};
@@ -734,7 +727,7 @@ function reprendreHisto(i){
   document.getElementById('c-lang').value=LANG;
   document.getElementById('c-dev').value=DEV;
   lignes=Array.isArray(e.lignes)?JSON.parse(JSON.stringify(e.lignes)):[];
-  numero=e.numero||null;
+  numero=e.numero||null;dateDoc=e.date||e.quand||null;
   syncPills();applyLang();renderForm();maj();fermerHisto();
   // reprise → aperçu direct : « Imprimer / PDF » réimprime avec le MÊME numéro ;
   // « ← Modifier » puis « Générer » en crée un nouveau
@@ -742,31 +735,53 @@ function reprendreHisto(i){
   document.getElementById('genok').textContent=numero?'Reprise de '+numero:'';
 }
 
+let _genEnCours=false;
 async function generer(){
-  if(!lignes.length){alert('Ajoute au moins une ligne.');return;}
+  if(_genEnCours)return; // double-clic = 2 numéros consommés
   const ok=document.getElementById('genok');
-  ok.textContent='Numérotation…';
-  // numéro officiel via Supabase, repli local si hors ligne
-  try{
-    const r=await fetch(SURL+'/rest/v1/rpc/proforma_next_numero',{method:'POST',
-      headers:{apikey:ANON,Authorization:'Bearer '+ANON,'Content-Type':'application/json'},body:'{}'});
-    numero=await r.json();
-    if(typeof numero!=='string')throw 0;
-  }catch(e){
-    numero='PW-LOC-'+Date.now().toString(36).slice(-4).toUpperCase();
+  // lignes totalement vides retirées ; il faut au moins une ligne avec désignation et poids
+  lignes=lignes.filter(l=>l.code||l.des||l.qte||l.pu);
+  if(!lignes.some(l=>(l.des||l.code)&&l.qte>0)){
+    if(!lignes.length)addModele('');else{renderForm();maj();}
+    ok.textContent='Ajoute au moins une ligne avec désignation et tonnage.';return;
   }
-  maj();
-  enregistrerHistoLocal();
-  // archive (fire-and-forget)
-  const t=totaux();
-  fetch(SURL+'/rest/v1/proformas',{method:'POST',
-    headers:{apikey:ANON,Authorization:'Bearer '+ANON,'Content-Type':'application/json',Prefer:'return=minimal'},
-    body:JSON.stringify({numero,client:{nom:document.getElementById('c-nom').value,rc:document.getElementById('c-rc').value,lieu:document.getElementById('c-lieu').value,orig:document.getElementById('c-orig').value,prov:document.getElementById('c-prov').value,usine:document.getElementById('c-usine').value,douane:document.getElementById('c-douane').value,paie:document.getElementById('c-paiemode').value,devise:DEV,langue:LANG},
-      lignes,incoterm:document.getElementById('c-inco').value,fret:t.fret,
-      totaux:{fob:t.fob,total:t.total,poids:t.poids}})}).catch(()=>{});
-  ok.textContent='✓ '+numero+' — enregistrée. Téléchargement…';
-  montrerApercu();
-  setTimeout(()=>telechargerPdf(),450);
+  const sansPrix=lignes.filter(l=>!(l.qte>0&&l.pu>0)).length;
+  // navigator.webdriver = MCP (chromium headless) : lignes sans prix acceptées sans confirmation
+  if(sansPrix&&!navigator.webdriver&&!confirm(sansPrix+' ligne(s) sans tonnage ou sans prix. Générer quand même ?'))return;
+  renderForm();
+  _genEnCours=true;
+  const btn=document.getElementById('btn-gen');if(btn)btn.disabled=true;
+  ok.textContent='Numérotation…';
+  try{
+    // numéro officiel via Supabase, repli local si hors ligne
+    try{
+      const r=await fetch(SURL+'/rest/v1/rpc/proforma_next_numero',{method:'POST',
+        headers:{apikey:ANON,Authorization:'Bearer '+ANON,'Content-Type':'application/json'},body:'{}'});
+      numero=await r.json();
+      if(typeof numero!=='string')throw 0;
+    }catch(e){
+      numero='PW-LOC-'+Date.now().toString(36).toUpperCase(); // horodatage complet : jamais deux fois le même
+    }
+    dateDoc=Date.now();
+    maj();
+    enregistrerHistoLocal();
+    // archive : TOUT ce qu'il faut pour réimprimer à l'identique (pdf_proforma)
+    // ⚠️ client.paie = CODE du mode (lu tel quel par le MCP) ; texte libre dans paie_texte
+    const t=totaux(),v=id=>document.getElementById(id).value;
+    let archive=false;
+    try{
+      const r=await fetch(SURL+'/rest/v1/proformas',{method:'POST',
+        headers:{apikey:ANON,Authorization:'Bearer '+ANON,'Content-Type':'application/json',Prefer:'return=minimal'},
+        body:JSON.stringify({numero,client:{nom:v('c-nom'),rc:v('c-rc'),lieu:v('c-lieu'),orig:v('c-orig'),prov:v('c-prov'),usine:v('c-usine'),douane:v('c-douane'),
+            paie:v('c-paiemode'),paie_texte:v('c-paie'),comm:v('c-comm'),refint:v('c-refint'),refc:v('c-ref'),date:new Date(dateDoc).toISOString(),devise:DEV,langue:LANG},
+          lignes,incoterm:v('c-inco'),fret:+v('c-fret')||0,
+          totaux:{fob:t.fob,total:t.total,poids:t.poids}})});
+      archive=r.ok;
+    }catch(e){}
+    ok.textContent=archive?'✓ '+numero+' — enregistrée. Téléchargement…':'⚠️ '+numero+' — PAS archivée (hors ligne ?). Téléchargement…';
+    montrerApercu();
+    setTimeout(()=>telechargerPdf(),450);
+  }finally{_genEnCours=false;if(btn)btn.disabled=false;}
 }
 
 // ── Adaptation téléphone : la feuille A4 (210mm ≈ 794px) est réduite à la
@@ -778,11 +793,19 @@ function montrerApercu(){document.body.classList.add('apercu');window.scrollTo(0
 // (91,6 mm Sage × 0,98) — la zone vide complète ce que les lignes n'occupent pas.
 // Mesurable seulement feuille affichée (mode deux temps : appelé par montrerApercu).
 function etirerBas(){
-  const sh=document.getElementById('sheet');const mm=sh?sh.offsetWidth/210:0;if(!(mm>0))return;
-  const used=document.getElementById('p-lignes').offsetHeight/mm;
-  document.querySelectorAll('table.corps tr.fill td').forEach(td=>td.style.height=Math.max(2,89.77-used)+'mm');
+  const sh=document.getElementById('sheet');if(!sh)return;
+  // feuille masquée (formulaire, réimpression MCP, Cmd+P) : affichée invisible le temps de mesurer,
+  // sinon la zone vide garde ses 89,77 mm et pousse le bas en page 2
+  const box=sh.parentNode,cache=!sh.offsetWidth;
+  if(cache){box.style.visibility='hidden';box.style.position='absolute';box.style.display='flex';}
+  const mm=sh.offsetWidth/210;
+  if(mm>0){
+    const used=document.getElementById('p-lignes').offsetHeight/mm;
+    document.querySelectorAll('table.corps tr.fill td').forEach(td=>td.style.height=Math.max(2,89.77-used)+'mm');
+  }
+  if(cache){box.style.visibility=box.style.position=box.style.display='';}
 }
-function retourFormulaire(){document.body.classList.remove('apercu');window.scrollTo(0,0);}
+function retourFormulaire(){dateDoc=null;document.body.classList.remove('apercu');window.scrollTo(0,0);}
 function fitSheet(){
   const s=document.getElementById('sheet');if(!s)return;
   const avail=document.documentElement.clientWidth-20;
@@ -856,6 +879,7 @@ fitSheet();
     if(j.paiemode){var pm=document.getElementById('c-paiemode'); pm.value=j.paiemode; pm.dispatchEvent(new Event('change'));}
     if(j.paie){var pm2=document.getElementById('c-paiemode'); pm2.value='libre'; pm2.dispatchEvent(new Event('change')); set('c-paie',j.paie);}
     if(j.fret!=null) set('c-fret',j.fret);
+    if(j.date&&!isNaN(Date.parse(j.date))) dateDoc=Date.parse(j.date);
     if(j.inco){
       var sel=document.getElementById('c-inco');
       var opts=Array.from(sel.options).map(function(o){return o.value.toUpperCase();});
