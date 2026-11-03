@@ -158,7 +158,7 @@
     'Votre demande':'Your request',
     'Vos échantillons':'Your samples',
     'Quel échantillon voulez-vous recevoir ?':'Which sample would you like?',
-    'Continuer':'Continue','Passer cette étape':'Skip this step',
+    'Continuer':'Continue','Valider':'Confirm','Saisissez le code à 6 chiffres reçu par email.':'Enter the 6-digit code we emailed you.','Code incorrect ou expiré. Vérifiez le dernier email reçu.':'Wrong or expired code. Check the latest email.','Passer cette étape':'Skip this step',
     '+ Ajouter un autre produit':'+ Add another product',
     '+ Ajouter un autre échantillon':'+ Add another sample',
     'Envoyer la demande':'Send request',
