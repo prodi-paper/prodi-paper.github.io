@@ -248,7 +248,7 @@
   $('paie-combo').addEventListener('focus',()=>{$('paie-combo').dataset.avant=$('paie-combo').value;$('paie-combo').value='';});
   $('paie-combo').addEventListener('blur',()=>{if(!$('paie-combo').value)$('paie-combo').value=$('paie-combo').dataset.avant||'';});
   // ── banque du client selon le mode de paiement (proformas Sage : traite 87 %, à terme 62 %, remise doc 57 %, virement d'avance 32 %) ──
-  let bqManuel=false,bqOuvert=false;
+  let bqManuel=!!(window._prefill&&window._prefill.banque),bqOuvert=false; // lien MCP/Arrivages : banque fournie = gardée telle quelle
   const bqUtile=()=>{const m=$('c-paiemode').value;if(m==='cad'||m==='lc')return true;
     return m==='libre'&&/TRAITE|ACCEPTATION|REMISE|D\/P|DOCUMENT|CREDOC|CR[EÉ]DIT DOC|L\/C|JOURS|DAYS|AVAL/i.test($('c-paie').value);};
   window.majBanque=function(){

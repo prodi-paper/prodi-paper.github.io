@@ -54,7 +54,7 @@
   }
 
   // ── 3. Conteneurs (≈ 27 t par 40'HC, 22 t par 20' : charge utile papier) + 2. fret estimé (dernier transport facturé vers ce port) ──
-  let nbCont=0,typeCont='40',fretManuel=false,dernierFret=null;
+  let nbCont=0,typeCont='40',fretManuel=!!(window._prefill&&window._prefill.fret!=null),dernierFret=null;
   const tonnes=()=>lignes.reduce((s,l)=>s+(+l.qte||0),0)/1000;
   $('lignes').insertAdjacentHTML('afterend','<div id="cont"></div><div id="fret-info"></div>');
   function majCont(){

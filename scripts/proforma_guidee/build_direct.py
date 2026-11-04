@@ -18,7 +18,6 @@ assert old in s
 s = s.replace(old, "<td class=\"lref\" data-i=\"${i}\" data-k=\"code\">${esc(l.code)}</td><td class=\"desig\" data-i=\"${i}\" data-k=\"des\">${desHtml(l.des)}</td>\n    <td class=\"lqte\" data-i=\"${i}\" data-k=\"qte\">${l.qte?kg(l.qte):''}</td><td class=\"lpu\" data-i=\"${i}\" data-k=\"pu\">${l.pu?pu3(l.pu):''}</td>")
 s = s.replace("document.getElementById('p-fret').innerHTML=t.fret>0?_vm(t.fret):'';",
   "if(!document.getElementById('p-fret').contains(document.activeElement))document.getElementById('p-fret').innerHTML=t.fret>0?_vm(t.fret):'';")
-s = s.replace("<title>", "<title>Nouvelle · ", 1)
 s = s.replace("var PWD='PRODI2026';", "var PWD='PRODI2026';\n  if(location.search.indexOf('headless')>=0)document.documentElement.classList.add('cat-unlocked');", 1)
 
 # ── formulaire COMPLET : tous les champs visibles + recherche client Sage ──
@@ -130,11 +129,13 @@ for idn in ['c-inco','c-lieu','c-fret','c-douane','c-paiemode','lignes','c-nom']
     assert s.count('id="%s"' % idn) == 1, idn
 
 # codes douaniers : HS_CODES + getHsCode recopiés de catalogue.js (même source que le catalogue)
-cat = open(os.path.join(os.path.dirname(SRC), '..', 'catalogue.js')).read()
+cat = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'catalogue.js')).read()
 h0 = cat.index('const HS_CODES={'); h1 = cat.index('\n};\n', h0) + 4
 g0 = cat.index('function getHsCode('); g1 = cat.index('\n  return HS_CODES[qualite];\n}\n', g0) + len('\n  return HS_CODES[qualite];\n}\n')
 hs = '<script>\n' + cat[h0:h1] + cat[g0:g1] + '</script>\n'
 
+s = s.replace("    if(j.dev==='usd'){", "    if(!j.orig)set('c-orig','FRANCE'); if(!j.prov)set('c-prov','FRANCE'); window._prefill=j;\n    if(j.dev==='usd'){", 1)
+assert "window._prefill=j" in s
 direct = open(sys.argv[3]).read() + hs + open(sys.argv[4]).read() + ''.join(open(f).read() for f in sys.argv[5:])
 s = s.replace('</body>', direct + '</body>', 1)
 open(DST, 'w').write(s)
