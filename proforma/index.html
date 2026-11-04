@@ -1204,7 +1204,7 @@ fitSheet();
   window.sbSage=sb;
   // petit formulaire de connexion, une seule fois : il s'affiche à la 1re recherche si l'appareil n'est pas connecté
   $('sage-res').insertAdjacentHTML('afterend','<form id="sage-login" hidden><div class="sage-row" style="margin-top:8px"><input id="sage-mail" type="email" placeholder="E-mail (compte Arrivages)" autocomplete="username"><input id="sage-mdp" type="password" placeholder="Mot de passe" autocomplete="current-password"><button type="submit">OK</button></div><div class="petit">Une seule fois sur cet appareil : les fiches Sage sont réservées à l\'équipe.</div></form>');
-  function montrerLogin(msg){$('sage-login').hidden=false;$('sage-etat').textContent=msg||'';$('sage-mail').focus();}
+  function montrerLogin(msg){$('sage-login').hidden=false;$('sage-etat').textContent=msg||'connecte-toi une fois pour chercher dans Sage';}
   $('sage-login').addEventListener('submit',async e=>{
     e.preventDefault();$('sage-etat').textContent='connexion…';
     try{await auth({email:$('sage-mail').value.trim(),password:$('sage-mdp').value},'password');
