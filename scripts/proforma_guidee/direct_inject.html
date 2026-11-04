@@ -102,17 +102,18 @@
   }
   window.sbSage=sb;
   // petit formulaire de connexion, une seule fois : il s'affiche à la 1re recherche si l'appareil n'est pas connecté
-  $('sage-res').insertAdjacentHTML('afterend','<form id="sage-login" hidden><div class="sage-row" style="margin-top:8px"><input id="sage-mail" type="email" placeholder="E-mail (compte Arrivages)" autocomplete="username"><input id="sage-mdp" type="password" placeholder="Mot de passe" autocomplete="current-password"><button type="submit">OK</button></div><div class="petit">Une seule fois sur cet appareil : les fiches Sage sont réservées à l\'équipe.</div></form>');
-  function montrerLogin(msg){$('sage-login').hidden=false;$('sage-etat').textContent=msg||'connecte-toi une fois pour chercher dans Sage';}
+  $('sage-res').insertAdjacentHTML('afterend','<form id="sage-login" hidden><div class="sage-row" style="margin-top:8px"><input id="sage-mdp" type="password" placeholder="Code (une seule fois sur cet appareil)" autocomplete="current-password" inputmode="text"><button type="submit">OK</button></div></form>');
+  function montrerLogin(msg){$('sage-login').hidden=false;$('sage-etat').textContent=msg||'tape le code une fois pour chercher dans Sage';}
   $('sage-login').addEventListener('submit',async e=>{
     e.preventDefault();$('sage-etat').textContent='connexion…';
-    try{await auth({email:$('sage-mail').value.trim(),password:$('sage-mdp').value},'password');
+    // code PRODI2026 = mot de passe du compte LECTURE SEULE proforma-lecture@prodi.com (migration 112)
+    try{await auth({email:'proforma-lecture@prodi.com',password:$('sage-mdp').value.trim()},'password');
       $('sage-login').hidden=true;$('sage-mdp').value='';$('sage-etat').textContent='connecté';
       // compte valide mais hors équipe = listes vides (RLS) : on le dit
       const t=await sb('sage_clients?select=code&limit=1');
-      if(Array.isArray(t)&&!t.length){$('sage-etat').textContent='ce compte n\'a pas accès aux fiches Sage (équipe seulement)';try{localStorage.removeItem(CLE);}catch(_){}return;}
+      if(Array.isArray(t)&&!t.length){$('sage-etat').textContent='accès Sage refusé';try{localStorage.removeItem(CLE);}catch(_){}return;}
       chercher();}
-    catch(err){$('sage-etat').textContent=err.message==='Invalid login credentials'?'e-mail ou mot de passe incorrect':err.message;}
+    catch(err){$('sage-etat').textContent=err.message==='Invalid login credentials'?'code incorrect':err.message;}
   });
   const pg=s=>encodeURIComponent(s.replace(/[*,()%]/g,' ').trim());
   let tempo=null,derniers=[];
