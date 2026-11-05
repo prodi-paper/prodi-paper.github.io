@@ -4797,7 +4797,7 @@ function renderList(list){
       <td class="plist-td plist-td-title"><strong class="plist-qtitle">${esc(title)}</strong></td>
       <td class="plist-td plist-td-details">${detailsTxt||'—'}</td>
       <td class="plist-td">${esc(p.couleur||'—')}</td>
-      <td class="plist-td plist-td-num"><span class="plist-gsm">${p.grammage?esc(p.grammage+' g/m²'):'—'}</span></td>
+      <td class="plist-td plist-td-num"><span class="plist-gsm">${p.grammage?esc(p.grammage+' g'):'—'}</span></td>
       ${isPalette&&paletteDims2
         ?`<td class="plist-td plist-td-num" colspan="3">${esc(paletteDims2)}</td>`
         :`<td class="plist-td plist-td-num">${esc(laize)}</td><td class="plist-td plist-td-num">${esc(dim2)}</td><td class="plist-td plist-td-num plist-col-mandrin">${esc(mandrin||'—')}</td>`}
