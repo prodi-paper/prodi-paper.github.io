@@ -3493,6 +3493,14 @@ function _anyFilterActive(){
   const ids=['f-gmin','f-gmax','f-lmin','f-lmax','f-longmin','f-longmax','f-wmin','f-wmax','f-refmin','f-refmax','f-usine','f-zone-num','f-zone-let','f-ref-code','f-pmin','f-pmax'];
   return ids.some(id=>{const e=document.getElementById(id);return e&&String(e.value||'').trim();});
 }
+function _userChoiceActive(){
+  if((document.getElementById('search-input')?.value||'').trim())return true;
+  for(const k in msdState){if(msdState[k]&&msdState[k].size)return true;}
+  if(_photoFilter)return true;
+  if([...document.querySelectorAll('.fpill.active')].some(e=>!e.classList.contains('fpill-resa')))return true;
+  const ids=['f-gmin','f-gmax','f-lmin','f-lmax','f-longmin','f-longmax','f-wmin','f-wmax','f-refmin','f-refmax','f-usine','f-zone-num','f-zone-let','f-ref-code','f-pmin','f-pmax'];
+  return ids.some(id=>{const e=document.getElementById(id);return e&&String(e.value||'').trim();});
+}
 // ── ACCUEIL CATALOGUE : rangées horizontales par QUALITÉ ─────────────────────
 // 1 rangée = 1 famille TYPE_MAP (bobine+format mélangés), triées par tonnage
 // décroissant ; produits = derniers arrivages (réf desc) ; « Voir plus » ouvre
@@ -4687,7 +4695,7 @@ function _renderQualExcel(g){
     g.innerHTML='<div style="overflow-x:auto"><table class="plist-table qx-table"><thead><tr>'
       +'<th>Photo</th><th>Qualité</th><th>Détails</th><th>GSM (g/m²)</th><th>Laize (mm)</th><th>Diamètre (mm)</th><th>Mandrin (mm)</th><th>Dimensions (mm)</th><th>Poids total (t)</th><th></th></tr></thead><tbody>'
       +fams.map(([f,v])=>{
-        const href=f==='Autres qualités'?'/catalogue/':'/catalogue/?type='+encodeURIComponent(f);
+        const href=f==='Autres qualités'?'/catalogue/?all=1':'/catalogue/?type='+encodeURIComponent(f);
         const nds=[...v.nd].sort((a,b)=>a-b);
         const mand=!nds.length?'—':(nds.length<=3?nds.join(' / '):nds[0]+' – '+nds[nds.length-1]);
         // plage de formats sur 3 étages : la flèche seule au milieu fait séparation
@@ -4722,6 +4730,10 @@ function renderList(list){
   const g=document.getElementById('pgrid');
   if(!g)return;
   if(!document.body.classList.contains('cat-page')&&!_sharedMode){_renderQualExcel(g);return;}
+  // Explorer le stock sans filtre (05/11 Ethan) : tableau PAR QUALITÉ d'abord,
+  // la liste détaillée arrive dès qu'on choisit une qualité / filtre / recherche.
+  // « Dispo » = mode permanent, pas un choix → ignorée ; ?all=1 force la liste.
+  if(document.body.classList.contains('cat-page')&&!_sharedMode&&!/[?&]all=1/.test(location.search)&&!_userChoiceActive()){_renderQualExcel(g);return;}
   g.className='pgrid plist';
   // ── Vue Excel (04/10) : tri par en-tête appliqué côté affichage ──
   if(window._xlSort&&window._xlSort.key&&_XLV[window._xlSort.key]){
