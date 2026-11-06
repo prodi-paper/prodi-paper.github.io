@@ -400,52 +400,6 @@ def rematch_inventaire_lignes():
         '-H','Content-Type: application/json','-d','{}'], capture_output=True, text=True)
     log(f"Ré-appariement inventaire: {result.stdout.strip() or '?'} lignes rattachées")
 
-# ── MAIN ──
-if __name__ == '__main__':
-    log("=== Import stock Prodiconseil ===")
-    tmpdir, files = fetch_latest_stock_email()
-    if not files:
-        log("ERREUR: mail STOCK COMPLET introuvable — import annulé (base intacte)")
-        sys.exit(1)
-
-    products = parse_dov(files)
-    # Garde-fou : update_supabase VIDE la table avant d'insérer. Un fichier
-    # anormalement petit (mauvaise PJ, structure changée) annulerait le
-    # catalogue entier → on refuse et on laisse la base d'hier en place.
-    if len(products) < 5000:
-        log(f"ABANDON: {len(products)} produits parsés (< 5000) — base NON touchée")
-        sys.exit(1)
-    # Garde-fou PRIX (04/08) : si les colonnes PUNET/AR_PRIXVEN disparaissent
-    # ou changent de nom dans le DOV, on publierait un catalogue sans prix.
-    # Couverture normale ≈ 99 % — sous 60 %, on refuse (mail d'alerte Resend
-    # via le step if:failure du workflow) et la base d'hier reste en place.
-    _vis = [p for p in products if p['source'] == 'email']
-    _avec_prix = sum(1 for p in _vis if p.get('price'))
-    if _vis and _avec_prix / len(_vis) < 0.6:
-        log(f"ABANDON: {_avec_prix}/{len(_vis)} produits visibles avec prix (< 60 %) — colonnes prix du DOV suspectes, base NON touchée")
-        sys.exit(1)
-    update_supabase(products)
-    backfill_image_urls()
-    rematch_inventaire_lignes()
-    try:
-        sync_offres_fab()
-    except Exception as e:
-        log(f"offres fab: échec NON bloquant — {e}")
-    # 06/11 : comparaison avec le relais Sage avant bascule (n'écrit rien,
-    # comptes seulement — logs publics). Le pousser dans le workflow demande
-    # le scope `workflow` du jeton gh, d'où l'appel ici.
-    try:
-        subprocess.run([sys.executable, os.path.join(os.path.dirname(__file__), 'import_stock_relais.py')], timeout=600)
-    except Exception as e:
-        log(f"comparaison relais: échec NON bloquant — {e}")
-
-    # Cleanup
-    import shutil
-    shutil.rmtree(tmpdir, ignore_errors=True)
-
-    log(f"=== Terminé ! {len(products)} produits importés ===")
-
-
 # ── STEP 5 (bonus) : OFFRES FABRICATION ──
 def sync_offres_fab():
     """Publie les PJ « * FABRICATION.xlsx » du mail « STOCK DÉTAILLÉ » sur le
@@ -617,3 +571,49 @@ def sync_offres_fab():
             json.dumps({'date': date.today().isoformat(), 'fichiers': manifest},
                        ensure_ascii=False).encode(), 'application/json')
     log(f"offres fab: {len(manifest)} Excel + {sum(len(x['usines']) for x in manifest)} variantes usine publiés")
+
+
+# ── MAIN ──
+if __name__ == '__main__':
+    log("=== Import stock Prodiconseil ===")
+    tmpdir, files = fetch_latest_stock_email()
+    if not files:
+        log("ERREUR: mail STOCK COMPLET introuvable — import annulé (base intacte)")
+        sys.exit(1)
+
+    products = parse_dov(files)
+    # Garde-fou : update_supabase VIDE la table avant d'insérer. Un fichier
+    # anormalement petit (mauvaise PJ, structure changée) annulerait le
+    # catalogue entier → on refuse et on laisse la base d'hier en place.
+    if len(products) < 5000:
+        log(f"ABANDON: {len(products)} produits parsés (< 5000) — base NON touchée")
+        sys.exit(1)
+    # Garde-fou PRIX (04/08) : si les colonnes PUNET/AR_PRIXVEN disparaissent
+    # ou changent de nom dans le DOV, on publierait un catalogue sans prix.
+    # Couverture normale ≈ 99 % — sous 60 %, on refuse (mail d'alerte Resend
+    # via le step if:failure du workflow) et la base d'hier reste en place.
+    _vis = [p for p in products if p['source'] == 'email']
+    _avec_prix = sum(1 for p in _vis if p.get('price'))
+    if _vis and _avec_prix / len(_vis) < 0.6:
+        log(f"ABANDON: {_avec_prix}/{len(_vis)} produits visibles avec prix (< 60 %) — colonnes prix du DOV suspectes, base NON touchée")
+        sys.exit(1)
+    update_supabase(products)
+    backfill_image_urls()
+    rematch_inventaire_lignes()
+    try:
+        sync_offres_fab()
+    except Exception as e:
+        log(f"offres fab: échec NON bloquant — {e}")
+    # 06/11 : comparaison avec le relais Sage avant bascule (n'écrit rien,
+    # comptes seulement — logs publics). Le pousser dans le workflow demande
+    # le scope `workflow` du jeton gh, d'où l'appel ici.
+    try:
+        subprocess.run([sys.executable, os.path.join(os.path.dirname(__file__), 'import_stock_relais.py')], timeout=600)
+    except Exception as e:
+        log(f"comparaison relais: échec NON bloquant — {e}")
+
+    # Cleanup
+    import shutil
+    shutil.rmtree(tmpdir, ignore_errors=True)
+
+    log(f"=== Terminé ! {len(products)} produits importés ===")
