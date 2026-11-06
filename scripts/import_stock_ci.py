@@ -431,6 +431,13 @@ if __name__ == '__main__':
         sync_offres_fab()
     except Exception as e:
         log(f"offres fab: échec NON bloquant — {e}")
+    # 06/11 : comparaison avec le relais Sage avant bascule (n'écrit rien,
+    # comptes seulement — logs publics). Le pousser dans le workflow demande
+    # le scope `workflow` du jeton gh, d'où l'appel ici.
+    try:
+        subprocess.run([sys.executable, os.path.join(os.path.dirname(__file__), 'import_stock_relais.py')], timeout=600)
+    except Exception as e:
+        log(f"comparaison relais: échec NON bloquant — {e}")
 
     # Cleanup
     import shutil
