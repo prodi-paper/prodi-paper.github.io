@@ -126,7 +126,7 @@
   .sheet *{line-height:1.15;}
   .sheet .zh{position:relative;height:85.00mm;}
   /* recalage fin 04/11 (DE43163) : tout le contenu Prodi 1,5 mm plus à gauche (le logo, déjà mesuré, est compensé) */
-  .sheet>.zh,.sheet>table.corps,.sheet>.zb{position:relative;left:8.36mm;top:1.50mm;} /* recalé 04/11 sur les PDF Sage A4 (DE43163) */
+  .sheet>.zh,.sheet>table.corps,.sheet>.zb{position:relative;left:-1.50mm;} /* recalé 04/11 sur les PDF Sage A4 (DE43163) */
   .sheet .zb{position:relative;height:93.80mm;}
   .sheet .nw{white-space:nowrap;}
   .sheet{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
@@ -165,7 +165,7 @@
   .sheet .refint{position:absolute;left:104.97mm;top:39.28mm;font-size:8.92pt;font-weight:400;white-space:nowrap;}
   .sheet .ident{position:absolute;left:105.54mm;top:43.83mm;font-size:8.92pt;font-weight:400;white-space:nowrap;}
   .sheet .rc{position:absolute;left:105.69mm;top:51.02mm;font-size:8.92pt;font-weight:400;white-space:nowrap;}
-  .sheet .box-livr{position:absolute;left:105.15mm;top:55.92mm;width:85.10mm;height:28.52mm;border:0.26mm solid #000;box-sizing:border-box;}
+  .sheet .box-livr{position:absolute;left:105.15mm;top:55.92mm;width:83.39mm;height:28.52mm;border:0.26mm solid #000;box-sizing:border-box;}
   .sheet .box-livr .t{position:absolute;left:0;right:0;top:0;height:5.29mm;border-bottom:0.26mm solid #000;font-weight:700;font-size:8.85pt;padding:0.40mm 0 0 29.40mm;box-sizing:border-box;}
   .sheet .box-livr #p-inco{position:absolute;left:0.90mm;top:5.68mm;font-size:8.89pt;white-space:nowrap;}
   .sheet .box-livr #p-lieu{position:absolute;left:0.90mm;top:9.80mm;font-size:8.89pt;white-space:nowrap;}
@@ -189,7 +189,7 @@
   .sheet table.corps td.desig .desred{color:#e00000;font-weight:700;}
   .sheet table.corps td.lqte{text-align:right;padding-right:4.21mm;}
   .sheet table.corps td.lpu,.sheet table.corps td.lmt{text-align:right;padding-right:0.76mm;white-space:nowrap;}
-  .sheet table.corps tr.fill td{height:104.80mm;padding:0;border-bottom:0.26mm solid #000;}
+  .sheet table.corps tr.fill td{height:108.80mm;padding:0;border-bottom:0.26mm solid #000;}
   .sheet .su{position:absolute;left:20.41mm;top:0.78mm;font-size:7.90pt;font-weight:400;white-space:nowrap;}
   .sheet .s1{position:absolute;left:20.69mm;top:4.51mm;font-size:7.90pt;font-weight:400;white-space:nowrap;}
   .sheet .s2{position:absolute;left:20.50mm;top:8.04mm;font-size:7.90pt;font-weight:400;white-space:nowrap;}
@@ -230,7 +230,7 @@
   .wsheet .wbq b{display:block;color:#1f3b6b;font-size:8.5pt;margin-bottom:.9mm;}
   .wsheet .wcachet{width:36.39mm;margin-left:11.79mm;}
   .sheet .cachet{position:absolute;left:3.93mm;top:15.78mm;width:38.16mm;height:auto;}
-  .sheet .tot{position:absolute;left:72.01mm;top:18.03mm;width:118.24mm;height:16.27mm;border:0.26mm solid #000;box-sizing:border-box;}
+  .sheet .tot{position:absolute;left:72.01mm;top:18.03mm;width:117.88mm;height:16.27mm;border:0.26mm solid #000;box-sizing:border-box;}
   .sheet .tot>i{position:absolute;top:0;bottom:0;border-left:0.24mm solid #000;}
   .sheet .tot .k1{left:21.68mm;} .sheet .tot .k2{left:44.43mm;} .sheet .tot .k3{left:71.12mm;}
   .sheet .tot .kr{left:0;right:46.76mm;top:6.17mm;bottom:auto;border-left:none;border-top:0.26mm solid #000;}
@@ -246,13 +246,13 @@
   .sheet .tot .netl{position:absolute;left:83.57mm;top:0.98mm;font-weight:700;font-size:12.08pt;text-decoration:underline;text-underline-offset:0.59mm;white-space:nowrap;}
   .sheet .tot #p-net{position:absolute;left:71.12mm;right:0;top:8.13mm;text-align:center;font-weight:700;font-size:14.65pt;white-space:nowrap;}
   .sheet .tot #p-net .sym{font-weight:400;}
-  .sheet .paiebox{position:absolute;left:3.04mm;top:35.87mm;width:187.21mm;height:22.34mm;border:0.26mm solid #000;box-sizing:border-box;}
+  .sheet .paiebox{position:absolute;left:0.84mm;top:35.87mm;width:186.94mm;height:22.34mm;border:0.26mm solid #000;box-sizing:border-box;}
   .sheet .paiebox .pl{position:absolute;left:2.60mm;top:2.16mm;font-weight:700;font-size:9.84pt;white-space:nowrap;}
   .sheet .paiebox #p-paie-lignes{position:absolute;left:56.60mm;top:1.76mm;font-weight:700;font-size:9.84pt;white-space:nowrap;line-height:5.78mm;}
   .sheet .paiebox #p-paie-lignes .m{display:inline-block;min-width:19.71mm;}
   .sheet .paiebox #p-banque{position:absolute;left:30.62mm;top:13.03mm;font-size:8.85pt;white-space:pre;line-height:4.2mm;}
   .sheet .paiebox .banqcli{position:absolute;left:4.48mm;top:13.03mm;font-weight:700;font-size:8.85pt;white-space:nowrap;}
-  .sheet .bq{position:absolute;left:3.04mm;top:63.00mm;width:187.21mm;height:30.58mm;border:0.26mm solid #000;box-sizing:border-box;}
+  .sheet .bq{position:absolute;left:4.38mm;top:63.00mm;width:186.85mm;height:30.58mm;border:0.26mm solid #000;box-sizing:border-box;}
   .sheet .bq>i{position:absolute;top:0;bottom:0;border-left:0.24mm solid #000;}
   .sheet .bq .v0{left:79.09mm;}
   .sheet .bq .v1{left:88.86mm;}
@@ -834,7 +834,7 @@ function enregistrerHistoLocal(){
   const t=totaux();
   const e={quand:Date.now(),date:dateDoc,numero,nom:v('c-nom'),rc:v('c-rc'),ident:v('c-ident'),banque:v('c-banque'),comm:v('c-comm'),refint:v('c-refint'),refc:v('c-ref'),
     inco:v('c-inco'),lieu:v('c-lieu'),fret:v('c-fret'),orig:v('c-orig'),prov:v('c-prov'),usine:v('c-usine'),douane:v('c-douane'),
-    paiemode:v('c-paiemode'),paie:v('c-paie'),lang:LANG,dev:DEV,soc:SOC,total:t.total,poids:t.poids,
+    paiemode:v('c-paiemode'),paie:v('c-paie'),lang:LANG,dev:DEV,soc:SOC,total:t.total,poids:t.poids,fretsus:!!window.FRET_SUS,
     lignes:JSON.parse(JSON.stringify(lignes))};
   const h=lireHisto();h.unshift(e);
   localStorage.setItem(HISTO_CLE,JSON.stringify(h.slice(0,30)));
@@ -866,7 +866,7 @@ function reprendreHisto(i){
   const e=_histoCache[i];if(!e)return;
   const set=(id,val)=>{document.getElementById(id).value=val??'';};
   set('c-nom',e.nom);set('c-rc',e.rc);set('c-ident',e.ident);set('c-banque',e.banque);set('c-comm',e.comm);set('c-refint',e.refint);set('c-ref',e.refc);
-  set('c-inco',e.inco||'CFR');set('c-lieu',e.lieu);set('c-fret',e.fret||0);set('c-orig',e.orig);set('c-prov',e.prov);
+  set('c-inco',e.inco||'CFR');set('c-lieu',e.lieu);set('c-fret',e.fret||0);if(window.setFretSus)setFretSus(e.fretsus);set('c-orig',e.orig);set('c-prov',e.prov);
   set('c-usine',e.usine);set('c-douane',e.douane);set('c-paiemode',e.paiemode||'5050');set('c-paie',e.paie||'');
   // langue/devise restaurées SANS devChange : les prix stockés sont déjà dans la devise du document
   LANG=e.lang||'fr';DEV=e.dev||'eur';
@@ -920,7 +920,7 @@ async function generer(){
       const r=await fetch(SURL+'/rest/v1/proformas',{method:'POST',
         headers:{apikey:ANON,Authorization:'Bearer '+ANON,'Content-Type':'application/json',Prefer:'return=minimal'},
         body:JSON.stringify({numero,client:{nom:v('c-nom'),rc:v('c-rc'),ident:v('c-ident'),banque:v('c-banque'),lieu:v('c-lieu'),orig:v('c-orig'),prov:v('c-prov'),usine:v('c-usine'),douane:v('c-douane'),
-            paie:v('c-paiemode'),paie_texte:v('c-paie'),comm:v('c-comm'),refint:v('c-refint'),refc:v('c-ref'),date:new Date(dateDoc).toISOString(),devise:DEV,langue:LANG,societe:SOC},
+            paie:v('c-paiemode'),paie_texte:v('c-paie'),comm:v('c-comm'),refint:v('c-refint'),refc:v('c-ref'),date:new Date(dateDoc).toISOString(),devise:DEV,langue:LANG,societe:SOC,fret_sus:!!window.FRET_SUS,mise:window.miseCourante?window.miseCourante():null},
           lignes,incoterm:v('c-inco'),fret:+v('c-fret')||0,
           totaux:{fob:t.fob,total:t.total,poids:t.poids}})});
       archive=r.ok;
@@ -948,7 +948,7 @@ function etirerBas(){
   const mm=sh.offsetWidth/210;
   if(mm>0){
     const used=document.getElementById('p-lignes').offsetHeight/mm;
-    document.querySelectorAll('table.corps tr.fill td').forEach(td=>td.style.height=Math.max(2,104.80-used)+'mm');
+    document.querySelectorAll('table.corps tr.fill td').forEach(td=>td.style.height=Math.max(2,108.80-used)+'mm');
   }
   if(cache){box.style.visibility=box.style.position=box.style.display='';}
 }
@@ -1750,7 +1750,7 @@ function getHsCode(qualite,gsm,format,couleur,details){
     }
     if(!out.length)return;
     lignes.length=0;out.forEach(l=>lignes.push(l));
-    if(fret){$('c-fret').value=Math.round(fret);fretManuel=true;}
+    if(fret){$('c-fret').value=Math.round(fret);fretManuel=true;if(window.setFretSus)setFretSus(true);}
     if(nc)nbCont=nc;
     renderForm();maj();majCont();
     $('genok').textContent='Lignes reprises de '+dernierDE+' — vérifie les tonnages.';
@@ -1787,7 +1787,7 @@ function getHsCode(qualite,gsm,format,couleur,details){
     dernierFret=meme[0]||null;
     if(!dernierFret){$('fret-info').innerHTML=prixPort.length?'':'';return;}
     const est=Math.round(dernierFret.prix_unitaire*nbCont);
-    if(!fretManuel&&!$('c-fret').value){$('c-fret').value=est;maj();}
+    if(!fretManuel&&!$('c-fret').value&&!window.FRET_SUS){$('c-fret').value=est;maj();}
     $('fret-info').innerHTML=`Fret estimé ${nbCont} × ${nb0(dernierFret.prix_unitaire)} € = <b>${nb0(est)} €</b> — dernier ${esc3(dernierFret.designation.trim())} (${dernierFret.piece})`+
       (+$('c-fret').value!==est?`<button type="button" id="fret-app">appliquer</button>`:'');
     const b=$('fret-app');if(b)b.onclick=()=>{$('c-fret').value=est;fretManuel=false;maj();estimerFret();};
@@ -1883,6 +1883,175 @@ function getHsCode(qualite,gsm,format,couleur,details){
   new IntersectionObserver(es=>{surFeuille=es[0].isIntersecting;$('mb-voir').textContent=surFeuille?'Formulaire':'Aperçu';},{threshold:.35}).observe(document.querySelector('.sheetbox'));
   $('mb-share').addEventListener('click',()=>document.querySelector('.share button[data-s="partager"]').click());
   majBar();
+})();
+</script>
+<!-- ═══ 06/11 : FRET clair (inclus dans les prix / en plus) + MISE EN PAGE pleine page (IA) ═══
+     • Fret « inclus » (défaut, logique Sage DE42827) : P.U fret inclus, le fret n'est qu'une ventilation.
+       Fret « en plus » : P.U départ, une ligne FRET s'ajoute au tableau et au total.
+       Récap sous le champ : marchandise + fret = total, dans les deux modes.
+     • Bouton « ✨ Mise en page » (en haut à droite) : l'API prodi-arrivages /api/proforma-mise-en-page
+       choisit tailles de police / interligne / zoom pour remplir l'A4 ; l'ajustement local garantit
+       une seule page. « ↩ Retour » = calque Sage d'origine. Choix gardé sur l'appareil + archivé
+       (client.mise / client.fret_sus) pour que pdf_proforma réimprime à l'identique. -->
+<style>
+  #fret-mode{display:inline-flex;margin-top:6px;border:1px solid #d5d8e0;border-radius:10px;overflow:hidden;}
+  #fret-mode button{all:unset;cursor:pointer;font-size:12px;font-weight:700;padding:6px 10px;color:#555;}
+  #fret-mode button.on{background:#1d1d1f;color:#fff;}
+  #fret-recap{font-size:12px;color:#555;margin-top:5px;line-height:1.4;}
+  #fret-recap:empty{display:none;}
+  #fret-recap b{color:#1d1d1f;}
+  /* dans l'en-tête, à droite d'« Historique » */
+  #mep-bar{display:flex;gap:8px;align-items:center;}
+  #mep-bar button{all:unset;cursor:pointer;height:44px;padding:0 16px;border-radius:10px;font-size:16px;font-weight:700;box-sizing:border-box;}
+  #mep-bar #mep-ia{background:#1d1d1f;color:#fff;}
+  #mep-bar #mep-ia[disabled]{opacity:.6;cursor:wait;}
+  #mep-bar #mep-retour{background:#fff;color:#1d1d1f;border:1px solid #d5d8e0;}
+  #mep-etat{font-size:12px;color:#888;background:rgba(255,255,255,.9);padding:2px 6px;border-radius:6px;}
+  #mep-etat:empty{display:none;}
+  @media print{#mep-bar{display:none!important;}}
+
+  /* ── mode PLEINE PAGE : tout le calque agrandi (zoom) + corps du tableau plus gros ── */
+  .sheet.ample>.zh,.sheet.ample>table.corps,.sheet.ample>.zb{zoom:var(--z,1.04);left:0;}
+  .sheet.ample{padding-left:var(--pg,3mm);box-sizing:border-box;}
+  .sheet.ample table.corps th{height:7.6mm;}
+  .sheet.ample table.corps td{font-size:var(--fz,10.5pt);line-height:var(--lh,5.1mm);}
+  /* colonnes étroites (réf, poids, prix, montant) : jamais coupées, plafonnées à 10 pt — seule la désignation grossit */
+  .sheet.ample table.corps td.lref,.sheet.ample table.corps td.lqte,.sheet.ample table.corps td.lpu,.sheet.ample table.corps td.lmt{font-size:min(var(--fz,10.5pt),10pt);white-space:nowrap;}
+  .sheet.ample table.corps tr.l1 td{padding-top:1.2mm;}
+  .sheet.ample .s1,.sheet.ample .s2,.sheet.ample .s3,.sheet.ample .su,.sheet.ample .cd,.sheet.ample .tol{font-size:var(--fv,9.2pt);}
+  .sheet.ample .s1{top:4.3mm;} .sheet.ample .s2{top:8.3mm;} .sheet.ample .s3{top:12.3mm;}
+  .sheet.ample .zb .mt{font-weight:700;}
+  /* ligne fret (mode « en plus ») */
+  .sheet table.corps tr.lfret td{padding-top:2.4mm;font-weight:700;}
+</style>
+<div id="mep-bar">
+  <span id="mep-etat"></span>
+  <button type="button" id="mep-ia" title="Agrandir la feuille pour remplir toute la page A4">✨ Mise en page</button>
+  <button type="button" id="mep-retour" title="Revenir au calque Sage d'origine" hidden>↩ Retour</button>
+</div>
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  // en local : le serveur de dev de prodi_arrivages (port 3000)
+  const API=(/^(localhost|127\.|192\.168\.)/.test(location.hostname)?'http://'+location.hostname+':3000':'https://prodi-arrivages.vercel.app')+'/api/proforma-mise-en-page';
+  const LS='proforma_mise';
+  const _hb=document.querySelector('header.app .h-in');if(_hb)_hb.appendChild($('mep-bar'));
+
+  /* ══════════ 1. FRET : inclus dans les prix / en plus ══════════ */
+  window.FRET_SUS=!!(window._prefill&&window._prefill.fretsus);
+  const lbl=$('c-fret').closest('div').querySelector('.lbl');
+  if(lbl)lbl.textContent='Fret';
+  $('c-fret').insertAdjacentHTML('afterend','<div id="fret-mode"><button type="button" data-m="inclus">inclus dans les prix</button><button type="button" data-m="sus">en plus</button></div><div id="fret-recap"></div>');
+  function majMode(){document.querySelectorAll('#fret-mode button').forEach(b=>b.classList.toggle('on',(b.dataset.m==='sus')===window.FRET_SUS));}
+  $('fret-mode').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;window.FRET_SUS=b.dataset.m==='sus';majMode();maj();});
+  window.setFretSus=v=>{window.FRET_SUS=!!v;majMode();};
+  majMode();
+
+  window.totaux=function(){
+    const march=lignes.reduce((s,l)=>s+l.qte*l.pu,0);
+    const sansFret=/^(FOB|EX WORKS)$/.test($('c-inco').value);
+    const fret=sansFret?0:(+$('c-fret').value||0);
+    const sus=window.FRET_SUS&&fret>0;
+    const total=sus?march+fret:march;
+    return{total,fret,fob:total-fret,march,sus,sansFret,poids:lignes.reduce((s,l)=>s+l.qte,0)};
+  };
+
+  const _maj=window.maj;
+  window.maj=function(){
+    _maj.apply(this,arguments);
+    const t=totaux(),S=SYM(),fmt=n=>eur(n)+' '+S;
+    // ligne FRET dans le tableau (mode « en plus »)
+    const tb=$('p-lignes');
+    tb.querySelectorAll('tr.lfret').forEach(tr=>tr.remove());
+    if(t.sus){
+      const en=LANG==='en',inco=$('c-inco').value,lieu=$('c-lieu').value.trim().toUpperCase();
+      tb.insertAdjacentHTML('beforeend',`<tr class="lfret"><td class="lref">FRET</td><td class="desig">${en?'SEA FREIGHT':'FRET MARITIME'} ${esc(inco)}${lieu?' '+esc(lieu):''}</td><td class="lqte"></td><td class="lpu"></td><td class="lmt">${eurS(t.fret)}</td></tr>`);
+    }
+    // récap formulaire
+    const r=$('fret-recap');
+    if(!t.march){r.innerHTML='';}
+    else if(t.sansFret){r.innerHTML=`${esc($('c-inco').value)} : pas de fret — total <b>${fmt(t.total)}</b>`;}
+    else if(!t.fret){r.innerHTML=`Aucun fret saisi — total <b>${fmt(t.total)}</b>`;}
+    else if(t.sus){r.innerHTML=`Marchandise ${fmt(t.march)} + fret ${fmt(t.fret)} = <b>${fmt(t.total)}</b> (ligne fret ajoutée)`;}
+    else{r.innerHTML=`Prix fret inclus : marchandise ${fmt(t.fob)} + fret ${fmt(t.fret)} = <b>${fmt(t.total)}</b>`;}
+    if(MEP)requestAnimationFrame(ajuster);
+  };
+
+  /* ══════════ 2. MISE EN PAGE pleine page ══════════ */
+  const DEF={z:1.04,fz:10.5,lh:5.1,fv:9.2};
+  let MEP=null;
+  try{MEP=JSON.parse(localStorage.getItem(LS)||'null');}catch(e){}
+  if(window._prefill&&'mise' in window._prefill)MEP=window._prefill.mise||null;   // réimpression : celle de l'archive
+  const borne=(v,a,b,d)=>{v=+v;return isFinite(v)?Math.min(b,Math.max(a,v)):d;};
+  function nettoyer(p){p=p||{};return{z:borne(p.z,1,1.06,DEF.z),fz:borne(p.fz,8.8,13,DEF.fz),lh:borne(p.lh,4.27,6.5,DEF.lh),fv:borne(p.fv,7.9,11,DEF.fv)};}
+  window.miseCourante=()=>MEP?nettoyer(MEP):null;
+
+  function poser(p){
+    const sh=$('sheet');
+    if(!p){sh.classList.remove('ample');['--z','--pg','--fz','--lh','--fv'].forEach(k=>sh.style.removeProperty(k));return;}
+    sh.classList.add('ample');
+    // contenu Sage ≈ 191,2 mm de large → centré sur les 210 mm
+    sh.style.setProperty('--z',p.z);sh.style.setProperty('--pg',Math.max(0,(210-191.2*p.z)/2).toFixed(2)+'mm');
+    sh.style.setProperty('--fz',p.fz+'pt');sh.style.setProperty('--lh',p.lh+'mm');sh.style.setProperty('--fv',p.fv+'pt');
+  }
+  function etat(t){$('mep-etat').textContent=t||'';}
+  function boutons(){$('mep-retour').hidden=!MEP;}
+
+  // hauteur du contenu en mm (mesure visuelle : marche avec le zoom CSS et le zoom mobile)
+  function basMm(sh){const r=sh.getBoundingClientRect(),k=r.width/210;let b=0;for(const el of sh.children){if(el.offsetParent===null&&getComputedStyle(el).display==='none')continue;b=Math.max(b,el.getBoundingClientRect().bottom-r.top);}return b/k;}
+  // remplit la page : zone vide sous les lignes = ce qui manque pour 296 mm ; trop long → on réduit pas à pas
+  function ajuster(){
+    const sh=$('sheet');if(!sh||!MEP||sh.classList.contains('woluwe'))return;
+    const box=sh.parentNode,cache=!sh.offsetWidth;
+    if(cache){box.style.visibility='hidden';box.style.position='absolute';box.style.display='flex';}
+    try{
+      const tds=sh.querySelectorAll('table.corps tr.fill td');
+      const essai=q=>{poser(q);tds.forEach(td=>td.style.height='2mm');return 296-basMm(sh);};
+      const plus=q=>({z:Math.min(1.06,q.z+.01),fz:Math.min(13,q.fz+.3),lh:Math.min(6.5,q.lh+.15),fv:Math.min(11,q.fv+.15)});
+      const moins=q=>({z:Math.max(1,q.z-.005),fz:Math.max(8.8,q.fz-.3),lh:Math.max(4.27,q.lh-.15),fv:Math.max(7.9,q.fv-.15)});
+      const egal=(a,b)=>a.z===b.z&&a.fz===b.fz&&a.lh===b.lh&&a.fv===b.fv;
+      // réglages de l'IA = point de départ ; trop long → on réduit (jamais sous le calque Sage, sinon 2 pages comme avant)
+      let p=nettoyer(MEP),libre=essai(p);
+      for(let i=0;i<40&&libre<0;i++){const q=moins(p);if(egal(q,p))break;p=q;libre=essai(p);}
+      // de la place → on agrandit tant que ça tient (4 mm de marge sous la dernière ligne)
+      for(let i=0;i<40&&libre>4;i++){const q=plus(p);if(egal(q,p))break;const l=essai(q);if(l<4)break;p=q;libre=l;}
+      libre=essai(p);
+      if(libre>=0)tds.forEach(td=>td.style.height=(2+libre/p.z).toFixed(2)+'mm');
+    }finally{if(cache){box.style.visibility=box.style.position=box.style.display='';}}
+  }
+  const _eb=window.etirerBas;
+  window.etirerBas=function(){if(MEP&&!$('sheet').classList.contains('woluwe'))ajuster();else{poser(null);_eb();}};
+
+  function resume(){
+    const t=totaux();
+    return{langue:LANG,societe:SOC,fret_en_plus:t.sus,
+      lignes:[...lignes.map(l=>({code:l.code||'',designation:String(l.des||'').slice(0,600)})),...(t.sus?[{code:'FRET',designation:'FRET MARITIME'}]:[])],
+      nb_lignes_texte:lignes.reduce((s,l)=>s+String(l.des||'').split('\n').length,0)+(t.sus?1:0),
+      plus_longue_ligne:Math.max(0,...lignes.flatMap(l=>String(l.des||'').split('\n').map(x=>x.length)))};
+  }
+  async function viaApi(){
+    const c=new AbortController(),to=setTimeout(()=>c.abort(),20000);
+    try{
+      const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(resume()),signal:c.signal});
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      return await r.json();
+    }finally{clearTimeout(to);}
+  }
+  $('mep-ia').addEventListener('click',async()=>{
+    const b=$('mep-ia');b.disabled=true;etat('Mise en page…');
+    let p,src='IA';
+    try{p=await viaApi();}catch(e){console.warn('mise en page API',e);p=DEF;src='auto';}
+    MEP=nettoyer(p);try{localStorage.setItem(LS,JSON.stringify(MEP));}catch(e){}
+    boutons();maj();
+    etat(src==='IA'?'Mise en page IA appliquée':'Mise en page auto (IA injoignable)');
+    setTimeout(()=>etat(''),3500);b.disabled=false;
+  });
+  $('mep-retour').addEventListener('click',()=>{
+    MEP=null;try{localStorage.removeItem(LS);}catch(e){}
+    boutons();maj();etat('Calque Sage');setTimeout(()=>etat(''),2000);
+  });
+  boutons();
+  if(MEP)requestAnimationFrame(()=>maj());
 })();
 </script>
 </body>

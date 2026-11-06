@@ -812,7 +812,7 @@ function enregistrerHistoLocal(){
   const t=totaux();
   const e={quand:Date.now(),date:dateDoc,numero,nom:v('c-nom'),rc:v('c-rc'),ident:v('c-ident'),banque:v('c-banque'),comm:v('c-comm'),refint:v('c-refint'),refc:v('c-ref'),
     inco:v('c-inco'),lieu:v('c-lieu'),fret:v('c-fret'),orig:v('c-orig'),prov:v('c-prov'),usine:v('c-usine'),douane:v('c-douane'),
-    paiemode:v('c-paiemode'),paie:v('c-paie'),lang:LANG,dev:DEV,soc:SOC,total:t.total,poids:t.poids,
+    paiemode:v('c-paiemode'),paie:v('c-paie'),lang:LANG,dev:DEV,soc:SOC,total:t.total,poids:t.poids,fretsus:!!window.FRET_SUS,
     lignes:JSON.parse(JSON.stringify(lignes))};
   const h=lireHisto();h.unshift(e);
   localStorage.setItem(HISTO_CLE,JSON.stringify(h.slice(0,30)));
@@ -844,7 +844,7 @@ function reprendreHisto(i){
   const e=_histoCache[i];if(!e)return;
   const set=(id,val)=>{document.getElementById(id).value=val??'';};
   set('c-nom',e.nom);set('c-rc',e.rc);set('c-ident',e.ident);set('c-banque',e.banque);set('c-comm',e.comm);set('c-refint',e.refint);set('c-ref',e.refc);
-  set('c-inco',e.inco||'CFR');set('c-lieu',e.lieu);set('c-fret',e.fret||0);set('c-orig',e.orig);set('c-prov',e.prov);
+  set('c-inco',e.inco||'CFR');set('c-lieu',e.lieu);set('c-fret',e.fret||0);if(window.setFretSus)setFretSus(e.fretsus);set('c-orig',e.orig);set('c-prov',e.prov);
   set('c-usine',e.usine);set('c-douane',e.douane);set('c-paiemode',e.paiemode||'5050');set('c-paie',e.paie||'');
   // langue/devise restaurées SANS devChange : les prix stockés sont déjà dans la devise du document
   LANG=e.lang||'fr';DEV=e.dev||'eur';
@@ -898,7 +898,7 @@ async function generer(){
       const r=await fetch(SURL+'/rest/v1/proformas',{method:'POST',
         headers:{apikey:ANON,Authorization:'Bearer '+ANON,'Content-Type':'application/json',Prefer:'return=minimal'},
         body:JSON.stringify({numero,client:{nom:v('c-nom'),rc:v('c-rc'),ident:v('c-ident'),banque:v('c-banque'),lieu:v('c-lieu'),orig:v('c-orig'),prov:v('c-prov'),usine:v('c-usine'),douane:v('c-douane'),
-            paie:v('c-paiemode'),paie_texte:v('c-paie'),comm:v('c-comm'),refint:v('c-refint'),refc:v('c-ref'),date:new Date(dateDoc).toISOString(),devise:DEV,langue:LANG,societe:SOC},
+            paie:v('c-paiemode'),paie_texte:v('c-paie'),comm:v('c-comm'),refint:v('c-refint'),refc:v('c-ref'),date:new Date(dateDoc).toISOString(),devise:DEV,langue:LANG,societe:SOC,fret_sus:!!window.FRET_SUS,mise:window.miseCourante?window.miseCourante():null},
           lignes,incoterm:v('c-inco'),fret:+v('c-fret')||0,
           totaux:{fob:t.fob,total:t.total,poids:t.poids}})});
       archive=r.ok;

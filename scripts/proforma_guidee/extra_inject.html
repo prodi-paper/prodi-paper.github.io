@@ -47,7 +47,7 @@
     }
     if(!out.length)return;
     lignes.length=0;out.forEach(l=>lignes.push(l));
-    if(fret){$('c-fret').value=Math.round(fret);fretManuel=true;}
+    if(fret){$('c-fret').value=Math.round(fret);fretManuel=true;if(window.setFretSus)setFretSus(true);}
     if(nc)nbCont=nc;
     renderForm();maj();majCont();
     $('genok').textContent='Lignes reprises de '+dernierDE+' — vérifie les tonnages.';
@@ -84,7 +84,7 @@
     dernierFret=meme[0]||null;
     if(!dernierFret){$('fret-info').innerHTML=prixPort.length?'':'';return;}
     const est=Math.round(dernierFret.prix_unitaire*nbCont);
-    if(!fretManuel&&!$('c-fret').value){$('c-fret').value=est;maj();}
+    if(!fretManuel&&!$('c-fret').value&&!window.FRET_SUS){$('c-fret').value=est;maj();}
     $('fret-info').innerHTML=`Fret estimé ${nbCont} × ${nb0(dernierFret.prix_unitaire)} € = <b>${nb0(est)} €</b> — dernier ${esc3(dernierFret.designation.trim())} (${dernierFret.piece})`+
       (+$('c-fret').value!==est?`<button type="button" id="fret-app">appliquer</button>`:'');
     const b=$('fret-app');if(b)b.onclick=()=>{$('c-fret').value=est;fretManuel=false;maj();estimerFret();};
