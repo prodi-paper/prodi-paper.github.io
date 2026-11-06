@@ -16,7 +16,7 @@ gtag('config', 'G-KYEHH64T17');
 <title>Cotations fret — Prodiconseil</title>
 <link rel="icon" type="image/png" href="assets/panda.png">
 <meta name="robots" content="noindex">
-<link rel="stylesheet" href="styles.css?v=26">
+<link rel="stylesheet" href="styles.css?v=30">
 </head>
 <body>
 
@@ -38,10 +38,16 @@ gtag('config', 'G-KYEHH64T17');
       <div class="card">
         <div class="f-grid">
           <div class="f-row">
-            <input type="text" id="f-client" placeholder="NOM DU CLIENT" oninput="regenMail()">
+            <div class="pays-pick cl-pick">
+              <input type="text" id="f-client" placeholder="NOM DU CLIENT" autocomplete="off" oninput="clientInput()">
+              <div class="pp-list" id="cl-list"></div>
+            </div>
           </div>
           <div class="f-row">
-            <input type="text" id="f-num" placeholder="NUMÉRO PROFORMA (facultatif)" oninput="regenMail()">
+            <div class="pays-pick num-pick">
+              <input type="text" id="f-num" placeholder="REPRENDRE UN DEVIS (n° ou client)" autocomplete="off" oninput="numInput()" onfocus="numSuggest()">
+              <div class="pp-list" id="num-list"></div>
+            </div>
           </div>
         </div>
         <div class="f-grid">
@@ -76,7 +82,9 @@ gtag('config', 'G-KYEHH64T17');
               </div>
             </div>
           </div>
+          <div id="f-plan" class="transit plan" hidden></div>
           <div id="f-transit" class="transit" hidden></div>
+          <div id="f-camions" class="transit" hidden></div>
         </div>
         <!-- container PLEINE largeur, puis les 3 segments côte à côte (14/09) -->
         <div class="f-row">
@@ -194,7 +202,6 @@ gtag('config', 'G-KYEHH64T17');
 <div id="toasts"></div>
 
 <script src="data.js?v=21"></script>
-<script src="transitaires.js?v=1"></script>
-<script src="app.js?v=23"></script>
+<script src="app.js?v=27"></script>
 </body>
 </html>

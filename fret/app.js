@@ -206,6 +206,8 @@ function pickProv(code) {
   regenMail();
 }
 document.addEventListener('click', e => {
+  if (!e.target.closest('.cl-pick')) $('cl-list').classList.remove('open');
+  if (!e.target.closest('.num-pick')) $('num-list').classList.remove('open');
   if (!e.target.closest('.pays-pick')) document.querySelectorAll('.pp-list').forEach(l => l.classList.remove('open'));
 });
 
@@ -326,7 +328,10 @@ function genMail() {
   const lignes = [];
   if (prov) lignes.push(`– Lieu de chargement : ${prov}`);
   lignes.push(`– Lieu de livraison : ${destTxt}`);
-  lignes.push(`– Containers : ${nb} x ${taille}'`);
+  lignes.push(`– Containers : ${nb} x ${taille === '20' ? "20' Dry" : "40' HC"}`);
+  if (PLAN && PLAN.poids) lignes.push(`– Poids brut : ${(PLAN.poids / 1000).toLocaleString('fr-FR', { maximumFractionDigits: 1 })} t`);
+  if (PLAN && PLAN.pol && PLAN.depTxt && !$('f-depot').checked) lignes.push(`– Port de chargement : ${PLAN.pol}`);
+  if (PLAN && conditionsPlan(PLAN).length) lignes.push(`– Conditions : ${conditionsPlan(PLAN).join(', ').toLowerCase()}`);
   lignes.push(`– Marchandise : papier en ${march} (sous famille HS 48)`);
   lignes.push(`– Incoterm : ${inco}`);
   if (client) lignes.push(`– Client : ${client}`);
@@ -349,9 +354,60 @@ Cordialement,`;
 let mailCustom = null;   // corps modifié à la main, gardé jusqu'à envoi / reformulation
 const mailOuvert = () => $('mail-fond').classList.contains('ouvert');
 
-/* ── transitaires de la destination (historique Sage, transitaires.js) ── */
-const normTr = v => (v || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().trim();
+/* ── annuaire transitaires + camions (historique Sage, table fret_annuaire) ──
+   Données PRIVÉES : lues avec le code d'accès (compte lecture seule proforma-lecture,
+   même jeton que /proforma/ : localStorage prof_sb). Générées par scripts/fret_annuaire/build.py. */
+const SURL = 'https://bvcgpdoukhcatjibmvnb.supabase.co';
+const ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2Y2dwZG91a2hjYXRqaWJtdm5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNzg5MjgsImV4cCI6MjA4Nzg1NDkyOH0.Ip3ykSUS9sajTH04yXBerOG1haBKMD1kAvMQNjnGL1Q';
+const CLE_SB = 'prof_sb';
+let TRANSITAIRES = {}, CAMIONS = [], annuaireEtat = 'vide';   // vide | charge | ok | login
+const lireSb = () => { try { return JSON.parse(localStorage.getItem(CLE_SB) || 'null'); } catch (e) { return null; } };
+const ecrireSb = j => { try { localStorage.setItem(CLE_SB, JSON.stringify({ a: j.access_token, r: j.refresh_token, x: Date.now() + (j.expires_in - 60) * 1000, m: j.user && j.user.email })); } catch (e) {} };
+async function authSb(body, grant) {
+  const r = await fetch(SURL + '/auth/v1/token?grant_type=' + grant, { method: 'POST', headers: { apikey: ANON, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const j = await r.json();
+  if (!r.ok || !j.access_token) throw new Error(j.error_description || j.msg || 'Connexion refusée');
+  ecrireSb(j);
+  return j.access_token;
+}
+async function jetonSb() {
+  const t = lireSb();
+  if (!t) return null;
+  if (Date.now() < t.x) return t.a;
+  try { return await authSb({ refresh_token: t.r }, 'refresh_token'); }
+  catch (e) { try { localStorage.removeItem(CLE_SB); } catch (_) {} return null; }
+}
+async function chargerAnnuaire() {
+  annuaireEtat = 'charge';
+  const tk = await jetonSb();
+  if (!tk) { annuaireEtat = 'login'; renderTransitaires(); return; }
+  try {
+    const r = await fetch(SURL + '/rest/v1/fret_annuaire?select=id,data', { headers: { apikey: ANON, Authorization: 'Bearer ' + tk } });
+    const rows = r.ok ? await r.json() : [];
+    if (!rows.length) { try { localStorage.removeItem(CLE_SB); } catch (_) {} annuaireEtat = 'login'; renderTransitaires(); return; }
+    rows.forEach(x => {
+      if (x.id === 'transitaires') TRANSITAIRES = x.data.pays || {};
+      if (x.id === 'camions') CAMIONS = x.data.liste || [];
+    });
+    annuaireEtat = 'ok';
+  } catch (e) { annuaireEtat = 'login'; }
+  renderTransitaires();
+}
+async function loginAnnuaire(ev) {
+  ev.preventDefault();
+  const champ = $('annu-code'), etat = $('annu-etat');
+  etat.textContent = 'connexion…';
+  try {
+    await authSb({ email: 'proforma-lecture@prodi.com', password: champ.value.trim() }, 'password');
+    chargerAnnuaire();
+    if ($('f-client').value.trim()) clientInput();
+  } catch (err) { etat.textContent = err.message === 'Invalid login credentials' ? 'code incorrect' : err.message; }
+}
+
+const normTr = v => (v || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().trim();
 const escTr = v => String(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const eur = n => Math.round(n).toLocaleString('fr-FR') + ' €';
+const moisFr = d => d ? d.split('-').reverse().join('/') : '';
 const ALIAS_TR = { 'ETATS-UNIS': 'ETATS UNIS', 'USA': 'ETATS UNIS', 'EMIRATS': 'EMIRATS ARABES UNIS', 'RD CONGO': 'REPUBLIQUE DEMOCRATIQUE DU CONGO' };
 function paysTransit(val) {
   const parts = val.split(',').map(normTr).filter(Boolean);
@@ -367,9 +423,28 @@ function paysTransit(val) {
   });
   return best;
 }
+function mailsHtml(t) {
+  return t.emails.length
+    ? t.emails.map(m => `<a href="mailto:${escTr(m)}">${escTr(m)}</a>`).join(' ')
+    : `<span class="transit-sans">Pas d'e-mail dans Sage${t.tel ? ' · ' + escTr(t.tel) : ''}</span>`;
+}
+function ecartHtml(t) {
+  if (t.ecart == null) return '';
+  const cls = t.ecart <= -30 ? 'bon' : t.ecart >= 30 ? 'cher' : 'moy';
+  return `<span class="transit-ecart ${cls}" title="Écart moyen par conteneur, à date égale, depuis 07/2025 (${t.n_ecart} envois)">${t.ecart > 0 ? '+' : ''}${t.ecart} €</span>`;
+}
 function renderTransitaires() {
-  const box = $('f-transit');
+  const box = $('f-transit'), boxC = $('f-camions');
   const val = $('f-pays').value.trim();
+  const dep = $('f-depot').checked ? '' : $('f-prov').value.trim();
+  if (!val && !dep) { box.hidden = true; box.innerHTML = ''; boxC.hidden = true; boxC.innerHTML = ''; return; }
+  if (annuaireEtat === 'vide') { chargerAnnuaire(); return; }
+  if (annuaireEtat === 'charge') return;
+  if (annuaireEtat === 'login') { boxC.hidden = true; demanderCode(); return; }
+  renderTransitairesPays(box, val);
+  renderCamions(boxC, dep, val);
+}
+function renderTransitairesPays(box, val) {
   if (!val) { box.hidden = true; box.innerHTML = ''; return; }
   const e = paysTransit(val);
   box.hidden = false;
@@ -377,32 +452,367 @@ function renderTransitaires() {
     box.innerHTML = `<div class="transit-head"><b>Transitaires</b><span>Aucun envoi pour cette destination dans Sage</span></div>`;
     return;
   }
+  const marche = Object.entries(e.marche || {}).map(([p, m]) => `${escTr(p)} ${eur(m.med)}`).join(' · ');
   const lignes = e.liste.map(t => {
-    const mails = t.emails.length
-      ? t.emails.map(m => `<a href="mailto:${escTr(m)}">${escTr(m)}</a>`).join(' ')
-      : `<span class="transit-sans">Pas d'e-mail dans Sage${t.tel ? ' · ' + escTr(t.tel) : ''}</span>`;
-    const envois = `${t.n} envoi${t.n > 1 ? 's' : ''}`;
+    const prix = Object.entries(t.prix || {}).map(([p, x]) =>
+      `${escTr(p)} <b>${eur(x.dernier)}</b> (${moisFr(x.der)}${x.n > 1 ? ', ' + x.n + ' envois' : ''})`).join(' · ');
     const ports = t.ports.length ? ' · ' + t.ports.map(escTr).join(', ') : '';
     return `<div class="transit-ligne">
-      <div class="transit-nom">${escTr(t.nom)}${t.contact ? `<small>${escTr(t.contact)}</small>` : ''}</div>
-      <div class="transit-mail">${mails}</div>
-      <div class="transit-info">${envois} · dernier ${t.der.split('-').reverse().join('/')}${ports}</div>
+      <div class="transit-nom">${escTr(t.nom)} ${ecartHtml(t)}${t.contact ? `<small>${escTr(t.contact)}${t.tel ? ' · ' + escTr(t.tel) : ''}</small>` : ''}</div>
+      <div class="transit-mail">${mailsHtml(t)}</div>
+      <div class="transit-info">${t.n} envoi${t.n > 1 ? 's' : ''} · dernier ${moisFr(t.der)}${ports}</div>
+      ${prix ? `<div class="transit-info transit-prix">40' depuis le dépôt, dernier prix : ${prix}</div>` : ''}
     </div>`;
   }).join('');
-  box.innerHTML = `<div class="transit-head"><b>Transitaires ${escTr(e.nom)} (${e.liste.length})</b>
-      <button type="button" class="transit-copie" onclick="copierTransit(this)">Copier les e-mails</button></div>
+  box.innerHTML = `<div class="transit-head"><b>Transitaires ${escTr(e.nom)} (${e.liste.length}) <small>du moins cher au plus cher</small></b>
+      <button type="button" class="transit-copie" onclick="copierTransit(this,'f-transit')">Copier les e-mails</button></div>
+    ${marche ? `<div class="transit-marche">Marché actuel (40' depuis le dépôt) : ${marche}</div>` : ''}
     <div class="transit-liste">${lignes}</div>`;
   box.dataset.mails = [...new Set(e.liste.flatMap(t => t.emails))].join('; ');
 }
-function copierTransit(btn) {
-  navigator.clipboard.writeText($('f-transit').dataset.mails || '').then(() => {
+/* camions : transporteurs dont un trajet passé contient un mot du départ / de la destination */
+function renderCamions(box, dep, val) {
+  const mots = [...new Set(normTr(dep + ' ' + val).split(/[\s,()\-–/]+/).filter(m => m.length >= 4 && !/^(FRANCE|SAINT|PORT|DEPOT)$/.test(m)))];
+  const score = c => mots.length ? c.trajets.reduce((s, t) => s + (mots.some(m => normTr(t.t).includes(m)) ? t.n : 0), 0) : 0;
+  let liste = CAMIONS.map(c => ({ c, s: score(c) }));
+  const trouves = liste.filter(x => x.s > 0);
+  liste = (trouves.length ? trouves : liste).sort((a, b) => b.s - a.s || b.c.n - a.c.n).map(x => x.c);
+  if (!liste.length) { box.hidden = true; box.innerHTML = ''; return; }
+  const lignes = liste.map(c => {
+    const traj = c.trajets.slice(0, 4).map(t =>
+      `${escTr(t.t)} <b>${eur(t.med)}</b>${t.n > 1 ? ` (${t.n}×)` : ''}`).join('<br>');
+    return `<div class="transit-ligne">
+      <div class="transit-nom">${escTr(c.nom)}<small>${escTr([c.contact, c.tel, c.ville].filter(Boolean).join(' · '))}</small></div>
+      <div class="transit-mail">${mailsHtml(c)}</div>
+      <div class="transit-info">${c.n} camion${c.n > 1 ? 's' : ''} depuis 2024 · médian ${eur(c.med)} · dernier ${moisFr(c.der)}</div>
+      <div class="transit-info transit-prix">${traj}</div>
+    </div>`;
+  }).join('');
+  box.hidden = false;
+  box.innerHTML = `<div class="transit-head"><b>Camions (${liste.length}) <small>${trouves.length ? 'déjà fait ce trajet' : 'tous les transporteurs'}</small></b>
+      <button type="button" class="transit-copie" onclick="copierTransit(this,'f-camions')">Copier les e-mails</button></div>
+    <div class="transit-liste">${lignes}</div>`;
+  box.dataset.mails = [...new Set(liste.flatMap(c => c.emails))].join('; ');
+}
+function copierTransit(btn, id) {
+  navigator.clipboard.writeText($(id).dataset.mails || '').then(() => {
     btn.textContent = 'Copié';
     setTimeout(() => { btn.textContent = 'Copier les e-mails'; }, 1500);
   });
 }
 
+/* ── CLIENT / N° PROFORMA reliés à Sage (relais Sage → Supabase, même code d'accès) ──
+   Taper un client = suggestions Sage ; le choisir (ou saisir un n° de pièce DE/BP/FA)
+   remplit la DESTINATION avec le port de son dernier envoi (lignes transport T9/TRT),
+   sinon le pays de sa fiche Sage. */
+async function sbGet(path) {
+  const tk = await jetonSb();
+  if (!tk) { demanderCode(); throw new Error('login'); }
+  const r = await fetch(SURL + '/rest/v1/' + path, { headers: { apikey: ANON, Authorization: 'Bearer ' + tk } });
+  if (r.status === 401) { try { localStorage.removeItem(CLE_SB); } catch (_) {} demanderCode(); throw new Error('login'); }
+  return r.json();
+}
+function demanderCode() {
+  annuaireEtat = 'login';
+  const box = $('f-transit');
+  box.hidden = false;
+  box.innerHTML = `<div class="transit-head"><b>Sage, transitaires & camions</b><span id="annu-etat">code d'accès (une seule fois sur cet appareil)</span></div>
+    <form class="annu-login" onsubmit="loginAnnuaire(event)"><input id="annu-code" type="password" placeholder="Code" autocomplete="current-password"><button type="submit">OK</button></form>`;
+}
+let clTempo = null, clRes = [];
+function clientInput() {
+  if (PLAN && $('f-client').value.trim() !== (PLAN.client || '')) PLAN = null;
+  regenMail();
+  clearTimeout(clTempo);
+  const q = $('f-client').value.trim();
+  if (q.length < 2) { $('cl-list').classList.remove('open'); return; }
+  clTempo = setTimeout(async () => {
+    try {
+      const r = await sbGet('rpc/sage_recherche_clients?q=' + encodeURIComponent(q));
+      clRes = Array.isArray(r) ? r.slice(0, 12) : [];
+    } catch (e) { clRes = []; }
+    if (q !== $('f-client').value.trim()) return;
+    $('cl-list').innerHTML = clRes.map((c, i) =>
+      `<button class="pp-item cl-item" onmousedown="pickClient(${i})"><b>${escTr(c.nom || '')}</b><span class="z">${escTr([c.code, c.ville, c.pays].filter(Boolean).join(' · '))}</span></button>`).join('')
+      || '<div class="pp-item mut">Aucun client Sage — partira tel quel</div>';
+    $('cl-list').classList.add('open');
+  }, 220);
+}
+async function pickClient(i) {
+  const c = clRes[i];
+  $('f-client').value = c.nom;
+  clientCode = c.code;
+  $('cl-list').classList.remove('open');
+  regenMail();
+  try {
+    if (annuaireEtat !== 'ok') await chargerAnnuaire();
+    const pc = await dernierePieceFret(c.code);
+    if (pc && await planDepuisPiece(pc)) return;
+  } catch (e) {}
+  destDepuisSage(c.code, c.pays);
+}
+/* n° de pièce Sage (DE/BP/BL/FA…) → client + destination de CETTE pièce d'abord */
+let numTempo = null;
+function numInput() {
+  regenMail();
+  numSuggest();
+  clearTimeout(numTempo);
+  const n = $('f-num').value.trim().toUpperCase();
+  if (!/^[A-Z]{2}\d{5,6}$/.test(n)) return;
+  numTempo = setTimeout(async () => {
+    try {
+      if (await planDepuisPiece(n)) return;
+      const v = await sbGet(`sage_ventes?piece=eq.${encodeURIComponent(n)}&select=client_code,client&limit=1`);
+      if (!v.length) return;
+      if (!$('f-client').value.trim()) { $('f-client').value = v[0].client; regenMail(); }
+      destDepuisSage(v[0].client_code, null, n);
+    } catch (e) {}
+  }, 300);
+}
+/* port reconnu dans un libellé transport Sage (« 1x40'HC SAINT-OUEN À BEJAIA - CIE MSC ») :
+   ports de la page (DEST_PORTS) + ports déjà desservis dans Sage (annuaire transitaires) */
+function portsConnus() {
+  const out = DEST_PORTS.map(p => ({ nom: p.nom, pays: p.pays, flag: p.flag }));
+  Object.values(TRANSITAIRES).forEach(e => {
+    const c = PAYS.find(x => normTr(x.nom) === normTr(e.nom));
+    new Set(e.liste.flatMap(t => t.ports)).forEach(port => {
+      if (!out.some(o => normTr(o.nom) === normTr(port))) out.push({ nom: port, pays: e.nom, flag: c ? c.flag : '🌍' });
+    });
+  });
+  return out;
+}
+function portDuLibelle(des, ports) {
+  const d = normTr(des);
+  const apres = d.split(/\s(?:A|TO)\s/).pop();
+  let best = null;
+  ports.forEach(p => {
+    const n = normTr(p.nom);
+    if (n.length >= 3 && new RegExp('\\b' + n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b').test(apres) && (!best || n.length > normTr(best.nom).length)) best = p;
+  });
+  return best;
+}
+function poserDest(p) {
+  $('f-pays').value = p.nom + ', ' + p.pays;
+  $('f-pays-port').value = '';
+  window._destPicked = $('f-pays').value;
+  const c = PAYS.find(x => normTr(x.nom) === normTr(p.pays));
+  selPays = c ? c.code : null;
+  $('pp-flag').textContent = p.flag;
+  majEnvoiActif();
+  regenMail();
+}
+async function destDepuisSage(code, paysFiche, piece) {
+  if (!code) return;
+  if (annuaireEtat !== 'ok') await chargerAnnuaire();   // ports desservis = annuaire
+  try {
+    const ventes = await sbGet(`sage_ventes?client_code=eq.${encodeURIComponent(code)}&select=piece,date_piece&order=date_piece.desc&limit=60`);
+    const ordre = ventes.map(v => v.piece);
+    if (piece) { ordre.splice(ordre.indexOf(piece) >>> 0, 1); ordre.unshift(piece); }
+    if (ordre.length) {
+      const lignes = await sbGet(`sage_vente_lignes?piece=in.(${ordre.map(encodeURIComponent).join(',')})&article=like.T*&select=piece,designation`);
+      const ports = portsConnus();
+      for (const pc of ordre) {
+        const l = lignes.find(x => x.piece === pc && portDuLibelle(x.designation || '', ports));
+        if (l) {
+          const p = portDuLibelle(l.designation, ports);
+          poserDest(p);
+          const v = ventes.find(x => x.piece === pc);
+          toast(p.flag, `Destination reprise de Sage : <b>${escTr(p.nom)}</b> (${escTr(pc)}${v && v.date_piece ? ', ' + v.date_piece.slice(0, 10).split('-').reverse().join('/') : ''})`);
+          return;
+        }
+      }
+    }
+    // pas d'envoi connu : pays de la fiche client
+    const pays = PAYS.find(p => normTr(p.nom) === normTr(paysFiche || ''));
+    if (pays && !$('f-pays').value.trim()) { pickDest(pays.code); toast(pays.flag, `Pays repris de la fiche Sage : <b>${escTr(pays.nom)}</b>`); }
+  } catch (e) {}
+}
+
+/* ── PLAN DE TRANSPORT : lit la pièce Sage (devis/BP/facture) comme un transitaire le ferait ──
+   containers + taille (ligne fret T9/TRT, sinon tonnage ÷ 25,5 t), poids, bobines/formats,
+   incoterm, départ (dépôt / usine / POL), contraintes écrites dans la pièce (transbordement…),
+   fret prévu au devis vs marché, transitaires à consulter + un mail INDIVIDUEL chacun. */
+let PLAN = null;
+const T_PAR_40 = 25.5;   // tonnes de papier par 40' HC (pratique dépôt)
+async function analyserPiece(piece) {
+  const [v] = await sbGet(`sage_ventes?piece=eq.${encodeURIComponent(piece)}&select=piece,date_piece,client,client_code,incoterm,port_depart,port_transbordement&limit=1`);
+  if (!v) return null;
+  const L = await sbGet(`sage_vente_lignes?piece=eq.${encodeURIComponent(piece)}&select=ligne,article,famille,designation,quantite,poids_net_kg,poids_brut_kg,prix_unitaire&order=ligne`);
+  const plan = { piece, date: (v.date_piece || '').slice(0, 10), client: v.client, code: v.client_code,
+    incoterm: (v.incoterm || '').toUpperCase(), pol: (v.port_depart || '').trim(), transb: (v.port_transbordement || '').trim(),
+    nb: 0, taille: '40', fretCt: 0, poids: 0, bob: false, fmt: false, dest: null, orig: '', usine: '', contraintes: [] };
+  const ports = portsConnus();
+  L.forEach(l => {
+    const a = l.article || '', d = l.designation || '', D = normTr(d);
+    const fret = /^(T9|TRT)/.test(a) && !/APPRO/.test(D);
+    const m = D.match(/(\d+)\s*X\s*(20|40)/);
+    if (fret && m) {
+      plan.nb += +m[1]; plan.taille = m[2];
+      if (+l.prix_unitaire > 0) plan.fretCt = +l.prix_unitaire;
+      const p = portDuLibelle(d, ports); if (p) plan.dest = p;
+      const o = D.split(/\s(?:A|TO)\s/); if (o.length > 1) plan.orig = o[0].replace(/^\d+\s*X\s*(20|40)\S*\s*(HC|DRY)?\s*(FOB|EXW|FCA)?\s*/, '').trim();
+      return;
+    }
+    if (a && l.famille && !/^W/.test(l.famille) && !/^T\d/.test(a)) {
+      plan.poids += (+l.poids_brut_kg || +l.poids_net_kg || 0);
+      if (/^R/.test(l.famille)) plan.bob = true;
+      if (/^S/.test(l.famille)) plan.fmt = true;
+      return;
+    }
+    if (!a && /^USINE\s+\d+/.test(D)) plan.usine = D.match(/^USINE\s+\d+/)[0];
+    if (!a && /PORT DE DECHARGEMENT\s*:/.test(D) && !plan.dest) { const p = portDuLibelle(D.split(':').pop(), ports); if (p) plan.dest = p; }
+    if (!a && /TRANSBORD|SANS TRANSIT|DIRECT|NO TRANSHIP|SANS ESCALE|CONSOLID/.test(D) && !/MONTANT/.test(D))
+      plan.contraintes.push(d.trim().replace(/\s+/g, ' ').toLowerCase().replace(/^./, c => c.toUpperCase()));
+  });
+  const t = plan.poids / 1000;
+  if (!plan.nb) plan.nb = Math.max(1, Math.ceil(t / T_PAR_40));
+  plan.depot = /SAINT.?OUEN|ST.?OUEN|80610/.test(plan.orig) || (!plan.orig && !plan.usine && /HAVRE|ROUEN/.test(normTr(plan.pol)));
+  return plan;
+}
+/* client sans pièce : sa dernière pièce qui contient une ligne de fret = son envoi type */
+async function dernierePieceFret(code) {
+  const ventes = await sbGet(`sage_ventes?client_code=eq.${encodeURIComponent(code)}&select=piece&order=date_piece.desc&limit=60`);
+  if (!ventes.length) return null;
+  const pcs = ventes.map(v => v.piece);
+  const L = await sbGet(`sage_vente_lignes?piece=in.(${pcs.map(encodeURIComponent).join(',')})&or=(article.like.T9*,article.like.TRT*)&select=piece,designation`);
+  return pcs.find(pc => L.some(l => l.piece === pc && /\d+\s*x\s*(20|40)/i.test(l.designation || '') && !/APPRO/i.test(l.designation || ''))) || null;
+}
+/* transbordement (champ Sage) + lignes de conditions, sans doublon */
+function conditionsPlan(p) {
+  const c = [...p.contraintes];
+  if (p.transb && !/^AUCUN/i.test(p.transb) && !c.some(x => /transbord/i.test(x))) c.unshift('Transbordement ' + p.transb.toLowerCase());
+  return c;
+}
+function appliquerPlan(plan) {
+  PLAN = plan;
+  if (plan.dest) poserDest(plan.dest);
+  if (plan.depot) { $('f-depot').checked = true; $('f-prov').value = 'Dépôt — Saint-Ouen (80)'; $('pv-flag').textContent = '🏭'; }
+  else {
+    const dep = [plan.orig && plan.orig.replace(/\b\w+/g, w => w[0] + w.slice(1).toLowerCase()), plan.usine && plan.usine.replace('USINE', 'Usine')].filter(Boolean)[0] || '';
+    $('f-depot').checked = false;
+    plan.depTxt = dep;
+    $('f-prov').value = dep || (plan.pol ? 'Port de ' + plan.pol[0] + plan.pol.slice(1).toLowerCase() : '');
+  }
+  $('f-nb-cont').value = plan.nb; majContSuffixe();
+  $('f-t-20').checked = plan.taille === '20'; $('f-t-40').checked = plan.taille !== '20';
+  if (plan.bob || plan.fmt) { $('f-m-bobines').checked = plan.bob; $('f-m-formats').checked = plan.fmt; }
+  const fob = /FOB|FCA/.test(plan.incoterm);
+  $('f-i-fob').checked = fob; $('f-i-cfr').checked = !fob;
+  majEnvoiActif();
+  regenMail();
+}
+/* transitaires à consulter : déjà fait CE départ > a déjà livré CE port > moins cher à date égale > volume */
+function conseilles(plan, e) {
+  if (!e) return [];
+  const portN = plan.dest ? normTr(plan.dest.nom) : '';
+  const motsDep = normTr([plan.orig, plan.pol, plan.usine, plan.depot ? 'SAINT-OUEN' : ''].join(' ')).split(/[\s,()\-–/]+/).filter(m => m.length >= 4 && m !== 'USINE');
+  const ilYa12 = new Date(); ilYa12.setMonth(ilYa12.getMonth() - 12);
+  const lim = ilYa12.toISOString().slice(0, 7);
+  return e.liste.filter(t => t.emails.length).map(t => {
+    const dep = !plan.depot && motsDep.some(m => (t.origines || []).some(o => normTr(o).includes(m)));
+    const port = !portN || t.ports.some(p => normTr(p) === portN);
+    const prixPort = Object.entries(t.prix || {}).find(([p]) => normTr(p) === portN);
+    return { t, dep, port, recent: t.der >= lim, prixPort: prixPort && prixPort[1],
+      s: (dep ? 4 : 0) + (port ? 2 : 0) + (t.der >= lim ? 1 : 0) };
+  }).sort((a, b) => b.s - a.s || (a.t.ecart ?? 999) - (b.t.ecart ?? 999) || b.t.n - a.t.n).slice(0, 4);
+}
+function mailIndividuel(i) {
+  const c = window._conseilles && window._conseilles[i];
+  const m = genMail();
+  if (!c || !m) return;
+  const corps = (mailCustom ?? m.texte);
+  location.href = `mailto:${c.t.emails[0]}?subject=${encodeURIComponent(m.objet)}&body=${encodeURIComponent(corps)}`;
+}
+function renderPlan() {
+  const box = $('f-plan');
+  if (!PLAN) { box.hidden = true; box.innerHTML = ''; return; }
+  const p = PLAN, t = p.poids / 1000;
+  const e = paysTransit($('f-pays').value.trim());
+  const mk = e && p.dest ? Object.entries(e.marche || {}).find(([k]) => normTr(k) === normTr(p.dest.nom)) : null;
+  const marche = mk && mk[1];
+  const lignes = [];
+  const cont = `${p.nb} × ${p.taille === '20' ? "20' Dry" : "40' HC"}`;
+  const charge = t ? ` · ${t.toLocaleString('fr-FR', { maximumFractionDigits: 1 })} t (${(t / p.nb).toLocaleString('fr-FR', { maximumFractionDigits: 1 })} t/ct)` : '';
+  lignes.push(`<div class="plan-l"><b>${cont}</b>${charge} · ${[p.bob && 'bobines', p.fmt && 'formats'].filter(Boolean).join(' + ') || 'papier'} · ${escTr(p.incoterm || '—')}${p.pol ? ' · POL ' + escTr(p.pol) : ''}${p.dest ? ' → ' + escTr(p.dest.nom) : ''}</div>`);
+  if (t && p.taille !== '20' && t / p.nb > 26.5) lignes.push(`<div class="plan-l alerte">⚠️ ${(t / p.nb).toFixed(1)} t par conteneur : au-delà de ~26,5 t, prévoir ${Math.ceil(t / 26.5)} conteneurs</div>`);
+  if (p.incoterm === 'EXW') lignes.push(`<div class="plan-l alerte">EXW : le client enlève lui-même, pas de fret maritime à coter (camion seulement si on l'organise).</div>`);
+  if (conditionsPlan(p).length) lignes.push(`<div class="plan-l">Contraintes de la pièce : ${conditionsPlan(p).map(escTr).join(' · ')}</div>`);
+  if (marche) {
+    const tend = marche.tend != null ? ` · ${marche.tend > 0 ? '↑ +' : marche.tend < 0 ? '↓ ' : ''}${marche.tend} % sur 3 mois` : '';
+    let devis = '';
+    if (p.fretCt) {
+      const dlt = p.fretCt - marche.med;
+      devis = ` · devis : <b>${eur(p.fretCt)}</b>/ct ${dlt < -50 ? `<span class="plan-ko">⚠️ ${eur(dlt)} sous le marché</span>` : dlt > 50 ? `<span class="plan-ok">+${eur(dlt)} de marge</span>` : '<span class="plan-ok">aligné</span>'}`;
+    }
+    lignes.push(`<div class="plan-l">${p.depot ? 'Prix attendu' : 'Repère (départs du dépôt, autre départ ici)'} : <b>~${eur(marche.med)}</b>/ct (marché ${escTr(p.dest.nom)} ${moisFr(marche.der)}, ${marche.n} envoi${marche.n > 1 ? 's' : ''}${tend}) · total ~${eur(marche.med * p.nb)}${devis}</div>`);
+  } else if (p.fretCt) {
+    lignes.push(`<div class="plan-l">Fret prévu au devis : <b>${eur(p.fretCt)}</b>/ct${p.depot ? '' : ' (pas de référence marché depuis ce départ)'}</div>`);
+  }
+  const cs = conseilles(p, e);
+  window._conseilles = cs;
+  if (cs.length) {
+    lignes.push(`<div class="plan-l plan-tr">À consulter, un mail chacun :${cs.map((c, i) => {
+      const why = [c.dep && 'a déjà fait ce départ', c.t.ecart != null && (c.t.ecart > 0 ? '+' : '') + c.t.ecart + ' €/ct', c.prixPort && 'dernier ' + eur(c.prixPort.dernier) + ' (' + moisFr(c.prixPort.der) + ')'].filter(Boolean).join(' · ');
+      return `<button type="button" class="plan-btn" onclick="mailIndividuel(${i})" title="${escTr(c.t.emails[0])}">✉️ ${escTr(c.t.nom)}<small>${escTr(why || c.t.n + ' envois')}</small></button>`;
+    }).join('')}</div>`);
+  }
+  box.hidden = false;
+  box.innerHTML = `<div class="transit-head"><b>Plan de transport <small>d'après ${escTr(p.piece)}${p.date ? ' du ' + p.date.split('-').reverse().join('/') : ''}</small></b>
+    <button type="button" class="transit-copie" onclick="PLAN=null;renderPlan();regenMail()">Ignorer</button></div>${lignes.join('')}`;
+}
+async function planDepuisPiece(piece) {
+  try {
+    if (annuaireEtat !== 'ok') await chargerAnnuaire();
+    const plan = await analyserPiece(piece);
+    if (!plan) return false;
+    if (!$('f-client').value.trim()) $('f-client').value = plan.client || '';
+    appliquerPlan(plan);
+    return true;
+  } catch (e) { return false; }
+}
+
+/* ── REPRENDRE UN DEVIS : la case N° propose les pièces Sage (devis d'abord) ──
+   vide = derniers devis du client choisi (ou de tout le monde) ; « DE431 » = par numéro ;
+   « mahgoun » = par client. Chaque ligne montre le fret de la pièce (1x40'HC BEJAIA…). */
+const TYPE_PIECE = { 0: 'Devis', 1: 'Commande', 2: 'Prépa', 3: 'BL', 6: 'Facture', 7: 'Facture' };
+let numRes = [], numSugTempo = null, clientCode = null;
+function numSuggest() {
+  clearTimeout(numSugTempo);
+  numSugTempo = setTimeout(async () => {
+    const q = $('f-num').value.trim();
+    let filtre = 'do_type=in.(0,1,2,6,7)';
+    if (/^[A-Za-z]{0,2}\d{2,}$/.test(q)) filtre += `&piece=ilike.*${encodeURIComponent(q.toUpperCase())}*`;
+    else if (q.length >= 2) filtre += `&client=ilike.*${encodeURIComponent(q.replace(/[*,()%]/g, ' '))}*`;
+    else if (clientCode) filtre += `&client_code=eq.${encodeURIComponent(clientCode)}`;
+    try {
+      const v = await sbGet(`sage_ventes?${filtre}&select=piece,date_piece,client,client_code,do_type&order=date_piece.desc,piece.desc&limit=14`);
+      const pcs = v.map(x => x.piece);
+      const L = pcs.length ? await sbGet(`sage_vente_lignes?piece=in.(${pcs.map(encodeURIComponent).join(',')})&or=(article.like.T9*,article.like.TRT*)&select=piece,designation`) : [];
+      numRes = v.map(x => ({ ...x, fret: (L.find(l => l.piece === x.piece && /\d+\s*x\s*(20|40)/i.test(l.designation || '') && !/APPRO/i.test(l.designation || '')) || {}).designation || '' }));
+      // devis d'abord, puis ceux qui ont une ligne de fret
+      numRes.sort((a, b) => (a.do_type !== 0) - (b.do_type !== 0) || (!a.fret) - (!b.fret));
+    } catch (e) { numRes = []; }
+    if (q !== $('f-num').value.trim()) return;
+    $('num-list').innerHTML = numRes.map((x, i) =>
+      `<button class="pp-item cl-item num-item" onmousedown="pickPiece(${i})"><span><b>${escTr(x.piece)}</b> <span class="num-type">${TYPE_PIECE[x.do_type] || ''}</span> ${escTr(x.client || '')}<small>${escTr(x.fret || 'pas de ligne de fret')}</small></span><span class="z">${(x.date_piece || '').slice(0, 10).split('-').reverse().join('/')}</span></button>`).join('')
+      || '<div class="pp-item mut">Aucune pièce Sage — le n° partira tel quel</div>';
+    $('num-list').classList.add('open');
+  }, 200);
+}
+async function pickPiece(i) {
+  const x = numRes[i];
+  $('f-num').value = x.piece;
+  $('f-client').value = x.client || '';
+  clientCode = x.client_code;
+  $('num-list').classList.remove('open');
+  PLAN = null;
+  regenMail();
+  if (!(await planDepuisPiece(x.piece))) destDepuisSage(x.client_code, null, x.piece);
+}
+
 function regenMail() {
   renderTransitaires();
+  if (typeof renderPlan === 'function' && $('f-plan')) renderPlan();
   mailCustom = null;
   if (mailOuvert()) renderMail();
 }

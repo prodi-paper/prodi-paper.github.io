@@ -268,3 +268,36 @@ footer{max-width:1180px;margin:0 auto;padding:0 20px 40px;color:var(--gris2);fon
 .transit-sans{color:var(--amber)}
 .transit-info{grid-column:1/-1;color:var(--gris);font-size:12.5px}
 @media(max-width:640px){.transit-ligne{grid-template-columns:minmax(0,1fr)}}
+.transit-head b small{font-weight:400;color:var(--gris);font-size:12.5px;margin-left:6px}
+.transit-marche{padding:7px 12px;border-top:1px solid var(--ligne);font-size:13px;color:var(--encre);background:#fff}
+.transit-prix{color:var(--encre)}
+.transit-ecart{display:inline-block;font-size:11.5px;font-weight:700;border-radius:999px;padding:1px 7px;margin-left:4px;vertical-align:1px}
+.transit-ecart.bon{background:#e6f6ea;color:#1a7f37}
+.transit-ecart.moy{background:#f0f0f2;color:#515154}
+.transit-ecart.cher{background:#fde8e8;color:#b42318}
+.transit-liste{max-height:360px}
+.annu-login{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--ligne)}
+.annu-login input{flex:1;border:1px solid var(--ligne);border-radius:7px;padding:8px 10px;font:inherit;font-size:15px}
+.annu-login button{border:0;background:var(--encre);color:#fff;border-radius:7px;padding:8px 16px;font:inherit;font-weight:600;cursor:pointer}
+.cl-pick input{padding-left:16px}
+.cl-item{justify-content:space-between}
+.cl-item b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cl-item .z{flex-shrink:0}
+#cl-list{max-height:320px;overflow-y:auto}
+.plan{border-color:#1a1a1a}
+.plan .transit-head{background:#1a1a1a;color:#fff}
+.plan .transit-head b small{color:#c7c7cc}
+.plan .transit-copie{background:transparent;color:#fff;border-color:#555}
+.plan-l{padding:8px 12px;border-top:1px solid var(--ligne);font-size:14px;line-height:1.45}
+.plan-l.alerte{background:#fff7e6;color:#8a5300}
+.plan-ok{color:#1a7f37;font-weight:600}
+.plan-ko{color:#b42318;font-weight:600}
+.plan-tr{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.plan-btn{display:flex;flex-direction:column;align-items:flex-start;border:1px solid var(--ligne);background:#fff;border-radius:9px;padding:6px 11px;font:inherit;font-size:13.5px;font-weight:700;cursor:pointer;text-align:left}
+.plan-btn:hover{border-color:#1a1a1a}
+.plan-btn small{font-weight:400;color:var(--gris);font-size:12px}
+.num-pick input{padding-left:16px}
+#num-list{max-height:380px;overflow-y:auto}
+.num-item{align-items:flex-start}
+.num-item small{display:block;color:var(--gris);font-size:12.5px;font-weight:400}
+.num-type{font-size:11.5px;font-weight:700;color:var(--gris);text-transform:uppercase;margin:0 4px}
