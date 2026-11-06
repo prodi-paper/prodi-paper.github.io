@@ -577,6 +577,18 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://prodi.com/stock/papier-affiche/</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://prodi.com/stock/offset/</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://prodi.com/stock/emballage/</loc>
     <lastmod>2026-11-06</lastmod>
     <changefreq>daily</changefreq>
@@ -595,7 +607,7 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://prodi.com/stock/papier-affiche/</loc>
+    <loc>https://prodi.com/stock/offset-couleur/</loc>
     <lastmod>2026-11-06</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
@@ -625,19 +637,19 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://prodi.com/stock/couche-2-faces/</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://prodi.com/stock/kraft/</loc>
     <lastmod>2026-11-06</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://prodi.com/stock/offset/</loc>
-    <lastmod>2026-11-06</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://prodi.com/stock/offset-couleur/</loc>
+    <loc>https://prodi.com/stock/kraft-gomme/</loc>
     <lastmod>2026-11-06</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
@@ -662,18 +674,6 @@
   </url>
   <url>
     <loc>https://prodi.com/stock/lwc/</loc>
-    <lastmod>2026-11-06</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://prodi.com/stock/kraft-gomme/</loc>
-    <lastmod>2026-11-06</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://prodi.com/stock/couche-2-faces/</loc>
     <lastmod>2026-11-06</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
