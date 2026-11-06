@@ -126,7 +126,7 @@
   .sheet *{line-height:1.15;}
   .sheet .zh{position:relative;height:85.00mm;}
   /* recalage fin 04/11 (DE43163) : tout le contenu Prodi 1,5 mm plus à gauche (le logo, déjà mesuré, est compensé) */
-  .sheet>.zh,.sheet>table.corps,.sheet>.zb{position:relative;left:-1.50mm;} /* recalé 04/11 sur les PDF Sage A4 (DE43163) */
+  .sheet>.zh,.sheet>table.corps,.sheet>.zb{position:relative;left:8.36mm;top:1.50mm;} /* recalé 04/11 sur les PDF Sage A4 (DE43163) */
   .sheet .zb{position:relative;height:93.80mm;}
   .sheet .nw{white-space:nowrap;}
   .sheet{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
@@ -165,7 +165,7 @@
   .sheet .refint{position:absolute;left:104.97mm;top:39.28mm;font-size:8.92pt;font-weight:400;white-space:nowrap;}
   .sheet .ident{position:absolute;left:105.54mm;top:43.83mm;font-size:8.92pt;font-weight:400;white-space:nowrap;}
   .sheet .rc{position:absolute;left:105.69mm;top:51.02mm;font-size:8.92pt;font-weight:400;white-space:nowrap;}
-  .sheet .box-livr{position:absolute;left:105.15mm;top:55.92mm;width:83.39mm;height:28.52mm;border:0.26mm solid #000;box-sizing:border-box;}
+  .sheet .box-livr{position:absolute;left:105.15mm;top:55.92mm;width:85.10mm;height:28.52mm;border:0.26mm solid #000;box-sizing:border-box;}
   .sheet .box-livr .t{position:absolute;left:0;right:0;top:0;height:5.29mm;border-bottom:0.26mm solid #000;font-weight:700;font-size:8.85pt;padding:0.40mm 0 0 29.40mm;box-sizing:border-box;}
   .sheet .box-livr #p-inco{position:absolute;left:0.90mm;top:5.68mm;font-size:8.89pt;white-space:nowrap;}
   .sheet .box-livr #p-lieu{position:absolute;left:0.90mm;top:9.80mm;font-size:8.89pt;white-space:nowrap;}
@@ -189,7 +189,7 @@
   .sheet table.corps td.desig .desred{color:#e00000;font-weight:700;}
   .sheet table.corps td.lqte{text-align:right;padding-right:4.21mm;}
   .sheet table.corps td.lpu,.sheet table.corps td.lmt{text-align:right;padding-right:0.76mm;white-space:nowrap;}
-  .sheet table.corps tr.fill td{height:108.80mm;padding:0;border-bottom:0.26mm solid #000;}
+  .sheet table.corps tr.fill td{height:104.80mm;padding:0;border-bottom:0.26mm solid #000;}
   .sheet .su{position:absolute;left:20.41mm;top:0.78mm;font-size:7.90pt;font-weight:400;white-space:nowrap;}
   .sheet .s1{position:absolute;left:20.69mm;top:4.51mm;font-size:7.90pt;font-weight:400;white-space:nowrap;}
   .sheet .s2{position:absolute;left:20.50mm;top:8.04mm;font-size:7.90pt;font-weight:400;white-space:nowrap;}
@@ -230,7 +230,7 @@
   .wsheet .wbq b{display:block;color:#1f3b6b;font-size:8.5pt;margin-bottom:.9mm;}
   .wsheet .wcachet{width:36.39mm;margin-left:11.79mm;}
   .sheet .cachet{position:absolute;left:3.93mm;top:15.78mm;width:38.16mm;height:auto;}
-  .sheet .tot{position:absolute;left:72.01mm;top:18.03mm;width:117.88mm;height:16.27mm;border:0.26mm solid #000;box-sizing:border-box;}
+  .sheet .tot{position:absolute;left:72.01mm;top:18.03mm;width:118.24mm;height:16.27mm;border:0.26mm solid #000;box-sizing:border-box;}
   .sheet .tot>i{position:absolute;top:0;bottom:0;border-left:0.24mm solid #000;}
   .sheet .tot .k1{left:21.68mm;} .sheet .tot .k2{left:44.43mm;} .sheet .tot .k3{left:71.12mm;}
   .sheet .tot .kr{left:0;right:46.76mm;top:6.17mm;bottom:auto;border-left:none;border-top:0.26mm solid #000;}
@@ -246,13 +246,13 @@
   .sheet .tot .netl{position:absolute;left:83.57mm;top:0.98mm;font-weight:700;font-size:12.08pt;text-decoration:underline;text-underline-offset:0.59mm;white-space:nowrap;}
   .sheet .tot #p-net{position:absolute;left:71.12mm;right:0;top:8.13mm;text-align:center;font-weight:700;font-size:14.65pt;white-space:nowrap;}
   .sheet .tot #p-net .sym{font-weight:400;}
-  .sheet .paiebox{position:absolute;left:0.84mm;top:35.87mm;width:186.94mm;height:22.34mm;border:0.26mm solid #000;box-sizing:border-box;}
+  .sheet .paiebox{position:absolute;left:3.04mm;top:35.87mm;width:187.21mm;height:22.34mm;border:0.26mm solid #000;box-sizing:border-box;}
   .sheet .paiebox .pl{position:absolute;left:2.60mm;top:2.16mm;font-weight:700;font-size:9.84pt;white-space:nowrap;}
   .sheet .paiebox #p-paie-lignes{position:absolute;left:56.60mm;top:1.76mm;font-weight:700;font-size:9.84pt;white-space:nowrap;line-height:5.78mm;}
   .sheet .paiebox #p-paie-lignes .m{display:inline-block;min-width:19.71mm;}
   .sheet .paiebox #p-banque{position:absolute;left:30.62mm;top:13.03mm;font-size:8.85pt;white-space:pre;line-height:4.2mm;}
   .sheet .paiebox .banqcli{position:absolute;left:4.48mm;top:13.03mm;font-weight:700;font-size:8.85pt;white-space:nowrap;}
-  .sheet .bq{position:absolute;left:4.38mm;top:63.00mm;width:186.85mm;height:30.58mm;border:0.26mm solid #000;box-sizing:border-box;}
+  .sheet .bq{position:absolute;left:3.04mm;top:63.00mm;width:187.21mm;height:30.58mm;border:0.26mm solid #000;box-sizing:border-box;}
   .sheet .bq>i{position:absolute;top:0;bottom:0;border-left:0.24mm solid #000;}
   .sheet .bq .v0{left:79.09mm;}
   .sheet .bq .v1{left:88.86mm;}
@@ -948,7 +948,7 @@ function etirerBas(){
   const mm=sh.offsetWidth/210;
   if(mm>0){
     const used=document.getElementById('p-lignes').offsetHeight/mm;
-    document.querySelectorAll('table.corps tr.fill td').forEach(td=>td.style.height=Math.max(2,108.80-used)+'mm');
+    document.querySelectorAll('table.corps tr.fill td').forEach(td=>td.style.height=Math.max(2,104.80-used)+'mm');
   }
   if(cache){box.style.visibility=box.style.position=box.style.display='';}
 }

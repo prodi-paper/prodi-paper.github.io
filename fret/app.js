@@ -349,7 +349,60 @@ Cordialement,`;
 let mailCustom = null;   // corps modifié à la main, gardé jusqu'à envoi / reformulation
 const mailOuvert = () => $('mail-fond').classList.contains('ouvert');
 
+/* ── transitaires de la destination (historique Sage, transitaires.js) ── */
+const normTr = v => (v || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().trim();
+const escTr = v => String(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const ALIAS_TR = { 'ETATS-UNIS': 'ETATS UNIS', 'USA': 'ETATS UNIS', 'EMIRATS': 'EMIRATS ARABES UNIS', 'RD CONGO': 'REPUBLIQUE DEMOCRATIQUE DU CONGO' };
+function paysTransit(val) {
+  const parts = val.split(',').map(normTr).filter(Boolean);
+  for (const p of parts.slice().reverse()) {
+    const k = ALIAS_TR[p] || p;
+    if (TRANSITAIRES[k]) return TRANSITAIRES[k];
+  }
+  // port seul : pays où ce port revient le plus souvent dans l'historique
+  let best = null, score = 0;
+  Object.values(TRANSITAIRES).forEach(e => {
+    const n = e.liste.filter(t => t.ports.some(q => parts.includes(normTr(q)))).reduce((s, t) => s + t.n, 0);
+    if (n > score) { score = n; best = e; }
+  });
+  return best;
+}
+function renderTransitaires() {
+  const box = $('f-transit');
+  const val = $('f-pays').value.trim();
+  if (!val) { box.hidden = true; box.innerHTML = ''; return; }
+  const e = paysTransit(val);
+  box.hidden = false;
+  if (!e) {
+    box.innerHTML = `<div class="transit-head"><b>Transitaires</b><span>Aucun envoi pour cette destination dans Sage</span></div>`;
+    return;
+  }
+  const lignes = e.liste.map(t => {
+    const mails = t.emails.length
+      ? t.emails.map(m => `<a href="mailto:${escTr(m)}">${escTr(m)}</a>`).join(' ')
+      : `<span class="transit-sans">Pas d'e-mail dans Sage${t.tel ? ' · ' + escTr(t.tel) : ''}</span>`;
+    const envois = `${t.n} envoi${t.n > 1 ? 's' : ''}`;
+    const ports = t.ports.length ? ' · ' + t.ports.map(escTr).join(', ') : '';
+    return `<div class="transit-ligne">
+      <div class="transit-nom">${escTr(t.nom)}${t.contact ? `<small>${escTr(t.contact)}</small>` : ''}</div>
+      <div class="transit-mail">${mails}</div>
+      <div class="transit-info">${envois} · dernier ${t.der.split('-').reverse().join('/')}${ports}</div>
+    </div>`;
+  }).join('');
+  box.innerHTML = `<div class="transit-head"><b>Transitaires ${escTr(e.nom)} (${e.liste.length})</b>
+      <button type="button" class="transit-copie" onclick="copierTransit(this)">Copier les e-mails</button></div>
+    <div class="transit-liste">${lignes}</div>`;
+  box.dataset.mails = [...new Set(e.liste.flatMap(t => t.emails))].join('; ');
+}
+function copierTransit(btn) {
+  navigator.clipboard.writeText($('f-transit').dataset.mails || '').then(() => {
+    btn.textContent = 'Copié';
+    setTimeout(() => { btn.textContent = 'Copier les e-mails'; }, 1500);
+  });
+}
+
 function regenMail() {
+  renderTransitaires();
   mailCustom = null;
   if (mailOuvert()) renderMail();
 }
