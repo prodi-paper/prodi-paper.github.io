@@ -20,7 +20,8 @@ Correspondance DOV → Sage (vérifiée le 06/11/2026) :
 Usage :
   python3 import_stock_relais.py            # COMPARE avec la table products (aucune écriture)
   python3 import_stock_relais.py --json f   # + écrit les produits construits dans f
-(Pas encore de mode écriture : la bascule se fera après quelques jours de comparaison.)
+L'ÉCRITURE passe par import_stock_ci.py (bascule 06/11) : charger() ci-dessous,
+puis update_supabase() — mail DOV en secours si le relais est en panne.
 """
 import json, os, re, sys, urllib.request
 from datetime import datetime
@@ -168,6 +169,30 @@ def build(rows):
     log(f"relais : {len(products)} réfs — {sum(p['source']=='email' for p in products)} visibles catalogue"
         + (f", {aberrants} prix aberrants ignorés" if aberrants else ""))
     return products
+
+
+TABLES = ('F_ARTSTOCK', 'F_ARTICLE', 'F_DOCLIGNE', 'F_DEPOT', 'F_DEPOTEMPL', 'F_FAMILLE')
+
+
+def age_heures():
+    """Âge (h) de la table la MOINS fraîche du relais parmi celles lues."""
+    r = sql("select extract(epoch from (now() at time zone 'Europe/Paris') - min(dernier_passage))/3600 h "
+            "from sage._miroir_etat where table_sage in (" + ','.join(f"'{t}'" for t in TABLES) + ")")
+    return float(r[0]['h']) if r and r[0]['h'] is not None else None
+
+
+def charger(max_age_h=24):
+    """Produits depuis le relais, ou None si le relais est trop vieux / injoignable."""
+    try:
+        age = age_heures()
+        if age is None or age > max_age_h:
+            log(f"relais trop ancien ({age if age is None else round(age, 1)} h) — non utilisé")
+            return None
+        log(f"relais Sage à jour (il y a {age*60:.0f} min)")
+        return build(sql(QUERY))
+    except Exception as e:
+        log(f"relais injoignable — {e}")
+        return None
 
 
 def _eq(k, a, b):

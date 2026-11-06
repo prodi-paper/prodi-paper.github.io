@@ -576,12 +576,16 @@ def sync_offres_fab():
 # ── MAIN ──
 if __name__ == '__main__':
     log("=== Import stock Prodiconseil ===")
-    tmpdir, files = fetch_latest_stock_email()
-    if not files:
-        log("ERREUR: mail STOCK COMPLET introuvable — import annulé (base intacte)")
+    # 06/11 : SOURCE = relais Sage (schéma `sage`, 5 min) — vérifié identique au
+    # mail DOV (100 % prix/poids/allée/détails sur 8 688 réfs) et plus frais.
+    # Plus de mail DOV : relais > 24 h ou injoignable → abandon, base d'hier
+    # intacte, alerte Resend (step if:failure du workflow).
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import import_stock_relais
+    products = import_stock_relais.charger()
+    if products is None:
+        log("ABANDON: relais Sage indisponible — base NON touchée")
         sys.exit(1)
-
-    products = parse_dov(files)
     # Garde-fou : update_supabase VIDE la table avant d'insérer. Un fichier
     # anormalement petit (mauvaise PJ, structure changée) annulerait le
     # catalogue entier → on refuse et on laisse la base d'hier en place.
@@ -595,7 +599,7 @@ if __name__ == '__main__':
     _vis = [p for p in products if p['source'] == 'email']
     _avec_prix = sum(1 for p in _vis if p.get('price'))
     if _vis and _avec_prix / len(_vis) < 0.6:
-        log(f"ABANDON: {_avec_prix}/{len(_vis)} produits visibles avec prix (< 60 %) — colonnes prix du DOV suspectes, base NON touchée")
+        log(f"ABANDON: {_avec_prix}/{len(_vis)} produits visibles avec prix (< 60 %) — prix du relais suspects, base NON touchée")
         sys.exit(1)
     update_supabase(products)
     backfill_image_urls()
@@ -604,16 +608,5 @@ if __name__ == '__main__':
         sync_offres_fab()
     except Exception as e:
         log(f"offres fab: échec NON bloquant — {e}")
-    # 06/11 : comparaison avec le relais Sage avant bascule (n'écrit rien,
-    # comptes seulement — logs publics). Le pousser dans le workflow demande
-    # le scope `workflow` du jeton gh, d'où l'appel ici.
-    try:
-        subprocess.run([sys.executable, os.path.join(os.path.dirname(__file__), 'import_stock_relais.py')], timeout=600)
-    except Exception as e:
-        log(f"comparaison relais: échec NON bloquant — {e}")
-
-    # Cleanup
-    import shutil
-    shutil.rmtree(tmpdir, ignore_errors=True)
 
     log(f"=== Terminé ! {len(products)} produits importés ===")
