@@ -463,7 +463,7 @@ function donnees() {
 
 function valide() {
   let ok = true;
-  for (const id of ["prenom", "nom", "societe", "passeport", "date_debut", "date_fin", "date_courrier"]) {
+  for (const id of ["prenom", "nom", "passeport", "date_debut", "date_fin", "date_courrier"]) { // société facultative (personne physique)
     const vide = !$(id).value.trim();
     $(id).classList.toggle("err", vide);
     if (vide) ok = false;
@@ -789,8 +789,8 @@ async function construireLettrePDF(d) {
   // destinataire (aligné à la marge, sans liseré)
   const yb = yDate + 7;
   doc.text(`${d.civilite} ${d.prenom} ${d.nom}`, M, yb + 4);
-  doc.text(`SOCIÉTÉ : ${d.societe}`, M, yb + 12);
-  doc.text(`PASSEPORT N° : ${d.passeport}`, M, yb + 20);
+  if (d.societe) doc.text(`SOCIÉTÉ : ${d.societe}`, M, yb + 12);
+  doc.text(`PASSEPORT N° : ${d.passeport}`, M, yb + (d.societe ? 20 : 12));
 
   // titre (léger interlettrage, sans barre)
   const yt = yb + 37;
@@ -856,8 +856,8 @@ async function construireLettreWoluwe(d) {
   doc.setFont("helvetica", "bold"); doc.setFontSize(11);
   doc.text(`${d.civilite} ${d.prenom} ${d.nom}`, dx, 58);
   doc.setFont("helvetica", "normal"); doc.setFontSize(10.5);
-  doc.text(d.societe, dx, 64, { maxWidth: DROITE - dx });
-  doc.text(`Passeport n° ${d.passeport}`, dx, 70);
+  if (d.societe) doc.text(d.societe, dx, 64, { maxWidth: DROITE - dx });
+  doc.text(`Passeport n° ${d.passeport}`, dx, d.societe ? 70 : 64);
 
   // objet
   doc.setFont("helvetica", "bold"); doc.setFontSize(11);
