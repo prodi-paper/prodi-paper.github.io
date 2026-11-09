@@ -1094,6 +1094,7 @@ async function init(){
   buildMsdOptions('msd-format-mob',FORMAT_OPTIONS,'Dimensions',v=>v===FORMAT_AUTRES?'Autres dimensions':v,'msd-format');
   buildMsdOptions('msd-grammage-mob',GRAMMAGE_OPTIONS,'Grammages',v=>v===GRAMMAGE_AUTRES?'Autres grammages':v,'msd-grammage');
   buildMsdOptions('msd-laize-mob',LAIZE_OPTIONS,'Laizes',v=>v===LAIZE_AUTRES?'Autres laizes':v,'msd-laize');
+  [['sb-msd-grammage','f-gmin','f-gmax','g/m²'],['msd-grammage-mob','f-gmin','f-gmax','g/m²'],['sb-msd-laize','f-lmin','f-lmax','mm'],['msd-laize-mob','f-lmin','f-lmax','mm']].forEach(a=>_mmTop(...a));
   buildMsdOptions('msd-diametre-mob',DIAM_OPTIONS,'Diamètre',v=>v===DIAM_AUTRES?'Autres Ø':v,'msd-diametre');
   buildMsdOptions('msd-poids-mob',POIDS_OPTIONS,'Poids',undefined,'msd-poids');
   // Laize/Ø/Poids = DUPLICATION du curseur Grammages : sections du RAIL (accordéon
@@ -1272,6 +1273,19 @@ function _gslTypeRow(wrap,unit,onSet){
   [tn,tx].forEach(i=>{i.addEventListener('change',go);i.addEventListener('keydown',e=>{if(e.key==='Enter'){i.blur();}});});
   row.addEventListener('click',e=>e.stopPropagation());
   return (a,b)=>{if(document.activeElement===tn||document.activeElement===tx)return;tn.value=a;tx.value=b;};
+}
+// 09/11 Ethan : cases Min – Max tapées EN HAUT des listes Grammages + Laizes
+// (ordi + mobile). Pilotent les champs cachés f-gmin/f-gmax, f-lmin/f-lmax
+// (déjà branchés : requête, facettes, chip avec croix).
+const _MM_SYNC={};
+function _mmSyncAll(){Object.values(_MM_SYNC).forEach(f=>f());}
+function _mmTop(msdId,minId,maxId,unit){
+  const panel=document.querySelector('#'+msdId+' .msd-panel');if(!panel)return;
+  panel.querySelector('.msd-mm')?.remove();
+  const box=document.createElement('div');box.className='msd-mm';panel.prepend(box);
+  const n=document.getElementById(minId),x=document.getElementById(maxId);if(!n||!x)return;
+  const set=_gslTypeRow(box,unit,(a,b)=>{n.value=a;x.value=b;_mmSyncAll();filterProducts();});
+  (_MM_SYNC[msdId]=()=>{panel.querySelectorAll('.msd-search-wrap').forEach(w=>w.remove());if(panel.firstChild!==box)panel.prepend(box);set(n.value,x.value);})();
 }
 function _buildGrammageSlider(msdId){
   const msd=document.getElementById(msdId);
@@ -4282,6 +4296,7 @@ function _goToPage(p){
 
 let _chipSeen=[]; // ordre d'activation des tags de filtres
 function updateFilterChips(){
+  _mmSyncAll();
   const container=document.getElementById('filter-chips');
   const chips=[];
   const q=document.getElementById('search-input').value;
@@ -4692,8 +4707,8 @@ function _renderQualExcel(g){
     const rg=(p,u)=>p[0]==null?'—':((p[0]===p[1]?p[0]:p[0]+' – '+p[1])+(u?' <small>'+u+'</small>':''));
     const fams=Object.entries(agg).sort((a,b)=>b[1].kg-a[1].kg);
     g.className='pgrid plist';
-    g.innerHTML='<div style="overflow-x:auto"><table class="plist-table qx-table"><thead><tr>'
-      +'<th>Photo</th><th>Qualité</th><th>Détails</th><th>GSM (g/m²)</th><th>Laize (mm)</th><th>Diamètre (mm)</th><th>Mandrin (mm)</th><th>Dimensions (mm)</th><th>Poids total (t)</th><th></th></tr></thead><tbody>'
+    g.innerHTML='<div style="overflow-x:auto"><table class="plist-table qx-table xlw"><thead><tr>'
+      +'<th class="xw80">Photo</th><th class="xw150">Qualité</th><th>Détails</th><th class="xw100">GSM (g/m²)</th><th class="xw120">Laize (mm)</th><th class="xw120">Diamètre (mm)</th><th class="xw120">Mandrin (mm)</th><th class="xw150">Dimensions (mm)</th><th class="xw120">Poids total (t)</th><th class="xw150"></th></tr></thead><tbody>'
       +fams.map(([f,v])=>{
         const href=f==='Autres qualités'?'/catalogue/?all=1':'/catalogue/?type='+encodeURIComponent(f);
         const nds=[...v.nd].sort((a,b)=>a-b);
@@ -4826,21 +4841,21 @@ function renderList(list){
     return `<th class="${cls||''}${key?' xl-th':''}${on?' xl-on':''}"${key?` onclick="_xlSortBy('${key}')" title="Trier"`:''}>${lbl}${arr}</th>`;
   };
   // Headers : Bobine → Laize | Diamètre | Mandrin / Palette → Dimensions (colspan 3)
-  const _bobHead=_xlTh('Laize (mm)','largeur')+_xlTh('Diamètre (mm)','longueur')+_xlTh('Mandrin (mm)','noyau','plist-col-mandrin');
-  const _palHead=`<th colspan="3" class="xl-th${window._xlSort&&window._xlSort.key==='largeur'?' xl-on':''}" onclick="_xlSortBy('largeur')" title="Trier">Dimensions (mm)${window._xlSort&&window._xlSort.key==='largeur'?(window._xlSort.dir==='desc'?' ▼':' ▲'):''}</th>`;
-  const _buildTable=(rowsHtml,head)=>`<table class="plist-table">
+  const _bobHead=_xlTh('Laize (mm)','largeur','xw100')+_xlTh('Diamètre (mm)','longueur','xw120')+_xlTh('Mandrin (mm)','noyau','plist-col-mandrin xw120');
+  const _palHead=`<th colspan="3" class="xw340 xl-th${window._xlSort&&window._xlSort.key==='largeur'?' xl-on':''}" onclick="_xlSortBy('largeur')" title="Trier">Dimensions (mm)${window._xlSort&&window._xlSort.key==='largeur'?(window._xlSort.dir==='desc'?' ▼':' ▲'):''}</th>`;
+  const _buildTable=(rowsHtml,head)=>`<table class="plist-table xlw">
     <thead><tr>
-      <th class="plist-th-add" onclick="(window._addPageReal||addPageToCart)()" title="Ajouter toutes les lignes affichées à la sélection">+</th>
-      <th>Photo</th>
-      ${_xlTh('Référence','ref','plist-col-ref')}
-      ${_xlTh('Qualité','title')}
+      <th class="plist-th-add xw48" onclick="(window._addPageReal||addPageToCart)()" title="Ajouter toutes les lignes affichées à la sélection">+</th>
+      <th class="xw80">Photo</th>
+      ${_xlTh('Référence','ref','plist-col-ref xw100')}
+      ${_xlTh('Qualité','title','xw150')}
       ${_xlTh('Détails','details')}
-      ${_xlTh('Couleur','couleur')}
-      ${_xlTh('GSM','grammage')}
+      ${_xlTh('Couleur','couleur','xw100')}
+      ${_xlTh('GSM','grammage','xw80')}
       ${head}
-      ${_xlTh('Poids (kg)','poids')}
-      ${_xlTh('Usine','usine','plist-col-usine')}
-      ${_xlPrice?_xlTh('Prix','price'):''}
+      ${_xlTh('Poids (kg)','poids','xw100')}
+      ${_xlTh('Usine','usine','plist-col-usine xw80')}
+      ${_xlPrice?_xlTh('Prix','price','xw120'):''}
     </tr></thead>
     <tbody>${rowsHtml}</tbody>
   </table>`;
@@ -5774,6 +5789,7 @@ function resetFilters(){
      'search-input','search-input-mob'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
 
     // 6. Clear chips & reset UI
+    _mmSyncAll();
     const fc=document.getElementById('filter-chips');if(fc)fc.innerHTML='';
     const ac=document.getElementById('active-chips');if(ac)ac.innerHTML='';
     const rr=document.getElementById('rbar-reset');if(rr)rr.style.display='none';
