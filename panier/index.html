@@ -190,6 +190,21 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
   /* fiche : photo moins haute sur téléphone */
   .prodi-fiche .dimg-col{height:46vh !important;}
 }
+/* 09/11 Ethan : tableau panier = même rendu que le catalogue (largeurs, polices, zébrage, traits) */
+.plist-table.xlw{table-layout:fixed;}
+.plist-table.xlw th.xw48{width:48px;}.plist-table.xlw th.xwph{width:80px;}.plist-table.xlw th.xweq{width:110px;}.plist-table.xlw th.xw330{width:330px;}.plist-table.xlw th.xweq:last-child{width:140px;}
+html body .plist-table.xlw thead th{font-size:18px !important;font-weight:800 !important;text-transform:none !important;white-space:normal !important;line-height:1.15 !important;letter-spacing:0 !important;}
+html body .plist-table.xlw th,html body .plist-table.xlw td{padding-left:8px !important;padding-right:8px !important;border-bottom-color:#b3bccb !important;border-right-color:#b3bccb !important;}
+html body .plist-table.xlw td,html body .plist-table.xlw td *:not(button):not(.plist-grp-badge){font-family:'DM Sans',sans-serif !important;font-size:15.5px !important;font-weight:600 !important;letter-spacing:0 !important;color:#1d1d1f;white-space:normal !important;word-break:normal !important;overflow-wrap:break-word !important;}
+html body .plist-table.xlw tbody tr:nth-child(even) td{background:#ebf0f7;}
+html body .plist-table.xlw tbody tr:hover td{background:#fff3c4;}
+.cf-sum .cfs-br{display:none !important;}.cf-sum{display:flex !important;align-items:center !important;justify-content:space-between !important;flex-wrap:wrap;gap:12px;}.cf-sum .cfb{margin:0 !important;flex:0 1 auto;border-top:none !important;padding-top:0 !important;}.cf-sum .cfs-note{display:none !important;}
+html body .plist-table.xlw tr.xl-total td,html body .plist-table.xlw tr.xl-total td *{background:#dce6f1 !important;font-weight:800 !important;border-top:1.5px solid #8f9aae !important;}
+html body .plist-table.xlw tr.xl-total:hover td{background:#dce6f1 !important;}
+/* total collé en bas de l'écran pendant le défilement (ordi) */
+@media(min-width:900px){.cx-wrap{overflow:visible !important;}html body .plist-table.xlw tr.xl-total td{position:sticky;bottom:0;z-index:5;box-shadow:0 -2px 6px rgba(0,0,0,.08);}}
+/* siderun : filet bleu à gauche de la ligne */
+html body .plist-table tr.is-du>td:first-child{background-image:linear-gradient(to right,#2563eb 5px,transparent 5px) !important;}
 </style>
 </head>
 <body>
@@ -228,8 +243,8 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
           </a>
           <div class="acct-sep"></div>
           <a class="acct-item" href="/mon-prodiconseil/">Mes commandes</a>
-          <a class="acct-item" href="#" onclick="return false;">Demande de devis</a>
-          <a class="acct-item" href="/echantillons/">Demande d'&eacute;chantillons</a>
+          <a class="acct-item" href="#" onclick="return false;" style="display:none">Demande de devis</a>
+          <a class="acct-item" href="/echantillons/" style="display:none">Demande d'&eacute;chantillons</a>
           <a class="acct-item" href="/contact/">Nous contacter</a>
           <a class="acct-item" href="/mon-prodiconseil/">Mon Prodiconseil</a>
           <div class="acct-sep"></div>
@@ -244,22 +259,22 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
   <div id="cart-full" style="display:none;">
     <div class="cf-grid">
       <aside class="cf-sum">
-        <div class="cfs-t">Panier</div>
+        <div class="cfs-t">Panier</div><div style="display:none">
         <div class="cfs-l" id="cfs-bob-wrap"><span>Bobines</span><b id="cfs-bob">—</b></div>
         <div class="cfs-l" id="cfs-fmt-wrap"><span>Formats</span><b id="cfs-fmt">—</b></div>
         <div class="cfs-l"><span>Tonnage</span><b id="cfs-kg">—</b></div>
-        <div class="cfs-l"><span>Prix moyen (EXW)</span><b id="cfs-avg">—</b></div>
-        <div class="cfs-l"><span>Marchandise (EXW)</span><b id="cfs-eur">—</b></div>
-        <div class="cfs-br"></div>
-        <div class="cfs-l cfs-ship"><span>Destination</span><select id="cfs-dest"></select></div>
-        <div class="cfs-l"><span>Transport estimé</span><b id="cfs-ship">—</b></div>
-        <div class="cfs-l cfs-tot"><span>Total estimé (CFR)</span><b id="cfs-cfr">—</b></div>
+        <div class="cfs-l" style="display:none"><span>Prix moyen (EXW)</span><b id="cfs-avg">—</b></div>
+        <div class="cfs-l" style="display:none"><span>Marchandise (EXW)</span><b id="cfs-eur">—</b></div>
+        </div><div class="cfs-br"></div>
+        <div class="cfs-l cfs-ship" style="display:none"><span>Destination</span><select id="cfs-dest"></select></div>
+        <div class="cfs-l" style="display:none"><span>Transport estimé</span><b id="cfs-ship">—</b></div>
+        <div class="cfs-l cfs-tot" style="display:none"><span>Total estimé (CFR)</span><b id="cfs-cfr">—</b></div>
         <div class="cfb">
-          <div class="cfs-note" id="cfs-note">EXW = prix départ dépôt, hors transport. Transport estimatif<br>par tonne (container ~25 T) selon le port de destination. Montant confirmé sur la proforma.</div>
-          <button class="cfb-btn cfb-clear" onclick="pxVider()" title="Vider la sélection"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9.2"/><path d="m9 9 6 6M15 9l-6 6"/></svg></button>
+          <div class="cfs-note" id="cfs-note" style="visibility:hidden">EXW = prix départ dépôt, hors transport. Transport confirmé sur la proforma.</div>
           <button class="cfb-btn" onclick="pxExcel(this)">Télécharger <svg width="24" height="24" viewBox="0 0 32 32" style="flex-shrink:0;"><rect x="9" y="2" width="21" height="14" rx="3.5" fill="#8bd47e"/><rect x="20" y="2" width="10" height="14" rx="3.5" fill="#b9e695"/><path d="M9 9h17.5A3.5 3.5 0 0 1 30 12.5V26.5a3.5 3.5 0 0 1-3.5 3.5H12.5A3.5 3.5 0 0 1 9 26.5Z" fill="#2f9e55"/><rect x="2" y="12" width="16" height="16" rx="3.5" fill="#185c37"/><path d="M6.4 16.5h2.7l1.8 3.2 1.8-3.2h2.7l-3.1 4.7 3.2 4.8h-2.8l-1.8-3.3-1.9 3.3H6.2l3.2-4.8z" fill="#fff"/></svg></button>
           <button class="cfb-btn" onclick="pxAlbum(this)">Album photo <img src="/img/pdf_icon.png" alt="" style="height:24px;width:auto;flex-shrink:0;"></button>
           <button class="cfb-btn cfb-go" onclick="pxReserver()"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Réserver</button>
+          <button class="cfb-btn cfb-clear" onclick="pxVider()" title="Vider le panier"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9.2"/><path d="m9 9 6 6M15 9l-6 6"/></svg>Vider le panier</button>
         </div>
       </aside>
       <div id="cart-items"></div>
@@ -572,7 +587,7 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
       :(logged()
         ?(it.price?_ccyFmtT(it.price*1000):'—')
         :'<button class="plist-seep" onclick="window.prodiTrack&&window.prodiTrack(\'voir_prix\',{ref:\''+ref+'\',p:\'panier\'});window.prodiLoginPop&&window.prodiLoginPop()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>Voir le prix</button>');
-    return '<tr>'
+    return '<tr'+(/^Photo_DU/i.test(String(it.ref||''))?' class="is-du"':'')+'>'
       +'<td class="plist-td" style="text-align:center;"><button class="plist-del" title="Retirer du panier" data-i="'+i+'">'+ICO_X+'</button></td>'
       +'<td class="plist-td plist-thumb-wrap"'+(img?' onclick="pxFiche('+i+')"':'')+'>'+(img?'<img class="plist-thumb" loading="lazy" src="'+esc(img)+'" alt="" onerror="this.style.visibility=\'hidden\'">':'')+'</td>'
       +'<td class="plist-td" style="text-align:center;" title="Copier la référence" onclick="navigator.clipboard&&navigator.clipboard.writeText(\''+esc(ref)+'\')"><span class="plist-ref-badge">'+esc(ref)+'</span></td>'
@@ -589,13 +604,20 @@ footer .cr{margin-top:10px;font-size:12.5px;color:#98989d;}
       +'<td class="plist-td plist-td-num" style="font-weight:800;">'+prix+'</td>'
     +'</tr>';
   }
+  // ligne TOTAL en bas du tableau (comme le catalogue) : nb d'articles · tonnage, kg sous Poids
+  function _totRow(items,pal){
+    var kg=0;items.forEach(function(o){kg+=(+o.it.poids_net||0);});
+    var n=items.length,lbl=pal?(n+' format'+(n>1?'s':'')):(n+' bobine'+(n>1?'s':''));
+    return '<tr class="xl-total"><td class="plist-td" colspan="10">TOTAL · '+lbl+' · '+(kg/1000).toLocaleString('fr-FR',{minimumFractionDigits:1,maximumFractionDigits:1})+' T</td>'
+      +'<td class="plist-td plist-td-num">'+Math.round(kg).toLocaleString('fr-FR')+'</td><td class="plist-td"></td></tr>';
+  }
   function table(items,pal){
     if(!items.length)return '';
-    var head='<th></th><th>Photo</th><th>Référence</th><th>Qualité</th><th>Détails</th><th>Couleur</th><th>GSM</th>'
-      +(pal?'<th colspan="3">Dimensions (mm)</th>':'<th>Laize (mm)</th><th>Diamètre (mm)</th><th>Mandrin (mm)</th>')
-      +'<th>Poids (kg)</th><th>Prix</th>';
-    return '<div class="cx-wrap"><table class="plist-table"><thead><tr>'+head+'</tr></thead><tbody>'
-      +items.map(function(o){return ligne(o.it,o.i,pal);}).join('')+'</tbody></table></div>';
+    var head='<th class="xw48"></th><th class="xwph">Photo</th><th class="xweq">Référence</th><th class="xweq">Qualité</th><th>Détails</th><th class="xweq">Couleur</th><th class="xweq">GSM</th>'
+      +(pal?'<th colspan="3" class="xw330">Dimensions (mm)</th>':'<th class="xweq">Laize (mm)</th><th class="xweq">Diamètre (mm)</th><th class="xweq">Mandrin (mm)</th>')
+      +'<th class="xweq">Poids (kg)</th><th class="xweq">Prix</th>';
+    return '<div class="cx-wrap"><table class="plist-table xlw"><thead><tr>'+head+'</tr></thead><tbody>'
+      +items.map(function(o){return ligne(o.it,o.i,pal);}).join('')+'</tbody></table></div>'; /* ligne TOTAL retirée 09/11 (Ethan) — _totRow gardé */
   }
   function rendre(){
     var c=lire();

@@ -3093,3 +3093,117 @@ body.landing-rows #desk-toolbar{display:none !important;}
 .plist-table.xlw th.xw150{width:150px !important;min-width:0 !important;max-width:none !important;}
 .plist-table.xlw th.xw340{width:340px !important;min-width:0 !important;max-width:none !important;}
 .plist-table.xlw td{overflow-wrap:anywhere;}
+/* 09/11 Ethan : polices harmonisées + agrandies (une seule taille 15.5px, DM Sans) */
+html body .plist-table.xlw td,html body .plist-table.xlw td .plist-details,html body .plist-table.xlw td .plist-gsm,html body .plist-table.xlw td .plist-qtitle,html body .plist-table.xlw td .plist-ref-badge,html body .plist-table.xlw td b,html body .plist-table.xlw td .qx-arrow{font-family:'DM Sans',sans-serif !important;font-size:15.5px !important;letter-spacing:0 !important;line-height:1.35 !important;}
+html body .plist-table.xlw td .plist-details,html body .plist-table.xlw td .plist-gsm{font-weight:400 !important;}
+html body .plist-table.xlw td .plist-qtitle,html body .plist-table.xlw td .plist-ref-badge,html body .plist-table.xlw td b{font-weight:700 !important;}
+html body .plist-table.xlw thead th{font-size:12.5px !important;}
+html body .plist-table.xlw td .plist-seep,html body .plist-table.xlw td .qx-go-btn{font-size:14px !important;}
+html body .plist-table.xlw td.qx-dt{font-size:15.5px !important;font-family:'DM Sans',sans-serif !important;}
+html body .plist-table.xlw td{overflow-wrap:break-word !important;}
+/* 09/11 v2 : TOUTES les colonnes de données à la même largeur (+ 48, Photo 80, le reste partagé à parts égales) ; même police, même couleur */
+.plist-table.xlw th.xwph{width:80px !important;min-width:0 !important;max-width:none !important;}
+.plist-table.xlw th.xweq{width:auto !important;min-width:0 !important;max-width:none !important;}
+html body .plist-table.xlw td,html body .plist-table.xlw td *:not(button):not(.plist-grp-badge):not(.plist-seep):not(.qx-go-btn){color:#1d1d1f !important;font-weight:400 !important;}
+html body .plist-table.xlw td.qx-dt,html body .plist-table.xlw td .plist-details{max-width:none !important;}
+html body .plist-table.xlw td,html body .plist-table.xlw td *{word-break:normal !important;overflow-wrap:break-word !important;hyphens:none !important;}
+/* v3 : colonnes identiques en px, Détails = le reste (textes longs) */
+.plist-table.xlw th.xweq{width:105px !important;}
+.plist-table.qx-table.xlw th.xweq{width:125px !important;}
+.plist-table.xlw th.xwdt{width:auto !important;}
+.plist-table.xlw th.xweq{width:110px !important;}
+.plist-table.qx-table.xlw th.xweq{width:120px !important;}
+.plist-table.xlw th.xwbtn{width:150px !important;}
+html body .plist-table.xlw th,html body .plist-table.xlw td{padding-left:8px !important;padding-right:8px !important;}
+html body .plist-table.xlw thead th{white-space:normal !important;overflow-wrap:normal !important;word-break:normal !important;}
+html body .plist-table.xlw td .qx-mm{display:inline-block;min-width:32px;font-size:12px !important;color:#86868b !important;text-transform:uppercase;letter-spacing:.3px;}
+html body .plist-table.xlw td .qx-mm{min-width:30px;}
+html body .plist-table.xlw td,html body .plist-table.xlw td *:not(button):not(.plist-grp-badge):not(.plist-seep):not(.qx-go-btn):not(.qx-mm){font-weight:500 !important;}
+html body .plist-table.xlw td,html body .plist-table.xlw td *:not(button):not(.plist-grp-badge):not(.plist-seep):not(.qx-go-btn):not(.qx-mm){font-weight:600 !important;}
+/* badges/boutons : garder leurs couleurs d'origine (badge « 2/3 » noir sur noir sinon) */
+html body .plist-table.xlw td button *,html body .plist-table.xlw td .plist-grp-badge{color:inherit !important;font-weight:inherit !important;font-size:inherit !important;}
+html body .plist-table.xlw td .plist-grp-badge{color:#fff !important;font-size:10px !important;font-weight:700 !important;}
+html body .plist-table.xlw td{white-space:normal !important;}
+html body .plist-table.xlw td,html body .plist-table.xlw th{border-bottom-color:#b3bccb !important;border-right-color:#b3bccb !important;}
+html body .plist-table.xlw thead th{white-space:nowrap !important;letter-spacing:0 !important;font-size:12px !important;overflow:visible !important;}
+.plist-table.xlw{min-width:1380px;}
+html body .plist-table.xlw thead th{font-size:20px !important;}
+html body .plist-table.xlw thead th{text-transform:none !important;white-space:normal !important;line-height:1.15 !important;}
+html body .plist-table.xlw thead th{font-size:18px !important;}
+/* 09/11 : accueil — Détails plafonné (350), Qualité 150 ; la place en trop se répartit sur toutes les colonnes */
+.plist-table.qx-table.xlw th.xwdt{width:350px !important;}
+.plist-table.qx-table.xlw th.xwq{width:150px !important;}
+html body .plist-table.qx-table.xlw td.qx-f{font-size:18px !important;font-weight:800 !important;}
+#xl-status .xls-clear{gap:7px;padding-inline:14px !important;width:auto !important;white-space:nowrap;}
+/* 09/11 : écrans plus étroits — le tableau rétrécit (polices + colonnes) au lieu de déborder */
+@media(max-width:1700px){
+  .plist-table.xlw{min-width:0 !important;}
+  .plist-table.xlw th.xweq{width:92px !important;}
+  .plist-table.qx-table.xlw th.xweq{width:100px !important;}
+  .plist-table.xlw th.xwph{width:66px !important;}
+  .plist-table.xlw th.xw48{width:38px !important;}
+  html body .plist-table.xlw thead th{font-size:15px !important;}
+  html body .plist-table.xlw td,html body .plist-table.xlw td *:not(button):not(.plist-grp-badge):not(.plist-seep):not(.qx-go-btn):not(.qx-mm){font-size:14px !important;}
+  html body .plist-table.qx-table.xlw td.qx-f{font-size:16px !important;}
+  html body .plist-table.xlw th,html body .plist-table.xlw td{padding-left:6px !important;padding-right:6px !important;}
+}
+@media(max-width:1350px){
+  .plist-table.xlw th.xweq{width:78px !important;}
+  .plist-table.qx-table.xlw th.xweq{width:86px !important;}
+  .plist-table.xlw th.xwbtn,.plist-table.qx-table.xlw th.xwq{width:120px !important;}
+  .plist-table.qx-table.xlw th.xwdt{width:220px !important;}
+  html body .plist-table.xlw thead th{font-size:13px !important;}
+  html body .plist-table.xlw td,html body .plist-table.xlw td *:not(button):not(.plist-grp-badge):not(.plist-seep):not(.qx-go-btn):not(.qx-mm){font-size:13px !important;}
+}
+@media(max-width:1350px){
+  .plist-table.xlw .plist-col-usine,.plist-table.xlw .plist-td-usine,.plist-table.xlw .plist-col-mandrin{display:none !important;}
+}
+/* 09/11 Ethan : curseur croix façon Excel au survol du tableau */
+.plist-table.xlw tbody td{cursor:cell;}
+.plist-table.xlw tbody td button,.plist-table.xlw tbody td a,.plist-table.xlw tbody td.plist-thumb-wrap{cursor:pointer;}
+@media(max-width:1350px){.plist-table.xlw th.xweq:last-child{width:96px !important;}}
+/* croix Excel plus grosse (30 px) */
+.plist-table.xlw tbody td{cursor:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%2730%27%20height%3D%2730%27%20viewBox%3D%270%200%2030%2030%27%3E%3Cpath%20d%3D%27M11%202h8v9h9v8h-9v9h-8v-9H2v-8h9z%27%20fill%3D%27white%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linejoin%3D%27miter%27/%3E%3C/svg%3E") 15 15, cell;}
+.plist-table.xlw tbody td button,.plist-table.xlw tbody td a,.plist-table.xlw tbody td.plist-thumb-wrap{cursor:pointer;}
+/* croix Excel 20 px (30 = trop) */
+.plist-table.xlw tbody td{cursor:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%2720%27%20height%3D%2720%27%20viewBox%3D%270%200%2020%2020%27%3E%3Cpath%20d%3D%27M7.5%202h5v5.5H18v5h-5.5V18h-5v-5.5H2v-5h5.5z%27%20fill%3D%27white%27%20stroke%3D%27black%27%20stroke-width%3D%271.3%27/%3E%3C/svg%3E") 10 10, cell;}
+.plist-table.xlw tbody td button,.plist-table.xlw tbody td a,.plist-table.xlw tbody td.plist-thumb-wrap{cursor:pointer;}
+/* bascule Détail | Assemblé (09/11) */
+#asm-toggle{display:inline-flex;gap:0;margin:0 0 10px;border:1.5px solid #1d1d1f;border-radius:10px;overflow:hidden;background:#fff;}
+#asm-toggle[hidden]{display:none !important;}
+#asm-toggle button{border:none;background:#fff;color:#1d1d1f;font:700 15px 'DM Sans',sans-serif;padding:8px 18px;cursor:pointer;}
+#asm-toggle button+button{border-left:1.5px solid #1d1d1f;}
+#asm-toggle button.on{background:#1d1d1f;color:#fff;}
+#asm-toggle:has(+ #pgrid .qx-table){display:none !important;}
+body.topbar-view .sidebar-col{width:297px !important;min-width:297px !important;max-width:297px !important;}
+body.topbar-view .body-wrap{grid-template-columns:297px minmax(0,1fr) !important;}
+html body #filters-panel .msd.cse-open>.cse-drop.cse-up{top:auto !important;bottom:calc(100% + 6px) !important;}
+html body #filters-panel#filters-panel .msd.cse-open .cse-drop .msd-panel{max-height:300px !important;overflow-y:auto !important;height:auto !important;}
+html body .msd-option.msd-off,html body .msd-option.msd-qoff{display:none !important;}
+html body #filters-panel#filters-panel .msd .msd-option.msd-off,html body #filters-panel#filters-panel .msd .msd-option.msd-qoff,html body #filter-drawer#filter-drawer .msd-option.msd-off,html body #filter-drawer#filter-drawer .msd-option.msd-qoff{display:none !important;}
+body.topbar-view .body-wrap>.sidebar-col+div{padding-left:2px !important;}body.topbar-view .sidebar-col{padding-right:12px !important;}
+/* bouton SIDERUN (09/11) : contour violet, plein quand actif */
+html body #filters-panel .sdr-pill{display:flex;justify-content:center;width:100%;box-sizing:border-box;margin-top:8px;border:2px solid #3d1fa3 !important;color:#3d1fa3 !important;background:#fff !important;font-weight:800 !important;text-transform:uppercase;letter-spacing:.4px;border-radius:6px;padding:9px 6px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:15.7px;}
+html body #filters-panel .sdr-pill.active{background:#3d1fa3 !important;color:#fff !important;}
+html body #filters-panel#filters-panel #sb-fg-liste{order:1 !important;}html body #filters-panel#filters-panel #sb-fg-liste[hidden]{display:none !important;}
+body.asm-on .plist-table.xlw .plist-col-ref,body.asm-on .plist-table.xlw .plist-td-ref{display:none !important;}
+/* 09/11 Ethan : SIDERUN reconnaissable partout = filet bleu à gauche de la ligne */
+html body .plist-table tr.is-du td:first-child{box-shadow:inset 5px 0 0 #2563eb !important;}
+/* photo empruntée à une réf ressemblante du dépôt : cadre pointillé bleu */
+html body .plist-table tr.sim-photo .plist-thumb{outline:2px dashed #2563eb;outline-offset:1px;}
+html body img[src*="siderun-sur-demande"]{visibility:hidden !important;}
+html body.du-only .plist-table.qx-table tbody tr td:first-child{box-shadow:inset 5px 0 0 #2563eb !important;}
+html body #filters-panel .sdr-only{display:flex;justify-content:center;width:100%;box-sizing:border-box;margin-top:8px;border:2px solid #2563eb;color:#2563eb;background:#fff;font:800 14px 'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.4px;border-radius:6px;padding:8px 6px;cursor:pointer;}
+html body #filters-panel .sdr-only.active{background:#2563eb;color:#fff;}
+html body #filters-panel .sdr-only[hidden]{display:none !important;}
+html body .plist-table tr.is-du>td:first-child,html body.du-only .plist-table.qx-table tbody tr>td:first-child{background-image:linear-gradient(to right,#2563eb 5px,transparent 5px) !important;}
+/* filet bleu siderun AU-DESSUS du badge « 16/16 » */
+html body .plist-table tr.is-du>td:first-child,html body.du-only .plist-table.qx-table tbody tr>td:first-child{position:relative;background-image:none !important;}
+html body .plist-table tr.is-du>td:first-child::after,html body.du-only .plist-table.qx-table tbody tr>td:first-child::after{content:'' !important;position:absolute !important;left:0 !important;top:0 !important;bottom:0 !important;right:auto !important;width:5px !important;height:auto !important;background:#2563eb !important;z-index:6 !important;pointer-events:none;border:none !important;transform:none !important;opacity:1 !important;}
+/* SIDERUN aussi dans le tiroir mobile */
+#filter-drawer .sdr-pill,#filter-drawer .sdr-only{display:flex;justify-content:center;width:100%;box-sizing:border-box;margin-top:8px;border-radius:12px;padding:10px 6px;font:800 14px 'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.4px;cursor:pointer;background:#fff;}
+#filter-drawer .sdr-pill{border:2px solid #3d1fa3;color:#3d1fa3;}
+#filter-drawer .sdr-pill.active{background:#3d1fa3;color:#fff;}
+#filter-drawer .sdr-only{border:2px solid #2563eb;color:#2563eb;}
+#filter-drawer .sdr-only.active{background:#2563eb;color:#fff;}
+#filter-drawer .sdr-only[hidden]{display:none !important;}

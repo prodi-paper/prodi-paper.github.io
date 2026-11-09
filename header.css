@@ -104,8 +104,8 @@ header a .logo,header img.logo{height:40px;display:block;}
 .hsearch{flex:1;display:flex;align-items:center;gap:8px;height:40px;border:1.5px solid #e0e0e4;border-radius:999px;padding:3px 3px 3px 16px;background:#fff;}
 .hsearch:focus-within{border-color:#b8b8bd;}
 .hsearch input{flex:1;min-width:60px;border:none;outline:none;background:none;font:500 14.5px 'DM Sans',sans-serif;color:#1d1d1f;}
-.hsearch button{height:32px;padding:0 16px;border:none;border-radius:999px;background:#fe0000;color:#fff;font:700 14px 'DM Sans',sans-serif;display:flex;align-items:center;gap:7px;cursor:pointer;flex-shrink:0;}
-.hsearch button:hover{background:#cc0000;}
+.hsearch button{height:32px;padding:0 16px;border:none;border-radius:999px;background:#ececef;color:#1d1d1f;font:700 14px 'DM Sans',sans-serif;display:flex;align-items:center;gap:7px;cursor:pointer;flex-shrink:0;}
+.hsearch button:hover{background:#dcdce0;}
 
 
 /* ════ MOBILE / TABLETTE (05/10 Ethan) — header partagé des pages coquille.
@@ -132,3 +132,4 @@ header a .logo,header img.logo{height:40px;display:block;}
   #ali-acct-pop,#ali-ship-pop,#ali-lc-pop{position:fixed !important;left:12px !important;right:12px !important;top:64px !important;width:auto !important;max-width:none !important;transform:none !important;}
   #ali-acct-pop::before,#ali-ship-pop::before,#ali-lc-pop::before{display:none !important;}
 }
+.ali-addr-cfr,#ali-ship-cfr,.ship-cfr,#ship-cfr{display:none !important;}

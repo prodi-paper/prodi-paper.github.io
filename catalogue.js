@@ -23,13 +23,24 @@ function _ejsReady(){
 const SURL='https://bvcgpdoukhcatjibmvnb.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2Y2dwZG91a2hjYXRqaWJtdm5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNzg5MjgsImV4cCI6MjA4Nzg1NDkyOH0.Ip3ykSUS9sajTH04yXBerOG1haBKMD1kAvMQNjnGL1Q';
 const SB_H={'apikey':SKEY,'Authorization':'Bearer '+SKEY,'Content-Type':'application/json'};
+async function _sbQRaw(path,opts){return sbQ(path,{...opts,_noSim:true});}
 async function sbQ(path,opts={}){
   // Le complément inventaire (source='inventaire', réinséré chaque matin par le
   // robot d'import pour l'app d'inventaire physique) ne doit JAMAIS apparaître
   // sur le catalogue public : machines, vieux stock, dépôts extérieurs.
   // Filtre appliqué ici — toutes les requêtes products passent par sbQ.
   if(path.startsWith('products?')&&/[?&]promo=1/.test(location.search))path+='&promo=is.true';
-  if(path.startsWith('products?'))path+='&source=neq.inventaire'
+  // 09/11 Ethan : bouton SIDERUN → périmètre = sideruns Sage (réfs Photo_DU*), hors dépôt
+  // SIDERUN (09/11 Ethan) : 1er clic = dépôt + sideruns MÉLANGÉS ; « Uniquement siderun » = sideruns seuls.
+  // Sideruns = réfs Photo_DU* des listes de MOINS DE 6 MOIS (date d'arrivée Sage).
+  if(path.startsWith('products?')&&window._perimDU&&!opts._depot){
+    const _d6=(()=>{const d=new Date();d.setMonth(d.getMonth()-6);return d.toISOString().slice(0,10);})();
+    const _du='and(ref.ilike.Photo_DU*,date_arrivee.gte.'+_d6+')';
+    const _dep='and(emplacement.eq.OUR WAREHOUSE,or(ref.is.null,and(ref.not.ilike.Photo_DU*,ref.not.ilike.Photo_FAB*,ref.not.ilike.Photo_BU*)))';
+    path+='&source=neq.inventaire&or=('+(window._perimOnlyDU?_du:_du+','+_dep)+')'
+      +'&or=(ref.not.in.(Photo_931597,Photo_898404,Photo_898405,Photo_898406),ref.is.null)';
+  }
+  else if(path.startsWith('products?'))path+='&source=neq.inventaire'
     // Périmètre 15/07 : le catalogue ne montre QUE notre dépôt — plus de
     // Fabrication (Photo_FAB*), plus de sideruns/DU (Photo_DU*), plus de
     // hors dépôt. Verrou ici = toutes les requêtes products sont couvertes.
@@ -48,6 +59,7 @@ async function sbQ(path,opts={}){
   // Exclut les liens client curés ?s=/?share= (offre figée = on n'y touche pas).
   if(path.startsWith('products?')&&window._hideReserved&&!/[?&](s|share)=/.test(location.search))
     path+='&reserve_client=is.null';
+  if(path.startsWith('products?')&&window._perimDU&&!opts._noSim&&!opts._depot){const _r=await _sbQRaw(path,opts);if(_r&&Array.isArray(_r.data))await _duFillPhotos(_r.data);return _r;}
   const r=await fetch(SURL+'/rest/v1/'+path,{method:opts.method||'GET',headers:{...SB_H,...(opts.headers||{})},body:opts.body!=null?JSON.stringify(opts.body):undefined,signal:opts.signal});
   const txt=await r.text();const d=txt?JSON.parse(txt):null;
   const cr=r.headers.get('Content-Range');
@@ -128,7 +140,7 @@ let _groupsList=[];             // [{gid, units[], count, totalWeight, mandrins:
 let _groupedTotalCount=0;       // nb de groupes (utilisé pour la pagination en mode groupé)
 let _groupedUnitCount=0;        // nb de produits individuels dans les groupes (pour l'affichage)
 let _groupQty={};               // gid → qty sélectionnée dans la card (1 par défaut)
-const groupKey = p => [
+const groupKey = p => (typeof _asmMode!=='undefined'&&_asmMode)?_asmKey(p):[
   p.qualite||'',
   p.couleur||'',
   (p.details||'').trim(),
@@ -423,7 +435,7 @@ function _stem(w){
 
 // ============ FUZZY SEARCH (client-side fallback) ============
 // Colonnes réellement consommées par rowToUi (évite select=* — payload gonflé).
-const SEL_UI='ref,quality,color,details,gsm,width,longueur,noyau,weight,price,usine,emplacement,zone,format,image_url,reserve_client,promo,id';
+const SEL_UI='ref,quality,color,details,gsm,width,longueur,noyau,weight,price,usine,emplacement,zone,format,image_url,reserve_client,promo,id,date_arrivee';
 let _allProductsCache=null,_allProductsLoading=null;
 // Jour de stock effectif : l'import remplace la base à ~8h15 Paris — avant
 // 8h30 le stock est encore celui de la veille (clé de cache facettes).
@@ -440,7 +452,7 @@ async function _loadAllProducts(){
     // CACHE JOURNALIER (perf 19/07) : le stock ne change qu'à l'import du
     // matin — 3,4 Mo de JSON économisés à chaque visite suivante.
     // v2 : purge les caches bâtis avant l'exclusion Photo_BU* (20/07)
-    const CK='prodi_facets:v3:'+(/[?&]promo=1/.test(location.search)?'promo:':'')+STOCK_DAY; // v3 = prix max(PUNET,AR_PRIXVEN) du 04/08 (réimport manuel intrajour)
+    const CK='prodi_facets:v9:'+(window._perimDU?(window._perimOnlyDU?'du:':'mix:'):'')+(/[?&]promo=1/.test(location.search)?'promo:':'')+STOCK_DAY; // v3 = prix max(PUNET,AR_PRIXVEN) du 04/08 (réimport manuel intrajour)
     try{
       const hit=localStorage.getItem(CK);
       if(hit){const rows=JSON.parse(hit);if(Array.isArray(rows)&&rows.length>100){_allProductsCache=(window._dkRaw&&window._dkRaw.length)?window._dkRaw:rows;return _allProductsCache;}}
@@ -448,7 +460,7 @@ async function _loadAllProducts(){
     const CHUNK=1000;
     // Colonnes = celles de rowToUi (le fuzzy-fallback réutilise ce cache) —
     // on ne laisse dehors que created_at/source/reserve_piece.
-    const SEL='select=ref,quality,color,details,gsm,width,longueur,noyau,weight,price,usine,emplacement,zone,format,image_url,reserve_client,promo,id';
+    const SEL='select=ref,quality,color,details,gsm,width,longueur,noyau,weight,price,usine,emplacement,zone,format,image_url,reserve_client,promo,id,date_arrivee';
     // Pages en PARALLÈLE (l'un après l'autre prenait 8 allers-retours).
     const pages=await Promise.all(Array.from({length:10},(_,i)=>
       sbQ('products?'+SEL,{headers:{'Range-Unit':'items','Range':(i*CHUNK)+'-'+(i*CHUNK+CHUNK-1)}})
@@ -457,7 +469,7 @@ async function _loadAllProducts(){
     {
       // stocke pour les prochaines visites du jour (quota dépassé = tant pis)
       try{
-        Object.keys(localStorage).filter(k=>k.startsWith('prodi_facets:')&&k!==CK).forEach(k=>localStorage.removeItem(k));
+        Object.keys(localStorage).filter(k=>k.startsWith('prodi_facets:')&&k!==CK&&!k.endsWith(STOCK_DAY)).forEach(k=>localStorage.removeItem(k));
         localStorage.setItem(CK,JSON.stringify(all));
       }catch(_){}
       _allProductsCache=(window._dkRaw&&window._dkRaw.length)?window._dkRaw:all;
@@ -1202,6 +1214,7 @@ const msdState = {
   'msd-grammage': new Set(),
   'msd-laize': new Set(),
   'msd-usine': new Set(),
+  'msd-liste': new Set(),
   'msd-diametre': new Set(),
   'msd-poids': new Set(),
 };
@@ -1214,6 +1227,7 @@ const msdLabels = {
   'msd-grammage': 'Grammages',
   'msd-laize': 'Laizes',
   'msd-usine': 'Réf usine',
+  'msd-liste': 'Listes siderun',
   'msd-diametre': 'Diamètre',
   'msd-poids': 'Poids',
 };
@@ -2065,6 +2079,7 @@ function buildMsdOptions(msdId, values, defaultLabel, labelFn, stateId){
       panel.querySelectorAll('.msd-option').forEach(opt=>{
         const hay = (opt.textContent + ' ' + (opt.dataset.search||'')).toLowerCase();
         opt.style.display = hay.includes(q) ? '' : 'none';
+        opt.classList.toggle('msd-qoff',!hay.includes(q));
       });
     });
     wrap.addEventListener('click', e=>e.stopPropagation());
@@ -2308,6 +2323,10 @@ function _matchesActiveFilters(row, excludeKey){
     const lzs=getMsdValues('msd-laize');
     if(lzs.size>0 && !lzs.has(_laizeFamilleOf(row)||'')) return false;
   }
+  if(excludeKey!=='msd-liste'&&window._perimDU){
+    const ls=getMsdValues('msd-liste');
+    if(ls.size>0 && !ls.has(_listeOf(row))) return false;
+  }
   if(excludeKey!=='msd-usine'){
     const usines=getMsdValues('msd-usine');
     if(usines.size>0 && !usines.has(String(row.usine||'').trim())) return false;
@@ -2380,6 +2399,10 @@ function _countFacet(baseRows,msdId){
     for(const r of baseRows){const v=String(r.usine||'').trim(); counts[v]=(counts[v]||0)+1;}
     return counts;
   }
+  if(msdId==='msd-liste'){
+    for(const r of baseRows){const v=_listeOf(r); counts[v]=(counts[v]||0)+1;}
+    return counts;
+  }
   if(msdId==='msd-type'){
     const off=COULEUR_SPLIT.offsetLabel,dos=COULEUR_SPLIT.dossierLabel,th=COULEUR_SPLIT.threshold;
     for(const r of baseRows){
@@ -2416,6 +2439,7 @@ function _flushFacetsApresFermeture(){
 }
 function _updateMsdFacetCounts(msdId){
   if(!_allProductsCache) return;
+  if(msdId==='msd-liste')_buildListeOptions();
   const conts=_allMsdContainers(msdId);
   if(!conts.length) return;
   // Menu ouvert : différé — SAUF s'il n'a encore aucun compteur (premier
@@ -2453,6 +2477,7 @@ function _updateMsdFacetCounts(msdId){
         if(!hay.includes(q)) visible=false;
       }
       opt.style.display = visible ? '' : 'none';
+      opt.classList.toggle('msd-off',!visible); // classe : un style « display:flex !important » écrasait le none (09/11)
       opt.style.opacity = (n===0 && sel.has(v)) ? '.45' : '';
     });
     // Tri par count desc (les types les plus disponibles en haut)
@@ -2478,7 +2503,7 @@ function _buildUsineOptions(){
   });
   const vals=[...cnt.entries()].sort((a,b)=>b[1]-a[1]).map(([u])=>u);
   if(!vals.length)return;
-  buildMsdOptions('sb-msd-usine',vals,'Réf usine',undefined,'msd-usine');
+  buildMsdOptions('sb-msd-usine',vals,'Usines',undefined,'msd-usine');
   buildMsdOptions('msd-usine-mob',vals,'Réf usine',undefined,'msd-usine');
   _usineOptionsBuilt=true;
 }
@@ -2503,6 +2528,7 @@ function _buildLaizeOptions(){
 function _refreshAllFacets(){
   _fafBump();
   _buildUsineOptions();
+  _buildListeOptions();
   _buildLaizeOptions();
   _rebuildDetailsMsd();
   _updateMsdFacetCounts('msd-type');
@@ -2512,6 +2538,7 @@ function _refreshAllFacets(){
   _updateMsdFacetCounts('msd-grammage');
   _updateMsdFacetCounts('msd-laize');
   _updateMsdFacetCounts('msd-usine');
+  _updateMsdFacetCounts('msd-liste');
   _updateMsdFacetCounts('msd-diametre');
   _updateMsdFacetCounts('msd-poids');
   _gslAdapt();
@@ -2955,8 +2982,11 @@ function _groupToUi(g){
   return {...g._proto,_grpCount:g.count,_grpTotalWeight:g.totalWeight,
     _grpMandrins:Array.from(g.mandrins),_grpDepots:Array.from(g.depots),
     _grpUsines:Array.from(g.usines),_grpUnitIds:g.units.map(u=>u.id),
-    _grpKey:g.gid,_grpProtoId:g.proto_id};
+    _grpKey:g.gid,_grpProtoId:g.proto_id,
+    _grpLz:g.count>1?_asmRngOrNull(g.units.map(u=>+u.largeur)):null,
+    _grpDi:g.count>1?_asmRngOrNull(g.units.map(u=>+u.longueur)):null};
 }
+function _asmRngOrNull(a){const v=[...new Set(a.filter(Boolean))].sort((x,y)=>x-y);return v.length>1?v[0]+' – '+v[v.length-1]:null;}
 async function _loadMore(){
   if(_landingRows)return; // accueil (rangées) : pas de scroll infini de grille
   if(_loadingMore||_sharedMode||_featuredMode||!_lastQueryP)return;
@@ -3940,6 +3970,11 @@ async function _fetchAndRender(token){
     }
     if(_lcl.length)p.append('or',`(${_lcl.join(',')})`);
   }
+  const liSel=window._perimDU?getMsdValues('msd-liste'):new Set();
+  if(liSel.size>0){
+    const _cl=[...liSel].map(k=>{const [u,d]=k.split('|');return 'and(usine.eq.'+_pgEsc(u)+','+(d?'date_arrivee.eq.'+d:'date_arrivee.is.null')+')';});
+    p.append('or',`(${_cl.join(',')})`);
+  }
   const usSel=getMsdValues('msd-usine');
   if(usSel.size>0){
     const _uq=[...usSel].map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',');
@@ -4352,6 +4387,9 @@ function updateFilterChips(){
   const refMinChip=(document.getElementById('f-refmin')?.value||'').trim();
   const refMaxChip=(document.getElementById('f-refmax')?.value||'').trim();
   if(refMinChip||refMaxChip)chips.push({key:'refrange',label:'Réf. article : '+(refMinChip&&!refMaxChip?refMinChip:(refMinChip||'—')+' → '+(refMaxChip||'—')),clear:()=>{['f-refmin','f-refmax','f-refmin-mob','f-refmax-mob'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});filterProducts();}});
+  if(window._perimDU)chips.push({key:'siderun',label:window._perimOnlyDU?'Uniquement siderun':'Dépôt + siderun',clear:()=>{if(window._perimOnlyDU)toggleSiderunOnly();else toggleSiderunPill();}});
+  const _lsel=getMsdValues('msd-liste');
+  if(window._perimDU&&_lsel.size)chips.push({key:'msd-liste',label:'Liste : '+[..._lsel].map(k=>{const [u,d]=k.split('|');return 'Usine '+u+(d?' · '+d.slice(8,10)+'/'+d.slice(5,7)+'/'+d.slice(2,4):'');}).join(', '),clear:()=>{resetMsd('msd-liste');filterProducts();}});
   const usineChip=(document.getElementById('f-usine')?.value||'').trim();
   if(usineChip)chips.push({key:'usinein',label:'Usine : '+usineChip,clear:()=>{const e=document.getElementById('f-usine');if(e)e.value='';filterProducts();}});
   const zoneNumChip=(document.getElementById('f-zone-num')?.value||'').trim();
@@ -4708,7 +4746,7 @@ function _renderQualExcel(g){
     const fams=Object.entries(agg).sort((a,b)=>b[1].kg-a[1].kg);
     g.className='pgrid plist';
     g.innerHTML='<div style="overflow-x:auto"><table class="plist-table qx-table xlw"><thead><tr>'
-      +'<th class="xw80">Photo</th><th class="xw150">Qualité</th><th>Détails</th><th class="xw100">GSM (g/m²)</th><th class="xw120">Laize (mm)</th><th class="xw120">Diamètre (mm)</th><th class="xw120">Mandrin (mm)</th><th class="xw150">Dimensions (mm)</th><th class="xw120">Poids total (t)</th><th class="xw150"></th></tr></thead><tbody>'
+      +'<th class="xwph">Photo</th><th class="xwq">Qualité</th><th class="xwdt">Détails</th><th class="xweq">GSM</th><th class="xweq">Laize (mm)</th><th class="xweq">Diamètre (mm)</th><th class="xweq">Mandrin (mm)</th><th class="xwbtn">Dimensions (mm)</th><th class="xweq">Poids total (t)</th><th class="xwbtn"></th></tr></thead><tbody>'
       +fams.map(([f,v])=>{
         const href=f==='Autres qualités'?'/catalogue/?all=1':'/catalogue/?type='+encodeURIComponent(f);
         const nds=[...v.nd].sort((a,b)=>a-b);
@@ -4716,7 +4754,7 @@ function _renderQualExcel(g){
         // plage de formats sur 3 étages : la flèche seule au milieu fait séparation
         const dims=!v.hasF?'—':((v.fw[0]===v.fw[1]&&v.fl[0]===v.fl[1])
           ?v.fw[0]+' × '+v.fl[0]
-          :v.fw[0]+' × '+v.fl[0]+'<br><span class="qx-arrow">→</span><br>'+v.fw[1]+' × '+v.fl[1]);
+          :'<span class="qx-mm">Min</span> '+v.fw[0]+' × '+v.fl[0]+'<br><span class="qx-mm">Max</span> '+v.fw[1]+' × '+v.fl[1]);
         // pile de VRAIES photos : les 2-3 DERNIERS ARRIVAGES de la famille,
         // la plus récente devant, les autres qui dépassent derrière
         const tops=v.ph.sort((x,y)=>y.n-x.n).slice(0,3);
@@ -4739,6 +4777,7 @@ function _renderQualExcel(g){
           +'<td class="plist-td qx-go"><span class="qx-go-btn">Voir le stock ›</span></td></tr>';
       }).join('')
       +'</tbody></table></div>';
+    if(typeof _asmEnsureToggle==='function')_asmEnsureToggle(); // pas de bascule Détail|Assemblé sur l'accueil
   });
 }
 function renderList(list){
@@ -4795,8 +4834,8 @@ function renderList(list){
     const isPalette=_estFormat(p);
     // Dimensions: Bobine → Laize | Ø Diamètre | Mandrin / Palette → Dimensions (laize×long)
     // unités (mm/kg) dans les EN-TÊTES de colonnes (04/10 Ethan) — cellules nues
-    const laize=p.largeur?`${mmToCm(p.largeur)}`:'—';
-    const dim2=p.longueur?`${mmToCm(p.longueur)}`:'—';
+    const laize=p._grpLz||(p.largeur?`${mmToCm(p.largeur)}`:'—');
+    const dim2=p._grpDi||(p.longueur?`${mmToCm(p.longueur)}`:'—');
     const paletteDims2=isPalette&&(p.largeur||p.longueur)?[p.largeur,p.longueur].filter(Boolean).map(v=>mmToCm(v)).join(' × '):null;
     const _grpMan=_isGroupL&&p._grpMandrins&&p._grpMandrins.length?p._grpMandrins.join(' / '):null;
     const mandrin=isPalette?null:(_grpMan||(p.noyau?`${p.noyau}`:'—'));
@@ -4805,7 +4844,7 @@ function renderList(list){
     const _usineTxt=_isGroupL&&p._grpUsines&&p._grpUsines.length>1?'+'+p._grpUsines.length:(p.usine?String(p.usine).replace(/^REF\s*/i,''):'—');
     const _detClean=p.details?p.details.replace(/[-–—\s]+/g,' ').trim():'';
     const detailsTxt=_detClean&&_detClean.length>3?`<span class="plist-details" title="${esc(p.details)}">${esc(_detClean.substring(0,60))}${_detClean.length>60?'…':''}</span>`:'';
-    return`<tr data-xli="${_xi}" onclick="_xlRowClick(event,${_xi})" class="${isPalette?'plist-palette':'plist-bobine'}${_xlIsSel(p)?' xl-sel':''}${window._xlActive===_xi?' xl-active':''}">
+    return`<tr data-xli="${_xi}" onclick="_xlRowClick(event,${_xi})" class="${isPalette?'plist-palette':'plist-bobine'}${/^Photo_DU/i.test(String(p.ref||''))?' is-du':''}${p._simPhoto?' sim-photo':''}${_xlIsSel(p)?' xl-sel':''}${window._xlActive===_xi?' xl-active':''}">
       <td class="plist-td plist-td-add">${addBtn}</td>
       <td class="plist-td plist-thumb-wrap" onclick="event.stopPropagation();${_isGroupL?`_xlAlbum(${attrJs(p._grpKey)})`:`openDetail(${numId(p.id)})`}" title="${_isGroupL?'Voir les '+numId(p._grpCount)+' photos du lot':'Voir la fiche'}">${thumb}</td>
       <td class="plist-td plist-td-ref plist-col-ref"${p.ref&&!(_sharedMode&&_isGroupL)?` onclick="event.stopPropagation();_xlCopyRef(${attrJs(p.ref.replace(/^Photo_/i,'').toUpperCase())},this)" title="Copier la référence"`:''}>${_sharedMode&&_isGroupL?`<span class="plist-ref-badge">${numId(p._grpCount)} unités</span>`:(p.ref?`<span class="plist-ref-badge">${esc(p.ref.replace(/^Photo_/i,'').toUpperCase())}</span>`:'—')}</td>
@@ -4841,21 +4880,21 @@ function renderList(list){
     return `<th class="${cls||''}${key?' xl-th':''}${on?' xl-on':''}"${key?` onclick="_xlSortBy('${key}')" title="Trier"`:''}>${lbl}${arr}</th>`;
   };
   // Headers : Bobine → Laize | Diamètre | Mandrin / Palette → Dimensions (colspan 3)
-  const _bobHead=_xlTh('Laize (mm)','largeur','xw100')+_xlTh('Diamètre (mm)','longueur','xw120')+_xlTh('Mandrin (mm)','noyau','plist-col-mandrin xw120');
-  const _palHead=`<th colspan="3" class="xw340 xl-th${window._xlSort&&window._xlSort.key==='largeur'?' xl-on':''}" onclick="_xlSortBy('largeur')" title="Trier">Dimensions (mm)${window._xlSort&&window._xlSort.key==='largeur'?(window._xlSort.dir==='desc'?' ▼':' ▲'):''}</th>`;
+  const _bobHead=_xlTh('Laize (mm)','largeur','xweq')+_xlTh('Diamètre (mm)','longueur','xweq')+_xlTh('Mandrin (mm)','noyau','plist-col-mandrin xweq');
+  const _palHead=`<th colspan="3" class="xl-th${window._xlSort&&window._xlSort.key==='largeur'?' xl-on':''}" onclick="_xlSortBy('largeur')" title="Trier">Dimensions (mm)${window._xlSort&&window._xlSort.key==='largeur'?(window._xlSort.dir==='desc'?' ▼':' ▲'):''}</th>`;
   const _buildTable=(rowsHtml,head)=>`<table class="plist-table xlw">
     <thead><tr>
       <th class="plist-th-add xw48" onclick="(window._addPageReal||addPageToCart)()" title="Ajouter toutes les lignes affichées à la sélection">+</th>
-      <th class="xw80">Photo</th>
-      ${_xlTh('Référence','ref','plist-col-ref xw100')}
-      ${_xlTh('Qualité','title','xw150')}
-      ${_xlTh('Détails','details')}
-      ${_xlTh('Couleur','couleur','xw100')}
-      ${_xlTh('GSM','grammage','xw80')}
+      <th class="xwph">Photo</th>
+      ${_xlTh('Référence','ref','plist-col-ref xweq')}
+      ${_xlTh('Qualité','title','xweq')}
+      ${_xlTh('Détails','details','xwdt')}
+      ${_xlTh('Couleur','couleur','xweq')}
+      ${_xlTh('GSM','grammage','xweq')}
       ${head}
-      ${_xlTh('Poids (kg)','poids','xw100')}
-      ${_xlTh('Usine','usine','plist-col-usine xw80')}
-      ${_xlPrice?_xlTh('Prix','price','xw120'):''}
+      ${_xlTh('Poids (kg)','poids','xweq')}
+      ${_xlTh('Usine','usine','plist-col-usine xweq')}
+      ${_xlPrice?_xlTh('Prix','price','xweq'):''}
     </tr></thead>
     <tbody>${rowsHtml}</tbody>
   </table>`;
@@ -4864,7 +4903,10 @@ function renderList(list){
   // filtré (cache client du mode groupé), pas seulement les lignes chargées.
   let _totB='',_totF='';
   if(_viewMode==='list'&&document.body.classList.contains('cat-page')&&!_sharedMode){
-    const _mk=(n,kg,lbl)=>n?`<tr class="xl-total"><td class="plist-td" colspan="10">TOTAL ${lbl} · ${n.toLocaleString('fr-FR')} unité${n>1?'s':''} · ${(kg/1000).toLocaleString('fr-FR',{minimumFractionDigits:1,maximumFractionDigits:1})} T</td><td class="plist-td plist-td-num">${Math.round(kg).toLocaleString('fr-FR')}</td><td class="plist-td plist-td-usine"></td>${_xlPrice?'<td class="plist-td"></td>':''}</tr>`:'';
+    // 09/11 Ethan : plus de libellé « TOTAL … », juste le poids total SOUS la colonne Poids.
+    // Une cellule par colonne (mêmes classes que les lignes) → reste aligné quand
+    // une colonne est masquée (Référence en Assemblé, Usine/Mandrin sur petit écran).
+    const _mk=(n,kg,lbl)=>n?`<tr class="xl-total"><td class="plist-td"></td><td class="plist-td"></td><td class="plist-td plist-col-ref"></td><td class="plist-td"></td><td class="plist-td"></td><td class="plist-td"></td><td class="plist-td"></td>${lbl==='FORMATS'?'<td class="plist-td" colspan="3"></td>':'<td class="plist-td"></td><td class="plist-td"></td><td class="plist-td plist-col-mandrin"></td>'}<td class="plist-td plist-td-num">${Math.round(kg).toLocaleString('fr-FR')}</td><td class="plist-td plist-td-usine"></td>${_xlPrice?'<td class="plist-td"></td>':''}</tr>`:'';
     let b={n:0,kg:0},f={n:0,kg:0};
     if(!window._dkRaw&&_groupedMode&&typeof _groupsList!=='undefined'&&_groupsList&&!_groupsListIsLanding){
       _groupsList.forEach(gr=>gr.units.forEach(u=>{const t=_estFormat(u)?f:b;t.n++;t.kg+=(+u.poids_net||0);}));
@@ -5013,11 +5055,11 @@ function _xlStatus(){
   const _icoXls='<svg width="20" height="20" viewBox="0 0 32 32" style="flex-shrink:0;"><rect x="9" y="2" width="21" height="14" rx="3.5" fill="#8bd47e"/><rect x="20" y="2" width="10" height="14" rx="3.5" fill="#b9e695"/><path d="M9 9h17.5A3.5 3.5 0 0 1 30 12.5V26.5a3.5 3.5 0 0 1-3.5 3.5H12.5A3.5 3.5 0 0 1 9 26.5Z" fill="#2f9e55"/><rect x="2" y="12" width="16" height="16" rx="3.5" fill="#185c37"/><path d="M6.4 16.5h2.7l1.8 3.2 1.8-3.2h2.7l-3.1 4.7 3.2 4.8h-2.8l-1.8-3.3-1.9 3.3H6.2l3.2-4.8z" fill="#fff"/></svg>';
   const _icoPdf='<img src="/img/pdf_icon.png" alt="" style="height:20px;width:auto;flex-shrink:0;">';
   const _icoClear='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="9.2"/><path d="m9 9 6 6M15 9l-6 6"/></svg>';
-  bar.innerHTML=`<button class="xls-btn xls-dark xls-clear" onclick="_xlClear()" title="Vider la sélection">${_icoClear}</button>`
-    +`<span class="xls-sum"><b>${cart.length}</b> ligne${cart.length>1?'s':''} · <b>${(kg/1000).toLocaleString('fr-FR',{maximumFractionDigits:kg>=100000?0:(kg>=10000?1:2)})}</b> t</span>`
+  bar.innerHTML=`<span class="xls-sum"><b>${cart.length}</b> ligne${cart.length>1?'s':''} · <b>${(kg/1000).toLocaleString('fr-FR',{maximumFractionDigits:kg>=100000?0:(kg>=10000?1:2)})}</b> t</span>`
     +`<button class="xls-btn xls-dark" onclick="exportListExcelTest(this).catch(()=>toast('Erreur export'))" title="Télécharger la sélection en Excel">Télécharger ${_icoXls}</button>`
     +`<button class="xls-btn xls-dark" onclick="_xlAlbumPdf(this)" title="Imprimer / enregistrer un album PDF des photos">Album photo ${_icoPdf}</button>`
-    +`<button class="xls-btn xls-go" onclick="window.open('/panier/','_blank')" title="Réserver la sélection — ouvre le panier">Réserver</button>`;
+    +`<button class="xls-btn xls-go" onclick="window.open('/panier/','_blank')" title="Réserver la sélection — ouvre le panier">Réserver</button>`
+    +`<button class="xls-btn xls-dark xls-clear" onclick="_xlClear()">${_icoClear}Vider le panier</button>`;
 }
 function _xlClear(){cart.length=0;_xlFlush();}
 /* Album PDF — MÊME moteur que le bouton « Album PDF » du catalogue prod
@@ -5753,6 +5795,8 @@ function contactWA(){
   window.open(`https://wa.me/${WA}?text=${encodeURIComponent(`Bonjour, intéressé par : ${cur.name}${cur.ref?' ('+cur.ref+')':''} — ${fmt(cur.poids_net)} disponibles. Quel est votre prix ?`)}`, '_blank');
 }
 function resetFilters(){
+  setTimeout(()=>{try{if(!window.axDispo||_resaFilter)return;document.querySelectorAll('.fpill-resa[data-resa="without"]').forEach(b=>b.classList.remove('active','selected'));window.axDispo();}catch(_){}},400); // « Dispo » = mode permanent, pas un filtre
+  try{if(msdState['msd-liste']){msdState['msd-liste'].clear();updateMsdBtn('msd-liste');}if(window._perimDU){window._perimDU=false;window._perimOnlyDU=false;sessionStorage.setItem('prodi_du','0');sessionStorage.setItem('prodi_du_only','0');_perimRefresh();}}catch(_){}
   try{
     // 1. Clear msd state sets
     Object.keys(msdState).forEach(id=>{ msdState[id].clear(); });
@@ -9523,3 +9567,250 @@ function _buildSharedInfo(list){
     setTimeout(ouvrir,force?800:Math.max(1500,60000-(Date.now()-t0)));
   }catch(_){}
 })();
+
+// ── MODE ASSEMBLÉ (09/11 Ethan) ─────────────────────────────────────────────
+// Bascule « Détail | Assemblé » au-dessus du tableau. Assemblé = MÊMES règles
+// que la feuille assemblée de l'Excel (exportListExcelTest) : une ligne par lot
+// (bobine/format + qualité + détails + couleur + GSM + usine + prix ; les
+// FORMATS gardent leurs dimensions dans la clé, les BOBINES non → laize/Ø en
+// plage min–max, mandrins joints par « / », poids = total du lot).
+let _asmDesc=false; // tri GSM (▲ par défaut, comme la vue Détail)
+function _asmSortGsm(){_asmDesc=!_asmDesc;_asmRender();}
+function _asmAddAll(){
+  const lots=[..._asmLots.values()];const all=lots.every(l=>l.units.every(u=>cart.some(c=>c.id===+u.id)));
+  lots.forEach(l=>l.units.forEach(u=>{const inC=cart.some(c=>c.id===+u.id);if(all?inC:!inC)addToCart(u.id,u);}));
+  _asmRender();
+}
+let _asmMode=false;try{_asmMode=localStorage.getItem('prodi_asm')==='1';}catch(_){}
+const _asmLots=new Map();
+function _asmKey(u){
+  const bob=!_estFormat(u);
+  return [bob,_qualOrType(u),(u.details||'').trim(),u.couleur||'',u.grammage??'',
+    bob?'':(u.largeur??''),bob?'':(u.longueur??''),String(u.usine||'').replace(/^REF\s*/i,''),u.price||''].join('|');
+}
+function _qualOrType(u){return u.qualite||'';}
+function _asmRng(set){const v=[...set].filter(Boolean).sort((a,b)=>a-b);return v.length?(v.length>1?v[0]+' – '+v[v.length-1]:String(v[0])):'—';}
+function _asmVisible(){
+  const g=document.getElementById('pgrid');
+  return !!(g&&g.querySelector('.plist-table')&&!g.querySelector('.qx-table')&&!_landingRows
+    &&document.body.classList.contains('cat-page')&&!_sharedMode&&_viewMode==='list');
+}
+function _asmEnsureToggle(){
+  const g=document.getElementById('pgrid');if(!g)return;
+  let t=document.getElementById('asm-toggle');
+  if(!_asmVisible()){if(t)t.hidden=true;return;}
+  if(!t){
+    t=document.createElement('div');t.id='asm-toggle';
+    t.innerHTML='<button type="button" data-m="0">Détail</button><button type="button" data-m="1">Assemblé</button>';
+    t.addEventListener('click',e=>{const b=e.target.closest('button');if(b)_asmSet(b.dataset.m==='1');});
+    g.parentNode.insertBefore(t,g);
+  }
+  t.hidden=false;
+  t.querySelectorAll('button').forEach(b=>b.classList.toggle('on',(b.dataset.m==='1')===_asmMode));
+}
+function _asmSet(on){
+  if(on===_asmMode)return;
+  _asmMode=on;try{localStorage.setItem('prodi_asm',on?'1':'0');}catch(_){}
+  document.body.classList.toggle('asm-on',on);
+  window.prodiTrack?.('vue_assemblee',{on});
+  _groupedMode=true;_allUnitsCache=null;_allUnitsCacheKey=null;_groupsList=[];currentPage=1;
+  if(typeof _doFilter==='function')_doFilter();
+  _asmEnsureToggle();
+}
+async function _asmRender(){
+  const g=document.getElementById('pgrid');if(!g)return;
+  const rows=await _loadAllProducts();
+  if(!_asmMode)return;
+  const q=(document.getElementById('search-input')?.value||'').trim().toLowerCase();
+  const units=rows.filter(r=>_matchesActiveFilters(r)).map(rowToUi)
+    .filter(u=>!q||[u.ref,u.details,u.qualite,u.typeLabel,u.couleur,u.grammage].join(' ').toLowerCase().includes(q));
+  _asmLots.clear();
+  units.forEach(u=>{
+    const k=_asmKey(u);let l=_asmLots.get(k);
+    if(!l){l={k,u,units:[],kg:0,lz:new Set(),di:new Set(),md:new Set()};_asmLots.set(k,l);}
+    l.units.push(u);l.kg+=+u.poids_net||0;
+    if(+u.largeur)l.lz.add(+u.largeur);if(+u.longueur)l.di.add(+u.longueur);
+    if(u.noyau)l.md.add(String(u.noyau));
+    if(!l.u.image_url&&u.image_url)l.u=u;
+    _landingUnitsById.set(+u.id,u); // repli addToCart
+  });
+  const lots=[..._asmLots.values()].sort((a,b)=>(_estFormat(a.u)-_estFormat(b.u))||(((+a.u.grammage||0)-(+b.u.grammage||0))*(_asmDesc?-1:1)));
+  const _xlPrice=_priceMode||(document.body.classList.contains('cat-page')&&!_sharedMode);
+  const inCart=id=>cart.some(x=>x.id===+id);
+  const qual=u=>esc((QUALITE_LABELS[u.qualite]||u.typeLabel||u.qualite||'').toUpperCase());
+  const row=l=>{
+    const u=l.u,all=l.units.every(x=>inCart(x.id)),fmt=_estFormat(u);
+    const det=String(u.details||'').replace(/[-–—\s]+/g,' ').trim();
+    const px=_xlPrice?`<td class="plist-td plist-td-num plist-price">${_xlLogged()?(u.price?esc(_ccyNum(u.price*1000)+' '+_ccyUnit()):'—'):`<button class="plist-seep" onclick="event.stopPropagation();window.prodiLoginPop&&window.prodiLoginPop()">Voir le prix</button>`}</td>`:'';
+    return `<tr data-asm="${esc(l.k)}">`
+      +`<td class="plist-td plist-td-add"><button class="plist-add${all?' added':''}" onclick="_asmToggleLot(this)" title="${all?'Retirer le lot':'Ajouter tout le lot'}">${all?'✕':'+'}</button></td>`
+      +`<td class="plist-td plist-thumb-wrap qx-ph" onclick="event.stopPropagation();_asmAlbum(this)" title="Photos du lot (${l.units.length} ${fmt?'format':'bobine'}${l.units.length>1?'s':''})">${_asmStack(l)}</td>`
+      +`<td class="plist-td plist-td-title"><strong class="plist-qtitle">${qual(u)}</strong></td>`
+      +`<td class="plist-td plist-td-details">${det?'<span class="plist-details">'+esc(det.slice(0,70))+(det.length>70?'…':'')+'</span>':'—'}</td>`
+      +`<td class="plist-td">${esc(u.couleur||'—')}</td>`
+      +`<td class="plist-td plist-td-num"><span class="plist-gsm">${u.grammage?esc(u.grammage+' g'):'—'}</span></td>`
+      +(fmt?`<td class="plist-td plist-td-num" colspan="3">${esc(_asmRng(l.lz))} × ${esc(_asmRng(l.di))}</td>`
+           :`<td class="plist-td plist-td-num">${esc(_asmRng(l.lz))}</td><td class="plist-td plist-td-num">${esc(_asmRng(l.di))}</td><td class="plist-td plist-td-num plist-col-mandrin">${esc([...l.md].join(' / ')||'—')}</td>`)
+      +`<td class="plist-td plist-td-num">${Math.round(l.kg).toLocaleString('fr-FR')}</td>`
+      +`<td class="plist-td plist-td-usine">${esc(String(u.usine||'—'))}</td>`
+      +px+`</tr>`;
+  };
+  const head=`<thead><tr><th class="plist-th-add xw48" onclick="_asmAddAll()" title="Ajouter tous les lots affichés">+</th><th class="xwph">Photo</th><th class="xweq">Qualité</th><th class="xwdt">Détails</th><th class="xweq">Couleur</th><th class="xweq xl-th xl-on" onclick="_asmSortGsm()" title="Trier">GSM ${_asmDesc?'▼':'▲'}</th><th class="xweq">Laize (mm)</th><th class="xweq">Diamètre (mm)</th><th class="xweq plist-col-mandrin">Mandrin (mm)</th><th class="xweq">Poids (kg)</th><th class="xweq plist-col-usine">Usine</th>${_xlPrice?'<th class="xweq">Prix</th>':''}</tr></thead>`;
+  const kg=lots.reduce((s,l)=>s+l.kg,0),n=units.length;
+  g.className='pgrid plist';
+  g.innerHTML=lots.length
+    ?`<div style="overflow-x:auto"><table class="plist-table xlw asm-table">${head}<tbody>${lots.map(row).join('')}`
+      +`<tr class="xl-total"><td class="plist-td" colspan="9">TOTAL · ${lots.length} lot${lots.length>1?'s':''} · ${n} unité${n>1?'s':''} · ${(kg/1000).toLocaleString('fr-FR',{maximumFractionDigits:1})} T</td><td class="plist-td plist-td-num">${Math.round(kg).toLocaleString('fr-FR')}</td><td class="plist-td plist-td-usine"></td>${_xlPrice?'<td class="plist-td"></td>':''}</tr>`
+      +`</tbody></table></div>`
+    :'<div style="padding:40px;text-align:center;color:#86868b">Aucun lot pour ces filtres.</div>';
+  ['pager','pager-top'].forEach(id=>{const p=document.getElementById(id);if(p)p.innerHTML='';});
+  if(typeof _xlStatus==='function')_xlStatus();
+}
+function _asmStack(l){
+  const ph=l.units.filter(x=>x.image_url).sort((a,b)=>String(b.ref).localeCompare(String(a.ref))).slice(0,3);
+  const _u=x=>typeof imgThumb==='function'?imgThumb(safeUrl(x),160):safeUrl(x);
+  if(!ph.length)return '';
+  return '<div class="qx-stack">'
+    +(ph[2]?'<img class="qx-im qx-im3" loading="lazy" src="'+_u(ph[2].image_url)+'" alt="" onerror="this.remove()">':'')
+    +(ph[1]?'<img class="qx-im qx-im2" loading="lazy" src="'+_u(ph[1].image_url)+'" alt="" onerror="this.remove()">':'')
+    +'<img class="qx-im qx-im1 plist-thumb" loading="lazy" src="'+_u(ph[0].image_url)+'" alt="" onerror="this.style.visibility=\'hidden\'">'
+    +'</div>';
+}
+function _asmAlbum(td){
+  const l=_asmLots.get(td.closest('tr')?.dataset.asm);if(!l)return;
+  const u=l.units.filter(x=>x.image_url);
+  if(!u.length){toast('Pas de photos pour ce lot');return;}
+  _xlAlbumUnits(u.slice(0,60));
+}
+function _asmToggleLot(btn){
+  const tr=btn.closest('tr');const l=_asmLots.get(tr&&tr.dataset.asm);if(!l)return;
+  const all=l.units.every(x=>cart.some(c=>c.id===+x.id));
+  l.units.forEach(u=>{const inC=cart.some(c=>c.id===+u.id);if(all?inC:!inC)addToCart(u.id,u);});
+  const now=!all;btn.classList.toggle('added',now);btn.textContent=now?'✕':'+';btn.title=now?'Retirer le lot':'Ajouter tout le lot';
+  if(typeof _xlStatus==='function')_xlStatus();
+}
+// Accroche : à chaque rendu du tableau (_xlStatus), bascule visible + vue assemblée réappliquée
+{
+  const _xlStatus0=_xlStatus;
+  _xlStatus=function(){
+    _xlStatus0.apply(this,arguments);
+    const g=document.getElementById('pgrid');
+    _asmEnsureToggle();
+  };
+}
+
+// 09/11 Ethan : un menu de filtre en bas du rail ne doit plus déborder sous
+// l'écran — s'il manque de place en dessous, il s'ouvre VERS LE HAUT.
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#filters-panel .msd-btn'))return;
+  setTimeout(()=>{
+    document.querySelectorAll('#filters-panel .msd.cse-open>.cse-drop').forEach(d=>{
+      d.classList.remove('cse-up');
+      const r=d.getBoundingClientRect(),b=d.parentElement.getBoundingClientRect();
+      if(r.bottom>innerHeight-8&&b.top-r.height-8>60)d.classList.add('cse-up');
+    });
+  },30);
+},true);
+
+
+// ── BOUTON SIDERUN (09/11 Ethan) : bascule dépôt ↔ sideruns (réfs DU de Sage) ──
+window._perimDU=false;window._perimOnlyDU=false;try{window._perimDU=sessionStorage.getItem('prodi_du')==='1';window._perimOnlyDU=window._perimDU&&sessionStorage.getItem('prodi_du_only')==='1';}catch(_){}
+// garde le mode SIDERUN quand on clique « Voir le stock » (rechargement de page)
+document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('.sdr-pill').forEach(b=>b.classList.toggle('active',window._perimDU));document.body.classList.toggle('du-on',window._perimDU);document.body.classList.toggle('du-only',!!window._perimOnlyDU);document.querySelectorAll('.sdr-only').forEach(b=>{b.hidden=!window._perimDU;b.classList.toggle('active',!!window._perimOnlyDU);});});
+function toggleSiderunOnly(btn){
+  window._perimOnlyDU=!window._perimOnlyDU;
+  try{sessionStorage.setItem('prodi_du_only',window._perimOnlyDU?'1':'0');}catch(_){}
+  _perimRefresh();
+}
+function toggleSiderunPill(btn){
+  window._perimDU=!window._perimDU;
+  if(!window._perimDU){window._perimOnlyDU=false;try{sessionStorage.setItem('prodi_du_only','0');}catch(_){}}
+  try{sessionStorage.setItem('prodi_du',window._perimDU?'1':'0');}catch(_){}
+  _perimRefresh();
+}
+function _perimRefresh(){
+  document.body.classList.toggle('du-on',window._perimDU);
+  document.body.classList.toggle('du-only',!!window._perimOnlyDU);
+  document.querySelectorAll('.sdr-only').forEach(b=>{b.hidden=!window._perimDU;b.classList.toggle('active',!!window._perimOnlyDU);});
+  document.querySelectorAll('.sdr-pill').forEach(b=>b.classList.toggle('active',window._perimDU));
+  window.prodiTrack?.('siderun',{on:window._perimDU});
+  _allProductsCache=null;_allProductsLoading=null;_allUnitsCache=null;_allUnitsCacheKey=null;_groupsList=[];currentPage=1;
+  Object.keys(_facetSig).forEach(k=>delete _facetSig[k]);
+  _usineOptionsBuilt=false;_listeBuiltFor=null;
+  if(!window._perimDU){msdState['msd-liste'].clear();updateMsdBtn('msd-liste');}
+  try{_fafEpoch++;}catch(_){}
+  filterProducts();
+  _loadAllProducts().then(()=>{if(typeof _refreshAllFacets==='function')_refreshAllFacets();});
+}
+
+// ── LISTES SIDERUN (09/11) : une liste = même usine + même date d'arrivée Sage ──
+function _listeOf(r){return String(r.usine||'').trim()+'|'+(r.date_arrivee||'');}
+let _listeBuiltFor=null;
+function _buildListeOptions(){
+  ['sb-fg-liste','fd-fg-liste'].forEach(id=>{const fg=document.getElementById(id);if(fg)fg.hidden=!window._perimDU;});
+  if(!window._perimDU||!_allProductsCache)return;
+  if(_listeBuiltFor===_allProductsCache)return;
+  const m=new Map();
+  _allProductsCache.forEach(r=>{if(!/^Photo_DU/i.test(String(r.ref||'')))return;const k=_listeOf(r);const e=m.get(k)||{n:0,kg:0};e.n++;e.kg+=+r.weight||0;m.set(k,e);});
+  const vals=[...m.keys()].sort((a,b)=>(b.split('|')[1]||'').localeCompare(a.split('|')[1]||'')||a.localeCompare(b));
+  const lbl=k=>{const [u,d]=k.split('|');const dd=d?d.slice(8,10)+'/'+d.slice(5,7)+'/'+d.slice(2,4):'sans date';return 'Usine '+(u||'?')+' · '+dd;};
+  buildMsdOptions('sb-msd-liste',vals,'Listes siderun',lbl,'msd-liste');
+  buildMsdOptions('msd-liste-mob',vals,'Listes siderun',lbl,'msd-liste');
+  document.querySelectorAll('#sb-msd-liste .msd-option,#msd-liste-mob .msd-option').forEach(o=>{o.dataset.search=lbl(o.dataset.val)+' '+o.dataset.val;});
+  _listeBuiltFor=_allProductsCache;
+}
+
+// Assemblé = comme la feuille assemblée de l'Excel : pas de colonne Référence (un lot = plusieurs réfs)
+document.addEventListener('DOMContentLoaded',()=>document.body.classList.toggle('asm-on',!!_asmMode));
+
+// ── PHOTOS « RESSEMBLANTES » POUR LES SIDERUNS (09/11 Ethan) ──
+// Un siderun n'a pas de photo dans Sage : on emprunte celle de la réf de NOTRE
+// dépôt qui lui ressemble le plus (même qualité obligatoire, puis couleur, format,
+// grammage proche, détails communs). Rien d'assez proche → pas de photo.
+let _depPhotoIdx=null,_depPhotoLoading=null;
+async function _loadDepotPhotos(){
+  if(_depPhotoIdx)return _depPhotoIdx;
+  if(_depPhotoLoading)return _depPhotoLoading;
+  _depPhotoLoading=(async()=>{
+    const K='prodi_depphotos:v1:'+STOCK_DAY;
+    try{const h=localStorage.getItem(K);if(h){_depPhotoIdx=JSON.parse(h);return _depPhotoIdx;}}catch(_){}
+    const pages=await Promise.all([0,1,2,3,4,5].map(i=>sbQ('products?select=quality,color,gsm,width,details,format,image_url&image_url=not.is.null&order=ref.desc',{headers:{'Range-Unit':'items','Range':(i*1000)+'-'+(i*1000+999)},_depot:true}).then(r=>r.data||[]).catch(()=>[])));
+    const rows=pages.flat();
+    const idx={};
+    rows.forEach(r=>{if(!r.image_url||!r.quality)return;(idx[r.quality]=idx[r.quality]||[]).push([r.color||'',+r.gsm||0,+r.width||0,r.format||'',String(r.details||'').toUpperCase(),r.image_url]);});
+    _depPhotoIdx=idx;
+    try{Object.keys(localStorage).filter(k=>k.startsWith('prodi_depphotos:')&&k!==K).forEach(k=>localStorage.removeItem(k));localStorage.setItem(K,JSON.stringify(idx));}catch(_){}
+    return idx;
+  })();
+  return _depPhotoLoading;
+}
+const _simTok=s=>new Set(String(s||'').toUpperCase().replace(/^(BOB|PAL|FOR)\.\S*/,'').split(/[^A-Z0-9%]+/).filter(t=>t.length>2));
+function _duBestPhoto(r,idx){
+  const cand=idx[r.quality];if(!cand||!cand.length)return null;
+  const g=+r.gsm||0,w=+r.width||0,tk=_simTok(r.details);
+  const sc=[];
+  for(const c of cand){
+    if(g&&c[1]&&Math.abs(c[1]-g)>Math.max(15,g*0.3))continue; // grammage trop loin
+    let v=0;
+    if((c[0]||'')===(r.color||''))v+=30;
+    if((c[3]||'')===(r.format||''))v+=15;
+    if(g&&c[1])v-=Math.abs(c[1]-g)*0.8;
+    if(w&&c[2])v-=Math.min(20,Math.abs(c[2]-w)/50);
+    let co=0;tk.forEach(t=>{if(c[4].includes(t))co++;});v+=co*8;
+    if(v>=10)sc.push([v,c[5]]);
+  }
+  if(!sc.length)return null; // rien d'assez proche → pas de photo
+  sc.sort((a,b)=>b[0]-a[0]);
+  // plusieurs réfs du dépôt correspondent ? on VARIE : parmi les meilleures
+  // (écart ≤ 15 pts, photos distinctes, max 8) chaque siderun prend la sienne
+  // — choix stable par réf (même photo à chaque visite).
+  const top=[],seen=new Set();
+  for(const [v,u] of sc){if(v<sc[0][0]-15||top.length>=8)break;if(!seen.has(u)){seen.add(u);top.push(u);}}
+  let h=0;for(const ch of String(r.ref||''))h=(h*31+ch.charCodeAt(0))>>>0;
+  return top[h%top.length];
+}
+async function _duFillPhotos(rows){
+  if(!rows.some(r=>!r.image_url&&/^Photo_DU/i.test(String(r.ref||''))))return;
+  const idx=await _loadDepotPhotos();
+  rows.forEach(r=>{if(!r.image_url&&/^Photo_DU/i.test(String(r.ref||''))){const u=_duBestPhoto(r,idx);if(u){r.image_url=u;r._simPhoto=true;}}});
+}

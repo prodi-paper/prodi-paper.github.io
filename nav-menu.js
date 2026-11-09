@@ -18,8 +18,8 @@
   // liens de nav
   var LINKS=[
     ['Explorer le stock','/catalogue/'],
-    ['Fabrication sur demande','/fabrication/'],
-    ['Demande d’échantillons','/echantillons/'],
+    /* ['Fabrication sur demande','/fabrication/'], masqué 09/11 */
+    /* ['Demande d’échantillons','/echantillons/'], masqué 09/11 */
     ['Déstockage','/catalogue/?destock=250'],
     ['Panier','/panier/'],
     ['—SEP—',''],

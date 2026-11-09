@@ -111,7 +111,7 @@
     'Vider':'Clear',
     'Voir le prix':'See price',
     'Voir le stock ›':'See stock ›',
-    'Vider la sélection':'Clear selection',
+    'Vider la sélection':'Clear selection','Vider le panier':'Empty cart',
     'Tout déselectionner':'Deselect all',
     // ── Fiche produit ──
     'Poids net':'Net weight','Zone':'Zone','Code douanier':'HS code',

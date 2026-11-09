@@ -118,13 +118,13 @@
   }
   var pop=document.createElement('div'); pop.id='ali-ship-pop';
   var POPULAIRES=['ma|Casablanca','dz|Alger','tn|Radès (Tunis)','eg|Alexandrie','sa|Djeddah','ae|Jebel Ali (Dubaï)','sn|Dakar','ci|Abidjan','fr|Le Havre'];
-  function row(id){var x=M[id];var c=_ccyCfr(x.t);return '<div class="ship-row" data-id="'+id+'">'+flag(x.f)+'<span>'+x.port+'</span><em>'+x.pays+'</em><i>+'+c.v+' '+c.u+'</i></div>';}
+  function row(id){var x=M[id];var c=_ccyCfr(x.t);return '<div class="ship-row" data-id="'+id+'">'+flag(x.f)+'<span>'+x.port+'</span><em>'+x.pays+'</em></div>';}
   function rowsHtml(){
     var h='<div class="ship-grp">Ports populaires</div>';
     POPULAIRES.forEach(function(id){h+=row(id);});
     Z.forEach(function(z){
       var _zc=_ccyCfr(z.t);
-      h+='<div class="ship-grp">'+z.n+' · '+_zc.v+' '+_zc.u+'</div>';
+      h+='<div class="ship-grp">'+z.n+'</div>';
       z.c.forEach(function(c){(c[2]||[]).forEach(function(pt){h+=row(c[0]+'|'+pt);});});
     });
     return h;

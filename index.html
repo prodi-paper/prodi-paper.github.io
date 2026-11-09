@@ -180,7 +180,7 @@ gtag('config', 'G-KYEHH64T17');
 <link rel="preconnect" href="https://images.weserv.nl">
 <link rel="dns-prefetch" href="https://stock.prodi.net">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/catalogue.css?v=904">
+<link rel="stylesheet" href="/catalogue.css?v=954">
 <!-- EmailJS : chargé À LA DEMANDE par _ejsReady() (perf 18/07) -->
 <link rel="stylesheet" href="/nav-menu.css?v=1">
 <link rel="stylesheet" href="/vitrine-embed.css?v=1">
@@ -442,7 +442,7 @@ body.topbar-view .plist-table td{border:none !important;border-bottom:1px solid 
 body.topbar-view .plist-table td:first-child{border-left:1.5px solid #8f9aae !important;}
 body.topbar-view .plist-table th:last-child,body.topbar-view .plist-table td:last-child{border-right:1.5px solid #8f9aae !important;}
 body.topbar-view .plist-table tbody tr:last-child td{border-bottom:1.5px solid #8f9aae !important;}
-body.topbar-view .plist-table tbody tr:nth-child(even) td{background:#f5f8fc;}
+body.topbar-view .plist-table tbody tr:nth-child(even) td{background:#ebf0f7;}
 body.topbar-view .plist-table tbody tr{cursor:cell;}
 /* survol semi-jaune : SOURIS seulement — sur téléphone le :hover reste collé après
    un tap → la ligne décochée restait semi-jaune (25/10) */
@@ -621,8 +621,8 @@ body.topbar-view .plist-table th.plist-th-add:hover{background:#cdd9ea !importan
 #cat-hsearch:focus-within{border-color:#b8b8bd;}
 #cat-hsearch input{flex:1;min-width:50px;border:none;outline:none;background:none;font:500 14.5px 'DM Sans',sans-serif;color:#1d1d1f;}
 #cat-hsearch input::placeholder{color:#a3a3a8;}
-#cat-hsearch button{height:32px;padding:0 16px;border:none;border-radius:999px;background:#fe0000;color:#fff;font:700 14px 'DM Sans',sans-serif;display:flex;align-items:center;gap:7px;cursor:pointer;flex-shrink:0;}
-#cat-hsearch button:hover{background:#cc0000;}
+#cat-hsearch button{height:32px;padding:0 16px;border:none;border-radius:999px;background:#ececef;color:#1d1d1f;font:700 14px 'DM Sans',sans-serif;display:flex;align-items:center;gap:7px;cursor:pointer;flex-shrink:0;}
+#cat-hsearch button:hover{background:#dcdce0;}
 /* Popup panier : TOUJOURS hors-flux (ses styles position:absolute vivent dans
    le bloc @media min-width:1136px, et le display:none mobile y était IMBRIQUÉ
    donc mort) → sur mobile le popup coulait dans le header, l'image container
@@ -973,6 +973,8 @@ body.topbar-view .plist-table th.plist-th-add:hover{background:#cdd9ea !importan
   .cpop-clear svg{flex-shrink:0;}
   @media(max-width:1135px){#cart-pop{display:none;}}
   .ship-cfr{font-size:12.5px;color:#6e6e73;margin-top:10px;font-weight:600;line-height:1.4;}
+  /* 09/11 Ethan : port seul, plus de supplément CFR affiché */
+  .ali-addr-cfr,#ali-ship-cfr,.ship-cfr,#ship-cfr{display:none !important;}
   .ship-wrap{position:relative;}
   .ship-field{display:flex;align-items:center;gap:10px;height:46px;border:1.5px solid #d2d2d7;border-radius:9px;padding:0 12px;font:600 14.5px 'DM Sans',sans-serif;color:#1d1d1f;cursor:pointer;background:#fff;}
   .ship-field svg{margin-left:auto;color:#6e6e73;transition:transform .18s;}
@@ -1033,7 +1035,7 @@ body.topbar-view .plist-table th.plist-th-add:hover{background:#cdd9ea !importan
   .ali-nav-l,.ali-nav-r{display:flex;align-items:center;gap:30px;}
   #ali-nav a{color:#111;text-decoration:none;font-weight:500;letter-spacing:.1px;}
   .ali-cats{display:flex;align-items:center;gap:8px;font-weight:600 !important;}
-  #ali-nav-promo{color:#ffb800 !important;font-weight:800 !important;}
+  #ali-nav-promo{color:#e0a100 !important;font-weight:800 !important;}
   .ali-cats svg{width:15px;height:15px;}
   .ali-nav-in{position:relative;}
   /* trait noir sous les onglets (survol / panneau ouvert) façon Alibaba */
@@ -1106,7 +1108,7 @@ body.topbar-view .plist-table th.plist-th-add:hover{background:#cdd9ea !importan
   .ah-eu{width:35px;height:auto;flex-shrink:0;border-radius:3px;box-shadow:0 0 0 1px rgba(0,0,0,.12);}
   /* bandeau bienvenue */
   #ali-welcome{background:#f5f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
-  .aw-in{max-width:min(1880px,92vw);margin:0 auto;height:62px;display:flex;align-items:center;justify-content:space-between;}
+  .aw-in{max-width:min(1320px,84vw);margin:0 auto;height:62px;display:flex;align-items:center;justify-content:space-between;}
   .aw-title{font-size:19px;font-weight:700;color:#111;}
   .aw-links{display:flex;align-items:center;gap:22px;}
   .aw-links a{display:flex;align-items:center;gap:9px;font-size:14.5px;font-weight:600;color:#111;text-decoration:none;}
@@ -1257,8 +1259,8 @@ body.shared-view #ali-lang,body.shared-view #ali-login,body.shared-view #ali-cta
           </a>
           <div class="acct-sep"></div>
           <a class="acct-item" href="/mon-prodiconseil/">Mes commandes</a>
-          <a class="acct-item" href="#" onclick="return false;">Demande de devis</a>
-          <a class="acct-item" href="/echantillons/">Demande d'&eacute;chantillons</a>
+          <a class="acct-item" href="#" onclick="return false;" style="display:none">Demande de devis</a>
+          <a class="acct-item" href="/echantillons/" style="display:none">Demande d'&eacute;chantillons</a>
           <a class="acct-item" href="/contact/">Nous contacter</a>
           <a class="acct-item" href="/mon-prodiconseil/">Mon Prodiconseil</a>
           <div class="acct-sep"></div>
@@ -1321,7 +1323,7 @@ body.shared-view #ali-lang,body.shared-view #ali-login,body.shared-view #ali-cta
         Toutes les catégories
       </a>
       <a href="/catalogue/">Explorer le stock</a>
-      <a href="/fabrication/">Fabrication sur demande</a>
+      <a href="/fabrication/" style="display:none">Fabrication sur demande</a>
       <a href="/?promo=1" id="ali-nav-promo">Déstockage</a>
     </div>
     <div class="ali-nav-r">
@@ -1731,13 +1733,13 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
   }
   var pop=document.createElement('div'); pop.id='ali-ship-pop';
   var POPULAIRES=['ma|Casablanca','dz|Alger','tn|Radès (Tunis)','eg|Alexandrie','sa|Djeddah','ae|Jebel Ali (Dubaï)','sn|Dakar','ci|Abidjan','fr|Le Havre'];
-  function row(id){var x=M[id];var c=_ccyCfr(x.t);return '<div class="ship-row" data-id="'+id+'">'+flag(x.f)+'<span>'+x.port+'</span><em>'+x.pays+'</em><i>+'+c.v+' '+c.u+'</i></div>';}
+  function row(id){var x=M[id];var c=_ccyCfr(x.t);return '<div class="ship-row" data-id="'+id+'">'+flag(x.f)+'<span>'+x.port+'</span><em>'+x.pays+'</em></div>';}
   function rowsHtml(){
     var h='<div class="ship-grp">Ports populaires</div>';
     POPULAIRES.forEach(function(id){h+=row(id);});
     Z.forEach(function(z){
       var _zc=_ccyCfr(z.t);
-      h+='<div class="ship-grp">'+z.n+' · '+_zc.v+' '+_zc.u+'</div>';
+      h+='<div class="ship-grp">'+z.n+'</div>';
       z.c.forEach(function(c){(c[2]||[]).forEach(function(pt){h+=row(c[0]+'|'+pt);});});
     });
     return h;
@@ -2179,13 +2181,8 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
 <div id="ali-hero">
   <h1 class="ah-slogan">Votre fournisseur papier &amp; carton <em>depuis 1991</em></h1>
   <div class="ah-sub">LOTS ET FABRICATION</div>
-  <form class="ah-search" onsubmit="var q=document.getElementById('ah-q').value.trim();location.href='/catalogue/'+(q?('?q='+encodeURIComponent(q)):'');return false;">
-    <input id="ah-q" placeholder="Que recherchez-vous ?" autocomplete="off">
-    <button type="submit">
-      <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.6" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      Rechercher
-    </button>
-  </form>
+  <!-- 09/11 Ethan : barre de recherche du hero retirée (1 % des visiteurs) -->
+  <style>#ali-welcome .aw-in{max-width:min(1320px,84vw) !important;}#ali-hero .ah-review{margin-top:4px !important;}#ali-hero{gap:10px !important;row-gap:10px !important;}</style>
   <div class="ah-review">
     <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
     <span><b>Google</b> Business Review</span>
@@ -2210,9 +2207,14 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
     }catch(e){}
     </script>
     <div class="aw-links">
-      <a href="/echantillons/">
+      <a href="/echantillons/" style="display:none">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg>
         Demander des échantillons
+      </a>
+      <span class="aw-sep" style="display:none"></span>
+      <a href="/catalogue/">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        Explorer le stock
       </a>
       <span class="aw-sep"></span>
       <a href="/contact/">
@@ -2656,7 +2658,7 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
       });
       paint();
     }
-    var u=document.getElementById('sb-msd-usine'); if(u&&u.closest('.fg')) u.closest('.fg').classList.add('ax-hide');
+    /* 09/11 Ethan : menu Usines (recherche + cases) ré-affiché, à la place de la case « N° usine » */
     /* catalogue en DISPO uniquement : pilule « Dispo » activée d'office —
        SAUF en mode accueil (ax-nofil) : aucun filtre actif pour laisser le
        moteur servir le mix vitrine des derniers arrivages */
@@ -3215,6 +3217,16 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
           <button class="fpill fpill-dark" data-format="Bobine" onclick="toggleFormatPill(this)" style="justify-content:center;width:100%;box-sizing:border-box;">Bobine</button>
           <button class="fpill fpill-dark" data-format="Palette" onclick="toggleFormatPill(this)" style="justify-content:center;width:100%;box-sizing:border-box;">Format</button>
         </div>
+        <button class="sdr-pill" onclick="toggleSiderunPill(this)" title="Ajouter les sideruns au stock dépôt">Siderun</button>
+        <button class="sdr-only" onclick="toggleSiderunOnly(this)" hidden title="Ne montrer que les sideruns">Uniquement siderun</button>
+      </div>
+      <div class="fg" id="sb-fg-liste" hidden>
+        <div class="msd" id="sb-msd-liste">
+          <button class="msd-btn" data-msd-id="msd-liste" onclick="toggleMsd('sb-msd-liste')">
+            <span class="msd-btn-label">Listes siderun</span><span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
+          </button>
+          <div class="msd-panel"></div>
+        </div>
       </div>
 
 
@@ -3310,7 +3322,7 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
       <div class="fg">
         <div class="msd" id="sb-msd-usine">
           <button class="msd-btn" data-msd-id="msd-usine" onclick="toggleMsd('sb-msd-usine')">
-            <span class="msd-btn-label">Réf usine</span><span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
+            <span class="msd-btn-label">Usines</span><span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
           </button>
           <div class="msd-panel"></div>
         </div>
@@ -3780,6 +3792,16 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
         <button class="fpill" id="pill-bobine" data-format="Bobine" onclick="toggleFormatPill(this)" style="justify-content:center;width:100%;box-sizing:border-box;">Bobine</button>
         <button class="fpill" id="pill-palette" data-format="Palette" onclick="toggleFormatPill(this)" style="justify-content:center;width:100%;box-sizing:border-box;">Format</button>
       </div>
+      <button class="sdr-pill" onclick="toggleSiderunPill(this)">Siderun</button>
+      <button class="sdr-only" onclick="toggleSiderunOnly(this)" hidden>Uniquement siderun</button>
+      <div id="fd-fg-liste" hidden style="margin-top:8px;">
+        <div class="msd" id="msd-liste-mob">
+          <button class="msd-btn" data-msd-id="msd-liste" onclick="toggleMsd('msd-liste-mob')">
+            <span class="msd-btn-label">Listes siderun</span><span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
+          </button>
+          <div class="msd-panel"></div>
+        </div>
+      </div>
     </div></div>
     <!-- Type de papier -->
     <div class="fd-section open"><div class="fd-section-body">
@@ -3900,7 +3922,7 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
     <div class="fd-section open"><div class="fd-section-body">
       <div class="msd" id="msd-usine-mob">
         <button class="msd-btn" data-msd-id="msd-usine" onclick="toggleMsd('msd-usine-mob')">
-          <span class="msd-btn-label">Réf usine</span>
+          <span class="msd-btn-label">Usines</span>
           <span class="msd-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
         </button>
         <div class="msd-panel"></div>
@@ -3964,7 +3986,7 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
 <script src="/analytics.js?v=8"></script>
 <script src="/login-pop.js"></script>
 <script src="/fiche.js?v=1"></script>
-<script src="/catalogue.js?v=850"></script>
+<script src="/catalogue.js?v=889"></script>
 <script>
 (function(){var Q=window._preQ||[];document.documentElement.style.cursor='';window._preQ=[];
   if(window._axDispoLater&&window.axDispo){window._axDispoLater=0;try{window.axDispo();}catch(e){}} /* défaut Dispo AVANT les clics du visiteur */
@@ -4075,24 +4097,31 @@ document.addEventListener('click',function(e){
   /* menu Type : une ligne PAR CODE (« S2SC — Couché 2 faces »), plus de fusion par famille */
   html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-type .axq{display:none !important;}
   html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-type .msd-option.axq-src{display:flex !important;}
+  html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-type .msd-option.axq-src.msd-off,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-type .msd-option.axq-src.msd-qoff{display:none !important;}
   html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-type.cse-open .cse-drop .msd-panel,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-details.cse-open .cse-drop .msd-panel{max-height:300px !important;}
   html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel .cse-drop .msd-option{padding:8px 6px !important;font-size:14px !important;}
-  html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel .cse-drop .msd-option.selected{color:#FE0000 !important;font-weight:700 !important;}
+  html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel .cse-drop .msd-option.selected{color:#1d1d1f !important;font-weight:800 !important;} /* 09/11 Ethan : plus de rouge à la sélection */
   html body.cat-page.apple-view.topbar-view:not(.shared-view) .sidebar-col .msd.cse-open .cse-drop{border-radius:6px !important;border-color:#ddd !important;}
   /* 09/11 Ethan : UNE seule largeur pour tous les menus = largeur du bouton (libellés longs passent à la ligne) */
-  html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-couleur.msd.cse-open>.cse-drop,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-details.msd.cse-open>.cse-drop,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-diametre.msd.cse-open>.cse-drop,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-format.msd.cse-open>.cse-drop,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-grammage.msd.cse-open>.cse-drop,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-laize.msd.cse-open>.cse-drop,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-mandrin.msd.cse-open>.cse-drop,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-poids.msd.cse-open>.cse-drop,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-type.msd.cse-open>.cse-drop,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-usine.msd.cse-open>.cse-drop{left:-1.5px !important;right:-1.5px !important;width:auto !important;min-width:0 !important;max-width:none !important;}
-  html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-couleur.cse-open .cse-drop .msd-panel,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-details.cse-open .cse-drop .msd-panel,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-diametre.cse-open .cse-drop .msd-panel,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-format.cse-open .cse-drop .msd-panel,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-grammage.cse-open .cse-drop .msd-panel,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-laize.cse-open .cse-drop .msd-panel,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-mandrin.cse-open .cse-drop .msd-panel,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-poids.cse-open .cse-drop .msd-panel,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-type.cse-open .cse-drop .msd-panel,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-usine.cse-open .cse-drop .msd-panel{width:auto !important;min-width:0 !important;}
+  html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-couleur.msd.cse-open>.cse-drop,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-details.msd.cse-open>.cse-drop,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-diametre.msd.cse-open>.cse-drop,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-format.msd.cse-open>.cse-drop,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-grammage.msd.cse-open>.cse-drop,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-laize.msd.cse-open>.cse-drop,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-mandrin.msd.cse-open>.cse-drop,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-poids.msd.cse-open>.cse-drop,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-type.msd.cse-open>.cse-drop,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-usine.msd.cse-open>.cse-drop,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-liste.msd.cse-open>.cse-drop{left:-1.5px !important;right:-1.5px !important;width:auto !important;min-width:0 !important;max-width:none !important;}
+  html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-couleur.cse-open .cse-drop .msd-panel,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-details.cse-open .cse-drop .msd-panel,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-diametre.cse-open .cse-drop .msd-panel,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-format.cse-open .cse-drop .msd-panel,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-grammage.cse-open .cse-drop .msd-panel,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-laize.cse-open .cse-drop .msd-panel,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-mandrin.cse-open .cse-drop .msd-panel,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-poids.cse-open .cse-drop .msd-panel,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-type.cse-open .cse-drop .msd-panel,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-usine.cse-open .cse-drop .msd-panel,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel #sb-msd-liste.cse-open .cse-drop .msd-panel{width:auto !important;min-width:0 !important;}
   html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel .cse-drop .msd-option .msd-label{white-space:normal !important;}
   /* 09/11 Ethan : panneau filtres +10 % (polices) */
-  html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel .fpill{font-size:14.3px !important;}
-  html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel .msd-btn,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel .msd-btn-label{font-size:16.5px !important;}
-  html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel .msd-option{font-size:15.4px !important;}
-  html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel .msd-count-inline{font-size:11.5px !important;}
-  html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel input{font-size:15px !important;}
-  html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel .axpill-t{font-size:14.3px !important;}
-  html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel .axpill-t small{font-size:13.2px !important;}
-  html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel::before{font-size:19.8px !important;}
-  html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel #tb-tons b{font-size:17.6px !important;}
+  html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel .fpill{font-size:15.7px !important;}
+  html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel .msd-btn,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel .msd-btn-label{font-size:18.2px !important;}
+  html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel .msd-option{font-size:16.9px !important;}
+  html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel .msd-count-inline{font-size:12.7px !important;}
+  html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel input{font-size:16.5px !important;}
+  html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel .axpill-t{font-size:15.7px !important;}
+  html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel .axpill-t small{font-size:14.5px !important;}
+  html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel::before{font-size:21.8px !important;}
+  html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel #tb-tons b{font-size:19.4px !important;}
+  html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel #sb-msd-type .msd-btn,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel #sb-msd-type .msd-btn-label,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel #sb-msd-couleur .msd-btn,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel #sb-msd-couleur .msd-btn-label,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel #sb-msd-grammage .msd-btn,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel #sb-msd-grammage .msd-btn-label,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel #sb-msd-format .msd-btn,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel #sb-msd-format .msd-btn-label,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel #sb-msd-mandrin .msd-btn,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel #sb-msd-mandrin .msd-btn-label,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel #sb-msd-details .msd-btn,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel #sb-msd-details .msd-btn-label,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel #sb-msd-laize .msd-btn,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel #sb-msd-laize .msd-btn-label,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel #sb-msd-usine .msd-btn,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel #sb-msd-usine .msd-btn-label,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel #sb-msd-liste .msd-btn,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel #sb-msd-liste .msd-btn-label{font-size:18.2px !important;}
+  /* Usines = même liste que les autres menus */
+  html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel #sb-msd-usine .msd-option{font-size:16.9px !important;font-weight:400 !important;padding:8px 6px !important;}
+  html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel #sb-msd-usine .msd-panel{max-height:300px !important;}
+  /* 09/11 : UNE seule règle pour les options de TOUS les menus (taille, graisse, hauteur) */
+  html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel #sb-msd-type .msd-option,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel #sb-msd-couleur .msd-option,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel #sb-msd-grammage .msd-option,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel #sb-msd-format .msd-option,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel #sb-msd-mandrin .msd-option,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel #sb-msd-details .msd-option,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel #sb-msd-laize .msd-option,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel #sb-msd-usine .msd-option,html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel #sb-msd-liste .msd-option{font-size:16.9px !important;font-weight:500 !important;padding:5px 4px !important;line-height:1.3 !important;min-height:32px !important;box-sizing:border-box !important;text-transform:none !important;}
   /* Laizes = même bouton que Couleurs / Grammages */
   html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel #sb-msd-laize .msd-btn{padding:8px 11px !important;border:1px solid #ebebeb !important;border-radius:6px !important;background:#fff !important;font-weight:600 !important;color:#222 !important;}
   html body.cat-page.apple-view.topbar-view:not(.shared-view) #filters-panel#filters-panel #sb-msd-laize .msd-btn-label{font-weight:600 !important;}
@@ -4149,7 +4178,7 @@ document.addEventListener('click',function(e){
     });
   /* Référence usine : une case « N° usine » → champ caché f-usine lu par le filtre */
   var fp=document.getElementById('filters-panel'),hu=document.getElementById('f-usine');
-  if(fp&&hu&&!fp.querySelector('.eb-usine-fg')){var u=document.createElement('div');u.className='fg axnum-fg eb-usine-fg';
+  if(false&&fp&&hu&&!fp.querySelector('.eb-usine-fg')){var u=document.createElement('div');u.className='fg axnum-fg eb-usine-fg';
     u.innerHTML='<div class="axpill-t">Référence usine</div><div class="axm"><input type="number" min="0" placeholder="N° usine" aria-label="N° usine"></div>';
     fp.appendChild(u);var ui=u.querySelector('input');ui.value=hu.value||'';
     ui.addEventListener('input',function(){hu.value=ui.value;try{filterProducts();}catch(e){}});}
