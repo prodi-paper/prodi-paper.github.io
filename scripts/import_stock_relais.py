@@ -11,6 +11,7 @@ Correspondance DOV → Sage (vérifiée le 06/11/2026) :
   NOM_DEPOT    F_DEPOT.DE_Intitule
   DP_CODE      F_DEPOTEMPL.DP_Code via F_ARTSTOCK.DP_NoPrincipal (PAS F_ARTSTOCKEMPL = « DEFAUT »)
   PNET         F_ARTICLE.AR_PoidsNet
+  PBRUT        F_ARTICLE.AR_PoidsBrut (→ products.pbrut, poids affiché en prépa/chargement)
   PUNET        F_ARTICLE.AR_PUNet ; AR_PRIXVEN = AR_PrixVen
   CODE_CLI/PIECE  F_DOCLIGNE DO_Type=2 (bon de préparation) CT_Num / DO_Piece
   DATECREA     F_ARTICLE.cbCreation
@@ -29,7 +30,7 @@ from datetime import datetime
 PROJECT = "bvcgpdoukhcatjibmvnb"
 SQL_URL = f"https://api.supabase.com/v1/projects/{PROJECT}/database/query"
 
-ALL_KEYS = ['quality','color','details','gsm','width','longueur','noyau','weight','price','ref','usine','emplacement','zone','format','image_url','source','reserve_client','reserve_piece','promo','date_arrivee']
+ALL_KEYS = ['quality','color','details','gsm','width','longueur','noyau','weight','pbrut','price','ref','usine','emplacement','zone','format','image_url','source','reserve_client','reserve_piece','promo','date_arrivee']
 HIDDEN_FAMILIES = {'UMAC', 'UMAN', 'WFRA', 'WFRE', 'ECART'}
 _AISLE_RE = re.compile(r'^\s*\d{1,3}[A-Z]{1,3}(?:\s*,\s*\d{1,3}[A-Z]{1,3})*\s*$', re.IGNORECASE)
 
@@ -72,7 +73,7 @@ select st.ref, st.q, d."DE_Intitule" depot, e."DP_Code" dp_code,
   a."AR_Langue1" langue1, a."DETAIL" detail, a."FIBRE" fibre, a."BACK" back,
   a."FINITION" finition, a."QUALITE" qualite, a."TEINTE" teinte, a."COULEUR" couleur,
   a."GRAMMAGE" grs, a."LARGEUR" larg, a."LONGUEUR" long, a."HDIAM" hdiam, a."MANDRIN" mandrin,
-  a."AR_PoidsNet" pnet, a."AR_PUNet" punet, a."AR_PrixVen" prixven,
+  a."AR_PoidsNet" pnet, a."AR_PoidsBrut" pbrut, a."AR_PUNet" punet, a."AR_PrixVen" prixven,
   a."EMPLACEMENT" emplacement, a."cbCreation"::date::text datecrea,
   bp.cli, bp.piece
 from st
@@ -153,6 +154,7 @@ def build(rows):
             'longueur': int(longueur) if longueur else None,
             'noyau': int(num(r['mandrin']) or 0) or None,
             'weight': num(r['pnet']),
+            'pbrut': num(r['pbrut']),
             'price': prix,
             'usine': extract_usine(clean(r['emplacement'])),
             'emplacement': emplacement,
@@ -198,7 +200,7 @@ def charger(max_age_h=24):
 def _eq(k, a, b):
     if a in (None, '') and b in (None, ''):
         return True
-    if k in ('weight', 'price'):
+    if k in ('weight', 'pbrut', 'price'):
         try:
             return abs(float(a) - float(b)) <= max(0.011, 0.005 * abs(float(b)))
         except (TypeError, ValueError):
