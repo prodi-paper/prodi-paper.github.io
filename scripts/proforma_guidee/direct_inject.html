@@ -1,7 +1,9 @@
 
 <!-- ═══ TEST LOCAL 03/11 : formulaire complet À GAUCHE + feuille éditable À DROITE + client Sage ═══ -->
 <style>
-  body.direct .wrap{max-width:none;display:flex;flex-direction:row;align-items:flex-start;justify-content:center;gap:24px;}
+  body.direct .wrap{max-width:none;display:flex;flex-direction:row;align-items:flex-start;justify-content:flex-start;gap:24px;padding-left:24px;padding-right:24px;}
+  /* 09/11 Ethan « utilise la LARGEUR » : la feuille occupe toute la place à droite du formulaire */
+  @media (min-width:1321px){body.direct .sheetbox{flex:1 1 auto;min-width:0;justify-content:center;}}
   body.direct:not(.apercu) .sheetbox{display:flex!important;}
   body.direct .panel{zoom:1!important;width:500px;max-width:500px;flex:none;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow-y:auto;padding:18px 20px;}
   body.direct .panel .lbl{display:block;font-size:12px;font-weight:700;color:#666;margin:10px 0 4px;text-transform:none;letter-spacing:0;}

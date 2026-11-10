@@ -33,11 +33,22 @@ async function sbQ(path,opts={}){
   // 09/11 Ethan : bouton SIDERUN → périmètre = sideruns Sage (réfs Photo_DU*), hors dépôt
   // SIDERUN (09/11 Ethan) : 1er clic = dépôt + sideruns MÉLANGÉS ; « Uniquement siderun » = sideruns seuls.
   // Sideruns = réfs Photo_DU* des listes de MOINS DE 6 MOIS (date d'arrivée Sage).
-  if(path.startsWith('products?')&&window._perimDU&&!opts._depot){
+  // FABRICATION (09/11 Ethan) : case jaune → ajoute les réfs Photo_FAB* au périmètre.
+  if(path.startsWith('products?')&&(window._perimDU||window._perimFAB||window._perimNoDep||window._perimEXT)&&!opts._depot){
     const _d6=(()=>{const d=new Date();d.setMonth(d.getMonth()-6);return d.toISOString().slice(0,10);})();
     const _du='and(ref.ilike.Photo_DU*,date_arrivee.gte.'+_d6+')';
     const _dep='and(emplacement.eq.OUR WAREHOUSE,or(ref.is.null,and(ref.not.ilike.Photo_DU*,ref.not.ilike.Photo_FAB*,ref.not.ilike.Photo_BU*)))';
-    path+='&source=neq.inventaire&or=('+(window._perimOnlyDU?_du:_du+','+_dep)+')'
+    const _fab='ref.ilike.Photo_FAB*';
+    // HORS ST-OUEN (09/11 Ethan) : lots des autres dépôts (Koper, Barcelone, Kallo…) — hors bureau, dépôt client, direct usine
+    // … et seulement les lots créés dans Sage depuis 60 jours ou moins (09/11 Ethan : les vieux lots 2017-2022 = plus vendables)
+    const _d60=(()=>{const d=new Date();d.setDate(d.getDate()-60);return d.toISOString().slice(0,10);})();
+    const _ext='and(emplacement.not.in.("OUR WAREHOUSE","A-PRODI BUREAU","DEPOT CLIENT","DIRECT USINE"),ref.not.ilike.Photo_DU*,ref.not.ilike.Photo_FAB*,ref.not.ilike.Photo_BU*,date_arrivee.gte.'+_d60+')';
+    // 09/11 Ethan : AUCUNE case cochée = TOUT (dépôt + hors St-Ouen + DU + FAB)
+    const _all=window._perimNoDep&&!window._perimDU&&!window._perimFAB&&!window._perimEXT;
+    const _parts=[];if(!window._perimNoDep||_all)_parts.push(_dep);if(window._perimDU||_all)_parts.push(_du);if(window._perimFAB||_all)_parts.push(_fab);if(window._perimEXT||_all)_parts.push(_ext);
+    // FAB : vue products + TOUS les FAB Sage non en sommeil (supabase_v_products_fab.sql)
+    if(window._perimFAB||_all)path='v_products_fab?'+path.slice(9);
+        path+='&source=neq.inventaire&or=('+_parts.join(',')+')'
       +'&or=(ref.not.in.(Photo_931597,Photo_898404,Photo_898405,Photo_898406),ref.is.null)';
   }
   else if(path.startsWith('products?'))path+='&source=neq.inventaire'
@@ -57,9 +68,9 @@ async function sbQ(path,opts={}){
     +'&or=(ref.not.in.(Photo_931597,Photo_898404,Photo_898405,Photo_898406),ref.is.null)';
   // Clients externes / accès sans prix : jamais de réservés (window._hideReserved).
   // Exclut les liens client curés ?s=/?share= (offre figée = on n'y touche pas).
-  if(path.startsWith('products?')&&window._hideReserved&&!/[?&](s|share)=/.test(location.search))
+  if(/^(v_)?products(_fab)?\?/.test(path)&&window._hideReserved&&!/[?&](s|share)=/.test(location.search))
     path+='&reserve_client=is.null';
-  if(path.startsWith('products?')&&window._perimDU&&!opts._noSim&&!opts._depot){const _r=await _sbQRaw(path,opts);if(_r&&Array.isArray(_r.data))await _duFillPhotos(_r.data);return _r;}
+  if(/^(v_)?products(_fab)?\?/.test(path)&&(window._perimDU||window._perimFAB||window._perimEXT||window._perimNoDep)&&!opts._noSim&&!opts._depot){const _r=await _sbQRaw(path,opts);if(_r&&Array.isArray(_r.data))await _duFillPhotos(_r.data);return _r;}
   const r=await fetch(SURL+'/rest/v1/'+path,{method:opts.method||'GET',headers:{...SB_H,...(opts.headers||{})},body:opts.body!=null?JSON.stringify(opts.body):undefined,signal:opts.signal});
   const txt=await r.text();const d=txt?JSON.parse(txt):null;
   const cr=r.headers.get('Content-Range');
@@ -448,14 +459,15 @@ async function _loadAllProducts(){
   if(window._dkRaw&&window._dkRaw.length)return (_allProductsCache=window._dkRaw);  // déstockage : facettes sur le sous-ensemble, jamais le catalogue complet
   if(_allProductsCache)return _allProductsCache;
   if(_allProductsLoading)return _allProductsLoading;
+  const _gen=window._perimGen||0; // 09/11 : une réponse d'un ANCIEN périmètre (clics rapides) n'écrase jamais le cache
   _allProductsLoading=(async()=>{
     // CACHE JOURNALIER (perf 19/07) : le stock ne change qu'à l'import du
     // matin — 3,4 Mo de JSON économisés à chaque visite suivante.
     // v2 : purge les caches bâtis avant l'exclusion Photo_BU* (20/07)
-    const CK='prodi_facets:v9:'+(window._perimDU?(window._perimOnlyDU?'du:':'mix:'):'')+(/[?&]promo=1/.test(location.search)?'promo:':'')+STOCK_DAY; // v3 = prix max(PUNET,AR_PRIXVEN) du 04/08 (réimport manuel intrajour)
+    const CK='prodi_facets:v9:'+(window._perimDU?(window._perimOnlyDU?'du:':'mix:'):'')+(window._perimFAB?'fab:':'')+(window._perimNoDep?'nodep:':'')+(window._perimEXT?'ext:':'')+(/[?&]promo=1/.test(location.search)?'promo:':'')+STOCK_DAY; // v3 = prix max(PUNET,AR_PRIXVEN) du 04/08 (réimport manuel intrajour)
     try{
       const hit=localStorage.getItem(CK);
-      if(hit){const rows=JSON.parse(hit);if(Array.isArray(rows)&&rows.length>100){_allProductsCache=(window._dkRaw&&window._dkRaw.length)?window._dkRaw:rows;return _allProductsCache;}}
+      if(hit){const rows=JSON.parse(hit);if(Array.isArray(rows)&&rows.length>100&&_gen===(window._perimGen||0)){_allProductsCache=(window._dkRaw&&window._dkRaw.length)?window._dkRaw:rows;return _allProductsCache;}}
     }catch(_){}
     const CHUNK=1000;
     // Colonnes = celles de rowToUi (le fuzzy-fallback réutilise ce cache) —
@@ -472,6 +484,7 @@ async function _loadAllProducts(){
         Object.keys(localStorage).filter(k=>k.startsWith('prodi_facets:')&&k!==CK&&!k.endsWith(STOCK_DAY)).forEach(k=>localStorage.removeItem(k));
         localStorage.setItem(CK,JSON.stringify(all));
       }catch(_){}
+      if(_gen!==(window._perimGen||0))return _loadAllProducts();
       _allProductsCache=(window._dkRaw&&window._dkRaw.length)?window._dkRaw:all;
       return _allProductsCache;
     }
@@ -4215,7 +4228,7 @@ async function _fetchAndRender(token){
   const tbTons=document.getElementById('tb-tons');
   // mode déstockage : le tonnage est posé LOCALEMENT par _dkRender — ne pas
   // l'écraser avec la somme serveur du périmètre global (chasse aux bugs 05/10)
-  if(tbTons&&!window._dkRaw){const _t=_totalWeightKg/1000;tbTons.innerHTML=_t>0?`<b>${_t>=100?Math.round(_t).toLocaleString('fr-FR'):_t.toFixed(1).replace('.',',')}</b> t`:'';}
+  if(tbTons&&!window._dkRaw){const _t=_totalWeightKg/1000;tbTons.innerHTML=_t>0?`<b>${_t>=100?Math.round(_t).toLocaleString('fr-FR'):_t.toFixed(1).replace('.',',')}</b> t`:'<b>0</b> t';} // jamais vide : le titre « Filtres » se cale dessus
   // 18/08 (Ethan, téléphone) : tonnage de la sélection AUSSI dans le header,
   // entre le logo Prodiconseil et les boutons de droite
   (function(){
@@ -4387,7 +4400,10 @@ function updateFilterChips(){
   const refMinChip=(document.getElementById('f-refmin')?.value||'').trim();
   const refMaxChip=(document.getElementById('f-refmax')?.value||'').trim();
   if(refMinChip||refMaxChip)chips.push({key:'refrange',label:'Réf. article : '+(refMinChip&&!refMaxChip?refMinChip:(refMinChip||'—')+' → '+(refMaxChip||'—')),clear:()=>{['f-refmin','f-refmax','f-refmin-mob','f-refmax-mob'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});filterProducts();}});
-  if(window._perimDU)chips.push({key:'siderun',label:window._perimOnlyDU?'Uniquement siderun':'Dépôt + siderun',clear:()=>{if(window._perimOnlyDU)toggleSiderunOnly();else toggleSiderunPill();}});
+  if(window._perimDU)chips.push({key:'siderun',label:'+ Siderun (DU)',clear:()=>toggleSiderunPill()});
+  if(window._perimNoDep&&(window._perimDU||window._perimFAB||window._perimEXT))chips.push({key:'nodep',label:'Sans dépôt',clear:()=>toggleDepot()});
+  if(window._perimEXT)chips.push({key:'ext',label:'+ Hors St-Ouen',clear:()=>toggleExtPill()});
+  if(window._perimFAB)chips.push({key:'fab',label:'+ Fabrication',clear:()=>toggleFabPill()});
   const _lsel=getMsdValues('msd-liste');
   if(window._perimDU&&_lsel.size)chips.push({key:'msd-liste',label:'Liste : '+[..._lsel].map(k=>{const [u,d]=k.split('|');return 'Usine '+u+(d?' · '+d.slice(8,10)+'/'+d.slice(5,7)+'/'+d.slice(2,4):'');}).join(', '),clear:()=>{resetMsd('msd-liste');filterProducts();}});
   const usineChip=(document.getElementById('f-usine')?.value||'').trim();
@@ -4844,7 +4860,7 @@ function renderList(list){
     const _usineTxt=_isGroupL&&p._grpUsines&&p._grpUsines.length>1?'+'+p._grpUsines.length:(p.usine?String(p.usine).replace(/^REF\s*/i,''):'—');
     const _detClean=p.details?p.details.replace(/[-–—\s]+/g,' ').trim():'';
     const detailsTxt=_detClean&&_detClean.length>3?`<span class="plist-details" title="${esc(p.details)}">${esc(_detClean.substring(0,60))}${_detClean.length>60?'…':''}</span>`:'';
-    return`<tr data-xli="${_xi}" onclick="_xlRowClick(event,${_xi})" class="${isPalette?'plist-palette':'plist-bobine'}${/^Photo_DU/i.test(String(p.ref||''))?' is-du':''}${p._simPhoto?' sim-photo':''}${_xlIsSel(p)?' xl-sel':''}${window._xlActive===_xi?' xl-active':''}">
+    return`<tr data-xli="${_xi}" onclick="_xlRowClick(event,${_xi})" class="${isPalette?'plist-palette':'plist-bobine'}${/^Photo_DU/i.test(String(p.ref||''))?' is-du':''}${/^Photo_FAB/i.test(String(p.ref||''))?' is-fab':''}${p.emplacement&&p.emplacement!=='OUR WAREHOUSE'&&!/^Photo_(DU|FAB)/i.test(String(p.ref||''))?' is-ext':''}${p._simPhoto?' sim-photo':''}${_xlIsSel(p)?' xl-sel':''}${window._xlActive===_xi?' xl-active':''}">
       <td class="plist-td plist-td-add">${addBtn}</td>
       <td class="plist-td plist-thumb-wrap" onclick="event.stopPropagation();${_isGroupL?`_xlAlbum(${attrJs(p._grpKey)})`:`openDetail(${numId(p.id)})`}" title="${_isGroupL?'Voir les '+numId(p._grpCount)+' photos du lot':'Voir la fiche'}">${thumb}</td>
       <td class="plist-td plist-td-ref plist-col-ref"${p.ref&&!(_sharedMode&&_isGroupL)?` onclick="event.stopPropagation();_xlCopyRef(${attrJs(p.ref.replace(/^Photo_/i,'').toUpperCase())},this)" title="Copier la référence"`:''}>${_sharedMode&&_isGroupL?`<span class="plist-ref-badge">${numId(p._grpCount)} unités</span>`:(p.ref?`<span class="plist-ref-badge">${esc(p.ref.replace(/^Photo_/i,'').toUpperCase())}</span>`:'—')}</td>
@@ -5058,10 +5074,48 @@ function _xlStatus(){
   bar.innerHTML=`<span class="xls-sum"><b>${cart.length}</b> ligne${cart.length>1?'s':''} · <b>${(kg/1000).toLocaleString('fr-FR',{maximumFractionDigits:kg>=100000?0:(kg>=10000?1:2)})}</b> t</span>`
     +`<button class="xls-btn xls-dark" onclick="exportListExcelTest(this).catch(()=>toast('Erreur export'))" title="Télécharger la sélection en Excel">Télécharger ${_icoXls}</button>`
     +`<button class="xls-btn xls-dark" onclick="_xlAlbumPdf(this)" title="Imprimer / enregistrer un album PDF des photos">Album photo ${_icoPdf}</button>`
+    +`<button class="xls-btn xls-dark" onclick="_xlProforma()" title="Générer une proforma à partir de la sélection">Proforma ${_icoPdf}</button>`
     +`<button class="xls-btn xls-go" onclick="window.open('/panier/','_blank')" title="Réserver la sélection — ouvre le panier">Réserver</button>`
     +`<button class="xls-btn xls-dark xls-clear" onclick="_xlClear()">${_icoClear}Vider le panier</button>`;
 }
 function _xlClear(){cart.length=0;_xlFlush();}
+/* PROFORMA depuis le panier (09/11 Ethan) : regroupe la sélection par
+   désignation + prix et ouvre /proforma/ prérempli (#d=, même format que le
+   lien MCP). qte en kg, pu en €/kg (prix stock en €/T, sauf FAB & co déjà en €/kg). */
+function _xlProforma(){
+  if(!cart.length){toast('Panier vide');return;}
+  window.open(_proformaUrl(),'_blank');
+}
+function _proformaUrl(){
+  // ASSEMBLÉ (09/11 Ethan) : une ligne par qualité + couleur + bobine/format + grammage ;
+  // laizes / formats listés, prix = moyenne pondérée au poids (total inchangé à l'arrondi près).
+  const grp=new Map();
+  cart.forEach(p=>{
+    const c=(typeof _allProductsCache!=='undefined'&&_allProductsCache)?_allProductsCache.find(x=>x.id===+p.id):null;
+    const f={qualite:p.qualite||c?.quality,couleur:p.couleur||c?.color,grammage:p.grammage||c?.gsm,largeur:p.largeur||c?.width,longueur:p.longueur||c?.longueur,format:p.format||c?.format};
+    const isF=_estFormat(f);
+    const q=String(QUALITE_LABELS[f.qualite]||f.qualite||p.name||'PAPIER').toUpperCase();
+    const coul=f.couleur?' '+String(f.couleur).toUpperCase():'';
+    const head=q+coul+(isF?' EN FORMAT':' EN BOBINE'),k=head+'|'+(f.grammage||'');
+    const dim=isF&&f.largeur&&f.longueur?mmToCm(Math.min(f.largeur,f.longueur))+' X '+mmToCm(Math.max(f.largeur,f.longueur)):(f.largeur?String(mmToCm(f.largeur)):'');
+    const kg=+(p.qty_kg??p.poids_net)||0,pu=p.price?(+p.price>10?+p.price/1000:+p.price):0;
+    const g=grp.get(k)||{head,isF,gsm:f.grammage,dims:[],qte:0,val:0,kgPrix:0,refs:[]};
+    g.qte+=kg;if(pu){g.val+=pu*kg;g.kgPrix+=kg;}
+    if(dim&&!g.dims.includes(dim))g.dims.push(dim);
+    g.refs.push(String(p.ref||'').replace(/^Photo_/i,''));
+    grp.set(k,g);
+  });
+  const lignes=[...grp.values()].map(g=>{
+    const dims=g.dims.sort((a,b)=>parseFloat(a)-parseFloat(b));
+    const l=[g.head];
+    if(g.gsm)l.push('GRAMMAGE : '+g.gsm+' g/m²');
+    if(dims.length)l.push((g.isF?(dims.length>1?'FORMATS : ':'FORMAT : '):(dims.length>1?'LAIZES : ':'LAIZE : '))+dims.join(' - ')+' MM');
+    return {code:g.refs.length===1?g.refs[0]:'',des:l.join('\n'),qte:Math.round(g.qte),pu:g.kgPrix?Math.round(g.val/g.kgPrix*1000)/1000:0};
+  });
+  const d=btoa(unescape(encodeURIComponent(JSON.stringify({lignes})))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  window.prodiTrack?.('proforma_panier',{n:cart.length,l:lignes.length});
+  return '/proforma/#d='+d;
+}
 /* Album PDF — MÊME moteur que le bouton « Album PDF » du catalogue prod
    (porté de prodi_site 04/10, demande Ethan : comportement IDENTIQUE) :
    PDF jsPDF dessiné (A4, 4 cartes/page, photos cover, détails rouges),
@@ -5796,7 +5850,7 @@ function contactWA(){
 }
 function resetFilters(){
   setTimeout(()=>{try{if(!window.axDispo||_resaFilter)return;document.querySelectorAll('.fpill-resa[data-resa="without"]').forEach(b=>b.classList.remove('active','selected'));window.axDispo();}catch(_){}},400); // « Dispo » = mode permanent, pas un filtre
-  try{if(msdState['msd-liste']){msdState['msd-liste'].clear();updateMsdBtn('msd-liste');}if(window._perimDU){window._perimDU=false;window._perimOnlyDU=false;sessionStorage.setItem('prodi_du','0');sessionStorage.setItem('prodi_du_only','0');_perimRefresh();}}catch(_){}
+  try{if(msdState['msd-liste']){msdState['msd-liste'].clear();updateMsdBtn('msd-liste');}if(window._perimDU||window._perimFAB||!window._perimNoDep||window._perimEXT){window._perimDU=false;window._perimFAB=false;window._perimNoDep=true;window._perimEXT=false;_perimRefresh();}}catch(_){}
   try{
     // 1. Clear msd state sets
     Object.keys(msdState).forEach(id=>{ msdState[id].clear(); });
@@ -9714,25 +9768,43 @@ document.addEventListener('click',e=>{
 
 
 // ── BOUTON SIDERUN (09/11 Ethan) : bascule dépôt ↔ sideruns (réfs DU de Sage) ──
-window._perimDU=false;window._perimOnlyDU=false;try{window._perimDU=sessionStorage.getItem('prodi_du')==='1';window._perimOnlyDU=window._perimDU&&sessionStorage.getItem('prodi_du_only')==='1';}catch(_){}
-// garde le mode SIDERUN quand on clique « Voir le stock » (rechargement de page)
-document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('.sdr-pill').forEach(b=>b.classList.toggle('active',window._perimDU));document.body.classList.toggle('du-on',window._perimDU);document.body.classList.toggle('du-only',!!window._perimOnlyDU);document.querySelectorAll('.sdr-only').forEach(b=>{b.hidden=!window._perimDU;b.classList.toggle('active',!!window._perimOnlyDU);});});
-function toggleSiderunOnly(btn){
-  window._perimOnlyDU=!window._perimOnlyDU;
-  try{sessionStorage.setItem('prodi_du_only',window._perimOnlyDU?'1':'0');}catch(_){}
-  _perimRefresh();
+// PÉRIMÈTRE (09/11 Ethan) : 3 cases indépendantes — Dépôt / Stock + DU / Fabrication.
+// Dépôt décoché = _perimNoDep ; tout décoché = TOUT (dépôt + hors St-Ouen + DU + FAB).
+// _perimOnlyDU (ancien « Uniquement siderun ») = DU sans dépôt, dérivé.
+// 09/11 Ethan : on ARRIVE sans aucune case cochée = tout le stock
+window._perimDU=false;window._perimFAB=false;window._perimNoDep=true;window._perimEXT=false;
+try{window._perimEXT=sessionStorage.getItem('prodi_ext')==='1';window._perimDU=sessionStorage.getItem('prodi_du')==='1';window._perimFAB=sessionStorage.getItem('prodi_fab')==='1';window._perimNoDep=sessionStorage.getItem('prodi_nodep')!=='0';}catch(_){}
+function _perimFix(){
+  window._perimOnlyDU=!!(window._perimDU&&window._perimNoDep);
+  try{sessionStorage.setItem('prodi_du',window._perimDU?'1':'0');sessionStorage.setItem('prodi_fab',window._perimFAB?'1':'0');sessionStorage.setItem('prodi_nodep',window._perimNoDep?'1':'0');sessionStorage.setItem('prodi_ext',window._perimEXT?'1':'0');sessionStorage.setItem('prodi_du_only',window._perimOnlyDU?'1':'0');}catch(_){}
 }
-function toggleSiderunPill(btn){
-  window._perimDU=!window._perimDU;
-  if(!window._perimDU){window._perimOnlyDU=false;try{sessionStorage.setItem('prodi_du_only','0');}catch(_){}}
-  try{sessionStorage.setItem('prodi_du',window._perimDU?'1':'0');}catch(_){}
-  _perimRefresh();
-}
-function _perimRefresh(){
-  document.body.classList.toggle('du-on',window._perimDU);
+_perimFix();
+function _perimPaint(){
+  document.body.classList.toggle('du-on',!!window._perimDU);
   document.body.classList.toggle('du-only',!!window._perimOnlyDU);
-  document.querySelectorAll('.sdr-only').forEach(b=>{b.hidden=!window._perimDU;b.classList.toggle('active',!!window._perimOnlyDU);});
-  document.querySelectorAll('.sdr-pill').forEach(b=>b.classList.toggle('active',window._perimDU));
+  document.body.classList.toggle('fab-on',!!window._perimFAB);
+  document.querySelectorAll('.sdr-depot').forEach(b=>b.classList.toggle('active',!window._perimNoDep));
+  document.querySelectorAll('.sdr-pill').forEach(b=>b.classList.toggle('active',!!window._perimDU));
+  document.querySelectorAll('.fab-pill').forEach(b=>b.classList.toggle('active',!!window._perimFAB));
+  document.querySelectorAll('.ext-pill').forEach(b=>b.classList.toggle('active',!!window._perimEXT));
+  document.querySelectorAll('.sdr-only').forEach(b=>{b.hidden=true;});
+}
+document.addEventListener('DOMContentLoaded',_perimPaint);
+function toggleDepot(){
+  window._perimNoDep=!window._perimNoDep;_perimRefresh();
+}
+function toggleSiderunOnly(btn){window._perimNoDep=!window._perimNoDep;_perimRefresh();}
+function toggleExtPill(){window._perimEXT=!window._perimEXT;window.prodiTrack?.('hors_stouen',{on:window._perimEXT});_perimRefresh();}
+function toggleFabPill(){
+  window._perimFAB=!window._perimFAB;
+  window.prodiTrack?.('fabrication',{on:window._perimFAB});
+  _perimRefresh();
+}
+function setSiderun(on){if(!!window._perimDU!==on)toggleSiderunPill();}
+function toggleSiderunPill(btn){window._perimDU=!window._perimDU;_perimRefresh();}
+function _perimRefresh(){
+  window._perimGen=(window._perimGen||0)+1;
+  _perimFix();_perimPaint();
   window.prodiTrack?.('siderun',{on:window._perimDU});
   _allProductsCache=null;_allProductsLoading=null;_allUnitsCache=null;_allUnitsCacheKey=null;_groupsList=[];currentPage=1;
   Object.keys(_facetSig).forEach(k=>delete _facetSig[k]);
@@ -9772,12 +9844,12 @@ async function _loadDepotPhotos(){
   if(_depPhotoIdx)return _depPhotoIdx;
   if(_depPhotoLoading)return _depPhotoLoading;
   _depPhotoLoading=(async()=>{
-    const K='prodi_depphotos:v1:'+STOCK_DAY;
+    const K='prodi_depphotos:v2:'+STOCK_DAY;
     try{const h=localStorage.getItem(K);if(h){_depPhotoIdx=JSON.parse(h);return _depPhotoIdx;}}catch(_){}
-    const pages=await Promise.all([0,1,2,3,4,5].map(i=>sbQ('products?select=quality,color,gsm,width,details,format,image_url&image_url=not.is.null&order=ref.desc',{headers:{'Range-Unit':'items','Range':(i*1000)+'-'+(i*1000+999)},_depot:true}).then(r=>r.data||[]).catch(()=>[])));
+    const pages=await Promise.all([0,1,2,3,4,5].map(i=>sbQ('products?select=ref,quality,color,gsm,width,details,format,image_url&image_url=not.is.null&order=ref.desc',{headers:{'Range-Unit':'items','Range':(i*1000)+'-'+(i*1000+999)},_depot:true}).then(r=>r.data||[]).catch(()=>[])));
     const rows=pages.flat();
     const idx={};
-    rows.forEach(r=>{if(!r.image_url||!r.quality)return;(idx[r.quality]=idx[r.quality]||[]).push([r.color||'',+r.gsm||0,+r.width||0,r.format||'',String(r.details||'').toUpperCase(),r.image_url]);});
+    rows.forEach(r=>{if(!r.image_url||!r.quality)return;(idx[r.quality]=idx[r.quality]||[]).push([r.color||'',+r.gsm||0,+r.width||0,r.format||'',String(r.details||'').toUpperCase(),r.image_url,+(String(r.ref||'').match(/^Photo_(\d+)$/i)||[])[1]||0]);});
     _depPhotoIdx=idx;
     try{Object.keys(localStorage).filter(k=>k.startsWith('prodi_depphotos:')&&k!==K).forEach(k=>localStorage.removeItem(k));localStorage.setItem(K,JSON.stringify(idx));}catch(_){}
     return idx;
@@ -9788,8 +9860,11 @@ const _simTok=s=>new Set(String(s||'').toUpperCase().replace(/^(BOB|PAL|FOR)\.\S
 function _duBestPhoto(r,idx){
   const cand=idx[r.quality];if(!cand||!cand.length)return null;
   const g=+r.gsm||0,w=+r.width||0,tk=_simTok(r.details);
+  // 09/11 Ethan : FAB → photos des réfs dépôt > 900 000 uniquement (arrivages récents)
+  const _fab=/^Photo_FAB/i.test(String(r.ref||''));
   const sc=[];
   for(const c of cand){
+    if(_fab&&!(c[6]>900000))continue;
     if(g&&c[1]&&Math.abs(c[1]-g)>Math.max(15,g*0.3))continue; // grammage trop loin
     let v=0;
     if((c[0]||'')===(r.color||''))v+=30;
@@ -9810,7 +9885,7 @@ function _duBestPhoto(r,idx){
   return top[h%top.length];
 }
 async function _duFillPhotos(rows){
-  if(!rows.some(r=>!r.image_url&&/^Photo_DU/i.test(String(r.ref||''))))return;
+  if(!rows.some(r=>!r.image_url&&/^Photo_[A-Z]/i.test(String(r.ref||''))))return;
   const idx=await _loadDepotPhotos();
-  rows.forEach(r=>{if(!r.image_url&&/^Photo_DU/i.test(String(r.ref||''))){const u=_duBestPhoto(r,idx);if(u){r.image_url=u;r._simPhoto=true;}}});
+  rows.forEach(r=>{if(!r.image_url&&/^Photo_[A-Z]/i.test(String(r.ref||''))){const u=_duBestPhoto(r,idx);if(u){r.image_url=u;r._simPhoto=true;}}});
 }

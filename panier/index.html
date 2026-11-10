@@ -281,6 +281,7 @@ html body .plist-table tr.is-du>td:first-child{background-image:linear-gradient(
           <div class="cfs-note" id="cfs-note" style="visibility:hidden">EXW = prix départ dépôt, hors transport. Transport confirmé sur la proforma.</div>
           <button class="cfb-btn" onclick="pxExcel(this)">Télécharger <svg width="24" height="24" viewBox="0 0 32 32" style="flex-shrink:0;"><rect x="9" y="2" width="21" height="14" rx="3.5" fill="#8bd47e"/><rect x="20" y="2" width="10" height="14" rx="3.5" fill="#b9e695"/><path d="M9 9h17.5A3.5 3.5 0 0 1 30 12.5V26.5a3.5 3.5 0 0 1-3.5 3.5H12.5A3.5 3.5 0 0 1 9 26.5Z" fill="#2f9e55"/><rect x="2" y="12" width="16" height="16" rx="3.5" fill="#185c37"/><path d="M6.4 16.5h2.7l1.8 3.2 1.8-3.2h2.7l-3.1 4.7 3.2 4.8h-2.8l-1.8-3.3-1.9 3.3H6.2l3.2-4.8z" fill="#fff"/></svg></button>
           <button class="cfb-btn" onclick="pxAlbum(this)">Album photo <img src="/img/pdf_icon.png" alt="" style="height:24px;width:auto;flex-shrink:0;"></button>
+          <button class="cfb-btn" onclick="pxProforma(this)">Proforma <img src="/img/pdf_icon.png" alt="" style="height:24px;width:auto;flex-shrink:0;"></button>
           <button class="cfb-btn cfb-go" onclick="pxReserver()"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Réserver</button>
           <button class="cfb-btn cfb-clear" onclick="pxVider()" title="Vider le panier"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9.2"/><path d="m9 9 6 6M15 9l-6 6"/></svg>Vider le panier</button>
         </div>
@@ -472,6 +473,16 @@ html body .plist-table tr.is-du>td:first-child{background-image:linear-gradient(
     _catFrame().then(function(w){return w.exportListExcelTest(null);})
       .then(function(){pxToast('Excel téléchargé');})
       .catch(function(){pxToast('Erreur export — réessayez');})
+      .finally(function(){btn.firstChild.textContent=old;btn.disabled=false;});
+  };
+  /* Proforma (09/11) : URL bâtie par _proformaUrl() du catalogue (même iframe) ;
+     onglet ouvert AU CLIC (sinon bloqueur de popups), rempli quand prêt. */
+  window.pxProforma=function(btn){
+    if(!lire().length){pxToast('Panier vide');return;}
+    var tab=window.open('about:blank','_blank');
+    var old=btn.firstChild.textContent;btn.firstChild.textContent='Génération… ';btn.disabled=true;
+    _catFrame().then(function(w){var u=w._proformaUrl();if(tab)tab.location.href=u;else location.href=u;})
+      .catch(function(){if(tab)tab.close();pxToast('Erreur proforma — réessayez');})
       .finally(function(){btn.firstChild.textContent=old;btn.disabled=false;});
   };
   window.pxAlbum=function(btn){

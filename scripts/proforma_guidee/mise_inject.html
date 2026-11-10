@@ -24,8 +24,8 @@
   @media print{#mep-bar{display:none!important;}}
 
   /* ── mode PLEINE PAGE : tout le calque agrandi (zoom) + corps du tableau plus gros ── */
-  .sheet.ample>.zh,.sheet.ample>table.corps,.sheet.ample>.zb{zoom:var(--z,1.04);left:0;}
-  .sheet.ample{padding-left:var(--pg,3mm);box-sizing:border-box;}
+  .sheet.ample>.zh,.sheet.ample>table.corps,.sheet.ample>.zb{zoom:var(--z,1.04);left:var(--pl,0mm);}
+  .sheet.ample{box-sizing:border-box;}
   .sheet.ample table.corps th{height:7.6mm;}
   .sheet.ample table.corps td{font-size:var(--fz,10.5pt);line-height:var(--lh,5.1mm);}
   /* colonnes étroites (réf, poids, prix, montant) : jamais coupées, plafonnées à 10 pt — seule la désignation grossit */
@@ -96,15 +96,17 @@
   try{MEP=JSON.parse(localStorage.getItem(LS)||'null');}catch(e){}
   if(window._prefill&&'mise' in window._prefill)MEP=window._prefill.mise||null;   // réimpression : celle de l'archive
   const borne=(v,a,b,d)=>{v=+v;return isFinite(v)?Math.min(b,Math.max(a,v)):d;};
-  function nettoyer(p){p=p||{};return{z:borne(p.z,1,1.06,DEF.z),fz:borne(p.fz,8.8,13,DEF.fz),lh:borne(p.lh,4.27,6.5,DEF.lh),fv:borne(p.fv,7.9,11,DEF.fv)};}
+  function nettoyer(p){p=p||{};return{z:borne(p.z,1,1.045,DEF.z),fz:borne(p.fz,8.8,13,DEF.fz),lh:borne(p.lh,4.27,6.5,DEF.lh),fv:borne(p.fv,7.9,11,DEF.fv)};}
   window.miseCourante=()=>MEP?nettoyer(MEP):null;
 
   function poser(p){
     const sh=$('sheet');
-    if(!p){sh.classList.remove('ample');['--z','--pg','--fz','--lh','--fv'].forEach(k=>sh.style.removeProperty(k));return;}
+    if(!p){sh.classList.remove('ample');['--z','--pl','--fz','--lh','--fv'].forEach(k=>sh.style.removeProperty(k));return;}
     sh.classList.add('ample');
-    // contenu Sage ≈ 191,2 mm de large → centré sur les 210 mm
-    sh.style.setProperty('--z',p.z);sh.style.setProperty('--pg',Math.max(0,(210-191.2*p.z)/2).toFixed(2)+'mm');
+    // contenu = 7→205 mm depuis le recalage A4 du 09/11 (198 mm, dont 2,8 mm de marge interne au bloc) → centré sur 210 mm.
+    // (avant : 191,2 mm supposés + padding → la droite sortait de la page et était COUPÉE)
+    // NB : zoom CSS → la position « left » est elle aussi multipliée par z
+    sh.style.setProperty('--z',p.z);sh.style.setProperty('--pl',(((210-198*p.z)/2-2.8*p.z)/p.z).toFixed(2)+'mm');
     sh.style.setProperty('--fz',p.fz+'pt');sh.style.setProperty('--lh',p.lh+'mm');sh.style.setProperty('--fv',p.fv+'pt');
   }
   function etat(t){$('mep-etat').textContent=t||'';}
@@ -120,7 +122,7 @@
     try{
       const tds=sh.querySelectorAll('table.corps tr.fill td');
       const essai=q=>{poser(q);tds.forEach(td=>td.style.height='2mm');return 296-basMm(sh);};
-      const plus=q=>({z:Math.min(1.06,q.z+.01),fz:Math.min(13,q.fz+.3),lh:Math.min(6.5,q.lh+.15),fv:Math.min(11,q.fv+.15)});
+      const plus=q=>({z:Math.min(1.045,q.z+.01),fz:Math.min(13,q.fz+.3),lh:Math.min(6.5,q.lh+.15),fv:Math.min(11,q.fv+.15)});
       const moins=q=>({z:Math.max(1,q.z-.005),fz:Math.max(8.8,q.fz-.3),lh:Math.max(4.27,q.lh-.15),fv:Math.max(7.9,q.fv-.15)});
       const egal=(a,b)=>a.z===b.z&&a.fz===b.fz&&a.lh===b.lh&&a.fv===b.fv;
       // réglages de l'IA = point de départ ; trop long → on réduit (jamais sous le calque Sage, sinon 2 pages comme avant)

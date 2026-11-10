@@ -122,7 +122,7 @@
      Polices Sage : Helvetica (corps), Calibri (banques → Carlito), High Tower
      Text (titre → Goudy Bookletter 1911, la plus proche en Google Fonts). */
   .sheetbox{flex:none;display:flex;justify-content:center;}
-  .sheet{width:210mm;height:auto;min-height:297mm;background:#fff;box-shadow:0 4px 22px rgba(0,0,0,.13);font-family:Helvetica,Arial,sans-serif;font-size:8.82pt;line-height:1.15;color:#000;position:relative;overflow:hidden;}
+  .sheet{flex:none;width:210mm;height:auto;min-height:297mm;background:#fff;box-shadow:0 4px 22px rgba(0,0,0,.13);font-family:Helvetica,Arial,sans-serif;font-size:8.82pt;line-height:1.15;color:#000;position:relative;overflow:hidden;}
   .sheet *{line-height:1.15;}
   .sheet .zh{position:relative;height:85.00mm;}
   /* recalage fin 04/11 (DE43163) : tout le contenu Prodi 1,5 mm plus à gauche (le logo, déjà mesuré, est compensé) */
@@ -200,35 +200,44 @@
   /* ── Feuille WOLUWE PAPER SRL : calque au mm de la proforma Woluwe DE42963 (10/09/2026) ── */
   .sheet .wsheet{display:none;}
   .sheet.woluwe>.zh,.sheet.woluwe>table.corps,.sheet.woluwe>.zb{display:none!important;}
-  .sheet.woluwe .wsheet{display:block;position:relative;font-family:Arial,Helvetica,sans-serif;color:#000;padding:13.43mm 14.11mm 10mm;}
+  .sheet.woluwe .wsheet{display:block;position:relative;font-family:Arial,Helvetica,sans-serif;color:#000;height:297mm;padding:0;box-sizing:border-box;}
   .sheet .wsheet{line-height:1.15;} .sheet .wsheet *{line-height:inherit;}
-  .wsheet .wt{text-align:center;font-weight:700;font-size:22pt;color:#1f3b6b;line-height:1;margin:0 0 1.1mm;}
-  .wsheet .wa{text-align:center;font-size:8.5pt;line-height:3.75mm;}
-  .wsheet .wr{border-top:0.42mm solid #1f3b6b;margin-top:1.8mm;}
-  .wsheet .whd{display:flex;justify-content:space-between;margin-top:4.94mm;}
-  .wsheet .wnum{font-size:10.5pt;font-weight:700;padding-top:2.47mm;}
-  .wsheet .wnum div{display:flex;height:7.06mm;} .wsheet .wnum span{width:44.89mm;} .wsheet .wnum b{color:#1f3b6b;}
-  .wsheet .wcli{width:82.9mm;min-height:33.3mm;box-sizing:border-box;border:0.21mm solid #595959;padding:2.2mm 3.53mm 2mm;font-size:9pt;line-height:3.97mm;}
-  .wsheet .wcli .n{font-weight:700;font-size:9.5pt;} .wsheet .wcli .ri{font-weight:700;margin-top:1mm;}
-  .wsheet table{width:100%;border-collapse:collapse;table-layout:fixed;margin-top:5.64mm;}
-  .wsheet td,.wsheet th{border:0.21mm solid #595959;font-size:9pt;padding:0 2.12mm;vertical-align:top;}
-  .wsheet th{background:#ededed;font-size:8.5pt;font-weight:700;height:7.06mm;vertical-align:middle;text-align:center;}
-  .wsheet th:first-child{text-align:left;padding-left:1.77mm;}
-  .wsheet td.d{padding:2.1mm 2.12mm 2mm;white-space:pre-line;line-height:3.97mm;} .wsheet td.d b{font-weight:700;}
-  .wsheet td.n{text-align:right;padding-top:2.1mm;line-height:3.97mm;white-space:pre-line;}
-  .wsheet tr.wl td{border-top:none;border-bottom:none;} .wsheet tr.wl:last-child td{border-bottom:0.21mm solid #595959;}
-  .wsheet tr.wf td{height:6mm;font-size:8.5pt;vertical-align:middle;padding:0;}
-  .wsheet .gg{display:grid;grid-template-columns:1fr 26.46mm 24.69mm 28.22mm;align-items:center;}
-  .wsheet .gg>*{padding:0 2.12mm;} .wsheet .gg .r{text-align:right;}
-  .wsheet tr.wtot td{background:#ededed;height:7.76mm;font-size:10pt;font-weight:700;vertical-align:middle;padding:0;}
-  .wsheet .wb1{font-size:8.5pt;font-weight:700;margin-top:2.7mm;}
-  .wsheet .wb2{font-size:9pt;font-weight:700;line-height:5.03mm;}
-  .wsheet .wb2.wbc{display:flex;}
-  .wsheet .wmen{font-size:8pt;line-height:4.24mm;margin-top:1mm;}
-  .wsheet .wpied{display:flex;align-items:flex-start;margin-top:2.9mm;}
-  .wsheet .wbq{width:127mm;box-sizing:border-box;border:0.21mm solid #595959;padding:2.4mm 2.82mm 2mm;font-size:8pt;line-height:3.53mm;}
-  .wsheet .wbq b{display:block;color:#1f3b6b;font-size:8.5pt;margin-bottom:.9mm;}
-  .wsheet .wcachet{width:36.39mm;margin-left:11.79mm;}
+  .wsheet>div{position:absolute;}
+  .wsheet [contenteditable]{outline:none;cursor:text;white-space:pre-line;}
+  .wsheet [contenteditable]:hover:not(:focus),.wsheet [contenteditable]:focus{background:rgba(40,90,200,.08);border-radius:1px;}
+  .wsheet span[contenteditable]:empty{display:inline-block;min-width:14mm;min-height:1em;}
+  @media print{.wsheet [contenteditable]{background:none!important;}}
+  .wsheet .wt{left:0;right:0;top:9mm;text-align:center;font-weight:700;font-size:30pt;line-height:1;}
+  .wsheet .wa{left:0;right:0;text-align:center;font-size:10pt;} .wsheet .wa.b{font-weight:700;font-size:10.5pt;}
+  .wsheet .wnum{left:8mm;font-size:13pt;font-weight:700;white-space:nowrap;}
+  .wsheet .wexo{left:8mm;top:61.5mm;width:95mm;font-size:10pt;font-weight:700;line-height:4.6mm;}
+  .wsheet .wcli{left:112mm;top:40mm;width:90mm;font-size:10pt;line-height:5.1mm;}
+  .wsheet .wcli .wcn::first-line{font-weight:700;font-size:10.5pt;} .wsheet .wcli .ri{font-weight:700;}
+  .wsheet .wtab{left:8mm;top:76mm;width:194mm;}
+  .wsheet table{width:100%;border-collapse:collapse;table-layout:fixed;}
+  .wsheet td,.wsheet th{border:0.5mm solid #000;font-size:10.5pt;padding:0;vertical-align:top;}
+  .wsheet th{height:7mm;font-size:10pt;font-weight:700;vertical-align:middle;text-align:center;border-width:0.5mm 0.5mm 0.3mm;}
+  .wsheet th:first-child{text-align:left;padding-left:3mm;}
+  .wsheet tr.wl td{height:106mm;padding-top:2mm;border-bottom:0.45mm solid #000;}
+  .wsheet tr.wl td>div{line-height:5.6mm;white-space:nowrap;}
+  .wsheet tr.wl td.d{padding-left:3mm;padding-right:2mm;} .wsheet tr.wl td.d .wd{white-space:pre-line;margin-bottom:1.2mm;}
+  .wsheet tr.wl td.q{text-align:center;} .wsheet tr.wl td.p{text-align:right;padding-right:1.5mm;} .wsheet tr.wl td.t{text-align:right;padding-right:2mm;}
+  .wsheet tr.wl td.q>div,.wsheet tr.wl td.p>div,.wsheet tr.wl td.t>div{margin-bottom:1.2mm;}
+  .wsheet tr.wf td{height:9mm;vertical-align:middle;border-bottom:0.45mm solid #000;}
+  .wsheet tr.wf td.wpc{padding-left:2mm;position:relative;} .wsheet tr.wf td.wpc .wqt{position:absolute;right:3mm;}
+  .wsheet tr.wf td.q{text-align:center;} .wsheet tr.wf td.wnr{border-left:0.5mm solid #000;}
+  .wsheet tr.wtot td{height:10mm;vertical-align:middle;font-weight:700;font-size:13pt;padding:0 2.5mm 0 2mm;}
+  .wsheet tr.wtot b{float:right;font-size:14pt;}
+  .wsheet .wbas{display:flex;justify-content:space-between;margin-top:2.6mm;}
+  .wsheet .wbg{font-size:9.6pt;font-weight:700;line-height:4.6mm;}
+  .wsheet .wbd{font-size:9.6pt;line-height:5mm;text-align:right;padding-top:.6mm;}
+  .wsheet .wpays{font-size:10pt;font-weight:700;margin-top:2.2mm;line-height:4.6mm;}
+  .wsheet .wpaie{font-size:10pt;margin-top:3.2mm;}
+  .wsheet .wbqc{display:flex;font-size:10pt;font-weight:700;margin-top:2mm;line-height:5mm;}
+  .wsheet .wbqc>span{width:40mm;flex:none;}
+  .wsheet .wpied{display:flex;justify-content:space-between;align-items:flex-start;margin-top:5mm;}
+  .wsheet .wbq{font-size:9pt;line-height:4.3mm;}
+  .wsheet .wcachet{width:62mm;margin-top:-2mm;}
   .sheet .cachet{position:absolute;left:4.15mm;top:15.78mm;width:40.26mm;height:auto;}
   .sheet .tot{position:absolute;left:75.97mm;top:18.03mm;width:124.36mm;height:16.27mm;border:0.26mm solid #000;box-sizing:border-box;}
   .sheet .tot>i{position:absolute;top:0;bottom:0;border-left:0.24mm solid #000;}
@@ -637,14 +646,32 @@ function syncPills(){
 function pillSoc(v){document.getElementById('c-soc').value=v;socChange();}
 function socChange(){SOC=document.getElementById('c-soc').value==='woluwe'?'woluwe':'prodi';document.getElementById('sheet').classList.toggle('woluwe',SOC==='woluwe');syncPills();maj();}
 function pillLang(v){document.getElementById('c-lang').value=v;langChange();}
-function pillDev(v){document.getElementById('c-dev').value=v;devChange();}
+function pillDev(v){document.getElementById('c-dev').value=v;devChange(true);}
 function langChange(){LANG=document.getElementById('c-lang').value;syncPills();applyLang();maj();}
-function devChange(){
+// TAUX BCE €→$ du jour (api.frankfurter.dev, jamais .app = 301), caché 1 jour
+async function tauxUSD(){
+  try{const c=JSON.parse(localStorage.getItem('prodi_prof_usd')||'null');if(c&&c.d===new Date().toISOString().slice(0,10)&&c.r>0)return c.r;}catch(e){}
+  const r=await fetch('https://api.frankfurter.dev/v1/latest?base=EUR&symbols=USD').then(x=>x.json());
+  const t=+(r&&r.rates&&r.rates.USD);if(!(t>0))throw new Error('taux');
+  try{localStorage.setItem('prodi_prof_usd',JSON.stringify({d:new Date().toISOString().slice(0,10),r:t}));}catch(e){}
+  return t;
+}
+async function devChange(conv){
   const nv=document.getElementById('c-dev').value;
   if(nv===DEV){syncPills();return;}
+  // 09/11 Ethan : la bascule € / $ CONVERTIT les prix et le fret au taux BCE du jour
+  // (conv=true seulement au clic ; préremplissage / réimpression = libellés seuls).
+  if(conv){
+    let t;try{t=await tauxUSD();}catch(e){document.getElementById('c-dev').value=DEV;syncPills();alert('Taux BCE indisponible : réessayez');return;}
+    const k=nv==='usd'?t:1/t;
+    lignes.forEach(l=>{if(l.pu)l.pu=Math.round(l.pu*k*1000)/1000;});
+    const cf=document.getElementById('c-fret');if(cf&&+cf.value)cf.value=Math.round(+cf.value*k);
+    window._tauxInfo='1 € = '+t.toFixed(4).replace('.',',')+' $ (BCE)';
+    let ti=document.getElementById('taux-info');
+    if(!ti){ti=document.createElement('div');ti.id='taux-info';ti.style.cssText='font-size:11.5px;color:#6e6e73;margin-top:6px;';const pd=document.getElementById('pill-dev');pd.parentNode.parentNode.insertBefore(ti,pd.parentNode.nextSibling);}
+    ti.textContent='Prix convertis · '+window._tauxInfo;
+  }
   DEV=nv;
-  // pas de popup de conversion (retirée 10/09, Ethan) : la bascule ne change
-  // QUE les libellés €/$ — les chiffres saisis restent tels quels
   syncPills();applyLang();renderForm();maj();
 }
 
@@ -762,66 +789,94 @@ function maj(){
 }
 // ── Gabarit WOLUWE PAPER SRL (proformas Woluwe de Véronique / robot GSE, DE42958-DE42963 du 10/09) ──
 const UE=['ALLEMAGNE','AUTRICHE','BELGIQUE','BULGARIE','CHYPRE','CROATIE','DANEMARK','ESPAGNE','ESTONIE','FINLANDE','FRANCE','GRECE','GRÈCE','HONGRIE','IRLANDE','ITALIE','LETTONIE','LITUANIE','LUXEMBOURG','MALTE','PAYS-BAS','POLOGNE','PORTUGAL','REPUBLIQUE TCHEQUE','ROUMANIE','SLOVAQUIE','SLOVENIE','SUEDE','SUÈDE'];
+// Textes de la feuille Woluwe retouchés À LA MAIN (clic dans la feuille) — gardés jusqu'au changement de client
+window._wEd=window._wEd||{};
 function majWoluwe(t){
-  const v=id=>document.getElementById(id).value.trim(),en=LANG==='en',S=SYM();
-  const nb=(n,d)=>n.toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d}).replace(/\u202f/g,' ');
-  const cl=(v('c-nom')||'CLIENT').split('\n').map(x=>x.trim()).filter(Boolean);
-  const lieu=v('c-lieu'),inco=v('c-inco'),orig=v('c-orig').toUpperCase();
-  const lig=lignes.filter(l=>l.code||l.des||l.qte||l.pu).map((l,i)=>{
-    const d=String(l.des||'').split('\n');
-    return `<tr class="wl"><td class="d"><b>${esc(d[0])}</b>${d.length>1?'\n'+desHtml(d.slice(1).join('\n')):''}${i===lignes.length-1&&lieu?'\n\n'+(en?'PORT OF DISCHARGE : ':'PORT DE DECHARGEMENT : ')+esc(lieu):''}</td>
-      <td class="n">${l.qte?nb(Math.round(l.qte),0):''}</td><td class="n">${l.pu?nb(l.pu,3):''}</td><td class="n">${l.qte&&l.pu?nb(l.qte*l.pu,2):''}</td></tr>`;}).join('');
-  const paie=document.getElementById('p-paie-lignes').innerText.split('\n').map(x=>x.trim()).filter(Boolean).join(' / ');
-  const ori=orig?(UE.includes(orig)?(en?'GOODS OF EUROPEAN UNION ORIGIN: ':"MARCHANDISE D'ORIGINE UNION EUROPEENNE: "):(en?'GOODS ORIGIN: ':"MARCHANDISE D'ORIGINE: "))+esc(orig):'';
-  const totLib=t.sansFret?(en?'TOTAL AMOUNT ':'MONTANT TOTAL ')+esc(inco):(en?'TOTAL AMOUNT COST AND FREIGHT':'MONTANT TOTAL COÛT ET FRET');
+  // 09/11 Ethan : calque de la proforma Woluwe DE43157 (SGTP, 13/10/2026), élargi + polices agrandies, éditable dans la feuille
+  const ws0=document.getElementById('wsheet');
+  if(ws0&&ws0.contains(document.activeElement)&&document.activeElement.isContentEditable)return; // on ne redessine pas sous les doigts
+  const v=id=>document.getElementById(id).value.trim(),en=LANG==='en',S=SYM(),E=window._wEd;
+  const nb=(n,d)=>n.toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d}).replace(/ /g,' ');
+  const nz=(n,d)=>nb(n,d).replace(/ /g,'');   // totaux du bas : « 22927,60 » comme Sage
+  const ed='contenteditable="plaintext-only" spellcheck="false"';
+  const tx=(k,def)=>esc(E[k]!=null?E[k]:def);   // texte libre retouché ou valeur par défaut
+  const lieu=v('c-lieu'),inco=v('c-inco'),orig=v('c-orig').toUpperCase(),prov=v('c-prov').toUpperCase();
+  const L=lignes.filter(l=>l.code||l.des||l.qte||l.pu);
+  let cd='',cq='',cp='',ct='';
+  L.forEach(l=>{
+    const i=lignes.indexOf(l),n=Math.max(1,String(l.des||'').split('\n').length),h=(n*5.6)+'mm';
+    cd+=`<div class="wd" data-k="des" data-i="${i}" ${ed} style="min-height:${h}">${esc(l.des||'')}</div>`;
+    cq+=`<div style="height:${h}"><span data-k="qte" data-i="${i}" ${ed}>${l.qte?Math.round(l.qte):''}</span></div>`;
+    cp+=`<div style="height:${h}"><span data-k="pu" data-i="${i}" ${ed}>${l.pu?nb(l.pu,3):''}</span></div>`;
+    ct+=`<div style="height:${h}">${l.qte&&l.pu?nb(l.qte*l.pu,2):''}</div>`;
+  });
+  const pl=document.getElementById('p-paie-lignes');
+  const paie=[...pl.children].map(c=>c.innerHTML.replace(/<\/span>/g,'</span> ').replace(/<br\s*\/?>/g,' ').replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/\s+/g,' ').trim()).filter(Boolean).join(' / ')
+    ||pl.textContent.replace(/\s+/g,' ').trim();
+  // 09/11 Ethan : remise documentaire à terme = « PAR REMISE DOCUMENTAIRE PAYABLE A 59 JOURS DATE DE BL »
+  // (jamais « 59JRS », D/P, D/A ni « documents against… ») — nombre de jours repris tel quel
+  const paieW=(()=>{const u=paie.toUpperCase();const m=u.match(/REMISE\s+DOC\w*.*?(\d+)\s*(J(OU)?RS?|JOURS?|DAYS?)\b/)||u.match(/(\d+)\s*(J(OU)?RS?|JOURS?)\b.*DATE\s+DE\s+BL/);
+    return m?(en?'BY DOCUMENTARY COLLECTION PAYABLE AT '+m[1]+' DAYS FROM B/L DATE':'PAR REMISE DOCUMENTAIRE PAYABLE A '+m[1]+' JOURS DATE DE BL'):u;})();
+  const ue=UE.includes(orig);
+  const totLib=(t.sansFret?(en?'TOTAL AMOUNT ':'MONTANT TOTAL ')+inco:(en?'TOTAL AMOUNT COST AND FREIGHT':'MONTANT TOTAL COÛT ET FRET'))+(lieu?' : '+lieu:'');
+  const cli=[v('c-nom')||'CLIENT',v('c-ident'),v('c-rc')].filter(Boolean).join('\n');
+  const bqKBC=(en?'Beneficiary':'Bénéficiaire')+' : WOLUWE PAPER SRL, Avenue Louise 143/4, 1050 Bruxelles, Belgique\n'
+    +(en?"Beneficiary's bank":'Banque du Bénéficiaire')+': KBC Brussels - IBAN : BE43 7380 5502 6001\n'
+    +(en?'Advising & confirming bank':'Banque notificatrice & confirmatrice')+' (Champ 57a du MT700 « Advise Through Bank ») :\n'
+    +'KBC Bank NV - Trade Finance , Havenlaan 2 – 1080 Bruxelles, BELGIQUE\nCode SWIFT / BIC : KREDBEBB';
   document.getElementById('wsheet').innerHTML=`
     <div class="wt">WOLUWE PAPER SRL</div>
-    <div class="wa">Avenue Louise 143/4, 1050 Bruxelles, BELGIQUE</div>
-    <div class="wa">BCE : 1041.427.137 - RPM Bruxelles - N° EORI : BE1041427137</div>
-    <div class="wa">Tel : +32 (0) 470 32 78 84 | Email: contact@woluwepaper.be</div>
-    <div class="wr"></div>
-    <div class="whd">
-      <div class="wnum"><div><span>${en?'PROFORMA INVOICE No :':'PROFORMA NUMÉRO :'}</span><b>${esc(numero||'—')}</b></div>
-        <div><span>DATE :</span>${new Date(dateDoc||Date.now()).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'2-digit'})}</div>
-        ${v('c-ref')?`<div><span>${en?'REFERENCE :':'RÉFÉRENCE :'}</span>${esc(v('c-ref'))}</div>`:''}
-        ${v('c-comm')?`<div style="font-weight:400;font-size:9pt"><span>${en?'Sales contact :':'Votre commercial :'}</span>${esc(v('c-comm'))}</div>`:''}</div>
-      <div class="wcli"><div class="n">${esc(cl[0]||'')}</div>${cl.slice(1).map(x=>'<div>'+esc(x)+'</div>').join('')}
-        ${v('c-ident')?'<div>'+esc(v('c-ident'))+'</div>':''}${v('c-rc')?'<div>'+esc(v('c-rc'))+'</div>':''}
-        ${v('c-refint')?`<div class="ri">Ref. Interne : ${esc(v('c-refint'))}</div>`:''}</div>
-    </div>
-    <table><colgroup><col><col style="width:26.46mm"><col style="width:24.69mm"><col style="width:28.22mm"></colgroup>
-      <tr><th>DESCRIPTION</th><th>${en?'QTY (KG)':'QTE (KG)'}</th><th>${en?'PRICE':'PRIX'} ${DEV==='usd'?'USD':'EUR'} (${S})</th><th>TOTAL (${S})</th></tr>
-      ${lig||'<tr class="wl"><td class="d">&nbsp;</td><td></td><td></td><td></td></tr>'}
-      <tr class="wfill"><td colspan="4" style="border-top:none;padding:0"></td></tr>
-      <tr class="wf"><td colspan="4"><div class="gg"><span>${en?'PORT OF LOADING:':'PORT DE CHARGEMENT:'}</span></div></td></tr>
-      <tr class="wf"><td colspan="4"><div class="gg"><span>${en?'TOTAL QTY (KG):':'QTE TOTALE (KG):'}</span><span class="r">${nb(Math.round(t.poids),0)}</span></div></td></tr>
-      ${t.sansFret?'':`<tr class="wf"><td colspan="4"><div class="gg"><span style="grid-column:1/4">${en?'INCLUDING FOB AMOUNT:':'DONT MONTANT FOB:'}</span><span class="r">${nb(t.fob,2)}</span></div></td></tr>
-      <tr class="wf"><td colspan="4"><div class="gg"><span style="grid-column:1/4">${en?'INCLUDING FREIGHT:':'DONT MONTANT FRET:'}</span><span class="r">${t.fret?nb(t.fret,2):''}</span></div></td></tr>`}
-      <tr class="wtot"><td colspan="4"><div class="gg"><span style="grid-column:1/4">${totLib}${lieu?' : '+esc(lieu):''}</span><span class="r">${nb(t.total,2)} ${S}</span></div></td></tr>
-    </table>
-    <div class="wb1">${en?'QUANTITY: TOLERANCE +/-10%':'QUANTITE: TOLERANCE +/-10%'}</div>
-    ${ori?'<div class="wb2" style="margin-top:1.2mm">'+ori+'</div>':''}
-    ${paie?'<div class="wb2">'+(en?'PAYMENT: ':'PAIEMENT: ')+esc(paie.toUpperCase())+'</div>':''}
-    <div class="wb2 wbc"><span style="white-space:nowrap">${en?"CUSTOMER'S BANK:":'BANQUE DU CLIENT:'}&nbsp;</span><span style="white-space:pre-line;line-height:3.97mm;padding-top:.53mm">${esc(v('c-banque'))}</span></div>
-    ${v('c-usine')?'<div class="wb2">'+(en?'MILL REFERENCE: ':'REFERENCE USINE: ')+esc(v('c-usine'))+'</div>':''}
-    <div class="wmen">${en?'Export outside the EU exempt from Belgian VAT under article 39 of the VAT Code':"Exportation hors UE exonérée de la TVA belge en application de l'article 39 du Code de la TVA"}<br>
-      ${en?'Proforma invoice valid 30 days according to our general terms of sale':'Facture Proforma valable 30 jours selon nos conditions générales de vente'}</div>
-    <div class="wpied"><div class="wbq"><b>${en?'BANK DETAILS':'COORDONNÉES BANCAIRES'}</b>
-      ${en?'Beneficiary':'Bénéficiaire'} : WOLUWE PAPER SRL, Avenue Louise 143/4, 1050 Bruxelles, Belgique<br>
-      ${en?"Beneficiary's bank":'Banque du Bénéficiaire'}: KBC Brussels - IBAN : BE43 7380 5502 6001<br>
-      ${en?'Advising & confirming bank':'Banque notificatrice & confirmatrice'} (Champ 57a du MT700 « Advise Through Bank ») :<br>
-      KBC Bank NV - Trade Finance , Havenlaan 2 – 1080 Bruxelles, BELGIQUE<br>
-      Code SWIFT / BIC : KREDBEBB</div>
-      <img class="wcachet" src="cachet_woluwe.webp" alt="Cachet Woluwe Paper"></div>`;
-  const ws=document.getElementById('wsheet'),sh=document.getElementById('sheet'),box=sh.parentNode,cache=!sh.offsetWidth;
-  if(cache){box.style.visibility='hidden';box.style.position='absolute';box.style.display='flex';} // feuille masquée : mesurée invisible
-  const mm=sh.offsetWidth/210;
-  if(mm>0){const th=ws.querySelector('th'),rows=[...ws.querySelectorAll('tr.wl')];
-    const h=(rows.reduce((a,r)=>a+r.offsetHeight,0)+th.offsetHeight)/mm;
-    const last=rows[rows.length-1];if(last&&h<42.33)last.style.height=(last.offsetHeight/mm+42.33-h)+'mm';}
-  if(cache){box.style.visibility=box.style.position=box.style.display='';}
-  ws.querySelector('tr.wfill').remove();
+    <div class="wa" style="top:22.4mm">Avenue Louise 143/4, 1050 Bruxelles, BELGIQUE</div>
+    <div class="wa" style="top:27.6mm">BCE : 1041.427.137 - RPM Bruxelles - N° EORI : BE1041427137</div>
+    <div class="wa b" style="top:32.8mm">Tel : +32 (0) 470 32 78 84 | Email: contact@woluwepaper.be</div>
+    <div class="wnum" style="top:47mm">${en?'PROFORMA INVOICE No :':'PROFORMA NUMÉRO :'} ${esc(numero||'—')}</div>
+    <div class="wnum" style="top:54.5mm">DATE : ${new Date(dateDoc||Date.now()).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'2-digit'})}</div>
+    <div class="wexo" data-s="exo" ${ed}>${tx('exo',en?'Export outside the EU exempt from Belgian VAT\n(art.39 of the VAT Code)':'Exportation hors UE exonérée de la TVA belge\n(art.39 du Code de la TVA)')}</div>
+    <div class="wcli"><div class="wcn" data-f="cli" ${ed}>${esc(cli)}</div>
+      <div class="ri">Ref. Interne : <span data-f="c-refint" ${ed}>${esc(v('c-refint'))}</span></div>
+      ${v('c-ref')?`<div class="ri">${en?'Reference :':'Référence :'} <span data-f="c-ref" ${ed}>${esc(v('c-ref'))}</span></div>`:''}</div>
+    <div class="wtab">
+      <table><colgroup><col><col style="width:24mm"><col style="width:27mm"><col style="width:33mm"></colgroup>
+        <tr class="wh"><th>DESCRIPTION</th><th>${en?'QTY (KG)':'QTE (KG)'}</th><th>${en?'PRICE':'PRIX'} ${DEV==='usd'?'USD':'EUR'} (${S})</th><th>TOTAL (${S})</th></tr>
+        <tr class="wl"><td class="d">${cd}</td><td class="q">${cq}</td><td class="p">${cp}</td><td class="t">${ct}</td></tr>
+        <tr class="wf"><td class="wpc">${en?'PORT OF LOADING:':'PORT DE CHARGEMENT:'} <span data-s="pchg" ${ed}>${tx('pchg','')}</span><span class="wqt">${en?'TOTAL QTY (KG):':'QTE TOTALE (KG):'}</span></td><td class="q">${Math.round(t.poids)}</td><td colspan="2" class="wnr"></td></tr>
+        <tr class="wtot"><td colspan="4"><span data-s="totlib" ${ed}>${tx('totlib',totLib)}</span><b>${nz(t.total,2)}${S}</b></td></tr>
+      </table>
+      <div class="wbas">
+        <div class="wbg" data-s="cond" ${ed}>${tx('cond',(en?'Proforma invoice valid 30 days according to our general terms of sale':'Facture Proforma valable 30 jours selon nos conditions générales de vente')+'\n'
+          +(en?'QUANTITY: TOLERANCE +/-5%':'QUANTITE: TOLERANCE +/-5%')
+          +(orig?'\n'+(ue?(en?'GOODS OF EUROPEAN UNION ORIGIN':"MARCHANDISE D'ORIGINE UNION EUROPEENNE"):(en?'GOODS ORIGIN: ':"MARCHANDISE D'ORIGINE : ")+orig):''))}</div>
+        ${t.sansFret?'':`<div class="wbd"><div>${en?'FOB AMOUNT:':'MONTANT FOB:'} <b>${nz(t.fob,2)}</b> &nbsp;${S}</div><div>${en?'FREIGHT AMOUNT:':'MONTANT FRET:'} <b data-f="c-fret" ${ed}>${t.fret?nz(t.fret,2):''}</b> &nbsp;${S}</div></div>`}
+      </div>
+      <div class="wpays">${en?'COUNTRY OF ORIGIN:':"PAYS D'ORIGINE:"} <span data-f="c-orig" ${ed}>${esc(orig)}</span></div>
+      <div class="wpays">${en?'COUNTRY OF SHIPMENT:':'PAYS DE PROVENANCE:'} <span data-f="c-prov" ${ed}>${esc(prov)}</span></div>
+      <div class="wpaie">${en?'PAYMENT: ':'PAIEMENT: '}<span data-s="paie" ${ed}>${tx('paie',paieW)}</span></div>
+      <div class="wbqc"><span>${en?"CUSTOMER'S BANK:":'BANQUE DU CLIENT:'}</span><div data-f="c-banque" ${ed}>${esc(v('c-banque'))}</div></div>
+      ${v('c-usine')?'<div class="wpays">'+(en?'MILL REFERENCE: ':'REFERENCE USINE: ')+esc(v('c-usine'))+'</div>':''}
+      <div class="wpied"><div class="wbq" data-s="kbc" ${ed}>${tx('kbc',bqKBC)}</div>
+        <img class="wcachet" src="cachet_woluwe_tampon.webp" alt="Cachet Woluwe Paper"></div>
+    </div>`;
 }
+// ── édition DANS la feuille Woluwe : data-f = champ du formulaire, data-s = texte libre, data-k = ligne (géré par la feuille éditable) ──
+document.addEventListener('input',e=>{
+  const el=e.target.closest&&e.target.closest('#wsheet [contenteditable]');if(!el)return;
+  const t=el.innerText.replace(/\n$/,''),f=el.dataset.f;
+  if(el.dataset.s){window._wEd[el.dataset.s]=t;return;}
+  if(!f)return;
+  const set=(id,val)=>{const x=document.getElementById(id);if(x){x.value=val;}};
+  if(f==='cli'){const ls=t.split('\n').map(x=>x.trim()).filter(Boolean);
+    const idl=ls.filter(x=>/^(NIF|RC|ICE|NINEA|N°|RCCM)\b|^\d[\d.\/ ]{6,}$/i.test(x));
+    set('c-nom',ls.filter(x=>!idl.includes(x)).join('\n'));set('c-ident',idl.join(' '));set('c-rc','');}
+  else if(f==='c-fret'){set('c-fret',(parseFloat(t.replace(/\s/g,'').replace(',','.'))||'')+'');}
+  else set(f,t);
+},true);
+// Entrée = retour à la ligne dans les blocs multi-lignes (sinon la feuille passe au champ suivant)
+document.addEventListener('keydown',e=>{
+  const el=e.target.closest&&e.target.closest('#wsheet [contenteditable]');if(!el||e.key!=='Enter')return;
+  if(el.matches('[data-k="des"],[data-f="cli"],[data-f="c-banque"],[data-s="exo"],[data-s="cond"],[data-s="kbc"]'))e.stopPropagation();
+},true);
+// nouveau client = on repart des textes par défaut
+document.addEventListener('change',e=>{if(e.target&&e.target.id==='c-nom')window._wEd={};},true);
 
 // ── Historique LOCAL (gabarit /invitation/) — la table `proformas` archive tout
 //    côté serveur mais n'a pas de SELECT anon (prix clients) : ici = les 30
@@ -961,7 +1016,15 @@ function retourFormulaire(){dateDoc=null;document.body.classList.remove('apercu'
 function fitSheet(){
   const s=document.getElementById('sheet');if(!s)return;
   const avail=document.documentElement.clientWidth-20;
-  s.style.zoom=avail<794?(avail/794):'';
+  let z=avail<794?(avail/794):1;
+  // colonne de la feuille (mode formulaire + feuille côte à côte) : zoom sur la place RÉELLE, pas sur la fenêtre
+  const box=s.parentElement,wrap=box&&box.parentElement;
+  if(document.body.classList.contains('direct')&&wrap&&getComputedStyle(wrap).flexDirection==='row'){
+    const pan=wrap.querySelector('.panel'),pw=pan?pan.getBoundingClientRect().width:0;
+    // 09/11 Ethan « utilise la LARGEUR » : la feuille remplit la colonne (agrandie si la place le permet)
+    const colW=wrap.getBoundingClientRect().width-pw-24-48-8;if(colW>200)z=Math.min(colW/794,1.15);
+  }
+  s.style.zoom=z!==1?z:'';
 }
 window.addEventListener('resize',fitSheet);
 window.addEventListener('orientationchange',fitSheet);
@@ -1111,7 +1174,9 @@ fitSheet();
 
 <!-- ═══ TEST LOCAL 03/11 : formulaire complet À GAUCHE + feuille éditable À DROITE + client Sage ═══ -->
 <style>
-  body.direct .wrap{max-width:none;display:flex;flex-direction:row;align-items:flex-start;justify-content:center;gap:24px;}
+  body.direct .wrap{max-width:none;display:flex;flex-direction:row;align-items:flex-start;justify-content:flex-start;gap:24px;padding-left:24px;padding-right:24px;}
+  /* 09/11 Ethan « utilise la LARGEUR » : la feuille occupe toute la place à droite du formulaire */
+  @media (min-width:1321px){body.direct .sheetbox{flex:1 1 auto;min-width:0;justify-content:center;}}
   body.direct:not(.apercu) .sheetbox{display:flex!important;}
   body.direct .panel{zoom:1!important;width:500px;max-width:500px;flex:none;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow-y:auto;padding:18px 20px;}
   body.direct .panel .lbl{display:block;font-size:12px;font-weight:700;color:#666;margin:10px 0 4px;text-transform:none;letter-spacing:0;}
@@ -1916,8 +1981,8 @@ function getHsCode(qualite,gsm,format,couleur,details){
   @media print{#mep-bar{display:none!important;}}
 
   /* ── mode PLEINE PAGE : tout le calque agrandi (zoom) + corps du tableau plus gros ── */
-  .sheet.ample>.zh,.sheet.ample>table.corps,.sheet.ample>.zb{zoom:var(--z,1.04);left:0;}
-  .sheet.ample{padding-left:var(--pg,3mm);box-sizing:border-box;}
+  .sheet.ample>.zh,.sheet.ample>table.corps,.sheet.ample>.zb{zoom:var(--z,1.04);left:var(--pl,0mm);}
+  .sheet.ample{box-sizing:border-box;}
   .sheet.ample table.corps th{height:7.6mm;}
   .sheet.ample table.corps td{font-size:var(--fz,10.5pt);line-height:var(--lh,5.1mm);}
   /* colonnes étroites (réf, poids, prix, montant) : jamais coupées, plafonnées à 10 pt — seule la désignation grossit */
@@ -1988,15 +2053,17 @@ function getHsCode(qualite,gsm,format,couleur,details){
   try{MEP=JSON.parse(localStorage.getItem(LS)||'null');}catch(e){}
   if(window._prefill&&'mise' in window._prefill)MEP=window._prefill.mise||null;   // réimpression : celle de l'archive
   const borne=(v,a,b,d)=>{v=+v;return isFinite(v)?Math.min(b,Math.max(a,v)):d;};
-  function nettoyer(p){p=p||{};return{z:borne(p.z,1,1.06,DEF.z),fz:borne(p.fz,8.8,13,DEF.fz),lh:borne(p.lh,4.27,6.5,DEF.lh),fv:borne(p.fv,7.9,11,DEF.fv)};}
+  function nettoyer(p){p=p||{};return{z:borne(p.z,1,1.045,DEF.z),fz:borne(p.fz,8.8,13,DEF.fz),lh:borne(p.lh,4.27,6.5,DEF.lh),fv:borne(p.fv,7.9,11,DEF.fv)};}
   window.miseCourante=()=>MEP?nettoyer(MEP):null;
 
   function poser(p){
     const sh=$('sheet');
-    if(!p){sh.classList.remove('ample');['--z','--pg','--fz','--lh','--fv'].forEach(k=>sh.style.removeProperty(k));return;}
+    if(!p){sh.classList.remove('ample');['--z','--pl','--fz','--lh','--fv'].forEach(k=>sh.style.removeProperty(k));return;}
     sh.classList.add('ample');
-    // contenu Sage ≈ 191,2 mm de large → centré sur les 210 mm
-    sh.style.setProperty('--z',p.z);sh.style.setProperty('--pg',Math.max(0,(210-191.2*p.z)/2).toFixed(2)+'mm');
+    // contenu = 7→205 mm depuis le recalage A4 du 09/11 (198 mm, dont 2,8 mm de marge interne au bloc) → centré sur 210 mm.
+    // (avant : 191,2 mm supposés + padding → la droite sortait de la page et était COUPÉE)
+    // NB : zoom CSS → la position « left » est elle aussi multipliée par z
+    sh.style.setProperty('--z',p.z);sh.style.setProperty('--pl',(((210-198*p.z)/2-2.8*p.z)/p.z).toFixed(2)+'mm');
     sh.style.setProperty('--fz',p.fz+'pt');sh.style.setProperty('--lh',p.lh+'mm');sh.style.setProperty('--fv',p.fv+'pt');
   }
   function etat(t){$('mep-etat').textContent=t||'';}
@@ -2012,7 +2079,7 @@ function getHsCode(qualite,gsm,format,couleur,details){
     try{
       const tds=sh.querySelectorAll('table.corps tr.fill td');
       const essai=q=>{poser(q);tds.forEach(td=>td.style.height='2mm');return 296-basMm(sh);};
-      const plus=q=>({z:Math.min(1.06,q.z+.01),fz:Math.min(13,q.fz+.3),lh:Math.min(6.5,q.lh+.15),fv:Math.min(11,q.fv+.15)});
+      const plus=q=>({z:Math.min(1.045,q.z+.01),fz:Math.min(13,q.fz+.3),lh:Math.min(6.5,q.lh+.15),fv:Math.min(11,q.fv+.15)});
       const moins=q=>({z:Math.max(1,q.z-.005),fz:Math.max(8.8,q.fz-.3),lh:Math.max(4.27,q.lh-.15),fv:Math.max(7.9,q.fv-.15)});
       const egal=(a,b)=>a.z===b.z&&a.fz===b.fz&&a.lh===b.lh&&a.fv===b.fv;
       // réglages de l'IA = point de départ ; trop long → on réduit (jamais sous le calque Sage, sinon 2 pages comme avant)

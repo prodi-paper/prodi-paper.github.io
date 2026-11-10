@@ -3183,27 +3183,49 @@ html body .msd-option.msd-off,html body .msd-option.msd-qoff{display:none !impor
 html body #filters-panel#filters-panel .msd .msd-option.msd-off,html body #filters-panel#filters-panel .msd .msd-option.msd-qoff,html body #filter-drawer#filter-drawer .msd-option.msd-off,html body #filter-drawer#filter-drawer .msd-option.msd-qoff{display:none !important;}
 body.topbar-view .body-wrap>.sidebar-col+div{padding-left:2px !important;}body.topbar-view .sidebar-col{padding-right:12px !important;}
 /* bouton SIDERUN (09/11) : contour violet, plein quand actif */
-html body #filters-panel .sdr-pill{display:flex;justify-content:center;width:100%;box-sizing:border-box;margin-top:8px;border:2px solid #3d1fa3 !important;color:#3d1fa3 !important;background:#fff !important;font-weight:800 !important;text-transform:uppercase;letter-spacing:.4px;border-radius:6px;padding:9px 6px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:15.7px;}
-html body #filters-panel .sdr-pill.active{background:#3d1fa3 !important;color:#fff !important;}
+html body #filters-panel .sdr-pill,html body #filters-panel .sdr-depot{display:flex;justify-content:center;width:100%;box-sizing:border-box;margin-top:8px;border:2px solid #3d1fa3 !important;color:#3d1fa3 !important;background:#fff !important;font-weight:800 !important;text-transform:uppercase;letter-spacing:.4px;border-radius:6px;padding:9px 6px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:15.7px;}
+html body #filters-panel .sdr-pill.active,html body #filters-panel .sdr-depot.active{background:#3d1fa3 !important;color:#fff !important;}
 html body #filters-panel#filters-panel #sb-fg-liste{order:1 !important;}html body #filters-panel#filters-panel #sb-fg-liste[hidden]{display:none !important;}
 body.asm-on .plist-table.xlw .plist-col-ref,body.asm-on .plist-table.xlw .plist-td-ref{display:none !important;}
 /* 09/11 Ethan : SIDERUN reconnaissable partout = filet bleu à gauche de la ligne */
-html body .plist-table tr.is-du td:first-child{box-shadow:inset 5px 0 0 #2563eb !important;}
+html body .plist-table tr.is-du td:first-child{box-shadow:inset 5px 0 0 #ec4899 !important;}
 /* photo empruntée à une réf ressemblante du dépôt : cadre pointillé bleu */
-html body .plist-table tr.sim-photo .plist-thumb{outline:2px dashed #2563eb;outline-offset:1px;}
+html body .plist-table tr.sim-photo .plist-thumb{outline:2px dashed #ec4899;outline-offset:1px;}
 html body img[src*="siderun-sur-demande"]{visibility:hidden !important;}
-html body.du-only .plist-table.qx-table tbody tr td:first-child{box-shadow:inset 5px 0 0 #2563eb !important;}
-html body #filters-panel .sdr-only{display:flex;justify-content:center;width:100%;box-sizing:border-box;margin-top:8px;border:2px solid #2563eb;color:#2563eb;background:#fff;font:800 14px 'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.4px;border-radius:6px;padding:8px 6px;cursor:pointer;}
-html body #filters-panel .sdr-only.active{background:#2563eb;color:#fff;}
+html body.du-only .plist-table.qx-table tbody tr td:first-child{box-shadow:inset 5px 0 0 #ec4899 !important;}
+html body #filters-panel .sdr-only{display:flex;justify-content:center;width:100%;box-sizing:border-box;margin-top:8px;border:2px solid #ec4899;color:#ec4899;background:#fff;font:800 14px 'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.4px;border-radius:6px;padding:8px 6px;cursor:pointer;}
+html body #filters-panel .sdr-only.active{background:#ec4899;color:#fff;}
 html body #filters-panel .sdr-only[hidden]{display:none !important;}
-html body .plist-table tr.is-du>td:first-child,html body.du-only .plist-table.qx-table tbody tr>td:first-child{background-image:linear-gradient(to right,#2563eb 5px,transparent 5px) !important;}
+html body .plist-table tr.is-du>td:first-child,html body.du-only .plist-table.qx-table tbody tr>td:first-child{background-image:linear-gradient(to right,#ec4899 5px,transparent 5px) !important;}
 /* filet bleu siderun AU-DESSUS du badge « 16/16 » */
 html body .plist-table tr.is-du>td:first-child,html body.du-only .plist-table.qx-table tbody tr>td:first-child{position:relative;background-image:none !important;}
-html body .plist-table tr.is-du>td:first-child::after,html body.du-only .plist-table.qx-table tbody tr>td:first-child::after{content:'' !important;position:absolute !important;left:0 !important;top:0 !important;bottom:0 !important;right:auto !important;width:5px !important;height:auto !important;background:#2563eb !important;z-index:6 !important;pointer-events:none;border:none !important;transform:none !important;opacity:1 !important;}
+html body .plist-table tr.is-du>td:first-child::after,html body.du-only .plist-table.qx-table tbody tr>td:first-child::after{content:'' !important;position:absolute !important;left:0 !important;top:0 !important;bottom:0 !important;right:auto !important;width:5px !important;height:auto !important;background:#ec4899 !important;z-index:6 !important;pointer-events:none;border:none !important;transform:none !important;opacity:1 !important;}
 /* SIDERUN aussi dans le tiroir mobile */
-#filter-drawer .sdr-pill,#filter-drawer .sdr-only{display:flex;justify-content:center;width:100%;box-sizing:border-box;margin-top:8px;border-radius:12px;padding:10px 6px;font:800 14px 'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.4px;cursor:pointer;background:#fff;}
-#filter-drawer .sdr-pill{border:2px solid #3d1fa3;color:#3d1fa3;}
-#filter-drawer .sdr-pill.active{background:#3d1fa3;color:#fff;}
-#filter-drawer .sdr-only{border:2px solid #2563eb;color:#2563eb;}
-#filter-drawer .sdr-only.active{background:#2563eb;color:#fff;}
+#filter-drawer .sdr-pill,#filter-drawer .sdr-depot,#filter-drawer .sdr-only{display:flex;justify-content:center;width:100%;box-sizing:border-box;margin-top:8px;border-radius:12px;padding:10px 6px;font:800 14px 'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.4px;cursor:pointer;background:#fff;}
+#filter-drawer .sdr-pill,#filter-drawer .sdr-depot{border:2px solid #3d1fa3;color:#3d1fa3;}
+#filter-drawer .sdr-pill.active,#filter-drawer .sdr-depot.active{background:#3d1fa3;color:#fff;}
+#filter-drawer .sdr-only{border:2px solid #ec4899;color:#ec4899;}
+#filter-drawer .sdr-only.active{background:#ec4899;color:#fff;}
 #filter-drawer .sdr-only[hidden]{display:none !important;}
+
+/* FABRICATION (09/11) : case jaune sous Dépôt / Stock + DU */
+html body #filters-panel .fab-pill,#filter-drawer .fab-pill{display:flex;justify-content:center;width:100%;box-sizing:border-box;margin-top:8px;border:2px solid #0ea5e9 !important;color:#0ea5e9 !important;background:#fff !important;font:800 15.7px 'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.4px;border-radius:6px;padding:9px 6px;cursor:pointer;}
+#filter-drawer .fab-pill{font-size:14px;border-radius:12px;padding:10px 6px;}
+html body #filters-panel .fab-pill.active,#filter-drawer .fab-pill.active{background:#0ea5e9 !important;color:#fff !important;}
+html body .plist-table tr.is-fab>td:first-child{position:relative;}
+html body .plist-table tr.is-fab>td:first-child::after{content:'' !important;position:absolute !important;left:0 !important;top:0 !important;bottom:0 !important;width:5px !important;background:#0ea5e9 !important;}
+/* CODE COULEUR périmètre (09/11) : Dépôt noir · DU rose · Fabrication bleu ciel */
+html body #filters-panel .sdr-pill,#filter-drawer .sdr-pill{border-color:#ec4899 !important;color:#ec4899 !important;}
+html body #filters-panel .sdr-pill.active,#filter-drawer .sdr-pill.active{background:#ec4899 !important;border-color:#ec4899 !important;color:#fff !important;}
+html body .plist-table tr.is-fab.sim-photo .plist-thumb{outline-color:#0ea5e9;}
+html body #filters-panel .sdr-depot,#filter-drawer .sdr-depot{border-color:#1d1d1f !important;color:#1d1d1f !important;}
+html body #filters-panel .sdr-depot.active,#filter-drawer .sdr-depot.active{background:#1d1d1f !important;border-color:#1d1d1f !important;color:#fff !important;}
+html body #filters-panel .fab-pill+.format-pills,#filter-drawer .fab-pill+.format-pills{margin-top:12px !important;}
+
+/* HORS ST-OUEN (09/11) : vert */
+html body #filters-panel .ext-pill,#filter-drawer .ext-pill{display:flex;justify-content:center;width:100%;box-sizing:border-box;margin-top:8px;border:2px solid #16a34a !important;color:#16a34a !important;background:#fff !important;font:800 15.7px 'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.4px;border-radius:6px;padding:9px 6px;cursor:pointer;}
+#filter-drawer .ext-pill{font-size:14px;border-radius:12px;padding:10px 6px;}
+html body #filters-panel .ext-pill.active,#filter-drawer .ext-pill.active{background:#16a34a !important;color:#fff !important;}
+html body .plist-table tr.is-ext>td:first-child{position:relative;}
+html body .plist-table tr.is-ext>td:first-child::after{content:'' !important;position:absolute !important;left:0 !important;top:0 !important;bottom:0 !important;width:5px !important;background:#16a34a !important;}
+html body .plist-table tr.is-ext.sim-photo .plist-thumb{outline-color:#16a34a;}

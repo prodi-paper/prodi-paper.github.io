@@ -180,7 +180,7 @@ gtag('config', 'G-KYEHH64T17');
 <link rel="preconnect" href="https://images.weserv.nl">
 <link rel="dns-prefetch" href="https://stock.prodi.net">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/catalogue.css?v=954">
+<link rel="stylesheet" href="/catalogue.css?v=960">
 <!-- EmailJS : chargé À LA DEMANDE par _ejsReady() (perf 18/07) -->
 <link rel="stylesheet" href="/nav-menu.css?v=1">
 <link rel="stylesheet" href="/vitrine-embed.css?v=1">
@@ -3213,12 +3213,17 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
         <button class="fp-reset" onclick="resetFilters()" style="background:none;border:none;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;color:var(--ink);cursor:pointer;text-transform:uppercase;letter-spacing:.5px;"><svg class="fp-reset-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg><span class="fp-reset-t1">Réinitialiser</span><span class="fp-reset-t2">Recommencer</span></button>
       </div>
       <div class="fg" style="border-bottom:2px solid var(--border);margin-bottom:14px;padding-bottom:14px;">
-        <div class="format-pills" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div style="display:grid;grid-template-columns:1fr;gap:0;">
+          <button class="sdr-depot" onclick="toggleDepot()" title="Stock dépôt uniquement">Stock Dépôt St-Ouen</button>
+          <button class="ext-pill" onclick="toggleExtPill()" title="Lots des autres dépôts créés il y a 60 jours ou moins">Stock hors St-Ouen</button>
+          <button class="sdr-pill" onclick="toggleSiderunPill(this)" title="Ajouter les sideruns au stock dépôt">DU - Direct Usine</button>
+        </div>
+        <button class="sdr-only" onclick="toggleSiderunOnly(this)" hidden title="Ne montrer que les sideruns">Uniquement siderun</button>
+        <button class="fab-pill" onclick="toggleFabPill()" title="Ajouter la fabrication sur demande">FAB - Fabrication</button>
+        <div class="format-pills" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
           <button class="fpill fpill-dark" data-format="Bobine" onclick="toggleFormatPill(this)" style="justify-content:center;width:100%;box-sizing:border-box;">Bobine</button>
           <button class="fpill fpill-dark" data-format="Palette" onclick="toggleFormatPill(this)" style="justify-content:center;width:100%;box-sizing:border-box;">Format</button>
         </div>
-        <button class="sdr-pill" onclick="toggleSiderunPill(this)" title="Ajouter les sideruns au stock dépôt">Siderun</button>
-        <button class="sdr-only" onclick="toggleSiderunOnly(this)" hidden title="Ne montrer que les sideruns">Uniquement siderun</button>
       </div>
       <div class="fg" id="sb-fg-liste" hidden>
         <div class="msd" id="sb-msd-liste">
@@ -3788,12 +3793,17 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
   <div class="fd-body">
     <!-- BOBINE | FORMAT -->
     <div class="fd-section open"><div class="fd-section-body">
-      <div class="format-pills" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div style="display:grid;grid-template-columns:1fr;gap:0;">
+        <button class="sdr-depot" onclick="toggleDepot()">Stock Dépôt St-Ouen</button>
+        <button class="ext-pill" onclick="toggleExtPill()">Stock hors St-Ouen</button>
+        <button class="sdr-pill" onclick="toggleSiderunPill(this)">DU - Direct Usine</button>
+      </div>
+      <button class="sdr-only" onclick="toggleSiderunOnly(this)" hidden>Uniquement siderun</button>
+      <button class="fab-pill" onclick="toggleFabPill()">FAB - Fabrication</button>
+      <div class="format-pills" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
         <button class="fpill" id="pill-bobine" data-format="Bobine" onclick="toggleFormatPill(this)" style="justify-content:center;width:100%;box-sizing:border-box;">Bobine</button>
         <button class="fpill" id="pill-palette" data-format="Palette" onclick="toggleFormatPill(this)" style="justify-content:center;width:100%;box-sizing:border-box;">Format</button>
       </div>
-      <button class="sdr-pill" onclick="toggleSiderunPill(this)">Siderun</button>
-      <button class="sdr-only" onclick="toggleSiderunOnly(this)" hidden>Uniquement siderun</button>
       <div id="fd-fg-liste" hidden style="margin-top:8px;">
         <div class="msd" id="msd-liste-mob">
           <button class="msd-btn" data-msd-id="msd-liste" onclick="toggleMsd('msd-liste-mob')">
@@ -3986,7 +3996,7 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
 <script src="/analytics.js?v=8"></script>
 <script src="/login-pop.js"></script>
 <script src="/fiche.js?v=1"></script>
-<script src="/catalogue.js?v=889"></script>
+<script src="/catalogue.js?v=905"></script>
 <script>
 (function(){var Q=window._preQ||[];document.documentElement.style.cursor='';window._preQ=[];
   if(window._axDispoLater&&window.axDispo){window._axDispoLater=0;try{window.axDispo();}catch(e){}} /* défaut Dispo AVANT les clics du visiteur */
