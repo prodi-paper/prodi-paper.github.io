@@ -164,6 +164,7 @@
   .sheet #p-client .cpays{position:absolute;left:0.28mm;top:25.97mm;font-weight:700;font-size:11.76pt;white-space:nowrap;text-transform:uppercase;}
   .sheet .refint{position:absolute;left:110.74mm;top:39.28mm;font-size:8.92pt;font-weight:400;white-space:nowrap;}
   .sheet .ident{position:absolute;left:111.34mm;top:43.83mm;font-size:8.92pt;font-weight:400;white-space:nowrap;}
+  .sheet .ident:not(:empty)::before{content:attr(data-l);font-weight:700;}
   .sheet .rc{position:absolute;left:111.50mm;top:51.02mm;font-size:8.92pt;font-weight:400;white-space:nowrap;}
   .sheet .box-livr{position:absolute;left:110.93mm;top:55.92mm;width:87.98mm;height:28.52mm;border:0.26mm solid #000;box-sizing:border-box;}
   .sheet .box-livr .t{position:absolute;left:0;right:0;top:0;height:5.29mm;border-bottom:0.26mm solid #000;font-weight:700;font-size:8.85pt;padding:0.40mm 0 0 29.40mm;box-sizing:border-box;}
@@ -307,7 +308,7 @@
   @media print{
     body{background:#fff;}
     header.app,.panel,#histo-fond,#cat-gate,#apercu-bar{display:none!important;}
-    .wrap{padding:0;display:block;}
+    .wrap,body.direct .wrap{padding:0!important;display:block!important;} /* 10/11 : body.direct .wrap (padding 24 px) décalait la feuille → droite coupée au PDF */
     /* page sans marge imprimante : la feuille garde ses propres marges (7/6 mm)
        → impression = même mise en page que le PDF html2pdf */
     .sheetbox{display:block!important;}
@@ -741,6 +742,8 @@ function maj(){
   _T('p-ref',v('c-ref'));
   _T('p-rc',v('c-rc'));
   _T('p-ident',v('c-ident'));
+  { const pays=(v('c-nom')+' '+v('c-lieu')).toUpperCase(); // 10/11 : libellé devant l'identifiant (pseudo-élément, hors texte éditable)
+    document.getElementById('p-ident').dataset.l=/MAROC|MOROCCO/.test(pays)?'ICE : ':/SENEGAL|SÉNÉGAL/.test(pays)?'NINEA : ':'NIF : '; }
   _T('p-banque',v('c-banque'));
   _T('p-inco',v('c-inco'));
   _T('p-lieu',v('c-lieu'));
@@ -1652,7 +1655,8 @@ function getHsCode(qualite,gsm,format,couleur,details){
     const set=[...new Set(sm.map(l=>l.hs).filter(Boolean))];
     const parLigne=!douaneManuel&&set.length>1;
     sm.forEach(l=>{l._hsLigne=parLigne?l.hs:'';if(!l.manuel)l.des=designation(l);});
-    if(!douaneManuel){$('c-douane').value=set.length===1?set[0]:'';$('c-douane').classList.toggle('auto',set.length===1);}
+    // 10/11 : un code reçu par le lien #d= (MCP) n'est plus écrasé par le calcul auto
+    if(!douaneManuel&&(!$('c-douane').value||$('c-douane').classList.contains('auto'))){$('c-douane').value=set.length===1?set[0]:'';$('c-douane').classList.toggle('auto',set.length===1);}
   }
   const t2=n=>n?String(Math.round(n)/1000):''; // input type=number : point décimal (« 11,5 » s'affichait vide)
   const esc2=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));

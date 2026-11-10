@@ -116,7 +116,8 @@
     const set=[...new Set(sm.map(l=>l.hs).filter(Boolean))];
     const parLigne=!douaneManuel&&set.length>1;
     sm.forEach(l=>{l._hsLigne=parLigne?l.hs:'';if(!l.manuel)l.des=designation(l);});
-    if(!douaneManuel){$('c-douane').value=set.length===1?set[0]:'';$('c-douane').classList.toggle('auto',set.length===1);}
+    // 10/11 : un code reçu par le lien #d= (MCP) n'est plus écrasé par le calcul auto
+    if(!douaneManuel&&(!$('c-douane').value||$('c-douane').classList.contains('auto'))){$('c-douane').value=set.length===1?set[0]:'';$('c-douane').classList.toggle('auto',set.length===1);}
   }
   const t2=n=>n?String(Math.round(n)/1000):''; // input type=number : point décimal (« 11,5 » s'affichait vide)
   const esc2=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
