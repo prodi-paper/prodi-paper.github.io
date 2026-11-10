@@ -13,7 +13,7 @@ Lecture : l'IA ne fait QUE repérer la feuille, la ligne d'en-tête et les
 colonnes (+ titre/usine/date) ; les valeurs sont lues par Python dans les
 cellules → aucun chiffre inventé. Résultat mis en cache par hash du fichier.
 Un lot (usine × famille × forme) n'est montré qu'en DERNIÈRE version, et
-seulement si reçue depuis le 01/09/2026 et datée de juin 2026 ou après.
+seulement si l'offre a moins de 90 jours (règle glissante).
 
 Usage : python hso_import.py [--dry] [--limit N] [--only mail|dropbox]
 Env   : ~/.hso_import.env (ANTHROPIC_API_KEY, SUPABASE_URL, SUPABASE_SERVICE_ROLE,
@@ -25,8 +25,9 @@ import openpyxl
 from openpyxl.utils import get_column_letter, column_index_from_string
 
 DBX_DIR = 'id:sPT49Yi5p4gAAAAAAAApoQ'
-DEPUIS = '2026-09-01'      # fichier reçu / modifié depuis
-PLANCHER = '2026-06-01'    # … et offre datée d'au moins cette date (une offre de juillet renvoyée en septembre compte)
+JOURS = 90                 # 10/11 Ethan : règle des 90 derniers jours (glissante)
+DEPUIS = (dt.date.today() - dt.timedelta(days=JOURS)).isoformat()   # fichier reçu / modifié depuis
+PLANCHER = DEPUIS          # … et offre datée de moins de 90 jours (mail : date d'envoi si plus récente)
 MODEL = 'claude-sonnet-5-5'
 CACHE = os.path.expanduser('~/.cache/hso_import')
 DEPOT_RE = re.compile(r'OUR WAREHOUSE|SAINT[- ]?OUEN|\bST[- ]?OUEN', re.I)
@@ -68,7 +69,8 @@ def dropbox_files():
             return http('https://content.dropboxapi.com/2/files/download', headers={
                 'Authorization': 'Bearer ' + tok, 'Dropbox-API-Arg': json.dumps({'path': e['id']}).encode('ascii', 'backslashreplace').decode()})
         yield {'source': 'dropbox', 'source_ref': e['path_display'], 'fichier': e['name'],
-               'recu_le': e['client_modified'], 'hash': e['content_hash'], 'get': get, 'contexte': e['path_display']}
+               'recu_le': e['client_modified'], 'hash': e['content_hash'], 'get': get, 'contexte': e['path_display'],
+               'source_label': 'Dropbox › ' + ' › '.join(e['path_display'].split('/')[2:])}
 
 
 def dh(x):
@@ -88,6 +90,9 @@ def mail_files():
         if not re.match(r'offre\b', core, re.I):
             continue  # mails internes (« merci de préparer… », « Filtrer… »)
         date = email.utils.parsedate_to_datetime(msg['Date']).isoformat()
+        exp = email.utils.parseaddr(dh(msg['From']))
+        qui = {'ve@prodi.com': 'Véronique', 'vente@prodi.com': 'Julien (vente@)'}.get(exp[1].lower(), exp[0] or exp[1])
+        lbl = f"Mail de {qui} du {date[8:10]}/{date[5:7]}/{date[:4]} — {core[:140]}"
         for p in msg.walk():
             fn = dh(p.get_filename() or '').replace('\n', ' ').replace('\r', '')
             if not re.search(r'\.xlsx$', fn, re.I):
@@ -95,7 +100,7 @@ def mail_files():
             raw = p.get_payload(decode=True)
             yield {'source': 'mail', 'source_ref': (msg['Message-ID'] or '').strip(), 'fichier': fn,
                    'recu_le': date, 'hash': hashlib.sha256(raw).hexdigest(), 'get': (lambda raw=raw: raw),
-                   'contexte': 'Mail : ' + core}
+                   'contexte': 'Mail : ' + core, 'source_label': lbl}
     m.logout()
 
 
@@ -241,6 +246,18 @@ def upload_photo(lot_id, i, data):
     return f"{ENV['SUPABASE_URL']}/storage/v1/object/public/lots-hso/{path}"
 
 
+def upload_xlsx(lot_id, nom, raw):
+    """L'Excel d'origine (bouton Voir/Télécharger de la fiche, comptes autorisés)."""
+    import unicodedata
+    propre = unicodedata.normalize('NFKD', nom).encode('ascii', 'ignore').decode()
+    propre = re.sub(r'[^A-Za-z0-9._ -]+', '', propre).strip().replace(' ', '_') or 'offre.xlsx'
+    path = f'xlsx/{lot_id[:20]}/{propre}'
+    http(f"{ENV['SUPABASE_URL']}/storage/v1/object/lots-hso/{path}", raw, {
+        'Authorization': 'Bearer ' + ENV['SUPABASE_SERVICE_ROLE'],
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'x-upsert': 'true'}, 'POST')
+    return f"{ENV['SUPABASE_URL']}/storage/v1/object/public/lots-hso/{path}"
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--dry', action='store_true')
@@ -280,6 +297,7 @@ def main():
         elif not lignes: motif = 'aucune ligne lue'
         date_offre = meta.get('date_offre') or f['recu_le'][:10]
         if not re.fullmatch(r'\d{4}-\d{2}-\d{2}', str(date_offre)): date_offre = f['recu_le'][:10]
+        if f['source'] == 'mail': date_offre = max(date_offre, f['recu_le'][:10])  # offre renvoyée = offre du jour d'envoi
         usine = re.sub(r'^0+(?=\d)', '', str(meta.get('usine') or '').strip()) or None
         prix = [l['prix'] for l in lignes if l.get('prix') and l['prix'] > 50]
         row = {'id': lot_id, 'source': f['source'], 'source_ref': f['source_ref'], 'fichier': f['fichier'],
@@ -287,13 +305,14 @@ def main():
                'famille': meta.get('famille'), 'forme': meta.get('forme'), 'titre': meta.get('titre'),
                'titre_en': meta.get('titre_en'), 'lieu': meta.get('lieu'), 'prix_txt': meta.get('prix_txt'),
                'prix_min': min(prix) if prix else None, 'tonnage': round(sum(l['poids'] for l in lignes) / 1000, 1),
-               'nb_lignes': len(lignes), 'lignes': lignes, 'photos': [], 'motif': motif,
+               'nb_lignes': len(lignes), 'source_label': f.get('source_label'), 'lignes': lignes, 'photos': [], 'motif': motif,
                'cle': f"{usine or '?'}|{meta.get('famille')}|{meta.get('forme')}",
                'empreinte': hashlib.sha1(json.dumps(sorted(str((l.get('gsm'), l.get('laize'), l.get('longueur'), l['poids'])) for l in lignes)).encode()).hexdigest() if lignes else None}
         print(f"  {'✓' if not motif else '·'} {f['source']:7} {date_offre} {row['cle']:28} {len(lignes):4} l. {row['tonnage']:7} t  {f['fichier'][:60]}" + (f'  [{motif}]' if motif else ''))
         if a.dry: continue
         if lignes:
             row['photos'] = [upload_photo(lot_id, i, d) for i, d in enumerate(photos[:12])]
+            row['fichier_url'] = upload_xlsx(lot_id, f['fichier'], raw)
         sb('lots_hso', row, 'POST', {'Prefer': 'resolution=merge-duplicates'})
     if not a.dry:
         actualiser()

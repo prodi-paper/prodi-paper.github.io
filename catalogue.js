@@ -9910,7 +9910,7 @@ const _hT=(f,e)=>window.TR?window.TR(f,e):f;
 const _hsoEn=()=>{try{return localStorage.getItem('ali_lang')==='en';}catch(_){return false;}};
 async function _hsoLoad(){
   if(_hsoLots)return _hsoLots;
-  if(!_hsoLoading)_hsoLoading=fetch(SURL+'/rest/v1/lots_hso?actif=eq.true&select=id,date_offre,usine,famille,forme,titre,titre_en,lieu,prix_txt,prix_min,tonnage,nb_lignes,lignes,photos&order=date_offre.desc',{headers:SB_H})
+  if(!_hsoLoading)_hsoLoading=fetch(SURL+'/rest/v1/lots_hso?actif=eq.true&select=id,source,source_label,fichier_url,fichier,date_offre,usine,famille,forme,titre,titre_en,lieu,prix_txt,prix_min,tonnage,nb_lignes,lignes,photos&order=date_offre.desc,recu_le.desc',{headers:SB_H})
     .then(r=>r.ok?r.json():[]).catch(()=>[]).then(d=>(_hsoLots=Array.isArray(d)?d:[]));
   await _hsoLoading;
   // Photo du MODÈLE d'offre (même image sur ≥ 3 lots) ≠ photo du lot → écartée
@@ -9921,25 +9921,69 @@ async function _hsoLoad(){
 function _hsoMode(){
   if(/[?&](s|share)=/.test(location.search))return null;
   const only=window._perimEXT&&window._perimNoDep&&!window._perimDU&&!window._perimFAB;
-  const all=window._perimNoDep&&!window._perimDU&&!window._perimFAB&&!window._perimEXT;
   if(only)return 'only';
-  if(window._perimEXT||(all&&document.body.classList.contains('cat-page')))return 'rail';
+  if(window._perimEXT)return 'rail'; // 10/11 Ethan : les lots SEULEMENT quand la case est cochée (pas dans « tout »)
   return null;
 }
 const _hsoForme=f=>f==='Bobine'?_hT('Bobines','Reels'):f==='Format'?_hT('Formats','Sheets'):_hT('Bobines & formats','Reels & sheets');
 const _hsoDate=d=>d?d.slice(8,10)+'/'+d.slice(5,7)+'/'+d.slice(0,4):'';
 const _hsoT=t=>{const n=+t||0;return (n>=10?Math.round(n):n.toFixed(1).replace('.',','))+' t';};
-function _hsoCard(l,i){
-  const ph=(l.photos||[]).map(safeUrl).filter(Boolean)[0];
-  const tit=_hsoEn()&&l.titre_en?l.titre_en:(l.titre||l.famille||'Lot');
-  const meta=[l.usine?_hT('Usine ','Mill ')+l.usine:null,_hsoForme(l.forme),l.lieu].filter(Boolean).join(' · ');
-  const prix=_priceMode&&l.prix_min?`<span class="hso-prix">${_hT('dès','from')} ${Math.round(l.prix_min)} €/t</span>`:'';
-  return `<button class="hso-card" onclick="_hsoOpen(${i})">
-    <div class="hso-ph">${ph?`<img src="${esc(imgThumb?imgThumb(ph,480):ph)}" loading="lazy" alt="" onerror="this.onerror=null;this.src='${esc(ph)}'">`:`<img src="/img/no-photo.png" alt="" class="hso-ph0">`}</div>
-    <div class="hso-body"><div class="hso-tit">${esc(tit)}</div><div class="hso-meta">${esc(meta)}</div>
-    <div class="hso-foot"><b>${_hsoT(l.tonnage)}</b><span>${l.nb_lignes} ${_hT('lignes','lines')}</span>${prix}</div>
-    <div class="hso-date">${_hT('Offre du','Offer')} ${_hsoDate(l.date_offre)}</div></div></button>`;
+// Famille (import) → libellé étiquette + codes Sage pour la photo de repli (stock de même qualité)
+const HSO_FAM={OFFSET:['Offset','ROFF','SOFF'],COUCHE_1F:['Couché 1 face','R1SC','S1SC'],COUCHE_2F:['Couché 2 faces','R2SC','S2SC'],
+  LWC:['LWC','RLWC','SLWC'],PAPIER_MINCE:['Papier mince','RBON','SBON'],BRISTOL:['Bristol','SOFF','SOFF'],BOUFFANT:['Bouffant','RBOU','SBOU'],
+  JOURNAL:['Journal','RNEW','SNEW'],AUTOCOPIANT:['Autocopiant','RCAR','SCAR'],ADHESIF:['Adhésif','RADH','SADH'],
+  KRAFT_BRUN:['Kraft brun','RKRABRUN','SKRA'],KRAFT_BLANC:['Kraft blanc','RKRA','SKRA'],KRAFT_INGRAISSABLE:['Kraft ingraissable','RSIL','RSIL'],
+  CRISTAL:['Cristal','RSIL','RSIL'],CARTON_SBS:['Carton SBS','RBOA','SSBS'],CARTON_GC:['Carton GC','RBOA','SBOA'],CARTON_GD:['Carton GD','RBOA','SBOA'],
+  CARTON_GT:['Carton GT','RBOA','SBOA'],CARTON_GRIS:['Carton gris','RBOA','SBOA'],CARTON_GOBELET:['Carton gobelet','RPLA','SPLA'],
+  LINER_FLUTING:['Liner / fluting','RLINER','RLINER'],PAPIER_LUXE:['Papier luxe','RLUX','SLUX'],PAPIER_CADEAU:['Papier cadeau','RLUX','SLUX'],
+  PAPIER_COULEUR:['Papier couleur','RCOL','SCOL']};
+const _hsoFamLbl=l=>(HSO_FAM[l.famille]||[l.famille||'Lot'])[0];
+// Photos : celle de l'Excel du lot, sinon une photo de notre stock de même qualité/forme
+async function _hsoPhotos(lots){
+  const need=lots.filter(l=>!(l.photos||[]).length&&HSO_FAM[l.famille]);
+  const codes=[...new Set(need.map(l=>HSO_FAM[l.famille][l.forme==='Format'?2:1]))];
+  const got={};
+  await Promise.all(codes.map(c=>fetch(SURL+'/rest/v1/products?quality=eq.'+encodeURIComponent(c)+'&image_url=not.is.null&source=neq.inventaire&select=image_url&order=ref.desc&limit=4',{headers:SB_H})
+    .then(r=>r.ok?r.json():[]).then(d=>{got[c]=(d||[]).map(x=>x.image_url).filter(Boolean);}).catch(()=>{})));
+  need.forEach(l=>{const c=HSO_FAM[l.famille][l.forme==='Format'?2:1];l._photosRepli=got[c]||[];});
 }
+const _hsoRange=(L,k,u)=>{const v=L.map(r=>+r[k]).filter(x=>x>0);if(!v.length)return '—';const a=Math.min(...v),b=Math.max(...v);
+  const f=x=>String(Math.round(x));return (a===b?f(a):f(a)+' – '+f(b))+(u?` <small>${u}</small>`:'');};
+function _hsoCard(l,i){
+  const L=l.lignes||[];
+  const cands=[...(l.photos||[]),...(l._photosRepli||[])].map(safeUrl).filter(Boolean);
+  const ph=cands[0];
+  const forme=l.forme==='Bobine'?_hT('Bobine','Reel'):l.forme==='Format'?_hT('Format','Sheets'):_hT('Bobine & format','Reel & sheets');
+  const sous=_hsoEn()&&l.titre_en?l.titre_en:(l.titre||'');
+  const dims=l.forme==='Bobine'?[_hT('Laize','Width'),_hsoRange(L,'laize','mm')]
+    :[_hT('Dimensions','Size'),(()=>{const n=new Set(L.filter(r=>r.laize&&r.longueur).map(r=>r.laize+'×'+r.longueur)).size;
+       const r0=L.find(r=>r.laize&&r.longueur);
+       return n===1?(r0.laize+' × '+r0.longueur+' <small>mm</small>'):n?n+' <small>'+_hT('formats','sizes')+'</small>':_hsoRange(L,'laize','mm');})()];
+  const prix=_priceMode&&l.prix_min?`${_hT('dès','from')} ${Math.round(l.prix_min)} <small>€/T</small>`:`<span class="hso-sd">${_hT('Sur demande','On request')}</span>`;
+  const onerr=cands.slice(1).concat(['/img/no-photo.png']).map(u=>esc(u)).join('|');
+  return `<button class="hso-card" onclick="_hsoOpen(${i})">
+    <div class="hso-ph"><img src="${esc(ph?imgThumb(ph,560):'/img/no-photo.png')}" loading="lazy" alt="" data-alt="${onerr}" onerror="_hsoImgErr(this)"${ph?'':' class="hso-ph0"'}>
+      <span class="hso-b hso-bl">${_hT('Offre du','Offer')} ${_hsoDate(l.date_offre).slice(0,5)}</span>${l.usine?`<span class="hso-b hso-br"><small>${_hT('USINE','MILL')}</small> ${esc(l.usine)}</span>`:''}</div>
+    <div class="hso-etq">
+      <div class="hso-t">${esc(forme)} — ${esc(_hsoFamLbl(l))}</div>
+      <div class="hso-st">${esc(sous)}</div>
+      <div class="hso-g">
+        <div><span>${_hT('Grammage','GSM')}</span><b>${_hsoRange(L,'gsm','g/m²')}</b></div>
+        <div><span>${dims[0]}</span><b>${dims[1]}</b></div>
+        <div><span>${_hT('Lignes','Lines')}</span><b>${L.length}</b></div>
+        <div><span>${_hT('Poids net','Net weight')}</span><b>${_hsoT(l.tonnage).replace(' t',' <small>t</small>')}</b></div>
+        <div><span>${_hT('Usine','Mill')}</span><b>${esc(l.usine||'—')}</b></div>
+        <div><span>${_hT('Prix','Price')}</span><b>${prix}</b></div>
+      </div>
+      <div class="hso-z">${l.lieu?`<b>${_hT('Lieu','Location')}</b> ${esc(l.lieu)} &nbsp; `:''}<b>${_hT('Source','Source')}</b> ${esc(_hsoSrcCourt(l))}</div>
+    </div></button>`;
+}
+// Provenance : « Mail Véronique 06/11 » / « Dropbox › dossier » (détail complet dans la fiche)
+function _hsoSrcCourt(l){const t=l.source_label||'';
+  if(l.source==='mail'){const m=t.match(/^Mail de (.+?) du (\d\d\/\d\d)/);return m?_hT('Mail ','Email ')+m[1]+' '+m[2]:_hT('Mail','Email');}
+  const p=t.split(' › ');return 'Dropbox'+(p[1]?' › '+p[1].replace(/\s+/g,' ').trim():'');}
+function _hsoImgErr(img){const a=(img.dataset.alt||'').split('|').filter(Boolean);const n=a.shift();img.dataset.alt=a.join('|');
+  if(n){if(/no-photo/.test(n))img.classList.add('hso-ph0');img.src=n;}else img.onerror=null;}
 async function _hsoRender(){
   const box=document.getElementById('hso-lots');if(!box)return;
   const mode=_hsoMode();
@@ -9948,14 +9992,16 @@ async function _hsoRender(){
   box.hidden=false;
   if(!_hsoLots)box.innerHTML=`<div class="hso-load">${_hT('Chargement des lots…','Loading lots…')}</div>`;
   const lots=await _hsoLoad();
+  if(!lots._ph){lots._ph=1;await _hsoPhotos(lots);}
   if(_hsoMode()!==mode)return;
-  const tons=lots.reduce((s,l)=>s+(+l.tonnage||0),0);
+  const q=_hsoQuery(),vis=lots.map((l,i)=>[l,i]).filter(([l])=>_hsoMatch(l,q));
+  const tons=vis.reduce((s,[l])=>s+(+l.tonnage||0),0);
   const head=`<div class="hso-head"><div><h2>${_hT('Stock hors St-Ouen','Stock outside Saint-Ouen')}</h2>
-    <span>${lots.length} ${_hT('lots','lots')} · ${_hsoT(tons)} · ${_hT('offres usine, par lot','mill offers, by lot')}</span></div>
+    <span>${vis.length} ${_hT('lots','lots')} · ${_hsoT(tons)}${q.txt?` · « ${esc(q.txt)} »`:` · ${_hT('offres usine, par lot','mill offers, by lot')}`}</span></div>
     ${mode==='rail'&&lots.length?`<button class="hso-all" onclick="_hsoSeul()">${_hT('Voir les lots','See all lots')} →</button>`:''}</div>`;
   box.className='hso-lots hso-'+mode;
-  box.innerHTML=head+(lots.length?`<div class="hso-grid">${lots.map(_hsoCard).join('')}</div>`
-    :`<div class="hso-load">${_hT('Aucun lot pour le moment.','No lots at the moment.')}</div>`);
+  box.innerHTML=head+(vis.length?`<div class="hso-grid">${vis.map(([l,i])=>_hsoCard(l,i)).join('')}</div>`
+    :`<div class="hso-load">${lots.length?_hT('Aucun lot ne correspond à la recherche.','No lot matches your search.'):_hT('Aucun lot pour le moment.','No lots at the moment.')}</div>`);
 }
 function _hsoSeul(){window._perimEXT=true;window._perimNoDep=true;window._perimDU=false;window._perimFAB=false;_perimRefresh();window.scrollTo({top:0,behavior:'smooth'});}
 function _hsoOpen(i){
@@ -9970,7 +10016,7 @@ function _hsoOpen(i){
   const cols=COLS.filter(([k])=>L.some(r=>r[k]!=null&&r[k]!==''));
   const fmtN=(k,v)=>v==null?'':(typeof v==='number'?(k==='poids'?Math.round(v).toLocaleString('fr-FR'):String(+v.toFixed(1)).replace('.',',')):v);
   const rows=L.map(r=>`<tr>${cols.map(([k])=>`<td class="hc-${k}">${esc(fmtN(k,r[k]))}</td>`).join('')}</tr>`).join('');
-  const phs=(l.photos||[]).map(safeUrl).filter(Boolean);
+  const phs=[...(l.photos||[]),...(l._photosRepli||[]).slice(0,1)].map(safeUrl).filter(Boolean);
   const meta=[l.usine?_hT('Usine ','Mill ')+l.usine:null,_hsoForme(l.forme),l.lieu,_hT('offre du ','offer ')+_hsoDate(l.date_offre)].filter(Boolean).join(' · ');
   const wa=`https://wa.me/${WA}?text=${encodeURIComponent(_hT('Bonjour, je suis intéressé par le lot : ','Hello, I am interested in the lot: ')+tit+(l.usine?' (usine '+l.usine+')':'')+' — '+_hsoT(l.tonnage))}`;
   let m=document.getElementById('hso-modal');
@@ -9979,10 +10025,14 @@ function _hsoOpen(i){
     <button class="hso-x" onclick="_hsoClose()" aria-label="Fermer">✕</button>
     <h3>${esc(tit)}</h3><div class="hso-sub">${esc(meta)}</div>
     <div class="hso-kpi"><b>${_hsoT(l.tonnage)}</b><span>${L.length} ${_hT('lignes','lines')}</span>${_priceMode&&l.prix_txt?`<span>${esc(l.prix_txt)} ${_hT('départ usine','ex-works')}</span>`:''}</div>
-    ${phs.length?`<div class="hso-phs">${phs.map(u=>`<a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(u)}" alt=""></a>`).join('')}</div>`:''}
+    <div class="hso-top">${phs.length?`<div class="hso-phs">${phs.map(u=>`<a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(u)}" alt=""></a>`).join('')}</div>`:''}
+    <div class="hso-side"><div class="hso-src"><b>${_hT('Source','Source')}</b> ${esc(l.source_label||'—')}${_priceMode&&l.fichier?`<br><b>${_hT('Fichier','File')}</b> ${esc(l.fichier)}`:''}</div>
+    <div class="hso-act">${_priceMode&&safeUrl(l.fichier_url)?`<a class="hso-copy" href="https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(l.fichier_url)}" target="_blank" rel="noopener">${_hT("Voir l'Excel",'View Excel')}</a>
+      <a class="hso-copy" href="${esc(safeUrl(l.fichier_url))}?download=${encodeURIComponent(l.fichier||'offre.xlsx')}">${_hT("Télécharger l'Excel",'Download Excel')}</a>`:''}
+    <button class="hso-copy" onclick="_hsoCopy(${i})">${_hT('Copier le tableau','Copy table')}</button>
+    <a class="hso-wa" href="${esc(wa)}" target="_blank" rel="noopener">${_hT('Demander ce lot sur WhatsApp','Ask for this lot on WhatsApp')}</a></div></div></div>
     <div class="hso-tw"><table class="hso-tab"><thead><tr>${cols.map(([,t])=>`<th>${esc(t)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>
-    <div class="hso-act"><button class="hso-copy" onclick="_hsoCopy(${i})">${_hT('Copier le tableau','Copy table')}</button>
-    <a class="hso-wa" href="${esc(wa)}" target="_blank" rel="noopener">${_hT('Demander ce lot sur WhatsApp','Ask for this lot on WhatsApp')}</a></div></div>`;
+</div>`;
   m.classList.add('show');document.body.style.overflow='hidden';
 }
 function _hsoClose(){const m=document.getElementById('hso-modal');if(m)m.classList.remove('show');document.body.style.overflow='';}
@@ -9994,4 +10044,25 @@ function _hsoCopy(i){
   navigator.clipboard?.writeText(tsv).then(()=>{const b=document.querySelector('#hso-modal .hso-copy');if(b){b.textContent=_hT('Copié ✓','Copied ✓');}});
 }
 document.addEventListener('DOMContentLoaded',()=>setTimeout(_hsoRender,0));
+// Recherche + filtres du rail appliqués aux lots (10/11 Ethan) : texte (barre du header, en
+// direct), Bobine/Format, plage de grammage. Un lot passe si UNE de ses lignes passe.
+const _hsoNorm=t=>String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+function _hsoQuery(){
+  const txt=((document.getElementById('cat-hq')||{}).value||(document.getElementById('search-input')||{}).value||'').trim();
+  const fm=[...document.querySelectorAll('.fpill[data-format].active')].map(b=>b.dataset.format==='Bobine'?'Bobine':'Format');
+  const gmin=+((document.getElementById('f-gmin')||{}).value)||0,gmax=+((document.getElementById('f-gmax')||{}).value)||0;
+  return {txt,toks:_hsoNorm(txt).split(/\s+/).filter(Boolean),formes:new Set(fm),gmin,gmax};
+}
+function _hsoMatch(l,q){
+  if(q.formes.size&&l.forme!=='Mixte'&&!q.formes.has(l.forme))return false;
+  const L=l.lignes||[];
+  if(q.gmin||q.gmax){if(!L.some(r=>r.gsm&&(!q.gmin||r.gsm>=q.gmin)&&(!q.gmax||r.gsm<=q.gmax)))return false;}
+  if(!q.toks.length)return true;
+  if(!l._hay)l._hay=_hsoNorm([l.titre,l.titre_en,_hsoFamLbl(l),l.famille,l.usine&&'usine '+l.usine,l.lieu,l.forme,
+    ...L.map(r=>[r.detail,r.couleur,r.finition,r.emplacement,r.gsm&&r.gsm+'g'].join(' '))].join(' '));
+  return q.toks.every(t=>l._hay.includes(t));
+}
+document.addEventListener('input',e=>{if(e.target&&e.target.id==='cat-hq'&&_hsoMode())_hsoRender();});
+(function(){const f=window.filterProducts;if(typeof f!=='function')return;
+  window.filterProducts=function(){const r=f.apply(this,arguments);try{_hsoRender();}catch(_){}return r;};})();
 
