@@ -37,15 +37,17 @@ async function sbQ(path,opts={}){
   if(path.startsWith('products?')&&(window._perimDU||window._perimFAB||window._perimNoDep||window._perimEXT)&&!opts._depot){
     const _d6=(()=>{const d=new Date();d.setMonth(d.getMonth()-6);return d.toISOString().slice(0,10);})();
     const _du='and(ref.ilike.Photo_DU*,date_arrivee.gte.'+_d6+')';
+    // 10/11 Ethan : les lots de Koper (usine 517, kraft MG) = du DU, plus du « hors St-Ouen »
+    const _kop='and(emplacement.eq.A-KOPER TPG,date_arrivee.gte.'+_d6+')';
     const _dep='and(emplacement.eq.OUR WAREHOUSE,or(ref.is.null,and(ref.not.ilike.Photo_DU*,ref.not.ilike.Photo_FAB*,ref.not.ilike.Photo_BU*)))';
     const _fab='ref.ilike.Photo_FAB*';
-    // HORS ST-OUEN (09/11 Ethan) : lots des autres dépôts (Koper, Barcelone, Kallo…) — hors bureau, dépôt client, direct usine
-    // … et seulement les lots créés dans Sage depuis 60 jours ou moins (09/11 Ethan : les vieux lots 2017-2022 = plus vendables)
-    const _d60=(()=>{const d=new Date();d.setDate(d.getDate()-60);return d.toISOString().slice(0,10);})();
-    const _ext='and(emplacement.not.in.("OUR WAREHOUSE","A-PRODI BUREAU","DEPOT CLIENT","DIRECT USINE"),ref.not.ilike.Photo_DU*,ref.not.ilike.Photo_FAB*,ref.not.ilike.Photo_BU*,date_arrivee.gte.'+_d60+')';
+    // HORS ST-OUEN (10/11 Ethan) : ce ne sont PLUS des articles Sage — ce sont les offres usine
+    // de la Dropbox + celles envoyées par Véronique (table lots_hso, affichées PAR LOT, voir
+    // « LOTS HORS ST-OUEN » en fin de fichier). Rien à ajouter ici à la requête products.
     // 09/11 Ethan : AUCUNE case cochée = TOUT (dépôt + hors St-Ouen + DU + FAB)
     const _all=window._perimNoDep&&!window._perimDU&&!window._perimFAB&&!window._perimEXT;
-    const _parts=[];if(!window._perimNoDep||_all)_parts.push(_dep);if(window._perimDU||_all)_parts.push(_du);if(window._perimFAB||_all)_parts.push(_fab);if(window._perimEXT||_all)_parts.push(_ext);
+    const _parts=[];if(!window._perimNoDep||_all)_parts.push(_dep);if(window._perimDU||_all)_parts.push(_du,_kop);if(window._perimFAB||_all)_parts.push(_fab);
+    if(!_parts.length)_parts.push('id.eq.-1'); // « Hors St-Ouen » seul : aucun article, que les lots
     // FAB : vue products + TOUS les FAB Sage non en sommeil (supabase_v_products_fab.sql)
     if(window._perimFAB||_all)path='v_products_fab?'+path.slice(9);
         path+='&source=neq.inventaire&or=('+_parts.join(',')+')'
@@ -9819,6 +9821,7 @@ function _perimRefresh(){
   try{_fafEpoch++;}catch(_){}
   filterProducts();
   _loadAllProducts().then(()=>{if(typeof _refreshAllFacets==='function')_refreshAllFacets();});
+  if(typeof _hsoRender==='function')_hsoRender();
 }
 
 // ── LISTES SIDERUN (09/11) : une liste = même usine + même date d'arrivée Sage ──
@@ -9829,7 +9832,7 @@ function _buildListeOptions(){
   if(!window._perimDU||!_allProductsCache)return;
   if(_listeBuiltFor===_allProductsCache)return;
   const m=new Map();
-  _allProductsCache.forEach(r=>{if(!/^Photo_DU/i.test(String(r.ref||'')))return;const k=_listeOf(r);const e=m.get(k)||{n:0,kg:0};e.n++;e.kg+=+r.weight||0;m.set(k,e);});
+  _allProductsCache.forEach(r=>{if(!/^Photo_DU/i.test(String(r.ref||''))&&r.emplacement!=='A-KOPER TPG')return;const k=_listeOf(r);const e=m.get(k)||{n:0,kg:0};e.n++;e.kg+=+r.weight||0;m.set(k,e);});
   const vals=[...m.keys()].sort((a,b)=>(b.split('|')[1]||'').localeCompare(a.split('|')[1]||'')||a.localeCompare(b));
   const lbl=k=>{const [u,d]=k.split('|');const dd=d?d.slice(8,10)+'/'+d.slice(5,7)+'/'+d.slice(2,4):'sans date';return 'Usine '+(u||'?')+' · '+dd;};
   buildMsdOptions('sb-msd-liste',vals,'Listes siderun',lbl,'msd-liste');
@@ -9895,3 +9898,100 @@ async function _duFillPhotos(rows){
   const idx=await _loadDepotPhotos();
   rows.forEach(r=>{if(!r.image_url&&/^Photo_[A-Z]/i.test(String(r.ref||''))){const u=_duBestPhoto(r,idx);if(u){r.image_url=u;r._simPhoto=true;}}});
 }
+
+// ── LOTS HORS ST-OUEN (10/11/2026 Ethan) ─────────────────────────────────────
+// Offres usine de la Dropbox (/0_AAA HORS SAINT OUEN STOCKLOTS…) + offres envoyées
+// par Véronique / vente@ (objet « OFFRE … », Excel joint) → table lots_hso, remplie
+// par scripts/hso_import/hso_import.py (1 offre = 1 lot, dernière version seulement).
+// Case « Stock hors St-Ouen » seule = grille de lots ; rien coché = bandeau au-dessus
+// du stock. Clic = fiche du lot (photos + toutes les lignes). Prix : comptes autorisés.
+let _hsoLots=null,_hsoLoading=null;
+const _hT=(f,e)=>window.TR?window.TR(f,e):f;
+const _hsoEn=()=>{try{return localStorage.getItem('ali_lang')==='en';}catch(_){return false;}};
+async function _hsoLoad(){
+  if(_hsoLots)return _hsoLots;
+  if(!_hsoLoading)_hsoLoading=fetch(SURL+'/rest/v1/lots_hso?actif=eq.true&select=id,date_offre,usine,famille,forme,titre,titre_en,lieu,prix_txt,prix_min,tonnage,nb_lignes,lignes,photos&order=date_offre.desc',{headers:SB_H})
+    .then(r=>r.ok?r.json():[]).catch(()=>[]).then(d=>(_hsoLots=Array.isArray(d)?d:[]));
+  await _hsoLoading;
+  // Photo du MODÈLE d'offre (même image sur ≥ 3 lots) ≠ photo du lot → écartée
+  const n={};_hsoLots.forEach(l=>new Set(l.photos||[]).forEach(u=>{n[u]=(n[u]||0)+1;}));
+  _hsoLots.forEach(l=>{l.photos=(l.photos||[]).filter(u=>n[u]<3);});
+  return _hsoLots;
+}
+function _hsoMode(){
+  if(/[?&](s|share)=/.test(location.search))return null;
+  const only=window._perimEXT&&window._perimNoDep&&!window._perimDU&&!window._perimFAB;
+  const all=window._perimNoDep&&!window._perimDU&&!window._perimFAB&&!window._perimEXT;
+  if(only)return 'only';
+  if(window._perimEXT||(all&&document.body.classList.contains('cat-page')))return 'rail';
+  return null;
+}
+const _hsoForme=f=>f==='Bobine'?_hT('Bobines','Reels'):f==='Format'?_hT('Formats','Sheets'):_hT('Bobines & formats','Reels & sheets');
+const _hsoDate=d=>d?d.slice(8,10)+'/'+d.slice(5,7)+'/'+d.slice(0,4):'';
+const _hsoT=t=>{const n=+t||0;return (n>=10?Math.round(n):n.toFixed(1).replace('.',','))+' t';};
+function _hsoCard(l,i){
+  const ph=(l.photos||[]).map(safeUrl).filter(Boolean)[0];
+  const tit=_hsoEn()&&l.titre_en?l.titre_en:(l.titre||l.famille||'Lot');
+  const meta=[l.usine?_hT('Usine ','Mill ')+l.usine:null,_hsoForme(l.forme),l.lieu].filter(Boolean).join(' · ');
+  const prix=_priceMode&&l.prix_min?`<span class="hso-prix">${_hT('dès','from')} ${Math.round(l.prix_min)} €/t</span>`:'';
+  return `<button class="hso-card" onclick="_hsoOpen(${i})">
+    <div class="hso-ph">${ph?`<img src="${esc(imgThumb?imgThumb(ph,480):ph)}" loading="lazy" alt="" onerror="this.onerror=null;this.src='${esc(ph)}'">`:`<img src="/img/no-photo.png" alt="" class="hso-ph0">`}</div>
+    <div class="hso-body"><div class="hso-tit">${esc(tit)}</div><div class="hso-meta">${esc(meta)}</div>
+    <div class="hso-foot"><b>${_hsoT(l.tonnage)}</b><span>${l.nb_lignes} ${_hT('lignes','lines')}</span>${prix}</div>
+    <div class="hso-date">${_hT('Offre du','Offer')} ${_hsoDate(l.date_offre)}</div></div></button>`;
+}
+async function _hsoRender(){
+  const box=document.getElementById('hso-lots');if(!box)return;
+  const mode=_hsoMode();
+  document.body.classList.toggle('hso-only',mode==='only');
+  if(!mode){box.hidden=true;box.innerHTML='';return;}
+  box.hidden=false;
+  if(!_hsoLots)box.innerHTML=`<div class="hso-load">${_hT('Chargement des lots…','Loading lots…')}</div>`;
+  const lots=await _hsoLoad();
+  if(_hsoMode()!==mode)return;
+  const tons=lots.reduce((s,l)=>s+(+l.tonnage||0),0);
+  const head=`<div class="hso-head"><div><h2>${_hT('Stock hors St-Ouen','Stock outside Saint-Ouen')}</h2>
+    <span>${lots.length} ${_hT('lots','lots')} · ${_hsoT(tons)} · ${_hT('offres usine, par lot','mill offers, by lot')}</span></div>
+    ${mode==='rail'&&lots.length?`<button class="hso-all" onclick="_hsoSeul()">${_hT('Voir les lots','See all lots')} →</button>`:''}</div>`;
+  box.className='hso-lots hso-'+mode;
+  box.innerHTML=head+(lots.length?`<div class="hso-grid">${lots.map(_hsoCard).join('')}</div>`
+    :`<div class="hso-load">${_hT('Aucun lot pour le moment.','No lots at the moment.')}</div>`);
+}
+function _hsoSeul(){window._perimEXT=true;window._perimNoDep=true;window._perimDU=false;window._perimFAB=false;_perimRefresh();window.scrollTo({top:0,behavior:'smooth'});}
+function _hsoOpen(i){
+  const l=(_hsoLots||[])[i];if(!l)return;
+  window.prodiTrack?.('hso_lot',{usine:l.usine,famille:l.famille});
+  const en=_hsoEn(),tit=en&&l.titre_en?l.titre_en:(l.titre||l.famille);
+  const L=l.lignes||[];
+  const COLS=[['emplacement',_hT('Emplacement','Location')],['couleur',_hT('Couleur','Colour')],['detail',_hT('Détail','Detail')],['finition',_hT('Finition','Finish')],
+    ['gsm','g/m²'],['laize',l.forme==='Bobine'?_hT('Laize (mm)','Width (mm)'):_hT('Largeur (mm)','Width (mm)')],['longueur',_hT('Longueur (mm)','Length (mm)')],
+    ['diametre','Ø (mm)'],['mandrin',_hT('Mandrin','Core')],['nb',_hT('Nb','Qty')],['poids',_hT('Poids (kg)','Weight (kg)')]];
+  if(_priceMode)COLS.push(['prix',_hT('Prix départ (€/t)','Ex-works (€/t)')]);
+  const cols=COLS.filter(([k])=>L.some(r=>r[k]!=null&&r[k]!==''));
+  const fmtN=(k,v)=>v==null?'':(typeof v==='number'?(k==='poids'?Math.round(v).toLocaleString('fr-FR'):String(+v.toFixed(1)).replace('.',',')):v);
+  const rows=L.map(r=>`<tr>${cols.map(([k])=>`<td class="hc-${k}">${esc(fmtN(k,r[k]))}</td>`).join('')}</tr>`).join('');
+  const phs=(l.photos||[]).map(safeUrl).filter(Boolean);
+  const meta=[l.usine?_hT('Usine ','Mill ')+l.usine:null,_hsoForme(l.forme),l.lieu,_hT('offre du ','offer ')+_hsoDate(l.date_offre)].filter(Boolean).join(' · ');
+  const wa=`https://wa.me/${WA}?text=${encodeURIComponent(_hT('Bonjour, je suis intéressé par le lot : ','Hello, I am interested in the lot: ')+tit+(l.usine?' (usine '+l.usine+')':'')+' — '+_hsoT(l.tonnage))}`;
+  let m=document.getElementById('hso-modal');
+  if(!m){m=document.createElement('div');m.id='hso-modal';m.onclick=e=>{if(e.target===m)_hsoClose();};document.body.appendChild(m);}
+  m.innerHTML=`<div class="hso-box" role="dialog" aria-modal="true">
+    <button class="hso-x" onclick="_hsoClose()" aria-label="Fermer">✕</button>
+    <h3>${esc(tit)}</h3><div class="hso-sub">${esc(meta)}</div>
+    <div class="hso-kpi"><b>${_hsoT(l.tonnage)}</b><span>${L.length} ${_hT('lignes','lines')}</span>${_priceMode&&l.prix_txt?`<span>${esc(l.prix_txt)} ${_hT('départ usine','ex-works')}</span>`:''}</div>
+    ${phs.length?`<div class="hso-phs">${phs.map(u=>`<a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(u)}" alt=""></a>`).join('')}</div>`:''}
+    <div class="hso-tw"><table class="hso-tab"><thead><tr>${cols.map(([,t])=>`<th>${esc(t)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="hso-act"><button class="hso-copy" onclick="_hsoCopy(${i})">${_hT('Copier le tableau','Copy table')}</button>
+    <a class="hso-wa" href="${esc(wa)}" target="_blank" rel="noopener">${_hT('Demander ce lot sur WhatsApp','Ask for this lot on WhatsApp')}</a></div></div>`;
+  m.classList.add('show');document.body.style.overflow='hidden';
+}
+function _hsoClose(){const m=document.getElementById('hso-modal');if(m)m.classList.remove('show');document.body.style.overflow='';}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('hso-modal')?.classList.contains('show'))_hsoClose();});
+function _hsoCopy(i){
+  const l=(_hsoLots||[])[i];if(!l)return;
+  const th=document.querySelectorAll('#hso-modal .hso-tab th'),tr=document.querySelectorAll('#hso-modal .hso-tab tbody tr');
+  const tsv=[[...th].map(x=>x.textContent).join('\t'),...[...tr].map(r=>[...r.children].map(x=>x.textContent).join('\t'))].join('\n');
+  navigator.clipboard?.writeText(tsv).then(()=>{const b=document.querySelector('#hso-modal .hso-copy');if(b){b.textContent=_hT('Copié ✓','Copied ✓');}});
+}
+document.addEventListener('DOMContentLoaded',()=>setTimeout(_hsoRender,0));
+
