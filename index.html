@@ -1071,6 +1071,25 @@ body.topbar-view .plist-table th.plist-th-add:hover{background:#cdd9ea !importan
   .promo-half{position:absolute;top:0;bottom:0;width:50%;border-radius:14px;cursor:pointer;}
   .promo-half-l{left:0;}
   .promo-half-r{right:0;}
+  .pp-banner{display:flex;gap:16px;align-items:stretch;}
+  .pp-main{flex:1;display:flex;height:300px;border-radius:14px;overflow:hidden;text-decoration:none;color:#111;background:linear-gradient(115deg,#f4f6f9 0%,#e3e8ef 55%,#cfd7e2 100%);box-shadow:inset 0 0 0 1px #e0e0e5;transition:box-shadow .15s;}
+  .pp-main:hover{box-shadow:inset 0 0 0 3px rgba(254,0,0,.55);}
+  .pp-txt{flex:0 0 360px;padding:30px 36px;display:flex;flex-direction:column;justify-content:center;gap:10px;}
+  .pp-txt i{display:block;width:44px;height:4px;background:#fe0000;}
+  .pp-txt h3{margin:0;font:800 34px/1.05 'DM Sans',sans-serif;letter-spacing:-.5px;color:#14213d;}
+  .pp-sub{margin:0;font:600 13px/1 'DM Sans',sans-serif;letter-spacing:3px;text-transform:uppercase;color:#333;}
+  .pp-px{margin:4px 0 0;display:flex;align-items:baseline;gap:8px;background:#ffe345;border-radius:10px;padding:8px 16px;width:max-content;font:900 40px/1 'Bebas Neue','DM Sans',sans-serif;}
+  .pp-px span+span::before{content:'/';margin-right:8px;color:#555;}
+  .pp-px b{font-size:20px;margin-left:4px;}
+  .pp-fam{margin:0;font:500 12.5px/1.4 'DM Sans',sans-serif;color:#555;max-width:470px;}
+  .pp-go{margin-top:6px;align-self:flex-start;background:#fff;border-radius:999px;padding:11px 22px;font:700 15px/1 'DM Sans',sans-serif;box-shadow:0 2px 9px rgba(0,0,0,.12);}
+  .pp-ph{flex:1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:3px;min-width:0;min-height:0;}
+  .pp-ph img{width:100%;height:100%;min-height:0;object-fit:cover;display:block;}
+  .pp-dl{width:250px;display:flex;flex-direction:column;gap:12px;justify-content:center;}
+  .pp-dl a{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:18px 18px;border:1px solid #e0e0e5;border-radius:14px;text-decoration:none;color:#1d1d1f;font:700 15px/1.2 'DM Sans',sans-serif;background:#fff;transition:border-color .15s,box-shadow .15s;}
+  .pp-dl a:hover{border-color:#1d1d1f;box-shadow:0 4px 14px rgba(0,0,0,.08);}
+  .pp-dl small{font:600 12px/1 'DM Sans',sans-serif;color:#6e6e73;}
+  @media(max-width:900px){.pp-banner{flex-direction:column}.pp-ph{display:none}.pp-dl{width:auto;flex-direction:row}.pp-dl a{flex:1}.pp-txt h3{font-size:26px}}
   .promo-half:hover{background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 3px rgba(254,0,0,.55);}
   .promo-banner img,.achat-banner img,.stock-banner img,.export-banner img{display:block;width:100%;height:auto;max-height:calc(min(792px,(100vh - 175px)*.9) - 48px);object-fit:contain;border-radius:14px;}
   /* panneau « Demande d'échantillons » déroulant (même mécanique que Fabrication) */
@@ -1876,8 +1895,6 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
     if(fb)fb.src='/img/fabrication_banner'+(l==='en'?'_en':'')+'.webp';
     var ab=document.querySelector('.about-banner');
     if(ab)ab.src='/img/about_banner'+(l==='en'?'_en':'')+'.webp';
-    var pb=document.querySelector('.promo-banner img');
-    if(pb)pb.src='/img/destockage_banner'+(l==='en'?'_en':'')+'.webp';
     var sb2=document.querySelector('.achat-banner img');
     if(sb2)sb2.src='/img/achat_banner'+(l==='en'?'_en':'')+'.webp';
     var kb=document.querySelector('.stock-banner img');
@@ -2146,10 +2163,20 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
     if(!link||!nav) return;
     var pp=document.createElement('div'); pp.id='ali-promo-pop';
     var _prLg='fr'; try{_prLg=localStorage.getItem('ali_lang')||'fr';}catch(e){}
-    /* deux options : moitié gauche = lots 250 €/t, moitié droite = lots 500 €/t (listes DESTOCK) */
-    pp.innerHTML='<div class="promo-banner"><img src="/img/destockage_banner'+(_prLg==='en'?'_en':'')+'.webp" alt="'+(_prLg==='en'?'Clearance — unique prices on stock lots':'Déstockage — prix uniques sur les lots en stock')+'" width="2172" height="724">'
-      +'<a class="promo-half promo-half-l" href="/catalogue/?destock=250" target="_blank" rel="noopener" aria-label="Voir les lots à 250 €/t"></a>'
-      +'<a class="promo-half promo-half-r" href="/catalogue/?destock=500" target="_blank" rel="noopener" aria-label="Voir les lots à 500 €/t"></a></div>';
+    /* 10/11 : UNE seule offre « petit prix » (ex-250 / 500) + téléchargement de l'offre complète */
+    var _en=_prLg==='en';
+    pp.innerHTML='<div class="pp-banner">'
+      +'<div class="pp-dl"><a href="/offres/offres-speciales-petit-prix.xlsx?v=1" download="OFFRES SPECIALES PETIT PRIX - PRODICONSEIL.xlsx">'
+      +'<svg width="22" height="22" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="3" fill="#21a366"/><path d="M8 8l8 8M16 8l-8 8" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg>'
+      +(_en?'Download the full offer':'Télécharger toute l’offre')+'<small>Excel</small></a>'
+      +'<a href="/offres/offres-speciales-petit-prix.pdf?v=1" target="_blank" rel="noopener">'
+      +'<svg width="22" height="22" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="3" fill="#b30b00"/><text x="12" y="16" font-size="8" font-weight="800" fill="#fff" text-anchor="middle" font-family="Arial">PDF</text></svg>'
+      +(_en?'Download the full offer':'Télécharger toute l’offre')+'<small>PDF</small></a></div>'
+      +'<a class="pp-main" href="/catalogue/?destock=pp" target="_blank" rel="noopener">'
+      +'<div class="pp-txt"><i></i><h3>'+(_en?'Special low price offers':'Offres spéciales petit prix')+'</h3>'
+      +'<p class="pp-sub">'+(_en?'1,300+ lots · 620 t':'+1 300 lots · 620 t')+'</p>'
+      +'<span class="pp-go">'+(_en?'See the lots':'Voir les lots')+' →</span></div>'
+      +'<div class="pp-ph"><img src="/img/petitprix/912142.webp" alt="" loading="lazy"><img src="/img/petitprix/916178.webp" alt="" loading="lazy"><img src="/img/petitprix/916256.webp" alt="" loading="lazy"><img src="/img/petitprix/904148.webp" alt="" loading="lazy"><img src="/img/petitprix/916200.webp" alt="" loading="lazy"><img src="/img/petitprix/807459.webp" alt="" loading="lazy"><img src="/img/petitprix/939660.webp" alt="" loading="lazy"><img src="/img/petitprix/896518.webp" alt="" loading="lazy"></div></a></div>';
     nav.appendChild(pp);
     var pt;
     function pOpen(){clearTimeout(pt);['ali-cats-pop','ali-fab-pop','ali-about-pop','ali-achat-pop','ali-stock-pop','ali-export-pop'].forEach(function(id){var e=document.getElementById(id);if(e)e.classList.remove('open');});pp.classList.add('open');}
@@ -3996,7 +4023,7 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
 <script src="/analytics.js?v=8"></script>
 <script src="/login-pop.js"></script>
 <script src="/fiche.js?v=1"></script>
-<script src="/catalogue.js?v=905"></script>
+<script src="/catalogue.js?v=907"></script>
 <script>
 (function(){var Q=window._preQ||[];document.documentElement.style.cursor='';window._preQ=[];
   if(window._axDispoLater&&window.axDispo){window._axDispoLater=0;try{window.axDispo();}catch(e){}} /* défaut Dispo AVANT les clics du visiteur */
@@ -4004,7 +4031,7 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
   if(Q.length)try{window.prodiTrack&&window.prodiTrack('clic_avant_charge',{n:Q.length,f:Q.map(function(c){return c[0]}).join(',').slice(0,200),ms:Math.round(performance.now())});}catch(e){}})();
 </script>
 <script src="/account-sync.js?v=4"></script>
-<script src="/nav-menu.js?v=1"></script>
+<script src="/nav-menu.js?v=2"></script>
 <script>
 /* cases repliables du rail (04/10) : le clic sur un titre bascule la case —
    capté AVANT le moteur msd. Le contenu (recherche + options) est déplacé

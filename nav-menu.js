@@ -20,7 +20,7 @@
     ['Explorer le stock','/catalogue/'],
     /* ['Fabrication sur demande','/fabrication/'], masqué 09/11 */
     /* ['Demande d’échantillons','/echantillons/'], masqué 09/11 */
-    ['Déstockage','/catalogue/?destock=250'],
+    ['Déstockage petit prix','/catalogue/?destock=pp'],
     ['Panier','/panier/'],
     ['—SEP—',''],
     ['À propos de Prodiconseil','/about/'],

@@ -7920,15 +7920,20 @@ function drsResetAll(){Object.keys(NMR_IDS).forEach(id=>nmReset(id));}
 // _dkRaw en tête de _fetchAndRender.
 async function _dkInit(n){
   try{
-    document.title='Prodiconseil — Déstockage '+n+' €/t';
-    const refs=await (await fetch('/destockage_'+n+'.json')).json();
+    // 10/11 Ethan : UNE seule offre « petit prix » (ex-250 + 500 + 4 préparations BP)
+    // → destockage_petit_prix.json = {ref: prix €/t par famille 380/355/330}.
+    const pp=(n==='pp');
+    document.title=pp?'Prodiconseil — Offres spéciales petit prix':'Prodiconseil — Déstockage '+n+' €/t';
+    const src=await (await fetch(pp?'/destockage_petit_prix.json?v=1':'/destockage_'+n+'.json')).json();
+    const px=pp?src:null;
+    const refs=pp?Object.keys(src):src;
     const rows=[];
     for(let i=0;i<refs.length;i+=150){
       const chunk=refs.slice(i,i+150).map(x=>{x=String(x);return /^Photo_/i.test(x)?x:'Photo_'+x;});
       const r=await sbQ('products?ref=in.('+chunk.map(encodeURIComponent).join(',')+')&select='+SEL_UI+'&limit=150').catch(()=>null);
       if(r&&r.data)rows.push(...r.data);
     }
-    rows.forEach(r=>{r.price=n/1000;r.promo=false;});   // prix unique (base €/kg)
+    rows.forEach(r=>{r.price=(pp?(px[r.ref]||0):n)/1000;r.promo=false;});   // base €/kg
     window._dkRaw=rows;window._dkMode=n;
     // Facettes (Qualité, Couleur, Détails, sliders grammage/laize, usines…) basées
     // sur le SOUS-ENSEMBLE déstockage et non sur tout le catalogue (04/10 Ethan).
@@ -7954,11 +7959,12 @@ function _dkRender(){
 // Run after catalogue init (which itself runs on DOMContentLoaded)
 window.addEventListener('load',async()=>{
   const _dkQ=new URLSearchParams(location.search).get('destock');
-  if(_dkQ&&/^(250|500)$/.test(_dkQ)){ _dkInit(_dkQ); return; }
+  if(_dkQ&&/^(250|500)$/.test(_dkQ)){ history.replaceState(null,'','/catalogue/?destock=pp'); _dkInit('pp'); return; }   // anciennes offres → offre unique
+  if(_dkQ==='pp'){ _dkInit('pp'); return; }
   if(_shareCode){
     // Anciens liens ?s=DESTOCK250/500 → nouvelle expérience catalogue
     const _dk=String(_shareCode).match(/^DESTOCK(250|500)$/i);
-    if(_dk){ location.replace('/catalogue/?destock='+_dk[1]); return; }
+    if(_dk){ location.replace('/catalogue/?destock=pp'); return; }
     // Resolve short code → cart_ids, then load inline (no page reload)
     try{
       const r=await sbQ('shared_carts?code=eq.'+encodeURIComponent(_shareCode)+'&select=cart_ids&limit=1');
