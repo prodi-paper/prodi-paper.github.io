@@ -482,6 +482,9 @@ html.cat-unlocked #cat-gate{display:none !important;}
       <div><label class="lbl">Réf. interne</label><input id="c-refint" placeholder="code client Sage"></div>
     </div>
     <div class="row2">
+      <div><label class="lbl">N° proforma</label><input id="c-num" placeholder="vide = automatique"></div><div></div>
+    </div>
+    <div class="row2">
       <div><label class="lbl">Référence usine</label><input id="c-usine"></div>
       <div><label class="lbl">Code douanier (auto)</label><input id="c-douane"></div>
     </div>
@@ -743,14 +746,16 @@ function maj(){
   _T('p-rc',v('c-rc'));
   _T('p-ident',v('c-ident'));
   { const pays=(v('c-nom')+' '+v('c-lieu')).toUpperCase(); // 10/11 : libellé devant l'identifiant (pseudo-élément, hors texte éditable)
-    document.getElementById('p-ident').dataset.l=/MAROC|MOROCCO/.test(pays)?'ICE : ':/SENEGAL|SÉNÉGAL/.test(pays)?'NINEA : ':'NIF : '; }
+    document.getElementById('p-ident').dataset.l=/MAROC|MOROCCO/.test(pays)?'ICE : ':/SENEGAL|SÉNÉGAL/.test(pays)?'NINEA : ':'NIF : ';
+    // 11/11 (Véronique) : Algérie = tolérance +/-5 % toujours, jamais 10 %
+    const tol=document.querySelector('.sheet [data-t="tol"]'); if(tol) tol.textContent=(LANG==='en'?'TOLERANCE':'TOLÉRANCE')+(/ALGERIE|ALGÉRIE|ALGERIA|ALGER\b|ORAN\b|ANNABA|BEJAIA|BÉJAÏA|SKIKDA|MOSTAGANEM/.test(pays)?' +/- 5%':' +/- 10%'); }
   _T('p-banque',v('c-banque'));
   _T('p-inco',v('c-inco'));
   _T('p-lieu',v('c-lieu'));
   _T('p-orig',v('c-orig'));
   _T('p-prov',v('c-prov'));
   document.getElementById('p-date').textContent=new Date(dateDoc||Date.now()).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'2-digit'});
-  document.getElementById('p-num').textContent=numero||'—';
+  document.getElementById('p-num').textContent=v('c-num').trim().toUpperCase()||numero||'—';
   if(document.getElementById('p-lignes').contains(document.activeElement)){document.querySelectorAll('#p-lignes tr').forEach((tr,i)=>{const l=lignes[i];if(l)tr.querySelector('.lmt').textContent=l.qte&&l.pu?eurS(l.qte*l.pu):'';});}
   else document.getElementById('p-lignes').innerHTML=lignes.map((l,i)=>`
     <tr class="${i?'':'l1'}"><td class="lref" data-i="${i}" data-k="code">${esc(l.code)}</td><td class="desig" data-i="${i}" data-k="des">${desHtml(l.des)}</td>
@@ -832,7 +837,7 @@ function majWoluwe(t){
     <div class="wa" style="top:22.4mm">Avenue Louise 143/4, 1050 Bruxelles, BELGIQUE</div>
     <div class="wa" style="top:27.6mm">BCE : 1041.427.137 - RPM Bruxelles - N° EORI : BE1041427137</div>
     <div class="wa b" style="top:32.8mm">Tel : +32 (0) 470 32 78 84 | Email: contact@woluwepaper.be</div>
-    <div class="wnum" style="top:47mm">${en?'PROFORMA INVOICE No :':'PROFORMA NUMÉRO :'} ${esc(numero||'—')}</div>
+    <div class="wnum" style="top:47mm">${en?'PROFORMA INVOICE No :':'PROFORMA NUMÉRO :'} ${esc(v('c-num').trim().toUpperCase()||numero||'—')}</div>
     <div class="wnum" style="top:54.5mm">DATE : ${new Date(dateDoc||Date.now()).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'2-digit'})}</div>
     <div class="wexo" data-s="exo" ${ed}>${tx('exo',en?'Export outside the EU exempt from Belgian VAT\n(art.39 of the VAT Code)':'Exportation hors UE exonérée de la TVA belge\n(art.39 du Code de la TVA)')}</div>
     <div class="wcli"><div class="wcn" data-f="cli" ${ed}>${esc(cli)}</div>
@@ -932,7 +937,7 @@ function reprendreHisto(i){
   document.getElementById('c-dev').value=DEV;
   SOC=e.soc==='woluwe'?'woluwe':'prodi';document.getElementById('c-soc').value=SOC;document.getElementById('sheet').classList.toggle('woluwe',SOC==='woluwe');
   lignes=Array.isArray(e.lignes)?JSON.parse(JSON.stringify(e.lignes)):[];
-  numero=e.numero||null;dateDoc=e.date||e.quand||null;
+  numero=e.numero||null;dateDoc=e.date||e.quand||null;set('c-num','');
   syncPills();applyLang();renderForm();maj();fermerHisto();
   // reprise → aperçu direct : « Imprimer / PDF » réimprime avec le MÊME numéro ;
   // « ← Modifier » puis « Générer » en crée un nouveau
@@ -958,8 +963,9 @@ async function generer(){
   const btn=document.getElementById('btn-gen');if(btn)btn.disabled=true;
   ok.textContent='Numérotation…';
   try{
-    // numéro officiel via Supabase, repli local si hors ligne
-    try{
+    // 11/11 : n° saisi à la main (champ N° proforma) prioritaire ; sinon numéro officiel via Supabase, repli local
+    const numForce=document.getElementById('c-num').value.trim().toUpperCase();
+    if(numForce) numero=numForce; else try{
       const r=await fetch(SURL+'/rest/v1/rpc/proforma_next_numero',{method:'POST',
         headers:{apikey:ANON,Authorization:'Bearer '+ANON,'Content-Type':'application/json'},body:'{}'});
       numero=await r.json();
@@ -1158,6 +1164,7 @@ fitSheet();
         if(parts.length&&!j.lieu) j.lieu=parts.join(' ');
       }
     }
+    if(j.num) set('c-num',String(j.num));
     set('c-lieu',j.lieu);
     if(j.soc==='woluwe'){document.getElementById('c-soc').value='woluwe';socChange();}
     if(!j.orig)set('c-orig','FRANCE'); if(!j.prov)set('c-prov','FRANCE'); window._prefill=j;
