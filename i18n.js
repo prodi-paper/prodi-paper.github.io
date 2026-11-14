@@ -59,6 +59,7 @@
     'Fabrication sur demande':'Custom manufacturing',
     'Déstockage':'Clearance',
     'Panier':'Cart',
+    'Retour':'Back',
     'À propos de Prodiconseil':'About Prodiconseil',
     'Livraison & export':'Shipping & export',
     'Service achat':'Purchasing service',
