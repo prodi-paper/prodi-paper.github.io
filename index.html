@@ -180,7 +180,7 @@ gtag('config', 'G-KYEHH64T17');
 <link rel="preconnect" href="https://images.weserv.nl">
 <link rel="dns-prefetch" href="https://stock.prodi.net">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/catalogue.css?v=964">
+<link rel="stylesheet" href="/catalogue.css?v=965">
 <!-- EmailJS : chargé À LA DEMANDE par _ejsReady() (perf 18/07) -->
 <link rel="stylesheet" href="/nav-menu.css?v=1">
 <link rel="stylesheet" href="/vitrine-embed.css?v=1">
@@ -195,7 +195,9 @@ gtag('config', 'G-KYEHH64T17');
 /* bouton WhatsApp flottant : accueil MOBILE seulement, en bas à droite (PRODIX est masqué sur l'accueil) — 15/11 */
 .wa-sticky{display:none !important;}
 @media(max-width:1135px){
-  body:not(.cat-page):not(.shared-view) .wa-sticky{display:flex !important;right:16px;bottom:20px;width:52px;height:52px;color:#fff;}
+  body:not(.cat-page):not(.shared-view) .wa-sticky{display:flex !important;right:16px;bottom:20px;width:52px;height:52px;color:#fff;z-index:90;}
+  body:not(.cat-page):not(.shared-view).drawer-open .wa-sticky{display:none !important;}
+  body:not(.cat-page):not(.shared-view) footer.ft2{padding-bottom:88px !important;}
 }
 /* barre de sélection #xl-status : compacte sur mobile (trop large sinon — Réserver coupé).
    Télécharger + Album = icône seule ; zoom off ; bornée à l'écran. */
@@ -1598,6 +1600,7 @@ a.axsub-go{display:block;text-align:center;text-decoration:none;box-sizing:borde
   .axsub-lbl{font-size:13.5px;}
   .axsub-f{gap:10px;}
   .axsub-f input{padding:12px 14px;}
+  .axsub-f input[type=email]{width:100% !important;}
   .axsub-quals{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;max-height:164px;overflow-x:hidden;}
   .axsub-q{font-size:12.5px;padding:10px 4px;min-width:0;line-height:1.15;}
   .axsub-go{padding:13px;font-size:15.5px;}
