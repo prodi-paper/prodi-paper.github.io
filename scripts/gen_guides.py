@@ -12,7 +12,7 @@ import os, re
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CSS_V, ANALYTICS_V, JS_V = "326", "7", "191"
-WA = "https://wa.me/33609997407?text=Welcome%20!"
+WA = "https://wa.me/33632096840?text=Welcome%20!"
 
 CSP = ("default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net "
 "https://www.googletagmanager.com https://googleads.g.doubleclick.net https://www.googleadservices.com "

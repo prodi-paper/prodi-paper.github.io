@@ -58,7 +58,7 @@
     +'</div>'
     +'<div class="ft2-col">'
       +'<div class="ft2-h">Nous joindre</div>'
-      +'<a href="https://wa.me/33609997407?text=Welcome%20!" target="_blank" rel="noopener noreferrer">WhatsApp</a>'
+      +'<a href="https://wa.me/33632096840?text=Welcome%20!" target="_blank" rel="noopener noreferrer">WhatsApp</a>'
       +'<a href="tel:+33609997407">+33 6 09 99 74 07</a>'
       +'<a href="mailto:clients@prodi.com">clients@prodi.com</a>'
     +'</div>'
