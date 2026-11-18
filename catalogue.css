@@ -3164,6 +3164,16 @@ html body .plist-table.qx-table.xlw td.qx-f{font-size:18px !important;font-weigh
 @media(max-width:1350px){.plist-table.xlw th.xweq:last-child{width:96px !important;}}
 /* 15/11 : téléphone — Détails tombait à 0 de large (texte empilé mot par mot → lignes de 400-600 px) */
 @media(max-width:700px){.plist-table.xlw:not(.qx-table) th.xwdt{width:230px !important;}}
+/* 18/11 : écran moyen (≈1360-1750) — Détails tombait aussi à 0 px (Réf+Usine+Prix prennent toute la largeur)
+   → lignes de 1000 px. Détails = 18 % garanti, les autres colonnes se partagent le reste ;
+   Usine/Mandrin masqués sous 1500 px (au lieu de 1350). */
+@media(min-width:701px){
+  html body .plist-table.xlw:not(.qx-table) th.xwdt{width:18% !important;}
+  html body .plist-table.xlw:not(.qx-table) th.xweq{width:auto !important;}
+}
+@media(max-width:1500px){
+  .plist-table.xlw:not(.qx-table) .plist-col-usine,.plist-table.xlw:not(.qx-table) .plist-td-usine,.plist-table.xlw:not(.qx-table) .plist-col-mandrin{display:none !important;}
+}
 /* croix Excel plus grosse (30 px) */
 .plist-table.xlw tbody td{cursor:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%2730%27%20height%3D%2730%27%20viewBox%3D%270%200%2030%2030%27%3E%3Cpath%20d%3D%27M11%202h8v9h9v8h-9v9h-8v-9H2v-8h9z%27%20fill%3D%27white%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linejoin%3D%27miter%27/%3E%3C/svg%3E") 15 15, cell;}
 .plist-table.xlw tbody td button,.plist-table.xlw tbody td a,.plist-table.xlw tbody td.plist-thumb-wrap{cursor:pointer;}
