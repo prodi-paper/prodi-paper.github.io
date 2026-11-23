@@ -2139,7 +2139,7 @@
     'silicone':'silicone','glassine':'glassine','bulle':'kraft','paille':'straw','verge':'laid','calque':'tracing',
     'securite':'security','malleable':'malleable','latex':'latex','fenetre':'window','film':'film',
     'metallise':'metallized','metallisee':'metallized','autocopiant':'carbonless','bouffant':'bulky',
-    'adhesif':'self-adhesive','adhesive':'self-adhesive','liner':'liner','testliner':'testliner',
+    'adhesif':'self-adhesive','liner':'liner','testliner':'testliner',
     'enveloppes':'envelopes','enveloppe':'envelope','emballage':'packaging','plastique':'plastic',
     'thermique':'thermal','special':'special','speciale':'special','encre':'ink','divers':'misc',
     'pour':'for','et':'&','sur':'on','avec':'with','sans':'without','demande':'request','sacs':'bags',
