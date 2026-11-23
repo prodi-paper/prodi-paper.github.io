@@ -1050,7 +1050,7 @@ function rowToUi(r){
 function cardWa(id){
   const p=all.find(x=>x.id===+id);
   if(!p)return;
-  const msg=`Bonjour, je suis intéressé par : ${p.name}${p.grammage?' '+p.grammage+'g/m²':''}${p.largeur?' '+mmToCm(p.largeur)+'mm':''}${p.couleur?' '+p.couleur:''} — ${fmt(p.poids_net)} disponibles. Quel est votre prix ?`;
+  const msg=_docL().waCarte(`${p.name}${p.grammage?' '+p.grammage+'g/m²':''}${p.largeur?' '+mmToCm(p.largeur)+'mm':''}${p.couleur?' '+p.couleur:''} — ${fmt(p.poids_net)} ${_docL().dispo}.`);
   window.prodiTrack?.('whatsapp_click',{via:'carte',ref:p.ref||null});
   window.open(`https://wa.me/${WA}?text=${encodeURIComponent(msg)}`,'_blank');
 }
@@ -5160,11 +5160,11 @@ function _albumData(){
     let coul=String(f.couleur||p.couleur||'—');
     coul=coul.charAt(0).toUpperCase()+coul.slice(1).toLowerCase();
     return {
-      titre:(isF?'FORMAT':'BOBINE')+' — '+String(QUALITE_LABELS[f.qualite]||f.qualite||'').toUpperCase(),
+      titre:(isF?_docL().albTitre.fmt:_docL().albTitre.bob)+' — '+String(QUALITE_LABELS[f.qualite]||f.qualite||'').toUpperCase(),
       ref:f.ref?String(f.ref).replace(/^Photo_/i,'').trim():'',
       det:String(getProductDetailText(f)||'').toUpperCase()||'—',
-      cells:[['GRAMMAGE',f.grammage?f.grammage+' g/m²':'—'],[isF?'DIMENSIONS':'LAIZE',dim],
-             ['COULEUR',coul],['POIDS NET',kg?Math.round(kg).toLocaleString('fr-FR')+' kgs':'—']],
+      cells:[[_docL().albCells.gram,f.grammage?f.grammage+' g/m²':'—'],[isF?_docL().albCells.dim:_docL().albCells.laize,dim],
+             [_docL().albCells.coul,coul],[_docL().albCells.poids,kg?Math.round(kg).toLocaleString('fr-FR')+' kgs':'—']],
       img:f.image_url?imgThumb(safeUrl(f.image_url),900):null
     };
   });
@@ -5285,6 +5285,11 @@ async function exportAlbumPdf(btn){
   const old=lbl?lbl.textContent:'';
   if(btn)btn.disabled=true;
   if(lbl)lbl.textContent='Génération…';
+  if(_docLang()!=='fr'){ // 23/11 : turc / arabe → page imprimable du navigateur (jsPDF helvetica = Latin-1 seulement)
+    try{await _loadAllProducts();}catch(e){}
+    if(btn)btn.disabled=false; if(lbl)lbl.textContent=old;
+    _albumImpression(); return;
+  }
   try{
     await _jspdfLoad();
     // cache stock complet pour l'enrichissement par réf (no-op si déjà là ;
@@ -5325,7 +5330,7 @@ function _albumImpression(){
   const pages=[];
   for(let i=0;i<cards.length;i+=4)
     pages.push(`<div class="alb-page"><img class="alb-logo" src="${esc(location.origin+'/img/logo.png')}"><div class="alb-grid">${cards.slice(i,i+4).join('')}</div></div>`);
-  const html=`<!doctype html><html><head><meta charset="utf-8"><title>ALBUM PHOTO ${esc(_exportNomQualite())}PRODICONSEIL</title>
+  const html=`<!doctype html><html lang="${_docLang()}"${_docLang()==='ar'?' dir="rtl"':''}><head><meta charset="utf-8"><title>ALBUM PHOTO ${esc(_exportNomQualite())}PRODICONSEIL</title>
 <style>@page{size:A4;margin:0}body{margin:0;font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;color:#1d1d1f}
 .alb-page{width:210mm;height:296mm;padding:9mm;box-sizing:border-box;background:#fff;overflow:hidden;page-break-after:always}
 .alb-page:last-child{page-break-after:auto}
@@ -5418,7 +5423,7 @@ function _xlAlbumUnits(units){
 function _xlCopy(){
   const src=(window._xlRows||[]).filter(_xlIsSel);
   if(!src.length){toast('Aucune ligne sélectionnée');return false;}
-  const L=['Référence\tQualité\tDétails\tCouleur\tg/m²\tLaize mm\tØ mm\tMandrin mm\tPoids kg'];
+  const L=[_docL().copie];
   src.forEach(p=>L.push([
     String(p.ref||'').replace(/^Photo_/i,''),
     String(formatProductTitle(p.qualite,p.name)||'').replace(/^(BOBINE|PALETTE|FORMAT|FEUILLE)\s*[—-]\s*/i,''),
@@ -5848,7 +5853,7 @@ async function sendProforma(){
 function contactWA(){
   if(!cur)return;
   window.prodiTrack?.('whatsapp_click',{via:'fiche',ref:cur.ref||null});
-  window.open(`https://wa.me/${WA}?text=${encodeURIComponent(`Bonjour, intéressé par : ${cur.name}${cur.ref?' ('+cur.ref+')':''} — ${fmt(cur.poids_net)} disponibles. Quel est votre prix ?`)}`, '_blank');
+  window.open(`https://wa.me/${WA}?text=${encodeURIComponent(_docL().waCarte(`${cur.name}${cur.ref?' ('+cur.ref+')':''} — ${fmt(cur.poids_net)} ${_docL().dispo}.`))}`, '_blank');
 }
 function resetFilters(){
   setTimeout(()=>{try{if(!window.axDispo||_resaFilter)return;document.querySelectorAll('.fpill-resa[data-resa="without"]').forEach(b=>b.classList.remove('active','selected'));window.axDispo();}catch(_){}},400); // « Dispo » = mode permanent, pas un filtre
@@ -8631,14 +8636,14 @@ async function _cartShareUrl(btn){
 }
 async function cartPrixMail(btn){
   const url=await _cartShareUrl(btn); if(!url)return;
-  const sujet=encodeURIComponent('Demande de prix — ma sélection Prodiconseil');
-  const corps=encodeURIComponent('Bonjour,\n\nJe souhaite recevoir le prix pour ma sélection :\n'+url+'\n\nMerci.');
+  const sujet=encodeURIComponent(_docL().mailSujet);
+  const corps=encodeURIComponent(_docL().mailCorps(url));
   window.prodiTrack?.('prix_mail');
   window.location.href='mailto:clients@prodi.com?subject='+sujet+'&body='+corps;
 }
 async function cartPrixWa(btn){
   const url=await _cartShareUrl(btn); if(!url)return;
-  const texte=encodeURIComponent('Bonjour, je souhaite recevoir le prix pour ma sélection : '+url);
+  const texte=encodeURIComponent(_docL().waSel(url));
   window.prodiTrack?.('prix_wa');
   window.open('https://wa.me/'+WA+'?text='+texte,'_blank');
 }
@@ -8783,10 +8788,12 @@ async function exportListExcelTest(btn){
     // DEVISE : si le $ est sélectionné à l'écran, l'Excel sort AUSSI en dollars
     // (converti au taux du jour, arrondi à la dizaine comme l'affichage). Sinon €.
     const _xUsd=(_currency==='USD'&&_usdRate>0);
+    const XL=_docL(); // 23/11 : langue principale du fichier (TR / AR), l'anglais reste en rouge
+    const COLS_B_KEY=DOC_L.fr.colsB, COLS_F_KEY=DOC_L.fr.colsF; // clés FR : retrait des colonnes (MONTANT…)
     const _xUnit=(low)=>{const u=_xUsd?'$/T':'€/T';return low?u.toLowerCase():u;};
     const _xR10=(vEur)=>Math.round((_xUsd?vEur*_usdRate:vEur)/10)*10; // €/T → devise, arrondi dizaine
     const _xSym=()=>_xUsd?'$':'€';
-    const PRIX_CFR_FR="+ "+_xR10(70)+" ~ "+_xR10(150)+" "+_xUnit()+" \nDÉPEND DU PORT D'ARRIVÉE \n";
+    const PRIX_CFR_FR="+ "+_xR10(70)+" ~ "+_xR10(150)+" "+_xUnit()+" \n"+XL.cfr+" \n";
     const PRIX_CFR_EN='DEPEND ON PORT OF ARRIVAL';
     const bN={style:'thin',color:{argb:NOIR}};
     const bordN={top:bN,left:bN,bottom:bN,right:bN};
@@ -8798,7 +8805,7 @@ async function exportListExcelTest(btn){
     // Formats : prix « 600 €/t » (fichier mère) sinon SUR DEMANDE ; montant du
     // lot « 4 058,10 € » ; laize en CM à virgule, plages assemblées converties.
     const _sp=(s)=>String(s).replace(/[\u202f\u00a0]/g,' ');
-    const _fmtPrix=(t)=>(typeof t==='number'&&isFinite(t))?_sp(_xR10(t).toLocaleString('fr-FR'))+' '+_xUnit(true):'SUR DEMANDE';
+    const _fmtPrix=(t)=>(typeof t==='number'&&isFinite(t))?_sp(_xR10(t).toLocaleString('fr-FR'))+' '+_xUnit(true):XL.surDemande;
     const _fmtMontant=(t,kg)=>{
       if(typeof t!=='number'||!isFinite(t)||!kg)return '';
       let v=t*kg/1000; if(_xUsd)v*=_usdRate;
@@ -8822,7 +8829,8 @@ async function exportListExcelTest(btn){
     const _coulBi=(c)=>{
       const fr=String(c||'').trim(); if(!fr)return '';
       const en=COUL_EN[fr.toUpperCase()];
-      return en&&en!==fr.toUpperCase()?fr+'\n'+en:fr; // \n = marqueur bilingue, rendu richText au write
+      const pri=(XL.coul&&XL.coul[fr.toUpperCase()])||fr; // 23/11 : couleur dans la langue du fichier (TR/AR), sinon le FR
+      return en&&en!==fr.toUpperCase()?pri+'\n'+en:pri; // \n = marqueur bilingue, rendu richText au write
     };
 
     // Poids de largeur par colonne = contenu réel + mot le plus long de
@@ -8879,10 +8887,10 @@ async function exportListExcelTest(btn){
     }
 
     // En-têtes courts façon fichier mère (« g/m² » / « gsm »), 2 lignes FR/EN.
-    const COLS_B_FR=['REFERENCE','QUALITE','DETAIL','COULEUR','g/m²','MANDRIN (mm)','LAIZE\n(mm)','DIAMETRE (mm)','POIDS (kg)','USINE','PRIX\nDÉPART USINE','MONTANT\nDU LOT','PRIX\nCFR'];
+    const COLS_B_FR=XL.colsB;
     const COLS_B_EN=['REFERENCE','QUALITY','DETAIL','COLOR','gsm','CORE (mm)','WIDTH\n(mm)','DIAMETER (mm)','WEIGHT (kg)','MILL','EX WORKS\nPRICE','LOT\nAMOUNT','CFR\nPRICE'];
     const TAIL_B=[T_TXT,T_TXT,T_TXT,T_TXT,T_NUM,T_NUM,T_NUM,T_NUM,T_NUM,T_TXT,T_NUM,T_NUM,T_TXT];
-    const COLS_F_FR=['REFERENCE','QUALITE','DETAIL','COULEUR','g/m²','LARGEUR\n(mm)','LONGUEUR (mm)','POIDS (kg)','USINE','PRIX\nDÉPART USINE','MONTANT\nDU LOT','PRIX\nCFR'];
+    const COLS_F_FR=XL.colsF;
     const COLS_F_EN=['REFERENCE','QUALITY','DETAIL','COLOR','gsm','WIDTH\n(mm)','LENGTH (mm)','WEIGHT (kg)','MILL','EX WORKS\nPRICE','LOT\nAMOUNT','CFR\nPRICE'];
     const TAIL_F=[T_TXT,T_TXT,T_TXT,T_TXT,T_NUM,T_NUM,T_NUM,T_NUM,T_TXT,T_NUM,T_NUM,T_TXT];
 
@@ -8892,7 +8900,8 @@ async function exportListExcelTest(btn){
       // opts.photos (onglet « Photos ») : colonne PHOTO en tête avec la VRAIE
       // photo de la réf incrustée (fallback SUR DEMANDE), lignes hautes, paysage.
       const AV=!!(opts&&opts.photos);
-      const phFr=AV?['PHOTO']:[], phEn=AV?['PICTURE']:[];
+      const phFr=AV?[XL.photo]:[], phEn=AV?['PICTURE']:[];
+      if(XL.rtl)ws.views=[{rightToLeft:true}];
       let imgsBob=[],imgsFmt=[];
       if(AV){
         const _tot=secBob.length+secFmt.length;let _done=0;
@@ -8913,26 +8922,26 @@ async function exportListExcelTest(btn){
       }
       const secDefs=[];
       if(secBob.length)secDefs.push({
-        titreFr:'BOBINES / ',titreEn:'REELS',
-        fr:[...phFr,...COLS_B_FR],en:[...phEn,...COLS_B_EN],tailles:[...(AV?[T_TXT]:[]),...TAIL_B],
+        titreFr:XL.titreBob,titreEn:'REELS',
+        fr:[...phFr,...COLS_B_FR],key:[...phFr,...COLS_B_KEY],en:[...phEn,...COLS_B_EN],tailles:[...(AV?[T_TXT]:[]),...TAIL_B],
         iCoul:3+phFr.length,iDet:2+phFr.length,
         iPrix:10+phFr.length,iMont:11+phFr.length,iCfr:12+phFr.length,imgs:imgsBob,
-        vals:secBob.map((d,ix)=>[...(AV?[imgsBob[ix]?'':'SUR DEMANDE']:[]),d.ref,_qualSansCode(d.qualite),d.detail,_coulBi(d.couleur),_numV(d.grammage),_numV(d.mandrin),_mm(d.largeur),_numV(d.longueur),_numV(d.poids),d.usine,_fmtPrix(d.prixT),_fmtMontant(d.prixT,+d.poids||0),PRIX_CFR_FR+PRIX_CFR_EN]),
+        vals:secBob.map((d,ix)=>[...(AV?[imgsBob[ix]?'':XL.surDemande]:[]),d.ref,_qualSansCode(d.qualite),d.detail,_coulBi(d.couleur),_numV(d.grammage),_numV(d.mandrin),_mm(d.largeur),_numV(d.longueur),_numV(d.poids),d.usine,_fmtPrix(d.prixT),_fmtMontant(d.prixT,+d.poids||0),PRIX_CFR_FR+PRIX_CFR_EN]),
       });
       if(secFmt.length)secDefs.push({
-        titreFr:'FORMATS / PALETTES – ',titreEn:'SHEETS/PALLETS',
-        fr:[...phFr,...COLS_F_FR],en:[...phEn,...COLS_F_EN],tailles:[...(AV?[T_TXT]:[]),...TAIL_F],
+        titreFr:XL.titreFmt,titreEn:'SHEETS/PALLETS',
+        fr:[...phFr,...COLS_F_FR],key:[...phFr,...COLS_F_KEY],en:[...phEn,...COLS_F_EN],tailles:[...(AV?[T_TXT]:[]),...TAIL_F],
         iCoul:3+phFr.length,iDet:2+phFr.length,
         iPrix:9+phFr.length,iMont:10+phFr.length,iCfr:11+phFr.length,imgs:imgsFmt,
-        vals:secFmt.map((d,ix)=>[...(AV?[imgsFmt[ix]?'':'SUR DEMANDE']:[]),d.ref,_qualSansCode(d.qualite),d.detail,_coulBi(d.couleur),_numV(d.grammage),_mm(d.largeur),_numV(d.longueur),_numV(d.poids),d.usine,_fmtPrix(d.prixT),_fmtMontant(d.prixT,+d.poids||0),PRIX_CFR_FR+PRIX_CFR_EN]),
+        vals:secFmt.map((d,ix)=>[...(AV?[imgsFmt[ix]?'':XL.surDemande]:[]),d.ref,_qualSansCode(d.qualite),d.detail,_coulBi(d.couleur),_numV(d.grammage),_mm(d.largeur),_numV(d.longueur),_numV(d.poids),d.usine,_fmtPrix(d.prixT),_fmtMontant(d.prixT,+d.poids||0),PRIX_CFR_FR+PRIX_CFR_EN]),
       });
       secDefs.forEach(s=>{
         // la colonne PHOTO (k=0 en mode photos) n'est JAMAIS retirée (règle GSE)
         // opts.sans : colonnes retirées à la demande (onglet Offre épuré 25/08)
         // MONTANT DU LOT retiré PARTOUT (Ethan 25/08) — plomberie conservée
         const sans=[...((opts&&opts.sans)||[]),'MONTANT'];
-        const keep=s.fr.map((_,k)=>k).filter(k=>((AV&&k===0)||s.vals.some(v=>v[k]!=null&&v[k]!==''))&&!(sans&&sans.some(p=>String(s.fr[k]).startsWith(p))));
-        s.fr=keep.map(k=>s.fr[k]); s.en=keep.map(k=>s.en[k]); s.tailles=keep.map(k=>s.tailles[k]);
+        const keep=s.fr.map((_,k)=>k).filter(k=>((AV&&k===0)||s.vals.some(v=>v[k]!=null&&v[k]!==''))&&!(sans&&sans.some(p=>String(s.key[k]).startsWith(p))));
+        s.fr=keep.map(k=>s.fr[k]); s.key=keep.map(k=>s.key[k]); s.en=keep.map(k=>s.en[k]); s.tailles=keep.map(k=>s.tailles[k]);
         s.vals=s.vals.map(v=>keep.map(k=>v[k]));
         s.iPrix=keep.indexOf(s.iPrix); s.iMont=keep.indexOf(s.iMont); s.iCfr=keep.indexOf(s.iCfr);
         s.iCoul=keep.indexOf(s.iCoul); s.iDet=keep.indexOf(s.iDet);
@@ -8987,11 +8996,11 @@ async function exportListExcelTest(btn){
         ['9 PROMENEE JEANNE HACHETTE',18,true,NOIR,false],
         ['94200 IVRY SUR SEINE - FRANCE',18,true,NOIR,false],
         ['Tel : + 33 1 46 72 03 69  /  Fax : + 33 1 49 59 87 31',18,true,NOIR,true],
-        ['Contacts : ',18,true,NOIR,true],
+        [XL.contacts,18,true,NOIR,true],
         ['Véronique ELBILIA : Whatsapp :  + 33 6 09 46 77 48 / ve@prodi.com',18,true,NOIR,false],
         ['Julien CARON : Whatsapp :   +33 6 20 25 85 83 / vente@prodi.com',18,true,NOIR,false],
-        ['Service client : Whatsapp :  + 33 6 32 09 68 40 / clients@prodi.com',18,true,NOIR,false],
-        ['Site : www.prodi.com ',16,false,BLEU_LIEN,true],
+        [XL.service+' : Whatsapp :  + 33 6 32 09 68 40 / clients@prodi.com',18,true,NOIR,false],
+        [XL.site,16,false,BLEU_LIEN,true],
       ];
       let r=4;
       bloc.forEach(([txt,taille,gras,coul,sous])=>{
@@ -9003,7 +9012,7 @@ async function exportListExcelTest(btn){
         ws.getRow(r).height=23.2; r++;
       });
       ws.getRow(r).height=21; r++; // unique espaceur avant les titres (mère)
-      [['OFFRE PAPIER & CARTON EN STOCKLOTS',NOIR],['PAPER & CARDBOARD STOCKLOTS OFFER',ROUGE]].forEach(([txt,coul])=>{
+      [[XL.titre,NOIR],['PAPER & CARDBOARD STOCKLOTS OFFER',ROUGE]].forEach(([txt,coul])=>{
         ws.mergeCells(r,1,r,nCols);
         const c=ws.getRow(r).getCell(1);
         c.value=txt;
@@ -9130,7 +9139,7 @@ async function exportListExcelTest(btn){
             let h=cellH-6, w=h*im.w/im.h;
             if(w>cellW-6){w=cellW-6;h=w*im.h/im.w;}
             const _anc={tl:{col:((cellW-w)/2)/cellW,row:r-1+((cellH-h)/2)/cellH},ext:{width:Math.round(w),height:Math.round(h)}};
-            if(im.url)_anc.hyperlinks={hyperlink:im.url,tooltip:'Cliquer pour voir la photo en grand'};
+            if(im.url)_anc.hyperlinks={hyperlink:im.url,tooltip:XL.tooltip};
             ws.addImage(im.id,_anc);
           }
           // la ligne déborde de la page → elle passe sur la suivante : on clôt
@@ -9185,7 +9194,7 @@ async function exportListExcelTest(btn){
         c2.border=bordN;
         ws.getRow(r).height=30; r++;
       };
-      _cond('CONDITIONS DE VENTE','30% VIREMENT AVANT EXPÉDITION ET 70% CONTRE DOCUMENTS',false);
+      _cond(XL.cond,XL.condTxt,false);
       _cond('TERMS OF SALE','30% TRANSFER BEFORE SHIPMENT AND 70% AGAINST DOCUMENTS',true);
       // Vue « Aperçu des sauts de page » (fichier mère) : Excel trace LUI-MÊME
       // la bordure BLEUE autour de la zone d'impression et grise nativement
@@ -9205,6 +9214,7 @@ async function exportListExcelTest(btn){
     // grosse valeur en dessous). 3 cartes par rangée. Réutilise les images déjà
     // chargées pour l'onglet Photos (ids workbook partagés, rien retéléchargé).
     const _buildCartes=async(ws,secBob,secFmt,ph,cOpts)=>{
+      if(XL.rtl)ws.views=[{rightToLeft:true}];
       const PC=(cOpts&&cOpts.cols)||5,land=!!(cOpts&&cOpts.land),CW=21,SP=2;
       const widths=[SP];for(let i=0;i<PC;i++)widths.push(CW,CW,SP);
       const nColsC=widths.length;
@@ -9261,13 +9271,13 @@ async function exportListExcelTest(btn){
             // se collait à gauche. En EMU natif, Excel place au bon endroit.
             const _emu=(px)=>Math.round(px*9525);
             const anc={tl:{nativeCol:c0-1,nativeColOff:_emu(offX),nativeRow:rP-1,nativeRowOff:_emu(offY)},ext:{width:Math.round(w2),height:Math.round(h2)}};
-            if(it.im.url)anc.hyperlinks={hyperlink:it.im.url,tooltip:'Cliquer pour voir la photo en grand'};
+            if(it.im.url)anc.hyperlinks={hyperlink:it.im.url,tooltip:XL.tooltip};
             ws.addImage(it.im.id,anc);
           }else{cph.value='SUR DEMANDE';cph.font={name:FNT,size:12,bold:true,color:{argb:NOIR}};}
           // titre carte : TYPE — QUALITÉ, puis réf · détail (rouge)
           ws.mergeCells(rT,c0,rT,c0+1);
           const ct2=ws.getRow(rT).getCell(c0);
-          ct2.value=((it.bob?'BOBINE':'FORMAT')+' — '+_qualSansCode(d.qualite)).toUpperCase();
+          ct2.value=((it.bob?XL.albTitre.bob:XL.albTitre.fmt)+' — '+_qualSansCode(d.qualite)).toUpperCase();
           ct2.font={name:FNT,size:15,bold:true,color:{argb:NOIR}};
           ct2.alignment={horizontal:'left',vertical:'middle',wrapText:true,indent:1};
           ct2.border=bordN;
@@ -9281,9 +9291,9 @@ async function exportListExcelTest(btn){
           if(it.bob){const l2=_mm(d.largeur);laize=l2===''?'':l2+' mm';}
           else{const dims=[_mm(d.largeur),_mm(d.longueur)].filter(x=>x!==''&&x!=null).join('×');laize=dims?dims+' mm':'';}
           const cars=[
-            ['GRAMMAGE',d.grammage?d.grammage+' g/m²':''],[it.bob?'LAIZE':'DIMENSIONS',laize],
-            ['COULEUR',d.couleur],['POIDS NET',d.poids?Math.round(d.poids)+' kgs':''],
-            ['USINE',d.usine],['PRIX',_fmtPrix(d.prixT)],
+            [XL.albCells.gram,d.grammage?d.grammage+' g/m²':''],[it.bob?XL.albCells.laize:XL.albCells.dim,laize],
+            [XL.albCells.coul,d.couleur],[XL.albCells.poids,d.poids?Math.round(d.poids)+' kgs':''],
+            [XL.albCells.usine,d.usine],[XL.albCells.prix,_fmtPrix(d.prixT)],
           ];
           cars.forEach((cv,k)=>_car(ws.getRow(rC+Math.floor(k/2)).getCell(c0+(k%2)),cv[0],cv[1]));
         });
@@ -9303,9 +9313,9 @@ async function exportListExcelTest(btn){
     // REFERENCE vide disparaît d'elle-même) ; onglet 2 « Détails » = article
     // par article ; onglet 3 « Photos » = DÉTAILLÉ réf par réf, chaque
     // article avec SA photo à gauche (demande Ethan 25/08).
-    await _buildSheet(wb.addWorksheet('Offre',_shOpts),lotsBob,lotsFmt,{sans:['MANDRIN','DIAMETRE','MONTANT'],bandN:5});
-    await _buildSheet(wb.addWorksheet('Détails',_shOpts),bobines,formats);
-    const _photosImgs=await _buildSheet(wb.addWorksheet('Photos',_shOptsL),bobines,formats,{photos:true});
+    await _buildSheet(wb.addWorksheet(XL.onglets.offre,_shOpts),lotsBob,lotsFmt,{sans:['MANDRIN','DIAMETRE','MONTANT'],bandN:5});
+    await _buildSheet(wb.addWorksheet(XL.onglets.details,_shOpts),bobines,formats);
+    const _photosImgs=await _buildSheet(wb.addWorksheet(XL.onglets.photos,_shOptsL),bobines,formats,{photos:true});
     // ESSAI onglet « Cartes » façon site (photo haut + specs bas) — réutilise
     // les images de l'onglet Photos (pas de re-téléchargement). Paysage + zoom
     // 70, 5 cartes/rangée, vue « Aperçu des sauts de page » (FOND GRIS + CADRE
@@ -9313,14 +9323,14 @@ async function exportListExcelTest(btn){
     // sont posés à la main au bord de rangée (voir _buildCartes) → plus de ligne
     // bleue au milieu des photos. Marges 0,2" = CARTES_MARGIN_IN.
     const _shOptsCartes={views:[{style:'pageBreakPreview',zoomScale:70}],pageSetup:{orientation:'landscape',paperSize:9,fitToPage:true,fitToWidth:1,fitToHeight:0,margins:{left:CARTES_MARGIN_IN,right:CARTES_MARGIN_IN,top:CARTES_MARGIN_IN,bottom:CARTES_MARGIN_IN,header:0,footer:0}}};
-    await _buildCartes(wb.addWorksheet('Cartes',_shOptsCartes),bobines,formats,_photosImgs,{cols:5,land:true});
+    await _buildCartes(wb.addWorksheet(XL.onglets.cartes,_shOptsCartes),bobines,formats,_photosImgs,{cols:5,land:true});
 
     if(span&&span.nodeType===3)span.textContent='Génération… ';
     const buf=await wb.xlsx.writeBuffer();
     const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
     const a=document.createElement('a');
     a.href=URL.createObjectURL(blob);
-    a.download='Offre Prodiconseil '+new Date().toLocaleDateString('fr-FR').replace(/\//g,'-')+'.xlsx';
+    a.download=({fr:'Offre Prodiconseil ',tr:'Prodiconseil Teklifi ',ar:'Prodiconseil عرض '})[_docLang()]+new Date().toLocaleDateString('fr-FR').replace(/\//g,'-')+'.xlsx';
     document.body.appendChild(a);a.click();a.remove();
     setTimeout(()=>URL.revokeObjectURL(a.href),2000);
     toast('📄 Excel généré');
@@ -9907,6 +9917,53 @@ async function _duFillPhotos(rows){
 // du stock. Clic = fiche du lot (photos + toutes les lignes). Prix : comptes autorisés.
 let _hsoLots=null,_hsoLoading=null;
 const _hT=(f,e)=>window.TR?window.TR(f,e):f;
+/* 23/11/2026 : DOCUMENTS dans la langue du visiteur (Kaoutar). _docLang() = 'tr' | 'ar' | 'fr' (fr = aussi l'anglais :
+   l'Excel et l'album restent le gabarit bilingue FR/EN d'Ethan). DOC_L = libellés par langue des documents générés. */
+function _docLang(){const l=window.PRODI_LANG;return (l==='tr'||l==='ar')?l:'fr';}
+const DOC_L={
+  fr:{
+    colsB:['REFERENCE','QUALITE','DETAIL','COULEUR','g/m²','MANDRIN (mm)','LAIZE\n(mm)','DIAMETRE (mm)','POIDS (kg)','USINE','PRIX\nDÉPART USINE','MONTANT\nDU LOT','PRIX\nCFR'],
+    colsF:['REFERENCE','QUALITE','DETAIL','COULEUR','g/m²','LARGEUR\n(mm)','LONGUEUR (mm)','POIDS (kg)','USINE','PRIX\nDÉPART USINE','MONTANT\nDU LOT','PRIX\nCFR'],
+    photo:'PHOTO',surDemande:'SUR DEMANDE',cfr:"DÉPEND DU PORT D'ARRIVÉE",titreBob:'BOBINES / ',titreFmt:'FORMATS / PALETTES – ',
+    titre:'OFFRE PAPIER & CARTON EN STOCKLOTS',contacts:'Contacts : ',service:'Service client',site:'Site : www.prodi.com ',
+    tooltip:'Cliquer pour voir la photo en grand',coul:{},rtl:false,
+    cond:'CONDITIONS DE VENTE',condTxt:'30% VIREMENT AVANT EXPÉDITION ET 70% CONTRE DOCUMENTS',onglets:{offre:'Offre',details:'Détails',photos:'Photos',cartes:'Cartes'},
+    albTitre:{bob:'BOBINE',fmt:'FORMAT'},albCells:{gram:'GRAMMAGE',dim:'DIMENSIONS',laize:'LAIZE',coul:'COULEUR',poids:'POIDS NET',usine:'USINE',prix:'PRIX'},albSurDemande:'PHOTO SUR DEMANDE',
+    copie:'Référence\tQualité\tDétails\tCouleur\tg/m²\tLaize mm\tØ mm\tMandrin mm\tPoids kg',
+    waCarte:(p)=>`Bonjour, je suis intéressé par : ${p} Quel est votre prix ?`,dispo:'disponibles',
+    mailSujet:'Demande de prix — ma sélection Prodiconseil',mailCorps:(u)=>'Bonjour,\n\nJe souhaite recevoir le prix pour ma sélection :\n'+u+'\n\nMerci.',
+    waSel:(u)=>'Bonjour, je souhaite recevoir le prix pour ma sélection : '+u
+  },
+  tr:{
+    colsB:['REFERANS','KALİTE','DETAY','RENK','g/m²','MASURA (mm)','EN\n(mm)','ÇAP (mm)','AĞIRLIK (kg)','FABRİKA','FABRİKA ÇIKIŞ\nFİYATI','PARTİ\nTUTARI','CFR\nFİYATI'],
+    colsF:['REFERANS','KALİTE','DETAY','RENK','g/m²','EN\n(mm)','BOY (mm)','AĞIRLIK (kg)','FABRİKA','FABRİKA ÇIKIŞ\nFİYATI','PARTİ\nTUTARI','CFR\nFİYATI'],
+    photo:'FOTOĞRAF',surDemande:'TALEP ÜZERİNE',cfr:'VARIŞ LİMANINA GÖRE',titreBob:'RULOLAR / ',titreFmt:'TABAKALAR / PALETLER – ',
+    titre:'STOK FAZLASI KAĞIT VE KARTON TEKLİFİ',contacts:'İletişim : ',service:'Müşteri hizmetleri',site:'Web : www.prodi.com ',
+    tooltip:'Fotoğrafı büyük görmek için tıklayın',rtl:false,
+    cond:'SATIŞ KOŞULLARI',condTxt:'%30 SEVKİYATTAN ÖNCE HAVALE VE %70 VESAİK MUKABİLİ',onglets:{offre:'Teklif',details:'Ayrıntılar',photos:'Fotoğraflar',cartes:'Kartlar'},
+    coul:{'BLANC':'BEYAZ','TRES BLANC':'EKSTRA BEYAZ','TRÈS BLANC':'EKSTRA BEYAZ','BLANC NATUREL':'DOĞAL BEYAZ','BLANC NATURE':'DOĞAL BEYAZ','BLANC CASSE':'KIRIK BEYAZ','BLANC CASSÉ':'KIRIK BEYAZ','IVOIRE':'FİLDİŞİ','CREME':'KREM','CRÈME':'KREM','ROSE':'PEMBE','VERT':'YEŞİL','BLEU':'MAVİ','JAUNE':'SARI','ROUGE':'KIRMIZI','NOIR':'SİYAH','GRIS':'GRİ','BRUN':'KAHVERENGİ','MARRON':'KAHVERENGİ','ORANGE':'TURUNCU','SAUMON':'SOMON','TRANSPARENT':'ŞEFFAF','ARGENT':'GÜMÜŞ','OR':'ALTIN','BEIGE':'BEJ','KRAFT':'KRAFT','VIOLET':'MOR'},
+    albTitre:{bob:'RULO',fmt:'TABAKA'},albCells:{gram:'GRAMAJ',dim:'EBAT',laize:'EN',coul:'RENK',poids:'NET AĞIRLIK',usine:'FABRİKA',prix:'FİYAT'},albSurDemande:'FOTOĞRAF TALEP ÜZERİNE',
+    copie:'Referans\tKalite\tAyrıntılar\tRenk\tg/m²\tEn mm\tØ mm\tMasura mm\tAğırlık kg',
+    waCarte:(p)=>`Merhaba, şu ürünle ilgileniyorum: ${p} Fiyatınız nedir?`,dispo:'mevcut',
+    mailSujet:'Fiyat talebi — Prodiconseil seçimim',mailCorps:(u)=>'Merhaba,\n\nSeçimim için fiyat almak istiyorum:\n'+u+'\n\nTeşekkürler.',
+    waSel:(u)=>'Merhaba, seçimim için fiyat almak istiyorum: '+u
+  },
+  ar:{
+    colsB:['المرجع','النوعية','التفصيل','اللون','غ/م²','قلب البكرة (مم)','العرض\n(مم)','القطر (مم)','الوزن (كغ)','المصنع','سعر تسليم\nالمصنع','مبلغ\nالدفعة','سعر\nCFR'],
+    colsF:['المرجع','النوعية','التفصيل','اللون','غ/م²','العرض\n(مم)','الطول (مم)','الوزن (كغ)','المصنع','سعر تسليم\nالمصنع','مبلغ\nالدفعة','سعر\nCFR'],
+    photo:'صورة',surDemande:'عند الطلب',cfr:'حسب ميناء الوصول',titreBob:'بكرات / ',titreFmt:'أفرخ / منصات – ',
+    titre:'عرض دفعات مخزون الورق والكرتون',contacts:'للاتصال : ',service:'خدمة العملاء',site:'الموقع : www.prodi.com ',
+    tooltip:'انقر لعرض الصورة بحجم كبير',rtl:true,
+    cond:'شروط البيع',condTxt:'30% تحويل مصرفي قبل الشحن و70% مقابل المستندات',onglets:{offre:'العرض',details:'التفاصيل',photos:'الصور',cartes:'البطاقات'},
+    coul:{'BLANC':'أبيض','TRES BLANC':'أبيض ناصع','TRÈS BLANC':'أبيض ناصع','BLANC NATUREL':'أبيض طبيعي','BLANC NATURE':'أبيض طبيعي','BLANC CASSE':'أبيض مائل للصفرة','BLANC CASSÉ':'أبيض مائل للصفرة','IVOIRE':'عاجي','CREME':'كريمي','CRÈME':'كريمي','ROSE':'وردي','VERT':'أخضر','BLEU':'أزرق','JAUNE':'أصفر','ROUGE':'أحمر','NOIR':'أسود','GRIS':'رمادي','BRUN':'بني','MARRON':'بني','ORANGE':'برتقالي','SAUMON':'سلموني','TRANSPARENT':'شفاف','ARGENT':'فضي','OR':'ذهبي','BEIGE':'بيج','KRAFT':'كرافت','VIOLET':'بنفسجي'},
+    albTitre:{bob:'بكرة',fmt:'أفرخ'},albCells:{gram:'الوزن (غ/م²)',dim:'الأبعاد',laize:'العرض',coul:'اللون',poids:'الوزن الصافي',usine:'المصنع',prix:'السعر'},albSurDemande:'الصورة عند الطلب',
+    copie:'المرجع\tالنوعية\tالتفاصيل\tاللون\tغ/م²\tالعرض مم\tØ مم\tقلب البكرة مم\tالوزن كغ',
+    waCarte:(p)=>`مرحباً، أنا مهتم بـ: ${p} ما هو سعركم؟`,dispo:'متاح',
+    mailSujet:'طلب سعر — اختياري من Prodiconseil',mailCorps:(u)=>'مرحباً،\n\nأود الحصول على سعر اختياري:\n'+u+'\n\nشكراً.',
+    waSel:(u)=>'مرحباً، أود الحصول على سعر اختياري: '+u
+  }
+};
+function _docL(){return DOC_L[_docLang()];}
 const _hsoEn=()=>{try{const l=localStorage.getItem('ali_lang');return l==='en'||l==='tr'||l==='ar';}catch(_){return false;}};
 async function _hsoLoad(){
   if(_hsoLots)return _hsoLots;

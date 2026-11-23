@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700&display=swap">
 <title>Proforma — Prodiconseil</title>
 <link rel="icon" type="image/png" href="/img/panda.png">
 <!-- Goudy Bookletter 1911 = titre de la FEUILLE A4 (substitut de High Tower Text, police Sage) ;
@@ -130,6 +131,8 @@
   .sheet .zb{position:relative;height:93.80mm;}
   .sheet .nw{white-space:nowrap;}
   .sheet{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.sheet.ar{font-family:'Noto Sans Arabic',Helvetica,Arial,sans-serif;}
+.sheet.ar .bq .eng{font-size:7.9pt!important;}
   .sheet .pagenum{position:absolute;left:167.44mm;top:3.03mm;font-size:8.82pt;font-weight:700;}
   .sheet .logo{position:absolute;left:5.75mm;top:4.28mm;width:58.63mm;height:auto;} /* mesuré sur DE43163 : le panda ne touche plus « Ivry » */
   .sheet .adr0{position:absolute;left:8.03mm;top:12.63mm;font-size:8.87pt;font-weight:400;white-space:nowrap;}
@@ -407,7 +410,7 @@ html.cat-unlocked #cat-gate{display:none !important;}
 
   <!-- ═══ FORMULAIRE ═══ -->
   <div class="panel">
-    <select id="c-lang" hidden onchange="langChange()"><option value="fr">Français</option><option value="en">English</option></select>
+    <select id="c-lang" hidden onchange="langChange()"><option value="fr">Français</option><option value="en">English</option><option value="tr">Türkçe</option><option value="ar">العربية</option></select>
     <select id="c-soc" hidden onchange="socChange()"><option value="prodi">Prodiconseil</option><option value="woluwe">Woluwe Paper</option></select>
     <select id="c-dev" hidden onchange="devChange()"><option value="eur">€ Euro</option><option value="usd">$ Dollar US</option></select>
 
@@ -415,6 +418,8 @@ html.cat-unlocked #cat-gate{display:none !important;}
       <div class="seg2" id="pill-lang">
         <label class="check"><input type="radio" name="pill-l" checked onchange="pillLang('fr')"><span>FR</span></label>
         <label class="check"><input type="radio" name="pill-l" onchange="pillLang('en')"><span>EN</span></label>
+        <label class="check"><input type="radio" name="pill-l" onchange="pillLang('tr')"><span>TR</span></label>
+        <label class="check"><input type="radio" name="pill-l" onchange="pillLang('ar')"><span>AR</span></label>
       </div>
       <div class="seg2" id="pill-dev">
         <label class="check"><input type="radio" name="pill-d" checked onchange="pillDev('eur')"><span>€</span></label>
@@ -580,62 +585,68 @@ let lignes=[];
 let numero=null;
 
 // ── Langue + devise du DOCUMENT (le formulaire reste en français) ──
-let LANG='fr',DEV='eur',SOC='prodi'; // SOC = société émettrice : prodi | woluwe (gabarit bleu Woluwe)
+let LANG='fr',DEV='eur',SOC='prodi';
+/* 23/11/2026 : turc et arabe. INL = textes en ligne (clé = français) ; TX(fr,en) rend la langue courante, repli anglais. */
+const INL={"TOTAL AMOUNT ": {"tr": "TOPLAM TUTAR ", "ar": "المبلغ الإجمالي "}, "MONTANT TOTAL COÛT ET FRET": {"tr": "TOPLAM MAL VE NAVLUN TUTARI", "ar": "المبلغ الإجمالي للتكلفة والشحن"}, "Bénéficiaire": {"tr": "Lehtar", "ar": "المستفيد"}, "Banque du Bénéficiaire": {"tr": "Lehtarın bankası", "ar": "بنك المستفيد"}, "Banque notificatrice & confirmatrice": {"tr": "İhbar ve teyit bankası", "ar": "البنك المبلّغ والمعزّز"}, "PROFORMA NUMÉRO :": {"tr": "PROFORMA NO :", "ar": "رقم الفاتورة الأولية :"}, "Exportation hors UE exonérée de la TVA belge\n(art.39 du Code de la TVA)": {"tr": "AB dışı ihracat, Belçika KDV'sinden muaf\n(KDV Kanunu md. 39)", "ar": "تصدير خارج الاتحاد الأوروبي معفى من ضريبة القيمة المضافة البلجيكية\n(المادة 39 من قانون الضريبة)"}, "Ref. Interne :": {"tr": "Dahili ref. :", "ar": "المرجع الداخلي :"}, "Référence :": {"tr": "Referans :", "ar": "المرجع :"}, "QTE (KG)": {"tr": "MİKTAR (KG)", "ar": "الكمية (كغ)"}, "PRIX": {"tr": "FİYAT", "ar": "السعر"}, "PORT DE CHARGEMENT:": {"tr": "YÜKLEME LİMANI:", "ar": "ميناء الشحن:"}, "QTE TOTALE (KG):": {"tr": "TOPLAM MİKTAR (KG):", "ar": "الكمية الإجمالية (كغ):"}, "Facture Proforma valable 30 jours selon nos conditions générales de vente": {"tr": "Proforma fatura genel satış koşullarımıza göre 30 gün geçerlidir", "ar": "الفاتورة الأولية صالحة 30 يوماً وفق شروط البيع العامة لدينا"}, "QUANTITE: TOLERANCE +/-5%": {"tr": "MİKTAR: TOLERANS +/-5%", "ar": "الكمية: تفاوت +/-5%"}, "MARCHANDISE D'ORIGINE UNION EUROPEENNE": {"tr": "AVRUPA BİRLİĞİ MENŞELİ MAL", "ar": "بضاعة من منشأ الاتحاد الأوروبي"}, "MARCHANDISE D'ORIGINE : ": {"tr": "MAL MENŞEİ : ", "ar": "منشأ البضاعة : "}, "MONTANT FOB:": {"tr": "FOB TUTARI:", "ar": "مبلغ FOB:"}, "MONTANT FRET:": {"tr": "NAVLUN TUTARI:", "ar": "مبلغ الشحن:"}, "PAYS D'ORIGINE:": {"tr": "MENŞE ÜLKE:", "ar": "بلد المنشأ:"}, "PAYS DE PROVENANCE:": {"tr": "SEVKİYAT ÜLKESİ:", "ar": "بلد الشحن:"}, "PAIEMENT: ": {"tr": "ÖDEME: ", "ar": "الدفع: "}, "BANQUE DU CLIENT:": {"tr": "MÜŞTERİNİN BANKASI:", "ar": "بنك العميل:"}, "REFERENCE USINE: ": {"tr": "FABRİKA REFERANSI: ", "ar": "مرجع المصنع: "}, "Facture proforma ": {"tr": "Proforma fatura ", "ar": "فاتورة أولية "}, "FRET MARITIME": {"tr": "DENİZ NAVLUNU", "ar": "الشحن البحري"}, "PN": {"tr": "NA", "ar": "الصافي"}, "P.U": {"tr": "B.F", "ar": "السعر"}, "Montant HT": {"tr": "Tutar", "ar": "المبلغ"}, "Poids Total": {"tr": "Toplam ağırlık", "ar": "الوزن الإجمالي"}, "TOLÉRANCE": {"tr": "TOLERANS", "ar": "تفاوت"}, "PAR REMISE DOCUMENTAIRE PAYABLE A ": {"tr": "VESAİK MUKABİLİ ÖDEME, KONŞİMENTO TARİHİNDEN İTİBAREN ", "ar": "دفع مقابل المستندات، مستحق بعد "}, " JOURS DATE DE BL": {"tr": " GÜN SONRA", "ar": " يوماً من تاريخ بوليصة الشحن"}};
+function TX(fr,en){if(LANG==='fr')return fr;if(LANG==='en')return en;const i=INL[fr];return (i&&i[LANG])||en;}
+const LANG_OK={fr:1,en:1,tr:1,ar:1}; // SOC = société émettrice : prodi | woluwe (gabarit bleu Woluwe)
 let dateDoc=null; // date du document (génération / reprise) — sinon aujourd'hui
 const SYM=()=>DEV==='usd'?'$':'€';
 const I18N={
   // lignes posées une par une aux positions Sage (gen_sheet.py)
-  exo0:{fr:'Exonération de TVA :',en:'VAT exemption:'},
-  exo1:{fr:'Export hors UE: Article 262, I du CGI',en:'Export outside the EU: Article 262, I of the French CGI'},
-  exo2:{fr:'Livraison intracommunautaire: Article 262 ter, I du CGI',en:'Intra-Community supply: Article 262 ter, I of the French CGI'},
-  rge0:{fr:'Valable 10 jours sauf vente entre temps',en:'Valid 10 days subject to prior sale'},
-  rge1:{fr:'La confirmation de commande suivra',en:'Order confirmation to follow'},
-  comm:{fr:'Votre commercial :',en:'Your sales contact:'},
-  numero:{fr:'NUMERO',en:'NUMBER'},date:{fr:'DATE',en:'DATE'},reference:{fr:'REFERENCE',en:'REFERENCE'},
-  refint:{fr:'Ref. Interne :',en:'Internal ref.:'},
-  rc:{fr:'N° intra./RC :',en:'VAT No. / Reg.:'},
-  livr:{fr:'Conditions de livraison',en:'Delivery terms'},
-  orig:{fr:"Pays d'origine :",en:'Country of origin:'},
-  prov:{fr:'Pays de provenance :',en:'Country of dispatch:'},
-  c_ref:{fr:'Référence',en:'Reference'},c_des:{fr:'Désignation',en:'Description'},
-  usine:{fr:'REFERENCE USINE :',en:'MILL REFERENCE:'},
-  fob:{fr:'MONTANT FOB :',en:'FOB AMOUNT:'},
-  fret:{fr:'MONTANT DU FRET :',en:'FREIGHT AMOUNT:'},
-  cf:{fr:'MONTANT COÛT ET FRET :',en:'COST AND FREIGHT AMOUNT:'},
-  douane:{fr:'CODE DOUANIER :',en:'HS CODE:'},
-  tol:{fr:'TOLÉRANCE +/- 10%',en:'TOLERANCE +/- 10%'},
-  ht:{fr:'Total HT',en:'Subtotal'},ttc:{fr:'Total TTC',en:'Total'},
-net:{fr:'NET A PAYER',en:'NET PAYABLE'},
-  paie:{fr:'CONDITIONS DE PAIEMENT :',en:'PAYMENT TERMS:'},
-  banqcli:{fr:'Banque du client :',en:"Customer's bank:"},
-  bank:{fr:'BANQUE PRODICONSEIL',en:'PRODICONSEIL BANK'},
-  bcode:{fr:'CODE',en:'CODE'},bguichet:{fr:'GUICHET',en:'BRANCH'},bcompte:{fr:'COMPTE',en:'ACCOUNT'},brib:{fr:'RIB',en:'KEY'},
-  eng0:{fr:'Je confirme mon accord sur cette proforma',en:'I confirm my agreement with this proforma'},
-  eng1:{fr:'et les conditions de vente :',en:'and the sales terms:'},
-  eng2:{fr:"Je m'engage à payer tous les frais et taxes",en:'I undertake to pay all costs and taxes'},
-  eng3:{fr:"s'il y avait un retard, une annulation",en:'in the event of a delay or cancellation'},
-  eng4:{fr:'hors du pays de départ des marchandises.',en:'outside the country of departure of the goods.'},
-  rsc:{fr:'RENVOYER SIGNÉ ET CACHETÉ',en:'RETURN SIGNED AND STAMPED'},
-  titre_eur:{fr:'Facture Proforma (Euros)',en:'Proforma Invoice (Euros)'},
-  titre_usd:{fr:'Facture Proforma (Dollars US)',en:'Proforma Invoice (US Dollars)'},
-  v5050a:{fr:'VIREMENT AVANT EXPEDITION',en:'BANK TRANSFER BEFORE SHIPMENT'},
-  v5050b:{fr:'VIREMENT AVANT ENVOI DE DOCUMENTS',en:'BANK TRANSFER BEFORE DOCUMENTS'},
-  vcmd:{fr:'VIREMENT A LA COMMANDE',en:'BANK TRANSFER AT ORDER'},
-  vcad:{fr:'CONTRE DOCUMENTS A VUE',en:'CASH AGAINST DOCUMENTS AT SIGHT'},
-  vlc:{fr:'PAR LETTRE DE CREDIT IRREVOCABLE A VUE',en:'BY IRREVOCABLE LETTER OF CREDIT AT SIGHT'},
+  exo0:{fr:'Exonération de TVA :',en:'VAT exemption:',tr:"KDV muafiyeti:",ar:"إعفاء من ضريبة القيمة المضافة:"},
+  exo1:{fr:'Export hors UE: Article 262, I du CGI',en:'Export outside the EU: Article 262, I of the French CGI',tr:"AB dışı ihracat: Fransız Vergi Kanunu madde 262, I",ar:"تصدير خارج الاتحاد الأوروبي: المادة 262، I من قانون الضرائب الفرنسي"},
+  exo2:{fr:'Livraison intracommunautaire: Article 262 ter, I du CGI',en:'Intra-Community supply: Article 262 ter, I of the French CGI',tr:"AB içi teslimat: Fransız Vergi Kanunu madde 262 ter, I",ar:"تسليم داخل الاتحاد الأوروبي: المادة 262 ter، I من قانون الضرائب الفرنسي"},
+  rge0:{fr:'Valable 10 jours sauf vente entre temps',en:'Valid 10 days subject to prior sale',tr:"10 gün geçerlidir, bu arada satılmamışsa",ar:"صالح لمدة 10 أيام ما لم يُبع قبل ذلك"},
+  rge1:{fr:'La confirmation de commande suivra',en:'Order confirmation to follow',tr:"Sipariş onayı takip edecektir",ar:"سيتبع ذلك تأكيد الطلب"},
+  comm:{fr:'Votre commercial :',en:'Your sales contact:',tr:"Satış temsilciniz:",ar:"مسؤول المبيعات:"},
+  numero:{fr:'NUMERO',en:'NUMBER',tr:"NUMARA",ar:"الرقم"},date:{fr:'DATE',en:'DATE',tr:"TARİH",ar:"التاريخ"},reference:{fr:'REFERENCE',en:'REFERENCE',tr:"REFERANS",ar:"المرجع"},
+  refint:{fr:'Ref. Interne :',en:'Internal ref.:',tr:"Dahili ref.:",ar:"المرجع الداخلي:"},
+  rc:{fr:'N° intra./RC :',en:'VAT No. / Reg.:',tr:"Vergi No. / Sicil:",ar:"الرقم الضريبي / السجل:"},
+  livr:{fr:'Conditions de livraison',en:'Delivery terms',tr:"Teslimat koşulları",ar:"شروط التسليم"},
+  orig:{fr:"Pays d'origine :",en:'Country of origin:',tr:"Menşe ülke:",ar:"بلد المنشأ:"},
+  prov:{fr:'Pays de provenance :',en:'Country of dispatch:',tr:"Sevkiyat ülkesi:",ar:"بلد الشحن:"},
+  c_ref:{fr:'Référence',en:'Reference',tr:"Referans",ar:"المرجع"},c_des:{fr:'Désignation',en:'Description',tr:"Açıklama",ar:"الوصف"},
+  usine:{fr:'REFERENCE USINE :',en:'MILL REFERENCE:',tr:"FABRİKA REFERANSI:",ar:"مرجع المصنع:"},
+  fob:{fr:'MONTANT FOB :',en:'FOB AMOUNT:',tr:"FOB TUTARI:",ar:"مبلغ FOB:"},
+  fret:{fr:'MONTANT DU FRET :',en:'FREIGHT AMOUNT:',tr:"NAVLUN TUTARI:",ar:"مبلغ الشحن:"},
+  cf:{fr:'MONTANT COÛT ET FRET :',en:'COST AND FREIGHT AMOUNT:',tr:"MAL VE NAVLUN TUTARI:",ar:"مبلغ التكلفة والشحن:"},
+  douane:{fr:'CODE DOUANIER :',en:'HS CODE:',tr:"GTİP KODU:",ar:"الرمز الجمركي:"},
+  tol:{fr:'TOLÉRANCE +/- 10%',en:'TOLERANCE +/- 10%',tr:"TOLERANS +/- 10%",ar:"تفاوت +/- 10%"},
+  ht:{fr:'Total HT',en:'Subtotal',tr:"Ara toplam",ar:"المجموع الفرعي"},ttc:{fr:'Total TTC',en:'Total',tr:"Toplam",ar:"الإجمالي"},
+net:{fr:'NET A PAYER',en:'NET PAYABLE',tr:"ÖDENECEK NET",ar:"صافي المستحق"},
+  paie:{fr:'CONDITIONS DE PAIEMENT :',en:'PAYMENT TERMS:',tr:"ÖDEME KOŞULLARI:",ar:"شروط الدفع:"},
+  banqcli:{fr:'Banque du client :',en:"Customer's bank:",tr:"Müşterinin bankası:",ar:"بنك العميل:"},
+  bank:{fr:'BANQUE PRODICONSEIL',en:'PRODICONSEIL BANK',tr:"PRODICONSEIL BANKASI",ar:"بنك PRODICONSEIL"},
+  bcode:{fr:'CODE',en:'CODE',tr:"KOD",ar:"الرمز"},bguichet:{fr:'GUICHET',en:'BRANCH',tr:"ŞUBE",ar:"الفرع"},bcompte:{fr:'COMPTE',en:'ACCOUNT',tr:"HESAP",ar:"الحساب"},brib:{fr:'RIB',en:'KEY',tr:"RIB",ar:"RIB"},
+  eng0:{fr:'Je confirme mon accord sur cette proforma',en:'I confirm my agreement with this proforma',tr:"Bu proformayı onayladığımı beyan ederim",ar:"أؤكد موافقتي على هذه الفاتورة الأولية"},
+  eng1:{fr:'et les conditions de vente :',en:'and the sales terms:',tr:"ve satış koşullarını:",ar:"وعلى شروط البيع:"},
+  eng2:{fr:"Je m'engage à payer tous les frais et taxes",en:'I undertake to pay all costs and taxes',tr:"Tüm masraf ve vergileri ödemeyi taahhüt ederim",ar:"أتعهد بدفع جميع التكاليف والضرائب"},
+  eng3:{fr:"s'il y avait un retard, une annulation",en:'in the event of a delay or cancellation',tr:"gecikme veya iptal halinde",ar:"في حال التأخير أو الإلغاء"},
+  eng4:{fr:'hors du pays de départ des marchandises.',en:'outside the country of departure of the goods.',tr:"malların çıkış ülkesi dışında.",ar:"خارج بلد مغادرة البضائع."},
+  rsc:{fr:'RENVOYER SIGNÉ ET CACHETÉ',en:'RETURN SIGNED AND STAMPED',tr:"İMZALI VE KAŞELİ OLARAK İADE EDİNİZ",ar:"يُعاد موقّعاً ومختوماً"},
+  titre_eur:{fr:'Facture Proforma (Euros)',en:'Proforma Invoice (Euros)',tr:"Proforma Fatura (Euro)",ar:"فاتورة أولية (يورو)"},
+  titre_usd:{fr:'Facture Proforma (Dollars US)',en:'Proforma Invoice (US Dollars)',tr:"Proforma Fatura (ABD Doları)",ar:"فاتورة أولية (دولار أمريكي)"},
+  v5050a:{fr:'VIREMENT AVANT EXPEDITION',en:'BANK TRANSFER BEFORE SHIPMENT',tr:"SEVKİYATTAN ÖNCE HAVALE",ar:"تحويل مصرفي قبل الشحن"},
+  v5050b:{fr:'VIREMENT AVANT ENVOI DE DOCUMENTS',en:'BANK TRANSFER BEFORE DOCUMENTS',tr:"BELGELER GÖNDERİLMEDEN ÖNCE HAVALE",ar:"تحويل مصرفي قبل إرسال المستندات"},
+  vcmd:{fr:'VIREMENT A LA COMMANDE',en:'BANK TRANSFER AT ORDER',tr:"SİPARİŞTE HAVALE",ar:"تحويل مصرفي عند الطلب"},
+  vcad:{fr:'CONTRE DOCUMENTS A VUE',en:'CASH AGAINST DOCUMENTS AT SIGHT',tr:"VESAİK MUKABİLİ GÖRÜLDÜĞÜNDE ÖDEME",ar:"دفع مقابل المستندات عند الاطلاع"},
+  vlc:{fr:'PAR LETTRE DE CREDIT IRREVOCABLE A VUE',en:'BY IRREVOCABLE LETTER OF CREDIT AT SIGHT',tr:"GAYRİ KABİLİ RÜCU GÖRÜLDÜĞÜNDE ÖDEMELİ AKREDİTİF İLE",ar:"باعتماد مستندي غير قابل للإلغاء مستحق عند الاطلاع"},
 };
 
 function applyLang(){
-  document.querySelectorAll('[data-t]').forEach(el=>{el.innerHTML=I18N[el.dataset.t][LANG];});
-  document.getElementById('sheet').classList.toggle('en',LANG==='en');
+  document.querySelectorAll('[data-t]').forEach(el=>{const d=I18N[el.dataset.t];el.innerHTML=(d&&(d[LANG]||d.en))||'';});
+  document.getElementById('sheet').classList.toggle('en',LANG!=='fr');
+  document.getElementById('sheet').classList.toggle('ar',LANG==='ar');
+  try{document.documentElement.setAttribute('lang',LANG);}catch(e){}
   const _ti=document.getElementById('p-titre');
-  _ti.textContent=I18N[DEV==='usd'?'titre_usd':'titre_eur'][LANG];
+  _ti.textContent=(I18N[DEV==='usd'?'titre_usd':'titre_eur'][LANG])||I18N[DEV==='usd'?'titre_usd':'titre_eur'].en;
   _ti.style.fontSize=_ti.textContent.length>24?'21pt':''; // « (Dollars US) » : tient sur une ligne
   // en-têtes Sage : libellé gras + unité maigre « P.U (€) », « Montant HT(€) »
-  document.getElementById('th-pn').innerHTML=(LANG==='en'?'Net wt':'PN')+' <small>(kg)</small>';
-  document.getElementById('th-pu').innerHTML=(LANG==='en'?'Price':'P.U')+' <small>('+SYM()+')</small>';
-  document.getElementById('th-mt').innerHTML=(LANG==='en'?'Amount':'Montant HT')+'<small>('+SYM()+')</small>';
-  document.getElementById('th-poids').innerHTML=(LANG==='en'?'Total weight':'Poids Total')+' <small>(kg)</small>';
+  document.getElementById('th-pn').innerHTML=TX('PN','Net wt')+' <small>(kg)</small>';
+  document.getElementById('th-pu').innerHTML=TX('P.U','Price')+' <small>('+SYM()+')</small>';
+  document.getElementById('th-mt').innerHTML=TX('Montant HT','Amount')+'<small>('+SYM()+')</small>';
+  document.getElementById('th-poids').innerHTML=TX('Poids Total','Total weight')+' <small>(kg)</small>';
   document.querySelectorAll('.devsym').forEach(el=>el.textContent=SYM());
   const cf=document.getElementById('c-fret');
   if(cf)cf.placeholder='MONTANT DU FRET ('+SYM()+')';
@@ -643,7 +654,7 @@ function applyLang(){
 // pilules langue/devise → pilotent les <select> cachés (compatible préremplissage MCP)
 function syncPills(){
   const pl=document.querySelectorAll('#pill-lang input'),pd=document.querySelectorAll('#pill-dev input');
-  if(pl.length===2){pl[0].checked=LANG==='fr';pl[1].checked=LANG==='en';}
+  if(pl.length>=2){const ordre=['fr','en','tr','ar'];pl.forEach((p,i)=>{p.checked=LANG===ordre[i];});}
   if(pd.length===2){pd[0].checked=DEV==='eur';pd[1].checked=DEV==='usd';}
   const ps=document.querySelectorAll('#pill-soc input');if(ps.length===2){ps[0].checked=SOC==='prodi';ps[1].checked=SOC==='woluwe';}
 }
@@ -651,7 +662,7 @@ function pillSoc(v){document.getElementById('c-soc').value=v;socChange();}
 function socChange(){SOC=document.getElementById('c-soc').value==='woluwe'?'woluwe':'prodi';document.getElementById('sheet').classList.toggle('woluwe',SOC==='woluwe');syncPills();maj();}
 function pillLang(v){document.getElementById('c-lang').value=v;langChange();}
 function pillDev(v){document.getElementById('c-dev').value=v;devChange(true);}
-function langChange(){LANG=document.getElementById('c-lang').value;syncPills();applyLang();maj();}
+function langChange(){LANG=document.getElementById('c-lang').value;if(!LANG_OK[LANG])LANG='fr';syncPills();applyLang();maj();}
 // TAUX BCE €→$ du jour (api.frankfurter.dev, jamais .app = 301), caché 1 jour
 async function tauxUSD(){
   try{const c=JSON.parse(localStorage.getItem('prodi_prof_usd')||'null');if(c&&c.d===new Date().toISOString().slice(0,10)&&c.r>0)return c.r;}catch(e){}
@@ -679,7 +690,7 @@ async function devChange(conv){
   syncPills();applyLang();renderForm();maj();
 }
 
-const _loc=()=>LANG==='en'?'en-US':'fr-FR';
+const _loc=()=>LANG==='fr'?'fr-FR':'en-US';
 const eur=n=>n.toLocaleString(_loc(),{minimumFractionDigits:2,maximumFractionDigits:2});
 // montants des lignes et du tableau des totaux SANS séparateur de milliers, comme Sage (« 10016,58 »)
 const eurS=n=>n.toLocaleString(_loc(),{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:false});
@@ -748,7 +759,7 @@ function maj(){
   { const pays=(v('c-nom')+' '+v('c-lieu')).toUpperCase(); // 10/11 : libellé devant l'identifiant (pseudo-élément, hors texte éditable)
     document.getElementById('p-ident').dataset.l=/MAROC|MOROCCO/.test(pays)?'ICE : ':/SENEGAL|SÉNÉGAL/.test(pays)?'NINEA : ':'NIF : ';
     // 11/11 (Véronique) : Algérie = tolérance +/-5 % toujours, jamais 10 %
-    const tol=document.querySelector('.sheet [data-t="tol"]'); if(tol) tol.textContent=(LANG==='en'?'TOLERANCE':'TOLÉRANCE')+(/ALGERIE|ALGÉRIE|ALGERIA|ALGER\b|ORAN\b|ANNABA|BEJAIA|BÉJAÏA|SKIKDA|MOSTAGANEM/.test(pays)?' +/- 5%':' +/- 10%'); }
+    const tol=document.querySelector('.sheet [data-t="tol"]'); if(tol) tol.textContent=TX('TOLÉRANCE','TOLERANCE')+(/ALGERIE|ALGÉRIE|ALGERIA|ALGER\b|ORAN\b|ANNABA|BEJAIA|BÉJAÏA|SKIKDA|MOSTAGANEM/.test(pays)?' +/- 5%':' +/- 10%'); }
   _T('p-banque',v('c-banque'));
   _T('p-inco',v('c-inco'));
   _T('p-lieu',v('c-lieu'));
@@ -824,43 +835,43 @@ function majWoluwe(t){
   // 09/11 Ethan : remise documentaire à terme = « PAR REMISE DOCUMENTAIRE PAYABLE A 59 JOURS DATE DE BL »
   // (jamais « 59JRS », D/P, D/A ni « documents against… ») — nombre de jours repris tel quel
   const paieW=(()=>{const u=paie.toUpperCase();const m=u.match(/REMISE\s+DOC\w*.*?(\d+)\s*(J(OU)?RS?|JOURS?|DAYS?)\b/)||u.match(/(\d+)\s*(J(OU)?RS?|JOURS?)\b.*DATE\s+DE\s+BL/);
-    return m?(en?'BY DOCUMENTARY COLLECTION PAYABLE AT '+m[1]+' DAYS FROM B/L DATE':'PAR REMISE DOCUMENTAIRE PAYABLE A '+m[1]+' JOURS DATE DE BL'):u;})();
+    return m?(LANG==='en'?'BY DOCUMENTARY COLLECTION PAYABLE AT '+m[1]+' DAYS FROM B/L DATE':TX('PAR REMISE DOCUMENTAIRE PAYABLE A ','')+m[1]+TX(' JOURS DATE DE BL','')):u;})();
   const ue=UE.includes(orig);
-  const totLib=(t.sansFret?(en?'TOTAL AMOUNT ':'MONTANT TOTAL ')+inco:(en?'TOTAL AMOUNT COST AND FREIGHT':'MONTANT TOTAL COÛT ET FRET'))+(lieu?' : '+lieu:'');
+  const totLib=(t.sansFret?TX('MONTANT TOTAL ','TOTAL AMOUNT ')+inco:TX('MONTANT TOTAL COÛT ET FRET','TOTAL AMOUNT COST AND FREIGHT'))+(lieu?' : '+lieu:'');
   const cli=[v('c-nom')||'CLIENT',v('c-ident'),v('c-rc')].filter(Boolean).join('\n');
-  const bqKBC=(en?'Beneficiary':'Bénéficiaire')+' : WOLUWE PAPER SRL, Avenue Louise 143/4, 1050 Bruxelles, Belgique\n'
-    +(en?"Beneficiary's bank":'Banque du Bénéficiaire')+': KBC Brussels - IBAN : BE43 7380 5502 6001\n'
-    +(en?'Advising & confirming bank':'Banque notificatrice & confirmatrice')+' (Champ 57a du MT700 « Advise Through Bank ») :\n'
+  const bqKBC=TX('Bénéficiaire','Beneficiary')+' : WOLUWE PAPER SRL, Avenue Louise 143/4, 1050 Bruxelles, Belgique\n'
+    +TX('Banque du Bénéficiaire',"Beneficiary's bank")+': KBC Brussels - IBAN : BE43 7380 5502 6001\n'
+    +TX('Banque notificatrice & confirmatrice','Advising & confirming bank')+' (Champ 57a du MT700 « Advise Through Bank ») :\n'
     +'KBC Bank NV - Trade Finance , Havenlaan 2 – 1080 Bruxelles, BELGIQUE\nCode SWIFT / BIC : KREDBEBB';
   document.getElementById('wsheet').innerHTML=`
     <div class="wt">WOLUWE PAPER SRL</div>
     <div class="wa" style="top:22.4mm">Avenue Louise 143/4, 1050 Bruxelles, BELGIQUE</div>
     <div class="wa" style="top:27.6mm">BCE : 1041.427.137 - RPM Bruxelles - N° EORI : BE1041427137</div>
     <div class="wa b" style="top:32.8mm">Tel : +32 (0) 470 32 78 84 | Email: contact@woluwepaper.be</div>
-    <div class="wnum" style="top:47mm">${en?'PROFORMA INVOICE No :':'PROFORMA NUMÉRO :'} ${esc(v('c-num').trim().toUpperCase()||numero||'—')}</div>
+    <div class="wnum" style="top:47mm">${TX('PROFORMA NUMÉRO :','PROFORMA INVOICE No :')} ${esc(v('c-num').trim().toUpperCase()||numero||'—')}</div>
     <div class="wnum" style="top:54.5mm">DATE : ${new Date(dateDoc||Date.now()).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'2-digit'})}</div>
-    <div class="wexo" data-s="exo" ${ed}>${tx('exo',en?'Export outside the EU exempt from Belgian VAT\n(art.39 of the VAT Code)':'Exportation hors UE exonérée de la TVA belge\n(art.39 du Code de la TVA)')}</div>
+    <div class="wexo" data-s="exo" ${ed}>${tx('exo',TX('Exportation hors UE exonérée de la TVA belge\n(art.39 du Code de la TVA)','Export outside the EU exempt from Belgian VAT\n(art.39 of the VAT Code)'))}</div>
     <div class="wcli"><div class="wcn" data-f="cli" ${ed}>${esc(cli)}</div>
-      <div class="ri">Ref. Interne : <span data-f="c-refint" ${ed}>${esc(v('c-refint'))}</span></div>
-      ${v('c-ref')?`<div class="ri">${en?'Reference :':'Référence :'} <span data-f="c-ref" ${ed}>${esc(v('c-ref'))}</span></div>`:''}</div>
+      <div class="ri">${TX('Ref. Interne :','Internal ref.:')} <span data-f="c-refint" ${ed}>${esc(v('c-refint'))}</span></div>
+      ${v('c-ref')?`<div class="ri">${TX('Référence :','Reference :')} <span data-f="c-ref" ${ed}>${esc(v('c-ref'))}</span></div>`:''}</div>
     <div class="wtab">
       <table><colgroup><col><col style="width:24mm"><col style="width:27mm"><col style="width:33mm"></colgroup>
-        <tr class="wh"><th>DESCRIPTION</th><th>${en?'QTY (KG)':'QTE (KG)'}</th><th>${en?'PRICE':'PRIX'} ${DEV==='usd'?'USD':'EUR'} (${S})</th><th>TOTAL (${S})</th></tr>
+        <tr class="wh"><th>DESCRIPTION</th><th>${TX('QTE (KG)','QTY (KG)')}</th><th>${TX('PRIX','PRICE')} ${DEV==='usd'?'USD':'EUR'} (${S})</th><th>TOTAL (${S})</th></tr>
         <tr class="wl"><td class="d">${cd}</td><td class="q">${cq}</td><td class="p">${cp}</td><td class="t">${ct}</td></tr>
-        <tr class="wf"><td class="wpc">${en?'PORT OF LOADING:':'PORT DE CHARGEMENT:'} <span data-s="pchg" ${ed}>${tx('pchg','')}</span><span class="wqt">${en?'TOTAL QTY (KG):':'QTE TOTALE (KG):'}</span></td><td class="q">${Math.round(t.poids)}</td><td colspan="2" class="wnr"></td></tr>
+        <tr class="wf"><td class="wpc">${TX('PORT DE CHARGEMENT:','PORT OF LOADING:')} <span data-s="pchg" ${ed}>${tx('pchg','')}</span><span class="wqt">${TX('QTE TOTALE (KG):','TOTAL QTY (KG):')}</span></td><td class="q">${Math.round(t.poids)}</td><td colspan="2" class="wnr"></td></tr>
         <tr class="wtot"><td colspan="4"><span data-s="totlib" ${ed}>${tx('totlib',totLib)}</span><b>${nz(t.total,2)}${S}</b></td></tr>
       </table>
       <div class="wbas">
-        <div class="wbg" data-s="cond" ${ed}>${tx('cond',(en?'Proforma invoice valid 30 days according to our general terms of sale':'Facture Proforma valable 30 jours selon nos conditions générales de vente')+'\n'
-          +(en?'QUANTITY: TOLERANCE +/-5%':'QUANTITE: TOLERANCE +/-5%')
-          +(orig?'\n'+(ue?(en?'GOODS OF EUROPEAN UNION ORIGIN':"MARCHANDISE D'ORIGINE UNION EUROPEENNE"):(en?'GOODS ORIGIN: ':"MARCHANDISE D'ORIGINE : ")+orig):''))}</div>
-        ${t.sansFret?'':`<div class="wbd"><div>${en?'FOB AMOUNT:':'MONTANT FOB:'} <b>${nz(t.fob,2)}</b> &nbsp;${S}</div><div>${en?'FREIGHT AMOUNT:':'MONTANT FRET:'} <b data-f="c-fret" ${ed}>${t.fret?nz(t.fret,2):''}</b> &nbsp;${S}</div></div>`}
+        <div class="wbg" data-s="cond" ${ed}>${tx('cond',TX('Facture Proforma valable 30 jours selon nos conditions générales de vente','Proforma invoice valid 30 days according to our general terms of sale')+'\n'
+          +TX('QUANTITE: TOLERANCE +/-5%','QUANTITY: TOLERANCE +/-5%')
+          +(orig?'\n'+(ue?TX("MARCHANDISE D'ORIGINE UNION EUROPEENNE",'GOODS OF EUROPEAN UNION ORIGIN'):TX("MARCHANDISE D'ORIGINE : ",'GOODS ORIGIN: ')+orig):''))}</div>
+        ${t.sansFret?'':`<div class="wbd"><div>${TX('MONTANT FOB:','FOB AMOUNT:')} <b>${nz(t.fob,2)}</b> &nbsp;${S}</div><div>${TX('MONTANT FRET:','FREIGHT AMOUNT:')} <b data-f="c-fret" ${ed}>${t.fret?nz(t.fret,2):''}</b> &nbsp;${S}</div></div>`}
       </div>
-      <div class="wpays">${en?'COUNTRY OF ORIGIN:':"PAYS D'ORIGINE:"} <span data-f="c-orig" ${ed}>${esc(orig)}</span></div>
-      <div class="wpays">${en?'COUNTRY OF SHIPMENT:':'PAYS DE PROVENANCE:'} <span data-f="c-prov" ${ed}>${esc(prov)}</span></div>
-      <div class="wpaie">${en?'PAYMENT: ':'PAIEMENT: '}<span data-s="paie" ${ed}>${tx('paie',paieW)}</span></div>
-      <div class="wbqc"><span>${en?"CUSTOMER'S BANK:":'BANQUE DU CLIENT:'}</span><div data-f="c-banque" ${ed}>${esc(v('c-banque'))}</div></div>
-      ${v('c-usine')?'<div class="wpays">'+(en?'MILL REFERENCE: ':'REFERENCE USINE: ')+esc(v('c-usine'))+'</div>':''}
+      <div class="wpays">${TX("PAYS D'ORIGINE:",'COUNTRY OF ORIGIN:')} <span data-f="c-orig" ${ed}>${esc(orig)}</span></div>
+      <div class="wpays">${TX('PAYS DE PROVENANCE:','COUNTRY OF SHIPMENT:')} <span data-f="c-prov" ${ed}>${esc(prov)}</span></div>
+      <div class="wpaie">${TX('PAIEMENT: ','PAYMENT: ')}<span data-s="paie" ${ed}>${tx('paie',paieW)}</span></div>
+      <div class="wbqc"><span>${TX('BANQUE DU CLIENT:',"CUSTOMER'S BANK:")}</span><div data-f="c-banque" ${ed}>${esc(v('c-banque'))}</div></div>
+      ${v('c-usine')?'<div class="wpays">'+TX('REFERENCE USINE: ','MILL REFERENCE: ')+esc(v('c-usine'))+'</div>':''}
       <div class="wpied"><div class="wbq" data-s="kbc" ${ed}>${tx('kbc',bqKBC)}</div>
         <img class="wcachet" src="cachet_woluwe_tampon.webp" alt="Cachet Woluwe Paper"></div>
     </div>`;
@@ -932,7 +943,7 @@ function reprendreHisto(i){
   set('c-inco',e.inco||'CFR');set('c-lieu',e.lieu);set('c-fret',e.fret||0);if(window.setFretSus)setFretSus(e.fretsus);set('c-orig',e.orig);set('c-prov',e.prov);
   set('c-usine',e.usine);set('c-douane',e.douane);set('c-paiemode',e.paiemode||'5050');set('c-paie',e.paie||'');
   // langue/devise restaurées SANS devChange : les prix stockés sont déjà dans la devise du document
-  LANG=e.lang||'fr';DEV=e.dev||'eur';
+  LANG=LANG_OK[e.lang]?e.lang:'fr';DEV=e.dev||'eur';
   document.getElementById('c-lang').value=LANG;
   document.getElementById('c-dev').value=DEV;
   SOC=e.soc==='woluwe'?'woluwe':'prodi';document.getElementById('c-soc').value=SOC;document.getElementById('sheet').classList.toggle('woluwe',SOC==='woluwe');
@@ -1099,8 +1110,10 @@ function texteEnvoi(){
   const n=numero||'',en=LANG==='en';
   const cli=(document.getElementById('c-nom').value||'').split('\n')[0].trim();
   const t=totaux(),m=eur(t.total)+' '+SYM();
-  return {sujet:(en?'Proforma invoice ':'Facture proforma ')+n+(cli?' - '+cli:''),
-    corps:en?`Hello,\n\nPlease find attached our proforma invoice ${n} (${m}).\nKindly return it signed and stamped to confirm the order.\n\nBest regards,`
+  return {sujet:TX('Facture proforma ','Proforma invoice ')+n+(cli?' - '+cli:''),
+    corps:LANG==='tr'?`Merhaba,\n\nEkte ${n} numaralı proforma faturamızı (${m}) bulabilirsiniz.\nSiparişi onaylamak için imzalı ve kaşeli olarak bize geri göndermenizi rica ederiz.\n\nSaygılarımızla,`
+         :LANG==='ar'?`مرحباً،\n\nتجدون طيّه فاتورتنا الأولية ${n} (${m}).\nيرجى إعادتها إلينا موقّعة ومختومة لتأكيد الطلب.\n\nمع أطيب التحيات،`
+         :en?`Hello,\n\nPlease find attached our proforma invoice ${n} (${m}).\nKindly return it signed and stamped to confirm the order.\n\nBest regards,`
             :`Bonjour,\n\nVeuillez trouver ci-joint notre facture proforma ${n} (${m}).\nMerci de nous la retourner signée et cachetée pour confirmer la commande.\n\nCordialement,`};
 }
 async function avecPdf(fn){
@@ -1169,7 +1182,7 @@ fitSheet();
     if(j.soc==='woluwe'){document.getElementById('c-soc').value='woluwe';socChange();}
     if(!j.orig)set('c-orig','FRANCE'); if(!j.prov)set('c-prov','FRANCE'); window._prefill=j;
     if(j.dev==='usd'){document.getElementById('c-dev').value='usd';devChange();}
-    if(j.lang==='en'){document.getElementById('c-lang').value='en';langChange();}
+    if(j.lang&&j.lang!=='fr'&&LANG_OK[j.lang]){document.getElementById('c-lang').value=j.lang;langChange();}
     if(Array.isArray(j.lignes)&&j.lignes.length){
       lignes.length=0;
       j.lignes.forEach(function(l){lignes.push({code:String(l.code||''),des:String(l.des||''),qte:+l.qte||0,pu:+l.pu||0});});
@@ -2046,7 +2059,7 @@ function getHsCode(qualite,gsm,format,couleur,details){
     tb.querySelectorAll('tr.lfret').forEach(tr=>tr.remove());
     if(t.sus){
       const en=LANG==='en',inco=$('c-inco').value,lieu=$('c-lieu').value.trim().toUpperCase();
-      tb.insertAdjacentHTML('beforeend',`<tr class="lfret"><td class="lref">FRET</td><td class="desig">${en?'SEA FREIGHT':'FRET MARITIME'} ${esc(inco)}${lieu?' '+esc(lieu):''}</td><td class="lqte"></td><td class="lpu"></td><td class="lmt">${eurS(t.fret)}</td></tr>`);
+      tb.insertAdjacentHTML('beforeend',`<tr class="lfret"><td class="lref">FRET</td><td class="desig">${TX('FRET MARITIME','SEA FREIGHT')} ${esc(inco)}${lieu?' '+esc(lieu):''}</td><td class="lqte"></td><td class="lpu"></td><td class="lmt">${eurS(t.fret)}</td></tr>`);
     }
     // récap formulaire
     const r=$('fret-recap');
