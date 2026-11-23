@@ -226,12 +226,12 @@
   try{cur.lang=localStorage.getItem('ali_lang')||'fr';}catch(e){}
   try{var c=localStorage.getItem('prodi_ccy');if(c&&/usd/i.test(c))cur.ccy='USD';}catch(e){}
   function label(){
-    document.getElementById('ali-lc-cur').textContent=(cur.lang==='en'?'English':'Français')+'-'+cur.ccy;
+    document.getElementById('ali-lc-cur').textContent=(({fr:'Français',en:'English',tr:'Türkçe',ar:'العربية'})[cur.lang]||'Français')+'-'+cur.ccy;
   }
   var pop=document.createElement('div'); pop.id='ali-lc-pop';
   pop.innerHTML='<div class="lc-title">Sélectionnez une langue et une devise</div>'
     +'<label class="lc-lab" for="lc-lang">Langue</label>'
-    +'<select class="lc-sel" id="lc-lang"><option value="fr">Français</option><option value="en">English</option></select>'
+    +'<select class="lc-sel" id="lc-lang"><option value="fr">Français</option><option value="en">English</option><option value="tr">Türkçe</option><option value="ar">العربية</option></select>'
     +'<label class="lc-lab" for="lc-ccy">Devise</label>'
     +'<select class="lc-sel" id="lc-ccy"><option value="EUR">€ · EUR - Euro</option><option value="USD">$ · USD - Dollar US</option></select>'
     +'<button id="lc-save">Sauvegarder</button>';

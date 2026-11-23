@@ -9907,7 +9907,7 @@ async function _duFillPhotos(rows){
 // du stock. Clic = fiche du lot (photos + toutes les lignes). Prix : comptes autorisés.
 let _hsoLots=null,_hsoLoading=null;
 const _hT=(f,e)=>window.TR?window.TR(f,e):f;
-const _hsoEn=()=>{try{return localStorage.getItem('ali_lang')==='en';}catch(_){return false;}};
+const _hsoEn=()=>{try{const l=localStorage.getItem('ali_lang');return l==='en'||l==='tr'||l==='ar';}catch(_){return false;}};
 async function _hsoLoad(){
   if(_hsoLots)return _hsoLots;
   if(!_hsoLoading)_hsoLoading=fetch(SURL+'/rest/v1/lots_hso?actif=eq.true&select=id,source,source_label,fichier_url,fichier,date_offre,usine,famille,forme,titre,titre_en,lieu,prix_txt,prix_min,tonnage,nb_lignes,lignes,photos&order=date_offre.desc,recu_le.desc',{headers:SB_H})

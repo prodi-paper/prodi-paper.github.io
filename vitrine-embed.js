@@ -14,8 +14,11 @@ const safeUrl = u => {
 // textes que CE script injecte (tuiles, cartes, machine à écrire, messages
 // de formulaire). TR(fr,en) renvoie la chaîne FR d'origine par défaut → le
 // site français est strictement inchangé. ───
-const PLANG = (document.documentElement.lang === 'en') ? 'en' : 'fr';
-const TR = (fr, en) => PLANG === 'en' ? en : fr;
+const PLANG = (['en','tr','ar'].indexOf(document.documentElement.lang) >= 0) ? document.documentElement.lang : 'fr';
+// PEN : contenu rédigé (versos, pages /en/, exemples) — l'anglais sert pour toute langue non française (23/11/2026 : TR/AR)
+const PEN = PLANG !== 'fr';
+// TR(fr,en) : en TR/AR le moteur i18n.js traduit par le texte FR (clé), sinon l'anglais
+const TR = (fr, en) => (window.TR && PLANG !== 'fr' && PLANG !== 'en') ? window.TR(fr, en) : (PLANG === 'en' ? en : fr);
 // (Toast « Navigation PC recommandé » DÉPLACÉ dans le catalogue — 26/08, il ne
 //  concerne que le stock, pas la vitrine.)
 // Message d'attente Turnstile : sert AUSSI de sentinelle (ne pas le compter en
@@ -768,8 +771,8 @@ async function submitRappel(e){
   const TILE_TYPE={ROFF:'Offset',RKRABRUN:'Kraft',R2SC:'Couché 2 faces',RBOA:'Carton couché',RLUX:'Luxe',RCAR:'Autocopiant'};
   wrap.innerHTML=TILES.map((t,i)=>{
     const ttl=TR(t.title,t.title_en||t.title);
-    const verso=(PLANG==='en'&&t.verso_en)?t.verso_en:t.verso;
-    const moreHref=(PLANG==='en')?(t.en?('/en/'+t.en+'/'):('/'+t.slug+'/')):('/'+t.slug+'/');
+    const verso=(PEN&&t.verso_en)?t.verso_en:t.verso;
+    const moreHref=PEN?(t.en?('/en/'+t.en+'/'):('/'+t.slug+'/')):('/'+t.slug+'/');
     return `
     <div class="qtile${t.dark?' dark':''}" id="qtile-${i}">
       <div class="qtile-flip">
@@ -822,7 +825,7 @@ async function submitRappel(e){
     <div class="qcard" onclick="window.prodiTrack?.('qualite_plus',{q:'${esc(c.code)}'});openStock();">
       <img src="${c.img}" alt="${esc(ct)}" loading="lazy">
       <button class="qcard-btn" type="button" onclick="event.stopPropagation();window.prodiTrack?.('qualite_stock',{q:'${esc(c.code)}'});openStock();">${esc(TR('Voir tout le stock →','See all stock →'))}</button>
-    </div>`:(PLANG==='en'?`
+    </div>`:(PEN?`
     <div class="qcard" onclick="window.prodiTrack?.('qualite_plus',{q:'${esc(c.code)}'});openStock('${CARD_TYPE[c.code]||''}');">
       <img src="${c.img}" alt="${esc(ct)}" loading="lazy">
       <span class="qcard-title">${esc(ct)}</span>
@@ -1312,7 +1315,19 @@ function toggleSound(){
 // que les champs ne tapent pas en chœur. ───
 (function(){
   if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const PH=PLANG==='en'?[
+  const PH=PLANG==='tr'?[
+    "20 ton 90 g kahverengi kraft arıyorum…",
+    "64×90 ebatında 135 g kuşe var mı?",
+    "İstanbul için bir konteyner 80 g ofset…",
+    "70 g'da hangi rulo enleri mevcut?",
+    "Güncel stok fazlası teklifinizi gönderin…"
+  ]:PLANG==='ar'?[
+    "أبحث عن 20 طناً من الكرافت البني 90 غ…",
+    "هل لديكم ورق مطلي 135 غ بمقاس 64×90؟",
+    "حاوية أوفست 80 غ إلى الدار البيضاء…",
+    "ما عروض البكرات المتوفرة بوزن 70 غ؟",
+    "أرسلوا لي عرض المخزون الحالي…"
+  ]:PLANG==='en'?[
     "I'm looking for 20 tonnes of 90 gsm brown kraft…",
     "Do you have 135 gsm coated in 64×90?",
     "A container of 80 gsm offset for Lagos…",
