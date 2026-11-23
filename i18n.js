@@ -522,6 +522,7 @@
     "Modifier cette liste dans le catalogue (accès interne)":"Edit this list in the catalogue (internal access)",
     "Prodiconseil — Papier & carton export | Maghreb, Afrique & international":"Prodiconseil — Paper & board export | Maghreb, Africa & worldwide",
     "Contact — Prodiconseil":"Contact — Prodiconseil",
+    "ligne":"line",
     "Prodiconseil — Connexion / Créer un compte":"Prodiconseil — Sign in / Create an account",
     "Email envoyé !":"Email sent!",
     "(Pensez à vérifier les spams.)":"(Remember to check your spam folder.)",
@@ -1256,6 +1257,7 @@
     "Modifier cette liste dans le catalogue (accès interne)":"Bu listeyi katalogda düzenle (dahili erişim)",
     "Prodiconseil — Papier & carton export | Maghreb, Afrique & international":"Prodiconseil — Kağıt ve karton ihracatı | Mağrip, Afrika ve dünya",
     "Contact — Prodiconseil":"İletişim — Prodiconseil",
+    "ligne":"satır",
     "Prodiconseil — Connexion / Créer un compte":"Prodiconseil — Giriş / Hesap oluştur",
     "Email envoyé !":"E-posta gönderildi!",
     "(Pensez à vérifier les spams.)":"(Spam klasörünü kontrol etmeyi unutmayın.)",
@@ -1990,6 +1992,7 @@
     "Modifier cette liste dans le catalogue (accès interne)":"تعديل هذه القائمة في الكتالوج (وصول داخلي)",
     "Prodiconseil — Papier & carton export | Maghreb, Afrique & international":"Prodiconseil — تصدير الورق والكرتون | المغرب العربي وأفريقيا والعالم",
     "Contact — Prodiconseil":"اتصال — Prodiconseil",
+    "ligne":"سطر",
     "Prodiconseil — Connexion / Créer un compte":"Prodiconseil — تسجيل الدخول / إنشاء حساب",
     "Email envoyé !":"تم إرسال البريد الإلكتروني!",
     "(Pensez à vérifier les spams.)":"(لا تنسوا التحقق من مجلد الرسائل غير المرغوبة.)",
@@ -2243,6 +2246,7 @@
     }
     return s;
   }
+  var ECRIT=new WeakMap();   /* nœud texte -> valeur que le moteur y a écrite (23/11 : anti double traduction) */
   function walk(root){
     if(!root)return;
     try{
@@ -2253,8 +2257,9 @@
       tnodes.forEach(function(t){
         var p=t.parentNode; if(!p)return;
         var tag=p.nodeName; if(tag==='SCRIPT'||tag==='STYLE'||tag==='TEXTAREA')return;
+        if(ECRIT.get(t)===t.nodeValue)return;
         var nv=tr1(t.nodeValue);
-        if(nv!==t.nodeValue)t.nodeValue=nv;
+        if(nv!==t.nodeValue){ECRIT.set(t,nv);t.nodeValue=nv;}
       });
       // attributs traduisibles
       var els=root.querySelectorAll?root.querySelectorAll('[placeholder],[title],[aria-label],[alt]'):[];
@@ -2284,7 +2289,8 @@
       var file=[],pend=false;
       function txt(nd){if(!nd||nd.nodeType!==3)return;var p=nd.parentNode;if(!p)return;
         var tg=p.nodeName;if(tg==='SCRIPT'||tg==='STYLE'||tg==='TEXTAREA')return;
-        var nv=tr1(nd.nodeValue);if(nv!==nd.nodeValue)nd.nodeValue=nv;}
+        if(ECRIT.get(nd)===nd.nodeValue)return;   /* texte que NOUS venons d'écrire : jamais retraduit (« Rezerve et » -> « Rezerve & » vu le 23/11) */
+        var nv=tr1(nd.nodeValue);if(nv!==nd.nodeValue){ECRIT.set(nd,nv);nd.nodeValue=nv;}}
       var mo=new MutationObserver(function(muts){
         Array.prototype.push.apply(file,muts);
         if(pend)return; pend=true;
